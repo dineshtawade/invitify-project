@@ -12,10 +12,10 @@ import {
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
-import { 
-    Sparkles, Save, CreditCard, ChevronLeft, Heart, 
-    Cake, Baby, Award, Plus, Trash2, Link, MapPin, 
-    ChevronRight, Move, Maximize, Type, Image as ImageIcon, 
+import {
+    Sparkles, Save, CreditCard, ChevronLeft, Heart,
+    Cake, Baby, Award, Plus, Trash2, Link, MapPin,
+    ChevronRight, Move, Maximize, Type, Image as ImageIcon,
     Smile, Star, Compass
 } from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
@@ -323,16 +323,21 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
     };
 
     const handleUpdateElement = (elementId: string, updates: Partial<ElementConfig>) => {
-        const updatedPages = [...data.custom_config.pages];
-        updatedPages[activePageIndex] = {
-            ...updatedPages[activePageIndex],
-            elements: updatedPages[activePageIndex].elements.map(e => 
-                e.id === elementId ? { ...e, ...updates } : e
-            )
-        };
-        setData('custom_config', {
-            ...data.custom_config,
-            pages: updatedPages
+        setData(prev => {
+            const updatedPages = [...prev.custom_config.pages];
+            updatedPages[activePageIndex] = {
+                ...updatedPages[activePageIndex],
+                elements: updatedPages[activePageIndex].elements.map(e =>
+                    e.id === elementId ? { ...e, ...updates } : e
+                )
+            };
+            return {
+                ...prev,
+                custom_config: {
+                    ...prev.custom_config,
+                    pages: updatedPages
+                }
+            };
         });
     };
 
@@ -349,14 +354,34 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
         setSelectedElementId(null);
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, elementId: string) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, elementId: string) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                handleUpdateElement(elementId, { url: reader.result as string });
-            };
-            reader.readAsDataURL(file);
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                handleUpdateElement(elementId, { url: 'uploading' });
+
+                const response = await fetch('/media/upload', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error('Upload failed');
+                }
+
+                const result = await response.json();
+                handleUpdateElement(elementId, { url: result.url });
+            } catch (err) {
+                console.error(err);
+                alert('Failed to upload image. Please try again.');
+                handleUpdateElement(elementId, { url: '' });
+            }
         }
     };
 
@@ -405,6 +430,98 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
         document.addEventListener('mouseup', handleMouseUp);
     };
 
+    const handlePersonalizeText = (pageIndex: number, elementId: string, value: string) => {
+        const updatedPages = [...data.custom_config.pages];
+        updatedPages[pageIndex] = {
+            ...updatedPages[pageIndex],
+            elements: updatedPages[pageIndex].elements.map(e =>
+                e.id === elementId ? { ...e, content: value } : e
+            )
+        };
+        setData('custom_config', {
+            ...data.custom_config,
+            pages: updatedPages
+        });
+    };
+
+    const handlePersonalizeImage = async (pageIndex: number, elementId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                // Set to uploading
+                setData(prev => {
+                    const updatedPages = [...prev.custom_config.pages];
+                    updatedPages[pageIndex] = {
+                        ...updatedPages[pageIndex],
+                        elements: updatedPages[pageIndex].elements.map(elem =>
+                            elem.id === elementId ? { ...elem, url: 'uploading' } : elem
+                        )
+                    };
+                    return {
+                        ...prev,
+                        custom_config: {
+                            ...prev.custom_config,
+                            pages: updatedPages
+                        }
+                    };
+                });
+
+                const response = await fetch('/media/upload', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error('Upload failed');
+                }
+
+                const result = await response.json();
+
+                setData(prev => {
+                    const updatedPages = [...prev.custom_config.pages];
+                    updatedPages[pageIndex] = {
+                        ...updatedPages[pageIndex],
+                        elements: updatedPages[pageIndex].elements.map(elem =>
+                            elem.id === elementId ? { ...elem, url: result.url } : elem
+                        )
+                    };
+                    return {
+                        ...prev,
+                        custom_config: {
+                            ...prev.custom_config,
+                            pages: updatedPages
+                        }
+                    };
+                });
+            } catch (err) {
+                console.error(err);
+                alert('Failed to upload image. Please try again.');
+                setData(prev => {
+                    const updatedPages = [...prev.custom_config.pages];
+                    updatedPages[pageIndex] = {
+                        ...updatedPages[pageIndex],
+                        elements: updatedPages[pageIndex].elements.map(elem =>
+                            elem.id === elementId ? { ...elem, url: '' } : elem
+                        )
+                    };
+                    return {
+                        ...prev,
+                        custom_config: {
+                            ...prev.custom_config,
+                            pages: updatedPages
+                        }
+                    };
+                });
+            }
+        }
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head>
@@ -414,7 +531,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&display=swap" rel="stylesheet" />
             </Head>
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
-                
+
                 {/* Header Actions */}
                 <div className="flex items-center justify-between gap-4">
                     <a
@@ -444,550 +561,99 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
 
                 {/* Editor Split-Screen Layout */}
                 <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr] flex-1">
-                    
+
                     {/* Left Form Editor Controls */}
                     <div className="rounded-xl border border-neutral-250 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900 flex flex-col min-h-[550px] overflow-hidden">
-                        
-                        {/* Tab Headers */}
-                        <div className="flex border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/20">
-                            {[
-                                { id: 'pages', label: 'Pages & Sizing', icon: Compass },
-                                { id: 'text', label: 'Text Field', icon: Type },
-                                { id: 'image', label: 'Images', icon: ImageIcon },
-                                { id: 'icon', label: 'Icons & Emojis', icon: Smile },
-                                { id: 'link', label: 'Map Links', icon: Link },
-                            ].map((tab) => {
-                                const Icon = tab.icon;
-                                return (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => setActiveTab(tab.id as any)}
-                                        className={`flex-1 py-3 px-2 text-xs font-semibold flex flex-col md:flex-row items-center justify-center gap-1.5 border-b-2 transition-all ${
-                                            activeTab === tab.id
-                                                ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 bg-white dark:bg-neutral-900'
-                                                : 'border-transparent text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100/30 dark:text-neutral-400 dark:hover:text-neutral-200'
-                                        }`}
-                                    >
-                                        <Icon className="size-4" />
-                                        <span>{tab.label}</span>
-                                    </button>
-                                );
-                            })}
+                        <div className="p-6 border-b bg-neutral-50 dark:bg-neutral-950/20">
+                            <h2 className="text-lg font-bold flex items-center gap-2">
+                                <Sparkles className="size-5 text-indigo-650" /> Personalize Invitation Card
+                            </h2>
+                            <p className="text-xs text-neutral-500 mt-1">Replace the content in the fields below. Card layout, borders, themes, fonts, and designs are secured.</p>
                         </div>
 
-                        {/* Tab Content & Sidebar Form */}
                         <div className="p-6 flex-1 overflow-y-auto flex flex-col gap-6">
-                            
-                            {activeTab === 'pages' && (
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex flex-col gap-1.5">
-                                        <h3 className="font-bold text-sm text-neutral-800 dark:text-neutral-200">Card Dimensions</h3>
-                                        <p className="text-xs text-neutral-400">Choose the aspect ratio/card size for your digital invitation</p>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {(Object.keys(ASPECT_RATIOS) as Array<keyof typeof ASPECT_RATIOS>).map((ratio) => (
-                                            <button
-                                                key={ratio}
-                                                type="button"
-                                                onClick={() => handleRatioChange(ratio)}
-                                                className={`py-2 px-3 text-xs border font-medium rounded-lg text-center transition-all ${
-                                                    data.custom_config.aspectRatio === ratio
-                                                        ? 'border-blue-600 bg-blue-50/20 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-850'
-                                                }`}
-                                            >
-                                                {ASPECT_RATIOS[ratio].label}
-                                            </button>
-                                        ))}
-                                    </div>
+                            {(() => {
+                                const editableElements: { pageIndex: number; element: any }[] = [];
+                                data.custom_config.pages.forEach((page: any, pageIdx: number) => {
+                                    page.elements.forEach((elem: any) => {
+                                        if (elem.type === 'text' || elem.type === 'image') {
+                                            editableElements.push({ pageIndex: pageIdx, element: elem });
+                                        }
+                                    });
+                                });
 
-                                    <div className="border-t border-neutral-150 pt-4 dark:border-neutral-800 flex flex-col gap-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex flex-col gap-1">
-                                                <h3 className="font-bold text-sm text-neutral-800 dark:text-neutral-200">Page Settings</h3>
-                                                <p className="text-xs text-neutral-400">Manage multiple pages of your card</p>
+                                if (editableElements.length === 0) {
+                                    return (
+                                        <p className="text-sm text-neutral-450 italic text-center py-12">
+                                            This card template does not have any personalized fields enabled by the admin.
+                                        </p>
+                                    );
+                                }
+
+                                return editableElements.map(({ pageIndex, element }) => {
+                                    if (element.type === 'text') {
+                                        const isMultiLine = element.content?.includes('\n') || (element.content && element.content.length > 40);
+                                        return (
+                                            <div key={element.id} className="grid gap-1.5">
+                                                <Label htmlFor={element.id} className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
+                                                    {element.editableLabel || `Text Field ${element.content ? `("${element.content.substring(0, 20)}")` : ''} (Page ${pageIndex + 1})`}
+                                                </Label>
+                                                {isMultiLine ? (
+                                                    <textarea
+                                                        id={element.id}
+                                                        value={element.content || ''}
+                                                        onChange={(e) => handlePersonalizeText(pageIndex, element.id, e.target.value)}
+                                                        rows={3}
+                                                        className="w-full rounded-md border border-neutral-200 px-3 py-1.5 text-xs shadow-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                                    />
+                                                ) : (
+                                                    <Input
+                                                        id={element.id}
+                                                        type="text"
+                                                        value={element.content || ''}
+                                                        onChange={(e) => handlePersonalizeText(pageIndex, element.id, e.target.value)}
+                                                        className="h-9 text-xs"
+                                                    />
+                                                )}
                                             </div>
-                                            <Button 
-                                                onClick={handleAddPage}
-                                                size="sm"
-                                                className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5 text-xs py-1"
-                                            >
-                                                <Plus className="size-3.5" /> Add Page
-                                            </Button>
-                                        </div>
-
-                                        <div className="flex flex-col gap-2">
-                                            {data.custom_config.pages.map((p, idx) => (
-                                                <div 
-                                                    key={p.id} 
-                                                    onClick={() => { setActivePageIndex(idx); setSelectedElementId(null); }}
-                                                    className={`p-3 rounded-lg border flex items-center justify-between cursor-pointer transition-all ${
-                                                        activePageIndex === idx
-                                                            ? 'border-blue-600 bg-blue-50/10 dark:border-blue-400'
-                                                            : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-850'
-                                                    }`}
-                                                >
-                                                    <span className="text-xs font-semibold">Page {idx + 1}</span>
-                                                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                                                        {data.custom_config.pages.length > 1 && (
-                                                            <button 
-                                                                type="button" 
-                                                                onClick={() => handleDeletePage(idx)}
-                                                                className="text-neutral-400 hover:text-red-500 p-1"
-                                                            >
-                                                                <Trash2 className="size-3.5" />
-                                                            </button>
+                                        );
+                                    }
+                                    if (element.type === 'image') {
+                                        return (
+                                            <div key={element.id} className="grid gap-2 border-t pt-4 border-dashed first:border-0 first:pt-0">
+                                                <Label className="text-xs font-bold text-neutral-750">
+                                                    {element.editableLabel || `Image Field (Page ${pageIndex + 1})`}
+                                                </Label>
+                                                <div className="flex gap-4 items-center">
+                                                    <div className="size-16 rounded border bg-neutral-50 overflow-hidden flex items-center justify-center shrink-0">
+                                                        {element.url ? (
+                                                            <img src={element.url} alt="Preview" className="size-full object-cover" />
+                                                        ) : (
+                                                            <ImageIcon className="size-6 text-neutral-300" />
                                                         )}
                                                     </div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {/* Background gradient for selected page */}
-                                        <div className="flex flex-col gap-2 pt-2">
-                                            <Label className="text-xs font-semibold">Page {activePageIndex + 1} Background Style</Label>
-                                            <select
-                                                value={activePage?.bg_gradient || ''}
-                                                onChange={(e) => handlePageBgChange(e.target.value)}
-                                                className="flex h-9 w-full rounded-md border border-neutral-200 bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring dark:border-neutral-800 dark:bg-neutral-950"
-                                            >
-                                                {gradientPresets.map((preset) => (
-                                                    <option key={preset.value} value={preset.value} className="dark:bg-neutral-950">
-                                                        {preset.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'text' && (
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex justify-between items-center">
-                                        <Label className="text-sm font-bold text-neutral-800 dark:text-neutral-200">Text Customization</Label>
-                                        <Button
-                                            type="button"
-                                            onClick={() => handleAddElement('text')}
-                                            size="sm"
-                                            className="bg-blue-600 hover:bg-blue-700 text-white text-xs flex items-center gap-1"
-                                        >
-                                            <Plus className="size-3.5" /> Add Text Layer
-                                        </Button>
-                                    </div>
-
-                                    {selectedElement && selectedElement.type === 'text' ? (
-                                        <div className="border border-neutral-200 rounded-xl p-4 bg-neutral-50/50 dark:border-neutral-800 dark:bg-neutral-950/20 flex flex-col gap-4">
-                                            <div className="grid gap-1.5">
-                                                <Label htmlFor="content">Text Content</Label>
-                                                <textarea
-                                                    id="content"
-                                                    value={selectedElement.content || ''}
-                                                    onChange={(e) => handleUpdateElement(selectedElement.id, { content: e.target.value })}
-                                                    rows={3}
-                                                    className="w-full rounded-md border border-neutral-200 px-3 py-1.5 text-xs shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring dark:border-neutral-800 dark:bg-neutral-950"
-                                                />
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div className="grid gap-1">
-                                                    <Label htmlFor="fontStyle" className="text-xs">Font Family</Label>
-                                                    <select
-                                                        id="fontStyle"
-                                                        value={selectedElement.fontStyle || 'playfair'}
-                                                        onChange={(e) => handleUpdateElement(selectedElement.id, { fontStyle: e.target.value })}
-                                                        className="h-8 rounded-md border text-xs bg-transparent px-2"
-                                                    >
-                                                        <option value="playfair">Playfair Display</option>
-                                                        <option value="vibes">Great Vibes</option>
-                                                        <option value="montserrat">Montserrat</option>
-                                                        <option value="cinzel">Cinzel</option>
-                                                    </select>
-                                                </div>
-                                                <div className="grid gap-1">
-                                                    <Label htmlFor="fontSize" className="text-xs">Font Size (px)</Label>
-                                                    <Input
-                                                        id="fontSize"
-                                                        type="number"
-                                                        value={selectedElement.fontSize || 14}
-                                                        onChange={(e) => handleUpdateElement(selectedElement.id, { fontSize: parseInt(e.target.value) || 12 })}
-                                                        className="h-8 text-xs"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div className="grid gap-1">
-                                                    <Label htmlFor="textColor" className="text-xs">Text Color</Label>
-                                                    <div className="flex gap-1.5 items-center">
-                                                        <Input
-                                                            type="color"
-                                                            value={selectedElement.textColor || '#1f2937'}
-                                                            onChange={(e) => handleUpdateElement(selectedElement.id, { textColor: e.target.value })}
-                                                            className="w-9 h-8 p-0 cursor-pointer rounded border"
+                                                    <div className="flex-1 flex flex-col gap-1.5">
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={(e) => handlePersonalizeImage(pageIndex, element.id, e)}
+                                                            className="flex h-9 w-full rounded-md border border-neutral-200 bg-transparent px-3 py-1 text-xs shadow-xs file:border-0 file:bg-transparent file:text-xs file:font-semibold text-neutral-550 file:cursor-pointer"
                                                         />
-                                                        <Input
-                                                            type="text"
-                                                            value={selectedElement.textColor || '#1f2937'}
-                                                            onChange={(e) => handleUpdateElement(selectedElement.id, { textColor: e.target.value })}
-                                                            className="h-8 text-xs px-1"
-                                                        />
+                                                        <p className="text-[10px] text-neutral-450">Upload a replacement image (JPG, PNG, WebP).</p>
                                                     </div>
                                                 </div>
-                                                <div className="grid gap-1">
-                                                    <Label htmlFor="textAlign" className="text-xs">Alignment</Label>
-                                                    <select
-                                                        id="textAlign"
-                                                        value={selectedElement.textAlign || 'center'}
-                                                        onChange={(e) => handleUpdateElement(selectedElement.id, { textAlign: e.target.value as any })}
-                                                        className="h-8 rounded-md border text-xs bg-transparent px-2"
-                                                    >
-                                                        <option value="left">Left</option>
-                                                        <option value="center">Center</option>
-                                                        <option value="right">Right</option>
-                                                    </select>
-                                                </div>
                                             </div>
-
-                                            <div className="flex gap-4 pt-2">
-                                                <label className="flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedElement.fontWeight === 'bold'}
-                                                        onChange={(e) => handleUpdateElement(selectedElement.id, { fontWeight: e.target.checked ? 'bold' : 'normal' })}
-                                                    />
-                                                    Bold
-                                                </label>
-                                                <label className="flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={!!selectedElement.isItalic}
-                                                        onChange={(e) => handleUpdateElement(selectedElement.id, { isItalic: e.target.checked })}
-                                                    />
-                                                    Italic
-                                                </label>
-                                            </div>
-
-                                            {/* Size Coordinates */}
-                                            <div className="grid grid-cols-4 gap-2 border-t pt-3 border-neutral-200 dark:border-neutral-800">
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">X (%)</span>
-                                                    <input type="number" value={selectedElement.x} onChange={(e) => handleUpdateElement(selectedElement.id, { x: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">Y (%)</span>
-                                                    <input type="number" value={selectedElement.y} onChange={(e) => handleUpdateElement(selectedElement.id, { y: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">Width (%)</span>
-                                                    <input type="number" value={selectedElement.w} onChange={(e) => handleUpdateElement(selectedElement.id, { w: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">Height (%)</span>
-                                                    <input type="number" value={selectedElement.h} onChange={(e) => handleUpdateElement(selectedElement.id, { h: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                            </div>
-
-                                            <Button
-                                                type="button"
-                                                variant="destructive"
-                                                size="sm"
-                                                onClick={() => handleDeleteElement(selectedElement.id)}
-                                                className="w-full flex items-center justify-center gap-1.5 text-xs py-1"
-                                            >
-                                                <Trash2 className="size-3.5" /> Delete Text Field
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <p className="text-xs text-neutral-400 text-center py-6">
-                                            Select a text layer on the card canvas or click "Add Text Layer" above to design.
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-
-                            {activeTab === 'image' && (
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex justify-between items-center">
-                                        <Label className="text-sm font-bold text-neutral-800 dark:text-neutral-200">Graphic Images</Label>
-                                        <Button
-                                            type="button"
-                                            onClick={() => handleAddElement('image')}
-                                            size="sm"
-                                            className="bg-blue-600 hover:bg-blue-700 text-white text-xs flex items-center gap-1"
-                                        >
-                                            <Plus className="size-3.5" /> Add Image Box
-                                        </Button>
-                                    </div>
-
-                                    {selectedElement && selectedElement.type === 'image' ? (
-                                        <div className="border border-neutral-200 rounded-xl p-4 bg-neutral-50/50 dark:border-neutral-800 dark:bg-neutral-950/20 flex flex-col gap-4">
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="imgUpload" className="text-xs font-semibold">Upload Image File</Label>
-                                                <Input
-                                                    id="imgUpload"
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={(e) => handleImageUpload(e, selectedElement.id)}
-                                                    className="cursor-pointer bg-white file:text-xs"
-                                                />
-                                            </div>
-
-                                            <div className="grid gap-1">
-                                                <Label htmlFor="imgUrl" className="text-xs font-semibold">Or Paste Image URL</Label>
-                                                <Input
-                                                    id="imgUrl"
-                                                    type="url"
-                                                    value={selectedElement.url || ''}
-                                                    onChange={(e) => handleUpdateElement(selectedElement.id, { url: e.target.value })}
-                                                    placeholder="https://example.com/photo.jpg"
-                                                    className="h-8 text-xs bg-white"
-                                                />
-                                            </div>
-
-                                            {/* Size Coordinates */}
-                                            <div className="grid grid-cols-4 gap-2 border-t pt-3 border-neutral-200 dark:border-neutral-800">
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">X (%)</span>
-                                                    <input type="number" value={selectedElement.x} onChange={(e) => handleUpdateElement(selectedElement.id, { x: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">Y (%)</span>
-                                                    <input type="number" value={selectedElement.y} onChange={(e) => handleUpdateElement(selectedElement.id, { y: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">Width (%)</span>
-                                                    <input type="number" value={selectedElement.w} onChange={(e) => handleUpdateElement(selectedElement.id, { w: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">Height (%)</span>
-                                                    <input type="number" value={selectedElement.h} onChange={(e) => handleUpdateElement(selectedElement.id, { h: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                            </div>
-
-                                            <Button
-                                                type="button"
-                                                variant="destructive"
-                                                size="sm"
-                                                onClick={() => handleDeleteElement(selectedElement.id)}
-                                                className="w-full flex items-center justify-center gap-1.5 text-xs py-1"
-                                            >
-                                                <Trash2 className="size-3.5" /> Delete Image Box
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <p className="text-xs text-neutral-400 text-center py-6">
-                                            Select an image element on the card canvas or click "Add Image Box" to design.
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-
-                            {activeTab === 'icon' && (
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex justify-between items-center">
-                                        <Label className="text-sm font-bold text-neutral-800 dark:text-neutral-200">Icons, Dividers & Shapes</Label>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                type="button"
-                                                onClick={() => handleAddElement('icon')}
-                                                size="sm"
-                                                className="bg-blue-600 hover:bg-blue-700 text-white text-xs flex items-center gap-1"
-                                            >
-                                                <Plus className="size-3" /> Icon
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                onClick={() => handleAddElement('divider')}
-                                                size="sm"
-                                                className="bg-blue-600 hover:bg-blue-700 text-white text-xs flex items-center gap-1"
-                                            >
-                                                <Plus className="size-3" /> Line
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    {selectedElement && (selectedElement.type === 'icon' || selectedElement.type === 'divider') ? (
-                                        <div className="border border-neutral-200 rounded-xl p-4 bg-neutral-50/50 dark:border-neutral-800 dark:bg-neutral-950/20 flex flex-col gap-4">
-                                            
-                                            {selectedElement.type === 'icon' && (
-                                                <div className="grid gap-1.5">
-                                                    <Label htmlFor="iconType" className="text-xs font-semibold">Select Icon Type</Label>
-                                                    <select
-                                                        id="iconType"
-                                                        value={selectedElement.iconType || 'ring'}
-                                                        onChange={(e) => handleUpdateElement(selectedElement.id, { iconType: e.target.value })}
-                                                        className="h-8 rounded-md border text-xs bg-transparent px-2"
-                                                    >
-                                                        <option value="ring">Wedding Rings</option>
-                                                        <option value="heart">Heart</option>
-                                                        <option value="balloon">Balloons</option>
-                                                        <option value="cake">Birthday Cake</option>
-                                                        <option value="baby">Baby Carriage</option>
-                                                        <option value="sparkle">Sparkles</option>
-                                                    </select>
-                                                </div>
-                                            )}
-
-                                            <div className="grid gap-1.5">
-                                                <Label htmlFor="iconColor" className="text-xs font-semibold">Color</Label>
-                                                <div className="flex gap-1.5 items-center">
-                                                    <Input
-                                                        id="iconColor"
-                                                        type="color"
-                                                        value={selectedElement.color || '#1f2937'}
-                                                        onChange={(e) => handleUpdateElement(selectedElement.id, { color: e.target.value })}
-                                                        className="w-9 h-8 p-0 cursor-pointer rounded border"
-                                                    />
-                                                    <Input
-                                                        type="text"
-                                                        value={selectedElement.color || '#1f2937'}
-                                                        onChange={(e) => handleUpdateElement(selectedElement.id, { color: e.target.value })}
-                                                        className="h-8 text-xs px-1"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Size Coordinates */}
-                                            <div className="grid grid-cols-4 gap-2 border-t pt-3 border-neutral-200 dark:border-neutral-800">
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">X (%)</span>
-                                                    <input type="number" value={selectedElement.x} onChange={(e) => handleUpdateElement(selectedElement.id, { x: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">Y (%)</span>
-                                                    <input type="number" value={selectedElement.y} onChange={(e) => handleUpdateElement(selectedElement.id, { y: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">Width (%)</span>
-                                                    <input type="number" value={selectedElement.w} onChange={(e) => handleUpdateElement(selectedElement.id, { w: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">Height (%)</span>
-                                                    <input type="number" value={selectedElement.h} onChange={(e) => handleUpdateElement(selectedElement.id, { h: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                            </div>
-
-                                            <Button
-                                                type="button"
-                                                variant="destructive"
-                                                size="sm"
-                                                onClick={() => handleDeleteElement(selectedElement.id)}
-                                                className="w-full flex items-center justify-center gap-1.5 text-xs py-1"
-                                            >
-                                                <Trash2 className="size-3.5" /> Delete Element
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <p className="text-xs text-neutral-400 text-center py-6">
-                                            Select an icon or line on the card canvas or click "Icon"/"Line" to design.
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-
-                            {activeTab === 'link' && (
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex justify-between items-center">
-                                        <Label className="text-sm font-bold text-neutral-800 dark:text-neutral-200">Maps & Action Links</Label>
-                                        <Button
-                                            type="button"
-                                            onClick={() => handleAddElement('link')}
-                                            size="sm"
-                                            className="bg-blue-600 hover:bg-blue-700 text-white text-xs flex items-center gap-1"
-                                        >
-                                            <Plus className="size-3.5" /> Add Location Link
-                                        </Button>
-                                    </div>
-
-                                    {selectedElement && selectedElement.type === 'link' ? (
-                                        <div className="border border-neutral-200 rounded-xl p-4 bg-neutral-50/50 dark:border-neutral-800 dark:bg-neutral-950/20 flex flex-col gap-4">
-                                            <div className="grid gap-1.5">
-                                                <Label htmlFor="linkLabel" className="text-xs">Button Text / Label</Label>
-                                                <Input
-                                                    id="linkLabel"
-                                                    type="text"
-                                                    value={selectedElement.content || ''}
-                                                    onChange={(e) => handleUpdateElement(selectedElement.id, { content: e.target.value })}
-                                                    placeholder="View on Google Maps"
-                                                    className="h-8 text-xs bg-white"
-                                                />
-                                            </div>
-
-                                            <div className="grid gap-1.5">
-                                                <Label htmlFor="linkUrl" className="text-xs">Hyperlink / URL Target</Label>
-                                                <Input
-                                                    id="linkUrl"
-                                                    type="url"
-                                                    value={selectedElement.url || ''}
-                                                    onChange={(e) => handleUpdateElement(selectedElement.id, { url: e.target.value })}
-                                                    placeholder="https://maps.google.com/..."
-                                                    className="h-8 text-xs bg-white"
-                                                />
-                                            </div>
-
-                                            <div className="grid gap-1">
-                                                <Label htmlFor="linkColor" className="text-xs">Border & Text Color</Label>
-                                                <div className="flex gap-1.5 items-center">
-                                                    <Input
-                                                        id="linkColor"
-                                                        type="color"
-                                                        value={selectedElement.textColor || '#1f2937'}
-                                                        onChange={(e) => handleUpdateElement(selectedElement.id, { textColor: e.target.value })}
-                                                        className="w-9 h-8 p-0 cursor-pointer rounded border"
-                                                    />
-                                                    <Input
-                                                        type="text"
-                                                        value={selectedElement.textColor || '#1f2937'}
-                                                        onChange={(e) => handleUpdateElement(selectedElement.id, { textColor: e.target.value })}
-                                                        className="h-8 text-xs px-1"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Size Coordinates */}
-                                            <div className="grid grid-cols-4 gap-2 border-t pt-3 border-neutral-200 dark:border-neutral-800">
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">X (%)</span>
-                                                    <input type="number" value={selectedElement.x} onChange={(e) => handleUpdateElement(selectedElement.id, { x: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">Y (%)</span>
-                                                    <input type="number" value={selectedElement.y} onChange={(e) => handleUpdateElement(selectedElement.id, { y: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">Width (%)</span>
-                                                    <input type="number" value={selectedElement.w} onChange={(e) => handleUpdateElement(selectedElement.id, { w: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[10px] text-neutral-400 font-semibold uppercase">Height (%)</span>
-                                                    <input type="number" value={selectedElement.h} onChange={(e) => handleUpdateElement(selectedElement.id, { h: parseInt(e.target.value) || 0 })} className="w-full h-7 border rounded text-xs text-center" />
-                                                </div>
-                                            </div>
-
-                                            <Button
-                                                type="button"
-                                                variant="destructive"
-                                                size="sm"
-                                                onClick={() => handleDeleteElement(selectedElement.id)}
-                                                className="w-full flex items-center justify-center gap-1.5 text-xs py-1"
-                                            >
-                                                <Trash2 className="size-3.5" /> Delete Action Link
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <p className="text-xs text-neutral-400 text-center py-6">
-                                            Select a link element on the card canvas or click "Add Location Link" to design.
-                                        </p>
-                                    )}
-                                </div>
-                            )}
+                                        );
+                                    }
+                                    return null;
+                                });
+                            })()}
                         </div>
                     </div>
 
                     {/* Right Live Card Preview (rendered inside a high premium canvas) */}
                     <div className="flex flex-col items-center justify-center p-6 rounded-xl border border-neutral-250 bg-neutral-50/50 dark:border-neutral-800 dark:bg-neutral-950/20 min-h-[550px] relative">
-                        
+
                         {/* Page Selector Tabs over Canvas */}
                         <div className="flex items-center gap-2 mb-4 w-full justify-center">
                             {data.custom_config.pages.map((_, idx) => (
@@ -995,11 +661,10 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                     key={idx}
                                     type="button"
                                     onClick={() => { setActivePageIndex(idx); setSelectedElementId(null); }}
-                                    className={`px-3 py-1 text-xs font-semibold rounded-full border transition-all ${
-                                        activePageIndex === idx
-                                            ? 'bg-blue-600 text-white border-blue-600'
-                                            : 'bg-white hover:bg-neutral-100 border-neutral-200 text-neutral-600 dark:bg-neutral-900 dark:border-neutral-800 dark:text-neutral-400'
-                                    }`}
+                                    className={`px-3 py-1 text-xs font-semibold rounded-full border transition-all ${activePageIndex === idx
+                                        ? 'bg-blue-600 text-white border-blue-600'
+                                        : 'bg-white hover:bg-neutral-100 border-neutral-200 text-neutral-600 dark:bg-neutral-900 dark:border-neutral-800 dark:text-neutral-400'
+                                        }`}
                                 >
                                     Page {idx + 1}
                                 </button>
@@ -1041,23 +706,22 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                         <div
                                             key={elem.id}
                                             style={style}
-                                            onMouseDown={(e) => handleCanvasMouseDown(elem.id, e, false)}
-                                            className={`transition-all duration-75 relative group border p-0.5 leading-tight select-none break-words overflow-hidden ${
-                                                isSelected 
-                                                    ? 'border-blue-500 bg-blue-500/10 shadow-xs z-30' 
-                                                    : 'border-transparent hover:border-dashed hover:border-neutral-400 hover:z-20 cursor-move'
-                                            }`}
+                                            className="transition-all duration-75 relative p-0.5 leading-tight select-none break-words overflow-hidden border border-transparent"
                                         >
                                             {elem.type === 'text' && (
-                                                <span className="w-full pointer-events-none">{elem.content}</span>
+                                                <span className="w-full pointer-events-none">{elem.content !== 'uploading' ? elem.content : ''}</span>
                                             )}
 
                                             {elem.type === 'image' && (
                                                 <div className="w-full h-full rounded-md overflow-hidden bg-neutral-200/50 pointer-events-none">
                                                     {elem.url ? (
-                                                        <img src={elem.url} alt="Uploaded Layer" className="w-full h-full object-cover" />
+                                                        elem.url === 'uploading' ? (
+                                                            <span className="text-[10px] text-blue-500 flex items-center justify-center h-full animate-pulse">Uploading...</span>
+                                                        ) : (
+                                                            <img src={elem.url} alt="Uploaded Layer" className="w-full h-full object-cover" />
+                                                        )
                                                     ) : (
-                                                        <span className="text-[10px] text-neutral-400 flex items-center justify-center h-full">Click to upload photo</span>
+                                                        <span className="text-[10px] text-neutral-405 flex items-center justify-center h-full">No image uploaded</span>
                                                     )}
                                                 </div>
                                             )}
@@ -1075,33 +739,14 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                             )}
 
                                             {elem.type === 'link' && (
-                                                <button 
-                                                    type="button" 
+                                                <button
+                                                    type="button"
                                                     className="px-3 py-1 bg-neutral-900/10 border pointer-events-none rounded-full text-[9px] font-bold flex items-center gap-1 shrink-0"
                                                     style={{ borderColor: elem.textColor || '#1f2937', color: elem.textColor || '#1f2937' }}
                                                 >
                                                     <MapPin className="size-3" />
                                                     <span className="truncate max-w-[80px]">{elem.content || 'Map Location'}</span>
                                                 </button>
-                                            )}
-
-                                            {/* Control handles */}
-                                            {isSelected && (
-                                                <>
-                                                    {/* Move indicator */}
-                                                    <div className="absolute top-0.5 left-0.5 bg-blue-600 rounded-full text-white p-0.5 shadow-xs z-40 pointer-events-none opacity-80" title="Drag to move">
-                                                        <Move className="size-2.5" />
-                                                    </div>
-                                                    {/* Resize handle */}
-                                                    <div
-                                                        onMouseDown={(e) => handleCanvasMouseDown(elem.id, e, true)}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                        className="absolute bottom-0 right-0 size-3 bg-blue-600 cursor-se-resize flex items-center justify-center text-[7px] text-white font-bold leading-none select-none rounded-tl-xs z-45"
-                                                        title="Drag to resize"
-                                                    >
-                                                        ⇲
-                                                    </div>
-                                                </>
                                             )}
                                         </div>
                                     );
@@ -1110,7 +755,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
 
                             {/* Canvas Help tips */}
                             <span className="text-[9px] text-center text-neutral-400">
-                                💡 Tap elements on the card to drag, resize, delete, or change styles.
+                                🔒 Template design styling, formatting, and layout are secured by admin.
                             </span>
                         </div>
                     </div>
@@ -1128,7 +773,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
 
                     <div className="py-4 flex flex-col gap-4 text-sm text-neutral-600 dark:text-neutral-400">
                         <p>You are about to purchase the invitation card: <strong className="text-neutral-950 dark:text-neutral-50">{template.name}</strong>.</p>
-                        
+
                         <div className="rounded-lg bg-neutral-50 p-4 dark:bg-neutral-950 flex flex-col gap-2 border border-neutral-150 dark:border-neutral-850">
                             <div className="flex justify-between font-medium">
                                 <span>Template Price</span>

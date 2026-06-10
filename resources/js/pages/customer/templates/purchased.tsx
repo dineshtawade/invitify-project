@@ -10,8 +10,9 @@ import {
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
-import { Mail, Share2, Printer, Sparkles } from 'lucide-react';
+import { Mail, Share2, Printer, Sparkles, Download } from 'lucide-react';
 import { normalizeConfig } from '@/utils/builder-utils';
+import { toPng } from 'html-to-image';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -51,6 +52,54 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
     const [selectedInvitation, setSelectedInvitation] = useState<UserTemplate | null>(null);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [copied, setCopied] = useState(false);
+    
+    const [selectedDownloadInvitation, setSelectedDownloadInvitation] = useState<UserTemplate | null>(null);
+    const [isDownloadOpen, setIsDownloadOpen] = useState(false);
+    const [isDownloadingIndex, setIsDownloadingIndex] = useState<number | null>(null);
+
+    const handleOpenDownload = (invitation: UserTemplate) => {
+        setSelectedDownloadInvitation(invitation);
+        setIsDownloadOpen(true);
+    };
+
+    const handleDownloadPage = async (pageIdx: number) => {
+        if (!selectedDownloadInvitation) return;
+        
+        const element = document.getElementById(`download-card-page-${pageIdx}`);
+        if (!element) {
+            alert('Error generating preview. Please try again.');
+            return;
+        }
+
+        try {
+            setIsDownloadingIndex(pageIdx);
+            
+            // Wait slightly for DOM to render
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            const dataUrl = await toPng(element, {
+                cacheBust: true,
+                pixelRatio: 3, // High quality render
+                backgroundColor: 'transparent',
+                style: {
+                    transform: 'scale(1)',
+                    transformOrigin: 'top left',
+                    width: element.offsetWidth + 'px',
+                    height: element.offsetHeight + 'px',
+                }
+            });
+
+            const link = document.createElement('a');
+            link.download = `${selectedDownloadInvitation.template.name}-page-${pageIdx + 1}.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (error) {
+            console.error('Oops, something went wrong!', error);
+            alert('Failed to generate PNG image. Please try again.');
+        } finally {
+            setIsDownloadingIndex(null);
+        }
+    };
 
     const handleOpenShare = (invitation: UserTemplate) => {
         setSelectedInvitation(invitation);
@@ -204,19 +253,29 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                                             </p>
                                         </div>
 
-                                        <div className="flex gap-2">
+                                        <div className="grid grid-cols-3 gap-1.5">
                                             <Button
                                                 onClick={() => handlePrint(t)}
                                                 variant="outline"
-                                                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold border-neutral-200 dark:border-neutral-850"
+                                                className="flex items-center justify-center gap-1 text-[10px] px-1 font-semibold border-neutral-200 dark:border-neutral-850"
+                                                title="Print or Save as PDF"
                                             >
-                                                <Printer className="size-3.5" /> Print / PDF
+                                                <Printer className="size-3" /> Print
+                                            </Button>
+                                            <Button
+                                                onClick={() => handleOpenDownload(t)}
+                                                variant="outline"
+                                                className="flex items-center justify-center gap-1 text-[10px] px-1 font-semibold border-neutral-200 dark:border-neutral-850"
+                                                title="Download as PNG"
+                                            >
+                                                <Download className="size-3" /> PNG
                                             </Button>
                                             <Button
                                                 onClick={() => handleOpenShare(t)}
-                                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-1.5 text-xs font-semibold"
+                                                className="bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-1 text-[10px] px-1 font-semibold"
+                                                title="Share guest link"
                                             >
-                                                <Share2 className="size-3.5" /> Share Link
+                                                <Share2 className="size-3" /> Share
                                             </Button>
                                         </div>
                                     </div>
@@ -258,6 +317,112 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
                         >
                             {copied ? 'Copied!' : 'Copy Link'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* PNG Download Dialog */}
+            <Dialog open={isDownloadOpen} onOpenChange={setIsDownloadOpen}>
+                <DialogContent className="max-w-md bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 max-h-[85vh] flex flex-col">
+                    <DialogHeader className="shrink-0">
+                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                            Download Invitation Pages
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <div className="py-4 flex-1 overflow-y-auto flex flex-col gap-6 items-center">
+                        <p className="text-sm text-neutral-600 dark:text-neutral-400 text-center px-4 leading-normal">
+                            Select the page you want to download as a high-resolution PNG image.
+                        </p>
+
+                        {selectedDownloadInvitation && (() => {
+                            const cfg = normalizeConfig(selectedDownloadInvitation.custom_config, selectedDownloadInvitation.template.bg_gradient);
+                            return (
+                                <div className="flex flex-col gap-8 w-full max-w-[280px]">
+                                    {cfg.pages.map((page, idx) => (
+                                        <div key={page.id} className="flex flex-col items-center gap-3 w-full">
+                                            <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Page {idx + 1}</span>
+                                            
+                                            {/* Rendered Invitation Card for html2image capture */}
+                                            <div 
+                                                id={`download-card-page-${idx}`}
+                                                className={`w-full aspect-[3/4.2] rounded-2xl shadow-md bg-gradient-to-tr ${page.bg_gradient} relative overflow-hidden border border-neutral-200 dark:border-neutral-800`}
+                                            >
+                                                {page.elements.map((elem) => {
+                                                    const style: React.CSSProperties = {
+                                                        position: 'absolute',
+                                                        left: `${elem.x}%`,
+                                                        top: `${elem.y}%`,
+                                                        width: `${elem.w}%`,
+                                                        height: `${elem.h}%`,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center',
+                                                        textAlign: elem.textAlign || 'center',
+                                                        fontFamily: fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair,
+                                                        color: elem.textColor || '#1f2937',
+                                                        fontSize: elem.fontSize ? `${elem.fontSize * 0.95}px` : '12px',
+                                                        fontWeight: elem.fontWeight || 'normal',
+                                                        fontStyle: elem.isItalic ? 'italic' : 'normal',
+                                                    };
+
+                                                    return (
+                                                        <div key={elem.id} style={style} className="leading-tight select-none break-words overflow-hidden">
+                                                            {elem.type === 'text' && (
+                                                                <span className="w-full">{elem.content}</span>
+                                                            )}
+
+                                                            {elem.type === 'image' && elem.url && (
+                                                                <div className="w-full h-full rounded overflow-hidden">
+                                                                    <img src={elem.url} alt="Image Layer" className="w-full h-full object-cover" />
+                                                                </div>
+                                                            )}
+
+                                                            {elem.type === 'icon' && (
+                                                                <span className="w-full h-full flex items-center justify-center text-lg">
+                                                                    {elem.iconType === 'heart' ? '❤️' : elem.iconType === 'sparkle' ? '✨' : elem.iconType === 'cake' ? '🎂' : elem.iconType === 'baby' ? '👶' : '💍'}
+                                                                </span>
+                                                            )}
+
+                                                            {elem.type === 'divider' && (
+                                                                <div className="w-full h-full flex items-center justify-center px-1">
+                                                                    <hr className="w-full border-t" style={{ borderColor: elem.color || '#1f2937' }} />
+                                                                </div>
+                                                            )}
+
+                                                            {elem.type === 'link' && (
+                                                                <span 
+                                                                    className="px-2 py-0.5 bg-neutral-900/5 border rounded-full text-[8px] font-bold flex items-center gap-0.5"
+                                                                    style={{ borderColor: elem.textColor || '#1f2937', color: elem.textColor || '#1f2937' }}
+                                                                >
+                                                                    📍 {elem.content || 'Location'}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            <Button
+                                                type="button"
+                                                onClick={() => handleDownloadPage(idx)}
+                                                disabled={isDownloadingIndex !== null}
+                                                className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-1.5 text-xs font-semibold"
+                                            >
+                                                <Download className="size-3.5" />
+                                                {isDownloadingIndex === idx ? 'Generating PNG...' : 'Download Page PNG'}
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        })()}
+                    </div>
+
+                    <DialogFooter className="shrink-0 border-t pt-3 mt-2">
+                        <Button type="button" variant="outline" onClick={() => setIsDownloadOpen(false)} className="w-full">
+                            Close
                         </Button>
                     </DialogFooter>
                 </DialogContent>

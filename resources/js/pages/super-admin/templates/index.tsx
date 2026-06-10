@@ -239,16 +239,21 @@ export default function TemplatesIndex({ templates }: PageProps) {
     };
 
     const handleUpdateElement = (elementId: string, updates: Partial<ElementConfig>) => {
-        const updatedPages = [...data.default_config.pages];
-        updatedPages[activePageIndex] = {
-            ...updatedPages[activePageIndex],
-            elements: updatedPages[activePageIndex].elements.map(e => 
-                e.id === elementId ? { ...e, ...updates } : e
-            )
-        };
-        setData('default_config', {
-            ...data.default_config,
-            pages: updatedPages
+        setData(prev => {
+            const updatedPages = [...prev.default_config.pages];
+            updatedPages[activePageIndex] = {
+                ...updatedPages[activePageIndex],
+                elements: updatedPages[activePageIndex].elements.map(e => 
+                    e.id === elementId ? { ...e, ...updates } : e
+                )
+            };
+            return {
+                ...prev,
+                default_config: {
+                    ...prev.default_config,
+                    pages: updatedPages
+                }
+            };
         });
     };
 
@@ -265,14 +270,34 @@ export default function TemplatesIndex({ templates }: PageProps) {
         setSelectedElementId(null);
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, elementId: string) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, elementId: string) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                handleUpdateElement(elementId, { url: reader.result as string });
-            };
-            reader.readAsDataURL(file);
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                handleUpdateElement(elementId, { url: 'uploading' });
+                
+                const response = await fetch('/media/upload', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                    },
+                    body: formData,
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Upload failed');
+                }
+                
+                const result = await response.json();
+                handleUpdateElement(elementId, { url: result.url });
+            } catch (err) {
+                console.error(err);
+                alert('Failed to upload image. Please try again.');
+                handleUpdateElement(elementId, { url: '' });
+            }
         }
     };
 
@@ -720,6 +745,31 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                         </label>
                                                     </div>
 
+                                                    <div className="border-t pt-3 mt-2 flex flex-col gap-2">
+                                                        <label className="flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={!!selectedElement.isEditable}
+                                                                onChange={(e) => handleUpdateElement(selectedElement.id, { isEditable: e.target.checked })}
+                                                                className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
+                                                            />
+                                                            User Personalized Field
+                                                        </label>
+                                                        {selectedElement.isEditable && (
+                                                            <div className="grid gap-1">
+                                                                <Label htmlFor="editableLabel" className="text-[10px] uppercase font-bold text-neutral-450">Field Label (e.g. Bride Name)</Label>
+                                                                <Input
+                                                                    id="editableLabel"
+                                                                    type="text"
+                                                                    value={selectedElement.editableLabel || ''}
+                                                                    onChange={(e) => handleUpdateElement(selectedElement.id, { editableLabel: e.target.value })}
+                                                                    placeholder="e.g. Event Title"
+                                                                    className="h-8 text-xs bg-white"
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+
                                                     {/* Size Coordinates */}
                                                     <div className="grid grid-cols-4 gap-2 border-t pt-3 border-neutral-200 dark:border-neutral-800">
                                                         <div className="flex flex-col gap-0.5">
@@ -795,6 +845,31 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                             placeholder="https://example.com/photo.jpg"
                                                             className="h-8 text-xs bg-white"
                                                         />
+                                                    </div>
+
+                                                    <div className="border-t pt-3 mt-2 flex flex-col gap-2">
+                                                        <label className="flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={!!selectedElement.isEditable}
+                                                                onChange={(e) => handleUpdateElement(selectedElement.id, { isEditable: e.target.checked })}
+                                                                className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
+                                                            />
+                                                            Allow user to upload/replace photo
+                                                        </label>
+                                                        {selectedElement.isEditable && (
+                                                            <div className="grid gap-1">
+                                                                <Label htmlFor="image_editableLabel" className="text-[10px] uppercase font-bold text-neutral-450">Uploader Label (e.g. Couple Photo)</Label>
+                                                                <Input
+                                                                    id="image_editableLabel"
+                                                                    type="text"
+                                                                    value={selectedElement.editableLabel || ''}
+                                                                    onChange={(e) => handleUpdateElement(selectedElement.id, { editableLabel: e.target.value })}
+                                                                    placeholder="e.g. Couple Portrait"
+                                                                    className="h-8 text-xs bg-white"
+                                                                />
+                                                            </div>
+                                                        )}
                                                     </div>
 
                                                     {/* Size Coordinates */}
@@ -1137,7 +1212,11 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                     {elem.type === 'image' && (
                                                         <div className="w-full h-full rounded-md overflow-hidden bg-neutral-200/50 pointer-events-none">
                                                             {elem.url ? (
-                                                                <img src={elem.url} alt="Uploaded Layer" className="w-full h-full object-cover" />
+                                                                elem.url === 'uploading' ? (
+                                                                    <span className="text-[10px] text-blue-500 flex items-center justify-center h-full animate-pulse">Uploading...</span>
+                                                                ) : (
+                                                                    <img src={elem.url} alt="Uploaded Layer" className="w-full h-full object-cover" />
+                                                                )
                                                             ) : (
                                                                 <span className="text-[10px] text-neutral-400 flex items-center justify-center h-full">Click to upload photo</span>
                                                             )}

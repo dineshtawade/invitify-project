@@ -15,6 +15,8 @@ export interface ElementConfig {
     textAlign?: 'left' | 'center' | 'right';
     fontWeight?: 'normal' | 'bold';
     isItalic?: boolean;
+    isEditable?: boolean;
+    editableLabel?: string;
 }
 
 export interface PageConfig {
@@ -69,6 +71,8 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
                     textAlign: e.textAlign,
                     fontWeight: e.fontWeight,
                     isItalic: e.isItalic,
+                    isEditable: e.isEditable,
+                    editableLabel: e.editableLabel,
                 }))
             }))
         };

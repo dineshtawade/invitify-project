@@ -94,19 +94,19 @@ export default function ReferralsIndex({ referralPartners }: { referralPartners:
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white border rounded-2xl p-5 flex flex-col gap-1">
+                    <div className="border rounded-2xl p-5 flex flex-col gap-1">
                         <div className="text-xs font-bold text-neutral-500 uppercase flex items-center gap-1"><Users className="size-3" /> Total Partners</div>
-                        <div className="text-3xl font-black text-neutral-900">{totalPartners}</div>
+                        <div className="text-3xl font-black text-red-900">{totalPartners}</div>
                     </div>
-                    <div className="bg-white border rounded-2xl p-5 flex flex-col gap-1">
+                    <div className="border rounded-2xl p-5 flex flex-col gap-1">
                         <div className="text-xs font-bold text-neutral-500 uppercase flex items-center gap-1"><TrendingUp className="size-3" /> Total Sales</div>
                         <div className="text-3xl font-black text-green-600">₹{totalSales.toFixed(2)}</div>
                     </div>
-                    <div className="bg-white border rounded-2xl p-5 flex flex-col gap-1">
+                    <div className="border rounded-2xl p-5 flex flex-col gap-1">
                         <div className="text-xs font-bold text-neutral-500 uppercase flex items-center gap-1"><Percent className="size-3" /> Discounts Given</div>
                         <div className="text-3xl font-black text-amber-600">₹{totalDiscount.toFixed(2)}</div>
                     </div>
-                    <div className="bg-white border rounded-2xl p-5 flex flex-col gap-1">
+                    <div className="border rounded-2xl p-5 flex flex-col gap-1">
                         <div className="text-xs font-bold text-neutral-500 uppercase flex items-center gap-1"><DollarSign className="size-3" /> Commissions Earned</div>
                         <div className="text-3xl font-black text-indigo-600">₹{totalCommission.toFixed(2)}</div>
                     </div>
@@ -122,7 +122,7 @@ export default function ReferralsIndex({ referralPartners }: { referralPartners:
                         </div>
                     ) : (
                         referralPartners.map((partner) => (
-                            <div key={partner.id} className="bg-white border rounded-2xl p-6 flex flex-col gap-4">
+                            <div key={partner.id} className=" border rounded-2xl p-6 flex flex-col gap-4">
                                 <div className="flex items-center justify-between flex-wrap gap-4">
                                     <div>
                                         <div className="flex items-center gap-2">
