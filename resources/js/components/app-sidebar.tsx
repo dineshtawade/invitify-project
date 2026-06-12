@@ -125,8 +125,13 @@ export function AppSidebar() {
             },
             {
                 title: 'My Wallet',
-                href: '/referral-partner/dashboard',
+                href: '/referral-partner/wallet',
                 icon: Wallet,
+            },
+            {
+                title: 'Payment detail',
+                href: '/referral-partner/payment-details',
+                icon: History,
             }
         );
     } else {

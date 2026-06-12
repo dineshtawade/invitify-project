@@ -17,12 +17,24 @@ export interface Block {
 
     // --- Advanced Features ---
     font_family?: string;
+    font_size?: string;
+    font_color?: string;
+    font_weight?: string;
+    font_style?: string;
+    padding_y?: string;
+    margin_y?: string;
+    is_hidden?: boolean;
     grid_columns?: string; // e.g. "1", "2", "3", "4"
     media_width?: string; // Percentage or exact px
     media_height?: string; // Percentage or exact px
     object_fit?: 'cover' | 'contain' | 'fill';
     autoplay?: boolean; // For sliders/videos
     show_arrows?: boolean; // For sliders
+
+    // --- Specific Block Type Features ---
+    event_date?: string; // Countdown target date/time
+    map_embed_url?: string; // Google Map iframe src
+    map_link?: string; // Clickable map URL
 }
 
 export const getNewBlockDefaults = (type: string, isInvitation = false): Block => {
@@ -76,6 +88,23 @@ export const getNewBlockDefaults = (type: string, isInvitation = false): Block =
         newBlock.items = [
             { name: 'John Doe', role: 'CEO, TechCorp', quote: 'Excellent service and outstanding results!', rating: 5 },
             { name: 'Jane Smith', role: 'Founder, DesignCo', quote: 'Professional team that delivers on every promise.', rating: 5 },
+        ];
+    } else if (type === 'countdown') {
+        newBlock.title = 'Event Begins In';
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 7);
+        newBlock.event_date = futureDate.toISOString().slice(0, 16); // e.g. "2026-06-18T12:00"
+        newBlock.bg_color = 'from-neutral-900 to-neutral-800 text-white';
+    } else if (type === 'map') {
+        newBlock.title = 'Location Venue Map';
+        newBlock.map_link = 'https://maps.google.com';
+        newBlock.map_embed_url = '';
+    } else if (type === 'timeline') {
+        newBlock.title = 'Event Schedule';
+        newBlock.items = [
+            { time: '10:00 AM', title: 'Welcoming Guests', desc: 'Guests arrive and receive refreshers.' },
+            { time: '11:30 AM', title: 'Main Ceremony', desc: 'The holy rituals and vows.' },
+            { time: '01:00 PM', title: 'Grand Lunch Feast', desc: 'Delicious food served at the main hall.' }
         ];
     }
 

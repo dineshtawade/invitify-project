@@ -67,6 +67,16 @@ class User extends Authenticatable
         return $this->hasMany(MiniWebsite::class);
     }
 
+    public function businessWebsites()
+    {
+        return $this->hasMany(BusinessWebsite::class);
+    }
+
+    public function userTemplates()
+    {
+        return $this->hasMany(UserTemplate::class);
+    }
+
     public function referralCodes()
     {
         return $this->hasMany(ReferralCode::class);

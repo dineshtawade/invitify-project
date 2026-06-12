@@ -20,9 +20,9 @@ Route::get('invitations/view/{userTemplate}', [\App\Http\Controllers\Customer\Te
     ->name('invitations.view');
 
 // Public Mini Websites (Invitations) Routing
-Route::get('sites/{slug}/{page?}', [\App\Http\Controllers\PublicSiteController::class, 'show'])->name('public.site.show');
-Route::post('sites/{slug}/rsvp', [\App\Http\Controllers\PublicSiteController::class, 'rsvp'])->name('public.site.rsvp');
-Route::post('sites/{slug}/contact', [\App\Http\Controllers\PublicSiteController::class, 'contact'])->name('public.site.contact');
+Route::get('mini-website/{slug}/{page?}', [\App\Http\Controllers\PublicSiteController::class, 'show'])->name('public.site.show');
+Route::post('mini-website/{slug}/rsvp', [\App\Http\Controllers\PublicSiteController::class, 'rsvp'])->name('public.site.rsvp');
+Route::post('mini-website/{slug}/contact', [\App\Http\Controllers\PublicSiteController::class, 'contact'])->name('public.site.contact');
 
 // Public Business Websites Routing
 Route::get('business/{slug}/{page?}', [\App\Http\Controllers\PublicBusinessSiteController::class, 'show'])->name('public.business.show');
@@ -64,9 +64,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
     // Super Admin Routes
     Route::middleware([\App\Http\Middleware\EnsureSuperAdmin::class])->group(function () {
         Route::prefix('super-admin')->group(function () {
-            Route::get('/dashboard', function () {
-                return Inertia::render('super-admin/dashboard');
-            })->name('super-admin.dashboard');
+            Route::get('/dashboard', [\App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])
+                ->name('super-admin.dashboard');
             Route::resource('users', \App\Http\Controllers\SuperAdmin\UserController::class);
             Route::resource('mini-website-templates', \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::class);
             Route::resource('business-website-templates', \App\Http\Controllers\SuperAdmin\BusinessWebsiteTemplateController::class);
@@ -103,6 +102,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('super-admin.referrals');
         Route::post('super-admin/referrals/codes', [\App\Http\Controllers\SuperAdmin\ReferralController::class, 'storeCode'])
             ->name('super-admin.referrals.store-code');
+        Route::post('super-admin/referrals/assign-allocation', [\App\Http\Controllers\SuperAdmin\ReferralController::class, 'assignAllocation'])
+            ->name('super-admin.referrals.assign-allocation');
         Route::post('super-admin/referrals/{user}/permissions', [\App\Http\Controllers\SuperAdmin\ReferralController::class, 'updatePermissions'])
             ->name('super-admin.referrals.update-permissions');
         Route::post('super-admin/referrals/codes/{referralCode}/toggle', [\App\Http\Controllers\SuperAdmin\ReferralController::class, 'toggleCode'])
@@ -152,6 +153,10 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('reseller.purchase.mini-website');
         Route::post('reseller/purchase/business-website', [\App\Http\Controllers\Reseller\PurchaseController::class, 'purchaseBusinessWebsite'])
             ->name('reseller.purchase.business-website');
+        Route::post('reseller/mini-websites/{mini_website}/purchase-template', [\App\Http\Controllers\Reseller\PurchaseController::class, 'payMiniWebsiteTemplate'])
+            ->name('reseller.mini-websites.purchase-template');
+        Route::post('reseller/business-websites/{business_website}/purchase-template', [\App\Http\Controllers\Reseller\PurchaseController::class, 'payBusinessWebsiteTemplate'])
+            ->name('reseller.business-websites.purchase-template');
 
         // Reseller Website Management & Hosting
         Route::get('reseller/websites', [\App\Http\Controllers\Reseller\HostingController::class, 'index'])
@@ -160,6 +165,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('reseller.websites.host');
 
         // Reseller Mini Websites editor
+        Route::get('reseller/mini-websites/{mini_website}/download-zip', [\App\Http\Controllers\Reseller\MiniWebsiteController::class, 'downloadInviteZip'])
+            ->name('reseller.mini-websites.download-zip');
         Route::get('reseller/mini-websites/{mini_website}/edit', [\App\Http\Controllers\Reseller\MiniWebsiteController::class, 'edit'])
             ->name('reseller.mini-websites.edit');
         Route::put('reseller/mini-websites/{mini_website}', [\App\Http\Controllers\Reseller\MiniWebsiteController::class, 'update'])
@@ -180,6 +187,10 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
     Route::middleware([\App\Http\Middleware\EnsureReferralPartner::class])->group(function () {
         Route::get('referral-partner/dashboard', [\App\Http\Controllers\ReferralPartner\DashboardController::class, 'index'])
             ->name('referral-partner.dashboard');
+        Route::get('referral-partner/wallet', [\App\Http\Controllers\ReferralPartner\DashboardController::class, 'wallet'])
+            ->name('referral-partner.wallet');
+        Route::get('referral-partner/payment-details', [\App\Http\Controllers\ReferralPartner\DashboardController::class, 'paymentDetails'])
+            ->name('referral-partner.payment-details');
         Route::post('referral-partner/request-redemption', [\App\Http\Controllers\ReferralPartner\DashboardController::class, 'requestRedemption'])
             ->name('referral-partner.request-redemption');
         Route::post('referral-partner/codes', [\App\Http\Controllers\ReferralPartner\DashboardController::class, 'storeCode'])

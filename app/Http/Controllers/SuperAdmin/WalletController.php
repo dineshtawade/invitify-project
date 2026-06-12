@@ -37,19 +37,37 @@ class WalletController extends Controller
         ]);
     }
 
-    public function approveRedemption(RedemptionRequest $redemptionRequest)
+    public function approveRedemption(Request $request, RedemptionRequest $redemptionRequest)
     {
         if ($redemptionRequest->status !== 'pending') {
             return redirect()->back()->with('error', 'This request has already been processed.');
         }
 
-        $redemptionRequest->update(['status' => 'approved']);
+        $validated = $request->validate([
+            'payment_proof' => 'required|image|max:2048', // Proof is required for approval
+            'admin_notes' => 'nullable|string|max:1000',
+            'status' => 'nullable|string|in:approved,paid',
+        ]);
+
+        $proofPath = null;
+        if ($request->hasFile('payment_proof')) {
+            $path = $request->file('payment_proof')->store('receipts', 'public');
+            $proofPath = '/storage/' . $path;
+        }
+
+        $status = $request->input('status', 'paid');
+
+        $redemptionRequest->update([
+            'status' => $status,
+            'payment_proof_path' => $proofPath,
+            'admin_notes' => $request->input('admin_notes') ?: 'Approved by Admin.',
+        ]);
 
         // Debit the wallet
         $wallet = $redemptionRequest->wallet;
-        $wallet->debit($redemptionRequest->amount, 'Wallet redemption approved (Request #' . $redemptionRequest->id . ')', $redemptionRequest);
+        $wallet->debit($redemptionRequest->amount, 'Wallet redemption ' . $status . ' (Request #' . $redemptionRequest->id . ')', $redemptionRequest);
 
-        return redirect()->back()->with('status', 'Redemption approved. Wallet debited by ₹' . $redemptionRequest->amount);
+        return redirect()->back()->with('status', 'Redemption approved and marked as ' . $status . '. Wallet debited by ₹' . $redemptionRequest->amount);
     }
 
     public function rejectRedemption(Request $request, RedemptionRequest $redemptionRequest)

@@ -94,7 +94,7 @@ export default function PublicBusinessSite({ website, currentPage }: PageProps) 
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/sites/${website.slug}/contact`, {
+        post(`/business/${website.slug}/contact`, {
             preserveScroll: true,
             onSuccess: () => {
                 setFormSubmitted(true);
@@ -112,14 +112,14 @@ export default function PublicBusinessSite({ website, currentPage }: PageProps) 
                 {/* Navbar Header */}
                 <header className={`sticky top-0 z-50 border-b ${activeTheme.nav}`}>
                     <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-                        <Link href={`/sites/${website.slug}`} className="flex items-center gap-2 font-serif font-black tracking-tight text-lg">
+                        <Link href={`/business/${website.slug}`} className="flex items-center gap-2 font-serif font-black tracking-tight text-lg">
                             <Building className="size-5 shrink-0" /> {website.title}
                         </Link>
                         
                         <nav className="flex gap-1.5 sm:gap-4">
                             {(['home', 'about', 'services', 'contact'] as const).map((tab) => {
                                 const isHome = tab === 'home';
-                                const linkUrl = isHome ? `/sites/${website.slug}` : `/sites/${website.slug}/${tab}`;
+                                const linkUrl = isHome ? `/business/${website.slug}` : `/business/${website.slug}/${tab}`;
                                 return (
                                     <Link
                                         key={tab}
@@ -152,13 +152,13 @@ export default function PublicBusinessSite({ website, currentPage }: PageProps) 
                             </p>
                             <div className="flex items-center justify-center gap-4 mt-6">
                                 <Link
-                                    href={`/sites/${website.slug}/contact`}
+                                    href={`/business/${website.slug}/contact`}
                                     className={`rounded-xl px-6 py-3.5 text-sm font-bold shadow-md transition-all flex items-center gap-1.5 ${activeTheme.accent}`}
                                 >
                                     {home.cta_text} <ArrowRight className="size-4" />
                                 </Link>
                                 <Link
-                                    href={`/sites/${website.slug}/services`}
+                                    href={`/business/${website.slug}/services`}
                                     className={`rounded-xl border px-6 py-3.5 text-sm font-bold transition-all ${activeTheme.secondary}`}
                                 >
                                     Explore Services

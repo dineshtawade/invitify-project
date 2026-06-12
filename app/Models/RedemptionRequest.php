@@ -12,6 +12,13 @@ class RedemptionRequest extends Model
         'amount',
         'status',
         'admin_notes',
+        'upi_id',
+        'bank_name',
+        'account_holder_name',
+        'account_number',
+        'ifsc_code',
+        'qr_code_path',
+        'payment_proof_path',
     ];
 
     protected function casts(): array

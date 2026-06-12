@@ -16,20 +16,38 @@ class PublicSiteController extends Controller
     public function show($slug)
     {
         $website = MiniWebsite::where('slug', $slug)->firstOrFail();
+        $website->load('template');
 
-        // 1. Check if published
-        if (!$website->is_published) {
-            return Inertia::render('public/offline', [
-                'title' => $website->title,
-                'reason' => 'This website is currently in draft mode.',
-            ]);
-        }
+        // Check if draft or expired
+        if (!$website->is_published || $website->isSubscriptionExpired()) {
+            $reason = !$website->is_published 
+                ? 'This website is currently in draft mode.' 
+                : 'The hosting subscription for this website has expired. Please contact the owner to renew.';
 
-        // 2. Check if hosting is expired
-        if ($website->isSubscriptionExpired()) {
-            return Inertia::render('public/offline', [
-                'title' => $website->title,
-                'reason' => 'The hosting subscription for this website has expired. Please contact the owner to renew.',
+            return Inertia::render('public/buy', [
+                'website' => [
+                    'id' => $website->id,
+                    'title' => $website->title,
+                    'slug' => $website->slug,
+                    'theme' => $website->theme,
+                    'is_published' => $website->is_published,
+                    'user_id' => $website->user_id,
+                    'expires_at' => $website->expires_at ? $website->expires_at->toDateTimeString() : null,
+                    'template' => $website->template ? [
+                        'id' => $website->template->id,
+                        'name' => $website->template->name,
+                        'price' => $website->template->price,
+                    ] : null,
+                ],
+                'reason' => $reason,
+                'auth' => [
+                    'user' => auth()->user() ? [
+                        'id' => auth()->id(),
+                        'name' => auth()->user()->name,
+                        'email' => auth()->user()->email,
+                        'role' => auth()->user()->role,
+                    ] : null,
+                ]
             ]);
         }
 

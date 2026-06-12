@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Share2, Wallet, TrendingUp, Users, DollarSign, Copy, ArrowDownRight, ArrowUpRight, Clock, CheckCircle, XCircle, Banknote, Plus } from 'lucide-react';
+import { Share2, Wallet, TrendingUp, Users, DollarSign, Copy, ArrowDownRight, ArrowUpRight, Clock, CheckCircle, XCircle, Banknote, Plus, Eye, Image, CreditCard } from 'lucide-react';
 
 interface ReferralCode {
     id: number;
@@ -21,6 +21,8 @@ interface WalletData {
     id: number;
     balance: number;
     status: string;
+    total_earnings: number;
+    pending_withdrawals: number;
 }
 
 interface RecentTransaction {
@@ -47,6 +49,13 @@ interface RedemptionData {
     amount: string;
     status: string;
     admin_notes: string | null;
+    upi_id: string | null;
+    bank_name: string | null;
+    account_holder_name: string | null;
+    account_number: string | null;
+    ifsc_code: string | null;
+    qr_code_path: string | null;
+    payment_proof_path: string | null;
     created_at: string;
 }
 
@@ -75,13 +84,23 @@ export default function ReferralPartnerDashboard({
 }) {
     const [isRedeemOpen, setIsRedeemOpen] = useState(false);
     const [isCreateCodeOpen, setIsCreateCodeOpen] = useState(false);
+    const [selectedQR, setSelectedQR] = useState<string | null>(null);
+    const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'upi' | 'bank' | 'qr'>('upi');
 
     const redeemForm = useForm({
         amount: '',
+        upi_id: '',
+        bank_name: '',
+        account_holder_name: '',
+        account_number: '',
+        ifsc_code: '',
+        qr_code: null as File | null,
     });
 
     const codeForm = useForm({
         code: '',
+        discount_percentage: '',
     });
 
     const handleRedemption = (e: React.FormEvent) => {
@@ -109,7 +128,12 @@ export default function ReferralPartnerDashboard({
     };
 
     const hasPending = redemptions.some(r => r.status === 'pending');
-    const hasConfiguredRates = partner.referral_discount_percentage !== null && partner.referral_commission_percentage !== null;
+    const hasConfiguredRates = partner.referral_discount_percentage !== null;
+
+    // Remaining allocation for display
+    const discountAllocation = Number(partner.referral_discount_percentage || 0);
+    const chosenDiscount = Number(codeForm.data.discount_percentage || 0);
+    const remainingCommission = Math.max(0, discountAllocation - chosenDiscount);
 
     return (
         <AppLayout breadcrumbs={[{ title: 'Referral Partner', href: '/referral-partner/dashboard' }]}>
@@ -133,14 +157,16 @@ export default function ReferralPartnerDashboard({
                 {!hasConfiguredRates && (
                     <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-amber-800">
                         <h3 className="font-bold text-lg">Rates Not Configured Yet</h3>
-                        <p className="text-sm mt-1">Super Admin has not assigned your discount/commission rates yet. You will be able to create codes once they set your rates.</p>
+                        <p className="text-sm mt-1">Super Admin has not assigned your discount allocation rate yet. You will be able to create codes once they set your rates.</p>
                     </div>
                 )}
 
-                {/* Stats + Wallet Card */}
+                {/* Stats + Wallet Cards */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-2xl p-6 flex flex-col justify-between col-span-2 lg:col-span-1">
-                        <div className="text-xs font-bold uppercase opacity-70 flex items-center gap-1"><Wallet className="size-3" /> Wallet Balance</div>
+                        <div className="text-xs font-bold uppercase opacity-70 flex items-center gap-1">
+                            <Wallet className="size-3" /> Available Balance
+                        </div>
                         <div className="text-4xl font-black mt-2">₹{Number(wallet.balance).toFixed(2)}</div>
                         <Button 
                             onClick={() => setIsRedeemOpen(true)} 
@@ -152,16 +178,25 @@ export default function ReferralPartnerDashboard({
                         </Button>
                     </div>
                     <div className="bg-white border rounded-2xl p-5 flex flex-col gap-1">
-                        <div className="text-xs font-bold text-neutral-500 uppercase flex items-center gap-1"><Users className="size-3" /> Total Referrals</div>
+                        <div className="text-xs font-bold text-neutral-500 uppercase flex items-center gap-1">
+                            <TrendingUp className="size-3 text-green-500" /> Total Earnings
+                        </div>
+                        <div className="text-3xl font-black text-green-600">₹{Number(wallet.total_earnings).toFixed(2)}</div>
+                        <span className="text-[10px] text-neutral-400 mt-1">Total commission earned</span>
+                    </div>
+                    <div className="bg-white border rounded-2xl p-5 flex flex-col gap-1">
+                        <div className="text-xs font-bold text-neutral-500 uppercase flex items-center gap-1">
+                            <Clock className="size-3 text-amber-500" /> Pending Payouts
+                        </div>
+                        <div className="text-3xl font-black text-amber-600">₹{Number(wallet.pending_withdrawals).toFixed(2)}</div>
+                        <span className="text-[10px] text-neutral-400 mt-1">Awaiting admin manual transfer</span>
+                    </div>
+                    <div className="bg-white border rounded-2xl p-5 flex flex-col gap-1">
+                        <div className="text-xs font-bold text-neutral-500 uppercase flex items-center gap-1">
+                            <Users className="size-3 text-indigo-500" /> Total Referrals
+                        </div>
                         <div className="text-3xl font-black text-neutral-900">{stats.total_referrals}</div>
-                    </div>
-                    <div className="bg-white border rounded-2xl p-5 flex flex-col gap-1">
-                        <div className="text-xs font-bold text-neutral-500 uppercase flex items-center gap-1"><TrendingUp className="size-3" /> Total Sales</div>
-                        <div className="text-3xl font-black text-green-600">₹{Number(stats.total_sales).toFixed(2)}</div>
-                    </div>
-                    <div className="bg-white border rounded-2xl p-5 flex flex-col gap-1">
-                        <div className="text-xs font-bold text-neutral-500 uppercase flex items-center gap-1"><DollarSign className="size-3" /> Commission Earned</div>
-                        <div className="text-3xl font-black text-indigo-600">₹{Number(stats.total_commission).toFixed(2)}</div>
+                        <span className="text-[10px] text-neutral-400 mt-1">Sales using your codes</span>
                     </div>
                 </div>
 
@@ -218,29 +253,61 @@ export default function ReferralPartnerDashboard({
                 {/* Create Code Dialog */}
                 {hasConfiguredRates && (
                     <Dialog open={isCreateCodeOpen} onOpenChange={setIsCreateCodeOpen}>
-                        <DialogContent>
+                        <DialogContent className="max-w-md">
                             <DialogHeader>
                                 <DialogTitle>Create Referral Code</DialogTitle>
                                 <DialogDescription>
-                                    Create a custom code or leave it blank to auto-generate one.
+                                    Create a custom code and split your discount allocation.
                                 </DialogDescription>
                             </DialogHeader>
                             <form onSubmit={handleCreateCode} className="flex flex-col gap-4 py-4">
                                 <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-sm flex flex-col gap-1.5 text-indigo-800">
-                                    <p>Your locked rates set by Admin:</p>
-                                    <p>• Discount offered: <strong>{partner.referral_discount_percentage}%</strong></p>
-                                    <p>• Commission rate: <strong>{partner.referral_commission_percentage}%</strong> (of discount amount)</p>
+                                    <p className="font-bold">Discount Allocation: {partner.referral_discount_percentage}%</p>
+                                    <p className="text-xs">Specify how much discount you want to offer to customers. The remaining allocation becomes your dynamic commission percentage.</p>
                                 </div>
+                                
                                 <div className="grid gap-2">
                                     <Label>Custom Code (optional)</Label>
                                     <Input 
                                         value={codeForm.data.code} 
                                         onChange={e => codeForm.setData('code', e.target.value.toUpperCase())} 
-                                        placeholder="e.g. DINESH30 (Letters & numbers only)" 
+                                        placeholder="e.g. SAVE10 (Letters & numbers only)" 
                                         maxLength={32} 
                                     />
                                     {codeForm.errors.code && <p className="text-red-500 text-xs">{codeForm.errors.code}</p>}
                                 </div>
+
+                                <div className="grid gap-2 mt-2">
+                                    <div className="flex justify-between items-center">
+                                        <Label>Customer Discount Percentage (%)</Label>
+                                        <span className="font-bold text-indigo-600">{chosenDiscount}%</span>
+                                    </div>
+                                    <Input 
+                                        type="range"
+                                        min="0"
+                                        max={discountAllocation}
+                                        value={codeForm.data.discount_percentage} 
+                                        onChange={e => codeForm.setData('discount_percentage', e.target.value)} 
+                                        className="h-2 bg-indigo-100 rounded-lg cursor-pointer"
+                                        required 
+                                    />
+                                    <div className="flex justify-between text-xs text-neutral-500 font-medium px-1">
+                                        <span>0% (Full Comm)</span>
+                                        <span>{discountAllocation}% (No Comm)</span>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 mt-2 bg-neutral-50 border rounded-xl p-3 text-center">
+                                    <div>
+                                        <div className="text-xs text-neutral-500 font-bold uppercase">Customer Gets</div>
+                                        <div className="text-xl font-black text-amber-600">{chosenDiscount}% Off</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-neutral-500 font-bold uppercase">You Earn</div>
+                                        <div className="text-xl font-black text-indigo-700">{remainingCommission}% Comm</div>
+                                    </div>
+                                </div>
+
                                 <DialogFooter className="mt-4">
                                     <Button type="button" variant="outline" onClick={() => setIsCreateCodeOpen(false)}>Cancel</Button>
                                     <Button type="submit" disabled={codeForm.processing} className="bg-indigo-600 hover:bg-indigo-700 text-white">Generate Code</Button>
@@ -311,58 +378,244 @@ export default function ReferralPartnerDashboard({
                     </div>
                 )}
 
-                {/* Redemption Requests */}
+                {/* Redemption Requests / Payout History */}
                 {redemptions.length > 0 && (
                     <div>
-                        <h2 className="text-lg font-bold mb-4">My Redemption Requests</h2>
-                        <div className="flex flex-col gap-2">
+                        <h2 className="text-lg font-bold mb-4">Withdrawal & Payout History</h2>
+                        <div className="flex flex-col gap-3">
                             {redemptions.map(r => (
-                                <div key={r.id} className="bg-white border rounded-xl p-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        {r.status === 'pending' && <Clock className="size-5 text-amber-500" />}
-                                        {r.status === 'approved' && <CheckCircle className="size-5 text-green-600" />}
-                                        {r.status === 'rejected' && <XCircle className="size-5 text-red-500" />}
-                                        <div>
-                                            <p className="font-bold">₹{parseFloat(r.amount).toFixed(2)} Withdrawal</p>
-                                            <p className="text-xs text-neutral-400">{new Date(r.created_at).toLocaleString()}</p>
-                                            {r.admin_notes && <p className="text-xs text-red-500 mt-1">Note: {r.admin_notes}</p>}
+                                <div key={r.id} className="bg-white border rounded-xl p-5 flex flex-col gap-3">
+                                    <div className="flex items-center justify-between flex-wrap gap-2">
+                                        <div className="flex items-center gap-3">
+                                            {r.status === 'pending' && <Clock className="size-5 text-amber-500" />}
+                                            {(r.status === 'approved' || r.status === 'paid') && <CheckCircle className="size-5 text-green-600" />}
+                                            {r.status === 'rejected' && <XCircle className="size-5 text-red-500" />}
+                                            <div>
+                                                <p className="font-bold text-lg">₹{parseFloat(r.amount).toFixed(2)} Withdrawal</p>
+                                                <p className="text-xs text-neutral-400">{new Date(r.created_at).toLocaleString()}</p>
+                                            </div>
                                         </div>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                            r.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                            (r.status === 'approved' || r.status === 'paid') ? 'bg-green-100 text-green-700' :
+                                            'bg-red-100 text-red-700'
+                                        }`}>
+                                            {r.status.toUpperCase()}
+                                        </span>
                                     </div>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                        r.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                                        r.status === 'approved' ? 'bg-green-100 text-green-700' :
-                                        'bg-red-100 text-red-700'
-                                    }`}>
-                                        {r.status.toUpperCase()}
-                                    </span>
+
+                                    {/* Show Submitted Payment Details */}
+                                    <div className="bg-neutral-50 rounded-xl p-3 text-xs flex flex-col gap-1.5 border">
+                                        <p className="text-neutral-500 font-bold uppercase text-[9px] tracking-wider">Submitted Payout Details:</p>
+                                        {r.upi_id && <p>• <strong>UPI ID:</strong> {r.upi_id}</p>}
+                                        {r.bank_name && (
+                                            <p>• <strong>Bank details:</strong> {r.bank_name} | A/C: {r.account_number} | IFSC: {r.ifsc_code} | Name: {r.account_holder_name}</p>
+                                        )}
+                                        {r.qr_code_path && (
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span>• <strong>QR Code Image:</strong></span>
+                                                <Button 
+                                                    variant="outline" 
+                                                    size="sm" 
+                                                    onClick={() => setSelectedQR(r.qr_code_path)}
+                                                    className="h-6 px-2 text-[10px]"
+                                                >
+                                                    <Eye className="size-3 mr-1" /> View QR Code
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Proof Receipt or Notes from Admin */}
+                                    {(r.admin_notes || r.payment_proof_path) && (
+                                        <div className="border-t pt-3 flex flex-col gap-2">
+                                            {r.admin_notes && (
+                                                <p className="text-xs text-neutral-600">
+                                                    <strong>Admin Note:</strong> {r.admin_notes}
+                                                </p>
+                                            )}
+                                            {r.payment_proof_path && (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs text-neutral-600"><strong>Payment Receipt:</strong></span>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => setSelectedReceipt(r.payment_proof_path)}
+                                                        className="h-6 px-2 text-[10px] text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border border-emerald-100"
+                                                    >
+                                                        <Eye className="size-3 mr-1" /> View Receipt Proof
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
                     </div>
                 )}
 
-                {/* Redemption Dialog */}
+                {/* Payout Details (Redemption) Dialog */}
                 <Dialog open={isRedeemOpen} onOpenChange={setIsRedeemOpen}>
-                    <DialogContent>
+                    <DialogContent className="max-w-md">
                         <DialogHeader>
-                            <DialogTitle>Request Wallet Withdrawal</DialogTitle>
-                            <DialogDescription>Enter the amount you wish to withdraw. Minimum ₹100.</DialogDescription>
+                            <DialogTitle>Request Payout Withdrawal</DialogTitle>
+                            <DialogDescription>Enter the amount you wish to withdraw and payment details.</DialogDescription>
                         </DialogHeader>
-                        <form onSubmit={handleRedemption} className="flex flex-col gap-4 py-4">
+                        <form onSubmit={handleRedemption} className="flex flex-col gap-4 py-2">
                             <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-center">
-                                <p className="text-xs text-indigo-500 uppercase font-bold">Available Balance</p>
+                                <p className="text-[10px] text-indigo-500 uppercase font-bold tracking-wider">Available Balance</p>
                                 <p className="text-3xl font-black text-indigo-700">₹{Number(wallet.balance).toFixed(2)}</p>
                             </div>
+                            
                             <div className="grid gap-2">
                                 <Label>Withdrawal Amount (₹)</Label>
-                                <Input type="number" min={100} max={wallet.balance} value={redeemForm.data.amount} onChange={e => redeemForm.setData('amount', e.target.value)} required placeholder="Enter amount" />
+                                <Input 
+                                    type="number" 
+                                    min={100} 
+                                    max={wallet.balance} 
+                                    value={redeemForm.data.amount} 
+                                    onChange={e => redeemForm.setData('amount', e.target.value)} 
+                                    required 
+                                    placeholder="Enter amount (Minimum ₹100)" 
+                                />
                                 {redeemForm.errors.amount && <p className="text-red-500 text-xs">{redeemForm.errors.amount}</p>}
                             </div>
-                            <DialogFooter className="mt-4">
+
+                            {/* Payout Methods Selector */}
+                            <div className="mt-2 border-t pt-4">
+                                <Label className="mb-2 block font-bold">Select Payout Method (provide at least one)</Label>
+                                <div className="grid grid-cols-3 gap-2 bg-neutral-100 p-1 rounded-xl mb-4 text-xs font-medium">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setActiveTab('upi')} 
+                                        className={`py-1.5 rounded-lg text-center ${activeTab === 'upi' ? 'bg-white shadow' : 'text-neutral-500'}`}
+                                    >
+                                        UPI ID
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setActiveTab('bank')} 
+                                        className={`py-1.5 rounded-lg text-center ${activeTab === 'bank' ? 'bg-white shadow' : 'text-neutral-500'}`}
+                                    >
+                                        Bank Details
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setActiveTab('qr')} 
+                                        className={`py-1.5 rounded-lg text-center ${activeTab === 'qr' ? 'bg-white shadow' : 'text-neutral-500'}`}
+                                    >
+                                        QR Code
+                                    </button>
+                                </div>
+
+                                {/* UPI Tab */}
+                                {activeTab === 'upi' && (
+                                    <div className="grid gap-2 animate-in fade-in duration-200">
+                                        <Label>Your UPI ID</Label>
+                                        <Input 
+                                            value={redeemForm.data.upi_id} 
+                                            onChange={e => redeemForm.setData('upi_id', e.target.value)} 
+                                            placeholder="e.g. name@upi" 
+                                        />
+                                        {redeemForm.errors.upi_id && <p className="text-red-500 text-xs">{redeemForm.errors.upi_id}</p>}
+                                    </div>
+                                )}
+
+                                {/* Bank Tab */}
+                                {activeTab === 'bank' && (
+                                    <div className="grid gap-3 animate-in fade-in duration-200">
+                                        <div className="grid gap-1.5">
+                                            <Label>Account Holder Name</Label>
+                                            <Input 
+                                                value={redeemForm.data.account_holder_name} 
+                                                onChange={e => redeemForm.setData('account_holder_name', e.target.value)} 
+                                                placeholder="Full name" 
+                                            />
+                                        </div>
+                                        <div className="grid gap-1.5">
+                                            <Label>Bank Account Number</Label>
+                                            <Input 
+                                                value={redeemForm.data.account_number} 
+                                                onChange={e => redeemForm.setData('account_number', e.target.value)} 
+                                                placeholder="Account number" 
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="grid gap-1.5">
+                                                <Label>Bank Name</Label>
+                                                <Input 
+                                                    value={redeemForm.data.bank_name} 
+                                                    onChange={e => redeemForm.setData('bank_name', e.target.value)} 
+                                                    placeholder="e.g. HDFC" 
+                                                />
+                                            </div>
+                                            <div className="grid gap-1.5">
+                                                <Label>IFSC Code</Label>
+                                                <Input 
+                                                    value={redeemForm.data.ifsc_code} 
+                                                    onChange={e => redeemForm.setData('ifsc_code', e.target.value.toUpperCase())} 
+                                                    placeholder="IFSC" 
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* QR Code Tab */}
+                                {activeTab === 'qr' && (
+                                    <div className="grid gap-2 animate-in fade-in duration-200">
+                                        <Label>Upload Payment QR Code Image</Label>
+                                        <Input 
+                                            type="file" 
+                                            accept="image/*"
+                                            onChange={e => redeemForm.setData('qr_code', e.target.files?.[0] || null)} 
+                                        />
+                                        <p className="text-[10px] text-neutral-400">Upload a screenshot of your Google Pay/PhonePe/Paytm QR Code.</p>
+                                        {redeemForm.errors.qr_code && <p className="text-red-500 text-xs">{redeemForm.errors.qr_code}</p>}
+                                    </div>
+                                )}
+                            </div>
+
+                            <DialogFooter className="mt-6">
                                 <Button type="button" variant="outline" onClick={() => setIsRedeemOpen(false)}>Cancel</Button>
                                 <Button type="submit" disabled={redeemForm.processing} className="bg-indigo-600 hover:bg-indigo-700 text-white">Submit Request</Button>
                             </DialogFooter>
                         </form>
+                    </DialogContent>
+                </Dialog>
+
+                {/* QR Code Viewer Modal */}
+                <Dialog open={selectedQR !== null} onOpenChange={() => setSelectedQR(null)}>
+                    <DialogContent className="max-w-xs text-center flex flex-col items-center">
+                        <DialogHeader>
+                            <DialogTitle>Payout QR Code</DialogTitle>
+                        </DialogHeader>
+                        {selectedQR && (
+                            <img 
+                                src={selectedQR} 
+                                alt="Payout QR Code" 
+                                className="max-w-full max-h-[350px] object-contain border rounded-xl p-2 bg-white mt-4" 
+                            />
+                        )}
+                        <Button onClick={() => setSelectedQR(null)} className="mt-4 w-full">Close</Button>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Receipt Viewer Modal */}
+                <Dialog open={selectedReceipt !== null} onOpenChange={() => setSelectedReceipt(null)}>
+                    <DialogContent className="max-w-md text-center flex flex-col items-center">
+                        <DialogHeader>
+                            <DialogTitle>Payment Receipt / Proof</DialogTitle>
+                        </DialogHeader>
+                        {selectedReceipt && (
+                            <img 
+                                src={selectedReceipt} 
+                                alt="Payment Receipt" 
+                                className="max-w-full max-h-[400px] object-contain border rounded-xl p-2 bg-white mt-4" 
+                            />
+                        )}
+                        <Button onClick={() => setSelectedReceipt(null)} className="mt-4 w-full">Close</Button>
                     </DialogContent>
                 </Dialog>
             </div>

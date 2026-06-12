@@ -49,6 +49,39 @@ class ReferralController extends Controller
         ]);
     }
 
+    public function assignAllocation(Request $request)
+    {
+        $validated = $request->validate([
+            'discount_allocation' => 'required|numeric|min:0|max:100',
+            'target' => 'required|string|in:all,specific',
+            'user_id' => 'required_if:target,specific|nullable|exists:users,id',
+            'max_codes' => 'required|integer|min:1|max:50',
+        ]);
+
+        $discount = floatval($validated['discount_allocation']);
+        $maxCodes = intval($validated['max_codes']);
+
+        if ($validated['target'] === 'all') {
+            User::where('role', 'referral_partner')->update([
+                'referral_discount_percentage' => $discount,
+                'referral_max_codes' => $maxCodes,
+            ]);
+            $message = 'Discount allocation of ' . $discount . '% assigned to all Referral Partners.';
+        } else {
+            $user = User::findOrFail($validated['user_id']);
+            if ($user->role !== 'referral_partner') {
+                abort(400, 'User is not a referral partner.');
+            }
+            $user->update([
+                'referral_discount_percentage' => $discount,
+                'referral_max_codes' => $maxCodes,
+            ]);
+            $message = 'Discount allocation of ' . $discount . '% assigned to ' . $user->name . '.';
+        }
+
+        return redirect()->back()->with('status', $message);
+    }
+
     /**
      * Super Admin sets the discount %, commission %, and max codes for a referral partner.
      */

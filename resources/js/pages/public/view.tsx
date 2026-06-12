@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
 import { 
     Heart, Sparkles, Cake, Baby, Award, 
-    ExternalLink, ChevronLeft, ChevronRight, MapPin, Mail 
+    ExternalLink, ChevronLeft, ChevronRight, MapPin, Mail,
+    Star, Compass, Gift, Calendar, Clock, Music, Wine, Bell, Smile
 } from 'lucide-react';
 import { normalizeConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 
@@ -22,28 +23,76 @@ const fontStyles: Record<string, string> = {
     vibes: "'Great Vibes', cursive",
     montserrat: "'Montserrat', sans-serif",
     cinzel: "'Cinzel', serif",
+    dancing: "'Dancing Script', cursive",
+    alex: "'Alex Brush', cursive",
+    outfit: "'Outfit', sans-serif",
+    parisienne: "'Parisienne', cursive",
+    cormorant: "'Cormorant Garamond', serif",
+    pinyon: "'Pinyon Script', cursive",
 };
 
 export default function PublicSharedView({ userTemplate }: PageProps) {
     const config = normalizeConfig(userTemplate.custom_config, userTemplate.template.bg_gradient);
     const [currentPageIndex, setCurrentPageIndex] = useState(0);
+    const cardRef = useRef<HTMLDivElement>(null);
+    const [cardWidth, setCardWidth] = useState(350);
+
+    // Track card dimensions dynamically for font scaling
+    useEffect(() => {
+        if (!cardRef.current) return;
+        const observer = new ResizeObserver((entries) => {
+            if (entries[0]) {
+                setCardWidth(entries[0].contentRect.width);
+            }
+        });
+        observer.observe(cardRef.current);
+        
+        // Initial measurement
+        setCardWidth(cardRef.current.clientWidth);
+        
+        return () => observer.disconnect();
+    }, [currentPageIndex]);
 
     const activePage = config.pages[currentPageIndex] || config.pages[0];
     const totalPages = config.pages.length;
     const ratioData = ASPECT_RATIOS[config.aspectRatio] || ASPECT_RATIOS.standard;
+
+    const targetWidth = config.aspectRatio === 'custom' 
+        ? (config.width || 350) 
+        : (ratioData.targetWidth || 350);
+
+    const scaleRatio = cardWidth / targetWidth;
 
     const renderDecorIcon = (iconName: string, color: string = 'currentColor') => {
         const iconClasses = "size-full object-contain pointer-events-none";
         switch (iconName) {
             case 'heart':
                 return <Heart className={iconClasses} style={{ color }} />;
-            case 'balloon':
             case 'sparkle':
+            case 'sparkles':
                 return <Sparkles className={iconClasses} style={{ color }} />;
             case 'cake':
                 return <Cake className={iconClasses} style={{ color }} />;
             case 'baby':
                 return <Baby className={iconClasses} style={{ color }} />;
+            case 'gift':
+                return <Gift className={iconClasses} style={{ color }} />;
+            case 'calendar':
+                return <Calendar className={iconClasses} style={{ color }} />;
+            case 'clock':
+                return <Clock className={iconClasses} style={{ color }} />;
+            case 'music':
+                return <Music className={iconClasses} style={{ color }} />;
+            case 'wine':
+                return <Wine className={iconClasses} style={{ color }} />;
+            case 'star':
+                return <Star className={iconClasses} style={{ color }} />;
+            case 'bell':
+                return <Bell className={iconClasses} style={{ color }} />;
+            case 'compass':
+                return <Compass className={iconClasses} style={{ color }} />;
+            case 'flower':
+                return <Smile className={iconClasses} style={{ color }} />;
             case 'ring':
             default:
                 return <Award className={iconClasses} style={{ color }} />;
@@ -68,7 +117,7 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
                 <title>{userTemplate.template.name}</title>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&display=swap" rel="stylesheet" />
+                <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&family=Dancing+Script:wght@400..700&family=Alex+Brush&family=Outfit:wght@100..900&family=Parisienne&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Pinyon+Script&display=swap" rel="stylesheet" />
             </Head>
             <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-4 md:p-6 text-neutral-100">
                 {/* Main Card Frame */}
@@ -84,9 +133,85 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
                     </div>
 
                     {/* The Card Element Wrapper */}
-                    <div 
-                        className={`w-full ${ratioData.class} bg-gradient-to-tr ${activePage?.bg_gradient} rounded-3xl shadow-2xl relative overflow-hidden select-none border border-neutral-800 transition-all duration-500`}
+                    <div
+                        ref={cardRef}
+                        style={{
+                            aspectRatio: config.aspectRatio === 'custom' 
+                                ? `${config.width || 350}/${config.height || 490}` 
+                                : undefined,
+                            height: config.aspectRatio !== 'custom' ? undefined : 'auto',
+                            background: activePage?.bg_gradient?.startsWith('linear-gradient') 
+                                ? activePage.bg_gradient 
+                                : undefined,
+                        }}
+                        className={`w-full ${config.aspectRatio !== 'custom' ? ratioData.class : ''} rounded-3xl shadow-2xl relative overflow-hidden select-none border border-neutral-800 transition-all duration-500 ${!activePage?.bg_gradient?.startsWith('linear-gradient') ? `bg-gradient-to-tr ${activePage?.bg_gradient || 'from-stone-100 to-rose-50 text-neutral-800'}` : ''}`}
                     >
+                        {/* Decorative border overlays */}
+                        {activePage?.borderStyle && activePage.borderStyle !== 'none' && (
+                            <div 
+                                className="absolute pointer-events-none rounded-2xl"
+                                style={{
+                                    top: '12px',
+                                    left: '12px',
+                                    right: '12px',
+                                    bottom: '12px',
+                                    borderStyle: activePage.borderStyle === 'floral' || activePage.borderStyle === 'classic' ? 'double' : activePage.borderStyle,
+                                    borderColor: activePage.borderColor || '#e4e4e7',
+                                    borderWidth: `${Math.max(1, (activePage.borderWidth || 1) * scaleRatio)}px`,
+                                    zIndex: 10,
+                                }}
+                            >
+                                {(activePage.borderStyle === 'floral' || activePage.borderStyle === 'classic') && (
+                                    <>
+                                        <div 
+                                            className="absolute size-5 border-t border-l"
+                                            style={{
+                                                top: '-1px',
+                                                left: '-1px',
+                                                borderColor: activePage.borderColor || '#d4af37',
+                                                borderTopWidth: `${2 * scaleRatio}px`,
+                                                borderLeftWidth: `${2 * scaleRatio}px`,
+                                                borderTopLeftRadius: '4px',
+                                            }}
+                                        />
+                                        <div 
+                                            className="absolute size-5 border-t border-r"
+                                            style={{
+                                                top: '-1px',
+                                                right: '-1px',
+                                                borderColor: activePage.borderColor || '#d4af37',
+                                                borderTopWidth: `${2 * scaleRatio}px`,
+                                                borderRightWidth: `${2 * scaleRatio}px`,
+                                                borderTopRightRadius: '4px',
+                                            }}
+                                        />
+                                        <div 
+                                            className="absolute size-5 border-b border-l"
+                                            style={{
+                                                bottom: '-1px',
+                                                left: '-1px',
+                                                borderColor: activePage.borderColor || '#d4af37',
+                                                borderBottomWidth: `${2 * scaleRatio}px`,
+                                                borderLeftWidth: `${2 * scaleRatio}px`,
+                                                borderBottomLeftRadius: '4px',
+                                            }}
+                                        />
+                                        <div 
+                                            className="absolute size-5 border-b border-r"
+                                            style={{
+                                                bottom: '-1px',
+                                                right: '-1px',
+                                                borderColor: activePage.borderColor || '#d4af37',
+                                                borderBottomWidth: `${2 * scaleRatio}px`,
+                                                borderRightWidth: `${2 * scaleRatio}px`,
+                                                borderBottomRightRadius: '4px',
+                                            }}
+                                        />
+                                    </>
+                                )}
+                            </div>
+                        )}
+
                         {activePage?.elements.map((elem) => {
                             const style: React.CSSProperties = {
                                 position: 'absolute',
@@ -100,7 +225,7 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
                                 textAlign: elem.textAlign || 'center',
                                 fontFamily: fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair,
                                 color: elem.textColor || '#1f2937',
-                                fontSize: elem.fontSize ? `${elem.fontSize}px` : undefined,
+                                fontSize: elem.fontSize ? `${elem.fontSize * scaleRatio}px` : undefined,
                                 fontWeight: elem.fontWeight || 'normal',
                                 fontStyle: elem.isItalic ? 'italic' : 'normal',
                             };
@@ -138,7 +263,7 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
                             if (elem.type === 'divider') {
                                 return (
                                     <div key={elem.id} style={style} className="flex items-center justify-center px-2">
-                                        <hr className="w-full border-t" style={{ borderColor: elem.color || '#e4e4e7' }} />
+                                        <hr className="w-full border-t" style={{ borderColor: elem.color || '#1f2937', borderWidth: `${scaleRatio * 1.5}px` }} />
                                     </div>
                                 );
                             }
@@ -150,15 +275,17 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
                                             href={elem.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="px-4 py-1.5 bg-neutral-900/10 hover:bg-neutral-900/20 backdrop-blur-xs border rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs"
+                                            className="px-3 py-1.5 bg-neutral-900/10 hover:bg-neutral-900/20 backdrop-blur-xs border rounded-full flex items-center justify-center gap-1 shrink-0 transition-all shadow-xs"
                                             style={{ 
                                                 borderColor: elem.textColor || '#1f2937', 
-                                                color: elem.textColor || '#1f2937' 
+                                                color: elem.textColor || '#1f2937',
+                                                fontSize: `${Math.max(8, 9 * scaleRatio)}px`,
+                                                borderWidth: `${Math.max(1, 1 * scaleRatio)}px`
                                             }}
                                         >
-                                            <MapPin className="size-3.5" />
-                                            {elem.content || 'Location'}
-                                            <ExternalLink className="size-3" />
+                                            <MapPin className="shrink-0" style={{ width: `${10 * scaleRatio}px`, height: `${10 * scaleRatio}px` }} />
+                                            <span className="truncate max-w-[80px] font-bold">{elem.content || 'Location'}</span>
+                                            <ExternalLink className="shrink-0" style={{ width: `${8 * scaleRatio}px`, height: `${8 * scaleRatio}px` }} />
                                         </a>
                                     </div>
                                 );

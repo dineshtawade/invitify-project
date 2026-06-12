@@ -12,6 +12,8 @@ class Transaction extends Model
         'user_template_id',
         'mini_website_template_id',
         'mini_website_id',
+        'business_website_template_id',
+        'business_website_id',
         'amount',
         'payment_id',
         'order_id',
@@ -54,6 +56,16 @@ class Transaction extends Model
     public function miniWebsite()
     {
         return $this->belongsTo(MiniWebsite::class, 'mini_website_id');
+    }
+
+    public function businessWebsiteTemplate()
+    {
+        return $this->belongsTo(BusinessWebsiteTemplate::class, 'business_website_template_id');
+    }
+
+    public function businessWebsite()
+    {
+        return $this->belongsTo(BusinessWebsite::class, 'business_website_id');
     }
 
     public function referralCode()

@@ -10,16 +10,43 @@ use Inertia\Inertia;
 class UserController extends Controller
 {
     /**
-     * Display a listing of all users (excluding super admins).
+     * Display a listing of all users (excluding super admins) with pagination.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::where('role', '!=', 'super_admin')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = User::with([
+            'wallet',
+            'referralCodes',
+            'subscriptions' => function ($q) {
+                $q->orderBy('created_at', 'desc');
+            }
+        ])
+        ->withCount([
+            'userTemplates as purchased_templates_count' => function ($q) {
+                $q->where('is_purchased', true);
+            },
+            'miniWebsites as mini_websites_count',
+            'businessWebsites as business_websites_count'
+        ])
+        ->where('role', '!=', 'super_admin');
+
+        // Simple search filter
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('role', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
 
         return Inertia::render('super-admin/users', [
             'users' => $users,
+            'filters' => [
+                'search' => $request->input('search', ''),
+            ]
         ]);
     }
 

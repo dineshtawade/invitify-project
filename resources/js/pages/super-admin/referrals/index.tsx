@@ -36,11 +36,19 @@ interface ReferralPartner {
 export default function ReferralsIndex({ referralPartners }: { referralPartners: ReferralPartner[] }) {
     const [isPermissionsOpen, setIsPermissionsOpen] = useState(false);
     const [selectedPartner, setSelectedPartner] = useState<ReferralPartner | null>(null);
+    const [isAssignOpen, setIsAssignOpen] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         referral_discount_percentage: '30',
         referral_commission_percentage: '50',
         referral_max_codes: '5',
+    });
+
+    const assignForm = useForm({
+        discount_allocation: '30',
+        target: 'all',
+        user_id: '',
+        max_codes: '5',
     });
 
     const openPermissionsModal = (partner: ReferralPartner) => {
@@ -61,6 +69,16 @@ export default function ReferralsIndex({ referralPartners }: { referralPartners:
                 setIsPermissionsOpen(false);
                 reset();
                 setSelectedPartner(null);
+            },
+        });
+    };
+
+    const handleAssign = (e: React.FormEvent) => {
+        e.preventDefault();
+        assignForm.post('/super-admin/referrals/assign-allocation', {
+            onSuccess: () => {
+                setIsAssignOpen(false);
+                assignForm.reset();
             },
         });
     };
@@ -90,6 +108,9 @@ export default function ReferralsIndex({ referralPartners }: { referralPartners:
                         </h1>
                         <p className="text-neutral-500 mt-1">Configure partner permissions, discount / commission rates, and manage codes.</p>
                     </div>
+                    <Button onClick={() => setIsAssignOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                        <Percent className="size-4 mr-2" /> Assign Discount Allocation
+                    </Button>
                 </div>
 
                 {/* Stats Cards */}
@@ -138,9 +159,9 @@ export default function ReferralsIndex({ referralPartners }: { referralPartners:
                                         </div>
                                         <p className="text-sm text-neutral-500">{partner.email}</p>
                                         <div className="flex items-center gap-3 mt-1 text-xs text-neutral-500">
-                                            <span>Discount Rate: <strong>{partner.referral_discount_percentage ? `${partner.referral_discount_percentage}%` : 'Not Configured'}</strong></span>
+                                            <span>Discount Allocation: <strong>{partner.referral_discount_percentage ? `${partner.referral_discount_percentage}%` : 'Not Configured'}</strong></span>
                                             <span>•</span>
-                                            <span>Commission Rate: <strong>{partner.referral_commission_percentage ? `${partner.referral_commission_percentage}%` : 'Not Configured'}</strong></span>
+                                            <span>Default Commission: <strong>{partner.referral_commission_percentage ? `${partner.referral_commission_percentage}%` : 'Not Configured'}</strong></span>
                                             <span>•</span>
                                             <span>Max Codes: <strong>{partner.referral_max_codes}</strong></span>
                                         </div>
@@ -221,6 +242,7 @@ export default function ReferralsIndex({ referralPartners }: { referralPartners:
                         ))
                     )}
                 </div>
+            </div>
 
                 {/* Edit Permissions Dialog */}
                 <Dialog open={isPermissionsOpen} onOpenChange={setIsPermissionsOpen}>
@@ -228,13 +250,13 @@ export default function ReferralsIndex({ referralPartners }: { referralPartners:
                         <DialogHeader>
                             <DialogTitle>Configure Referral Rates & Limits</DialogTitle>
                             <DialogDescription>
-                                Set the rates for <strong>{selectedPartner?.name}</strong>. Their generated codes will inherit these settings.
+                                Set the rates for <strong>{selectedPartner?.name}</strong>. The Discount Allocation defines the maximum discount they can allocate to custom codes.
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={handleUpdatePermissions} className="flex flex-col gap-4 py-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
-                                    <Label>Discount Percentage (%)</Label>
+                                    <Label>Discount Allocation (%)</Label>
                                     <Input type="number" min={1} max={100} value={data.referral_discount_percentage} onChange={e => setData('referral_discount_percentage', e.target.value)} required />
                                     {errors.referral_discount_percentage && <p className="text-red-500 text-xs">{errors.referral_discount_percentage}</p>}
                                 </div>
@@ -256,7 +278,95 @@ export default function ReferralsIndex({ referralPartners }: { referralPartners:
                         </form>
                     </DialogContent>
                 </Dialog>
-            </div>
-        </AppLayout>
+
+                {/* Assign Discount Allocation Dialog */}
+                <Dialog open={isAssignOpen} onOpenChange={setIsAssignOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Assign Discount Allocation</DialogTitle>
+                            <DialogDescription>
+                                Assign a discount allocation that partners can use to create coupon codes.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleAssign} className="flex flex-col gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label>Assign Target</Label>
+                                <div className="flex items-center gap-4 mt-1">
+                                    <label className="flex items-center gap-1.5 text-sm font-semibold cursor-pointer">
+                                        <input 
+                                            type="radio" 
+                                            name="assign_target" 
+                                            value="all" 
+                                            checked={assignForm.data.target === 'all'} 
+                                            onChange={e => assignForm.setData('target', e.target.value)} 
+                                        />
+                                        All Partners
+                                    </label>
+                                    <label className="flex items-center gap-1.5 text-sm font-semibold cursor-pointer">
+                                        <input 
+                                            type="radio" 
+                                            name="assign_target" 
+                                            value="specific" 
+                                            checked={assignForm.data.target === 'specific'} 
+                                            onChange={e => assignForm.setData('target', e.target.value)} 
+                                        />
+                                        Specific Partner
+                                    </label>
+                                </div>
+                            </div>
+
+                            {assignForm.data.target === 'specific' && (
+                                <div className="grid gap-2 animate-in fade-in duration-200">
+                                    <Label>Select Referral Partner</Label>
+                                    <select 
+                                        value={assignForm.data.user_id} 
+                                        onChange={e => assignForm.setData('user_id', e.target.value)}
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        required
+                                    >
+                                        <option value="">-- Choose Partner --</option>
+                                        {referralPartners.map(p => (
+                                            <option key={p.id} value={p.id}>{p.name} ({p.email})</option>
+                                        ))}
+                                    </select>
+                                    {assignForm.errors.user_id && <p className="text-red-500 text-xs">{assignForm.errors.user_id}</p>}
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label>Discount Allocation (%)</Label>
+                                    <Input 
+                                        type="number" 
+                                        min={0} 
+                                        max={100} 
+                                        value={assignForm.data.discount_allocation} 
+                                        onChange={e => assignForm.setData('discount_allocation', e.target.value)} 
+                                        required 
+                                    />
+                                    {assignForm.errors.discount_allocation && <p className="text-red-500 text-xs">{assignForm.errors.discount_allocation}</p>}
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label>Maximum Allowed Codes</Label>
+                                    <Input 
+                                        type="number" 
+                                        min={1} 
+                                        max={50} 
+                                        value={assignForm.data.max_codes} 
+                                        onChange={e => assignForm.setData('max_codes', e.target.value)} 
+                                        required 
+                                    />
+                                    {assignForm.errors.max_codes && <p className="text-red-500 text-xs">{assignForm.errors.max_codes}</p>}
+                                </div>
+                            </div>
+
+                            <DialogFooter className="mt-4">
+                                <Button type="button" variant="outline" onClick={() => setIsAssignOpen(false)}>Cancel</Button>
+                                <Button type="submit" disabled={assignForm.processing} className="bg-indigo-600 hover:bg-indigo-700 text-white">Assign Allocation</Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            </AppLayout>
     );
 }

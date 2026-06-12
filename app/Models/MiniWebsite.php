@@ -19,11 +19,13 @@ class MiniWebsite extends Model
         'is_published',
         'expires_at',
         'config',
+        'is_purchased',
     ];
 
     protected $casts = [
         'config' => 'array',
         'is_published' => 'boolean',
+        'is_purchased' => 'boolean',
         'expires_at' => 'datetime',
     ];
 

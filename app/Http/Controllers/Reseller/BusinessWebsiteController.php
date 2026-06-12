@@ -15,13 +15,23 @@ class BusinessWebsiteController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $user = auth()->user();
+        $wallet = $user->getOrCreateWallet();
+
         return Inertia::render('reseller/business-websites/edit', [
+            'wallet' => [
+                'balance' => floatval($wallet->balance),
+            ],
             'website' => [
                 'id' => $business_website->id,
                 'title' => $business_website->title,
                 'slug' => $business_website->slug,
                 'theme' => $business_website->theme,
                 'is_published' => $business_website->is_published,
+                'is_purchased' => $business_website->is_purchased,
+                'reseller_price' => $business_website->template ? floatval($business_website->template->getResellerPrice()) : 0.0,
+                'expires_at' => $business_website->expires_at ? $business_website->expires_at->toIso8601String() : null,
+                'is_expired' => $business_website->isSubscriptionExpired(),
                 'pages' => $business_website->pages,
                 'meta_description' => $business_website->meta_description,
                 'meta_keywords' => $business_website->meta_keywords,

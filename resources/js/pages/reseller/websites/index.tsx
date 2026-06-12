@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Globe, Plus, Trash2, Edit2, Calendar, CheckCircle, Clock, ShieldAlert, Sparkles, ExternalLink, Briefcase } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { 
+    Globe, Plus, Trash2, Edit2, Calendar, CheckCircle, Clock, 
+    ShieldAlert, Sparkles, ExternalLink, Briefcase, Package, Loader2, Check, AlertCircle, CreditCard
+} from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -25,6 +28,7 @@ interface WebsiteData {
     slug: string;
     theme: string;
     is_published: boolean;
+    is_purchased: boolean;
     created_at: string;
     expires_at: string | null;
     is_expired: boolean;
@@ -49,11 +53,15 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
         type: 'mini' | 'business';
     } | null>(null);
 
-    // Renew/Host form
-    const renewForm = useForm({
-        plan: 'monthly' as 'daily' | 'monthly' | 'yearly',
-        days: '10', // Default if daily is chosen
-    });
+    // ZIP downloading state
+    const [downloadingId, setDownloadingId] = useState<number | null>(null);
+
+    // Checkout configurations
+    const [durationUnit, setDurationUnit] = useState<'days' | 'weeks'>('days');
+    const [durationMode, setDurationMode] = useState<string>('30');
+    const [customDays, setCustomDays] = useState(30);
+    const [customWeeks, setCustomWeeks] = useState(4);
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
 
     const handleDelete = (type: 'mini' | 'business', id: number) => {
         if (confirm('Are you absolutely sure you want to delete this website? All customized content will be permanently lost.')) {
@@ -61,47 +69,89 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
                 ? `/reseller/mini-websites/${id}` 
                 : `/reseller/business-websites/${id}`;
             
-            renewForm.delete(url);
+            router.delete(url);
+        }
+    };
+
+    const handleDownloadZip = async (websiteId: number) => {
+        setDownloadingId(websiteId);
+        try {
+            const link = document.createElement('a');
+            link.href = `/reseller/mini-websites/${websiteId}/download-zip`;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => {
+                setDownloadingId(null);
+            }, 3000);
+        } catch (err) {
+            console.error('Download failed:', err);
+            setDownloadingId(null);
         }
     };
 
     const handleOpenHostModal = (id: number, title: string, type: 'mini' | 'business') => {
         setHostingTarget({ id, title, type });
-        renewForm.setData({
-            plan: 'monthly',
-            days: '10',
-        });
+        setDurationUnit('days');
+        setDurationMode('30');
+        setCustomDays(30);
+        setCustomWeeks(4);
     };
+
+    const handleUnitChange = (unit: 'days' | 'weeks') => {
+        setDurationUnit(unit);
+        if (unit === 'days') {
+            setDurationMode('30');
+            setCustomDays(30);
+        } else {
+            setDurationMode('4');
+            setCustomWeeks(4);
+        }
+    };
+
+    const getDaysValue = () => {
+        if (durationUnit === 'days') {
+            if (durationMode === 'custom') {
+                return Math.max(1, customDays);
+            }
+            return parseInt(durationMode, 10);
+        } else {
+            const weeks = durationMode === 'custom' ? Math.max(1, customWeeks) : parseInt(durationMode, 10);
+            return weeks * 7;
+        }
+    };
+
+    const days = getDaysValue();
+    const cost = 2.00 * days; // flat reseller hosting rate
+    const hasSufficientBalance = wallet.balance >= cost;
 
     const handleHostSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!hostingTarget) return;
+        setIsCheckingOut(true);
 
-        renewForm.post(`/reseller/websites/${hostingTarget.type}/${hostingTarget.id}/host`, {
+        router.post(`/reseller/websites/${hostingTarget.type}/${hostingTarget.id}/host`, {
+            days: days
+        }, {
             onSuccess: () => {
                 setHostingTarget(null);
+                setIsCheckingOut(false);
             },
+            onError: () => {
+                setIsCheckingOut(false);
+            }
         });
     };
 
-    // Calculate dynamic cost based on selected form data
-    const getHostingCost = () => {
-        if (renewForm.data.plan === 'daily') {
-            return 2.00 * (parseInt(renewForm.data.days) || 0);
-        }
-        if (renewForm.data.plan === 'monthly') {
-            return 50.00;
-        }
-        if (renewForm.data.plan === 'yearly') {
-            return 500.00;
-        }
-        return 0;
-    };
-
-    const cost = getHostingCost();
-    const hasSufficientBalance = wallet.balance >= cost;
-
     const renderStatusBadge = (site: WebsiteData) => {
+        if (!site.is_purchased) {
+            return (
+                <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-xs font-bold px-2.5 py-0.5 rounded-full uppercase border border-amber-100">
+                    <ShieldAlert className="size-3" /> Unpaid Draft
+                </span>
+            );
+        }
         if (site.is_expired) {
             return (
                 <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 text-xs font-bold px-2.5 py-0.5 rounded-full uppercase border border-red-100">
@@ -124,8 +174,11 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
     };
 
     const renderExpiryMessage = (site: WebsiteData) => {
+        if (!site.is_purchased) {
+            return <p className="text-[10px] text-amber-600 font-semibold italic">Template unpaid</p>;
+        }
         if (!site.expires_at) {
-            return <p className="text-[10px] text-neutral-400 italic">No hosting active</p>;
+            return <p className="text-[10px] text-neutral-450 italic">No hosting active</p>;
         }
         const expiry = new Date(site.expires_at);
         if (site.is_expired) {
@@ -142,6 +195,10 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
         );
     };
 
+    const isSiteActive = (site: WebsiteData) => {
+        return !site.is_expired && site.expires_at !== null;
+    };
+
     const currentList = activeTab === 'mini' ? miniWebsites : businessWebsites;
 
     return (
@@ -153,20 +210,20 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <h1 className="text-3xl font-bold flex items-center gap-2">
-                            <Globe className="size-8 text-indigo-650" /> My Hosted Websites
+                            <Globe className="size-8 text-indigo-600" /> My Hosted Websites
                         </h1>
                         <p className="text-neutral-500 mt-1">Manage and edit your reseller client sites. Top up hosting periods using your wallet balance.</p>
                     </div>
                     
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 font-semibold">
                         {/* Wallet Balance widget */}
                         <div className="bg-white border rounded-xl px-4 py-2 flex items-center gap-2 shadow-xs">
                             <span className="text-xs text-neutral-450 uppercase font-semibold">Wallet:</span>
                             <span className="text-lg font-black text-indigo-600">₹{wallet.balance.toFixed(2)}</span>
                         </div>
                         <Link href="/reseller/shop">
-                            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold">
-                                <Plus className="size-4 mr-1.5" /> Buy New Site
+                            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-1.5 font-semibold">
+                                <Plus className="size-4" /> Buy New Site
                             </Button>
                         </Link>
                     </div>
@@ -218,7 +275,7 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <h3 className="font-black text-neutral-900 text-lg leading-tight">{site.title}</h3>
-                                            <p className="text-[11px] text-neutral-450 mt-1 capitalize">Theme: {site.theme}</p>
+                                            <p className="text-[11px] text-neutral-455 mt-1 capitalize">Theme: {site.theme}</p>
                                         </div>
                                         {renderStatusBadge(site)}
                                     </div>
@@ -227,20 +284,27 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
                                     <div className="bg-neutral-50 rounded-xl p-3 border text-xs flex flex-col gap-1.5">
                                         <div className="flex justify-between text-neutral-500">
                                             <span>Template:</span>
-                                            <span className="font-semibold text-neutral-850">{site.template?.name || 'Custom'}</span>
+                                            <span className="font-semibold text-neutral-800">{site.template?.name || 'Custom'}</span>
                                         </div>
                                         <div className="flex justify-between text-neutral-500 items-center">
                                             <span>URL:</span>
                                             <a 
-                                                href={activeTab === 'mini' ? `/sites/${site.slug}` : `/business/${site.slug}`} 
+                                                href={activeTab === 'mini' ? `/mini-website/${site.slug}` : `/business/${site.slug}`} 
                                                 target="_blank" 
                                                 rel="noreferrer" 
                                                 className="text-blue-600 hover:underline flex items-center gap-0.5"
                                             >
-                                                {site.slug} <ExternalLink className="size-3" />
+                                                /mini-website/{site.slug} <ExternalLink className="size-3" />
                                             </a>
                                         </div>
                                     </div>
+
+                                    {!site.is_purchased && (
+                                        <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-2.5 text-[10px] text-amber-800 flex gap-1.5 items-start">
+                                            <ShieldAlert className="size-3.5 text-amber-600 shrink-0 mt-0.5" />
+                                            <p>This website is an unpaid draft. Open the editor to customize content and complete the purchase.</p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="flex flex-col gap-3 pt-3 border-t">
@@ -253,36 +317,68 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
                                     </div>
 
                                     {/* Action button bar */}
-                                    <div className="grid grid-cols-3 gap-2 mt-1">
-                                        {/* Edit link */}
-                                        <Link 
-                                            href={activeTab === 'mini' ? `/reseller/mini-websites/${site.id}/edit` : `/reseller/business-websites/${site.id}/edit`}
-                                            className="w-full"
-                                        >
-                                            <Button variant="outline" size="sm" className="w-full text-xs font-semibold px-2">
-                                                <Edit2 className="size-3 mr-1" /> Edit
+                                    <div className="flex flex-col gap-2">
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {/* Edit link */}
+                                            <Link 
+                                                href={activeTab === 'mini' ? `/reseller/mini-websites/${site.id}/edit` : `/reseller/business-websites/${site.id}/edit`}
+                                                className="w-full"
+                                            >
+                                                <Button variant="outline" size="sm" className="w-full text-xs font-semibold">
+                                                    <Edit2 className="size-3 mr-1.5" /> Edit Template
+                                                </Button>
+                                            </Link>
+
+                                            {/* Host / Renew button */}
+                                            <Button 
+                                                onClick={() => handleOpenHostModal(site.id, site.title, activeTab)}
+                                                disabled={!site.is_purchased}
+                                                variant="outline" 
+                                                size="sm" 
+                                                className={`text-xs font-semibold ${
+                                                    site.is_purchased 
+                                                        ? 'text-indigo-650 border-indigo-200 hover:bg-indigo-50' 
+                                                        : 'text-neutral-400 border-neutral-200 cursor-not-allowed opacity-50'
+                                                }`}
+                                            >
+                                                <Globe className="size-3 mr-1.5" /> Host/Renew
                                             </Button>
-                                        </Link>
+                                        </div>
 
-                                        {/* Host / Renew button */}
-                                        <Button 
-                                            onClick={() => handleOpenHostModal(site.id, site.title, activeTab)}
-                                            variant="outline" 
-                                            size="sm" 
-                                            className="text-xs font-semibold px-2 text-indigo-650 border-indigo-200 hover:bg-indigo-50"
-                                        >
-                                            <Globe className="size-3 mr-1" /> Host/Renew
-                                        </Button>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {/* Download ZIP (Mini Website only & active) */}
+                                            {activeTab === 'mini' && isSiteActive(site) ? (
+                                                <Button 
+                                                    onClick={() => handleDownloadZip(site.id)}
+                                                    variant="outline" 
+                                                    size="sm" 
+                                                    disabled={downloadingId === site.id}
+                                                    className="text-xs font-bold text-violet-700 border-violet-200 bg-violet-50 hover:bg-violet-100 disabled:opacity-60"
+                                                >
+                                                    {downloadingId === site.id ? (
+                                                        <>
+                                                            <Loader2 className="size-3 animate-spin mr-1" /> Preparing...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Package className="size-3 mr-1" /> Download ZIP
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            ) : (
+                                                <div className="w-full" />
+                                            )}
 
-                                        {/* Delete button */}
-                                        <Button 
-                                            onClick={() => handleDelete(activeTab, site.id)}
-                                            variant="outline" 
-                                            size="sm" 
-                                            className="text-xs font-semibold px-2 text-red-650 hover:bg-red-50 hover:border-red-200"
-                                        >
-                                            <Trash2 className="size-3 mr-1" /> Delete
-                                        </Button>
+                                            {/* Delete button */}
+                                            <Button 
+                                                onClick={() => handleDelete(activeTab, site.id)}
+                                                variant="outline" 
+                                                size="sm" 
+                                                className="text-xs font-semibold text-red-650 hover:bg-red-50 hover:border-red-200"
+                                            >
+                                                <Trash2 className="size-3 mr-1.5" /> Delete
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -292,93 +388,215 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
 
                 {/* Hosting Setup / Extend dialog */}
                 <Dialog open={hostingTarget !== null} onOpenChange={() => setHostingTarget(null)}>
-                    <DialogContent className="sm:max-w-md">
+                    <DialogContent className="w-[95%] sm:max-w-md max-h-[90vh] overflow-y-auto bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
                         <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2 text-xl">
-                                <Sparkles className="size-5 text-indigo-600 animate-pulse" /> Hosting & Deployment
+                            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-neutral-900 dark:text-neutral-100">
+                                <CreditCard className="size-5 text-indigo-650" />
+                                Hosting Subscription Checkout
                             </DialogTitle>
-                            <DialogDescription>
-                                Activate hosting or extend active server registration for client site: <strong className="text-neutral-800">{hostingTarget?.title}</strong>.
-                            </DialogDescription>
                         </DialogHeader>
 
                         {hostingTarget && (
-                            <form onSubmit={handleHostSubmit} className="flex flex-col gap-4 py-2">
-                                {/* Plan Selection */}
-                                <div className="grid gap-2">
-                                    <Label htmlFor="hosting_plan">Choose Hosting Plan</Label>
-                                    <select
-                                        id="hosting_plan"
-                                        value={renewForm.data.plan}
-                                        onChange={e => renewForm.setData('plan', e.target.value as any)}
-                                        className="flex h-9 w-full rounded-md border border-neutral-200 bg-white px-3 py-1 text-sm shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-indigo-650"
-                                        required
-                                    >
-                                        <option value="daily">Daily Hosting (₹2.00 / day)</option>
-                                        <option value="monthly">Monthly Subscription (₹50.00 / 30 days)</option>
-                                        <option value="yearly">Yearly Subscription (₹500.00 / 365 days)</option>
-                                    </select>
+                            <form onSubmit={handleHostSubmit} className="flex flex-col gap-5 py-3 text-sm">
+                                <div className="rounded-xl bg-neutral-50 dark:bg-neutral-950 p-4 border border-neutral-150 dark:border-neutral-850 flex flex-col gap-1">
+                                    <span className="text-xs text-neutral-450 uppercase font-bold">Hosting Website</span>
+                                    <span className="font-bold text-neutral-850 dark:text-neutral-200">{hostingTarget.title}</span>
+                                    <span className="text-xs text-neutral-500 font-mono">/{hostingTarget.type === 'mini' ? 'mini-website' : 'business'}/{hostingTarget.id}</span>
                                 </div>
 
-                                {/* Custom Days input for Daily Plan */}
-                                {renewForm.data.plan === 'daily' && (
-                                    <div className="grid gap-1.5 animate-fadeIn">
-                                        <Label htmlFor="daily_days">Hosting Duration (Days)</Label>
-                                        <Input
-                                            id="daily_days"
-                                            type="number"
-                                            min={5}
-                                            max={120}
-                                            value={renewForm.data.days}
-                                            onChange={e => renewForm.setData('days', e.target.value)}
-                                            required
-                                            placeholder="Enter days (minimum 5)"
-                                        />
-                                        <p className="text-[10px] text-neutral-400">Select between 5 and 120 days of custom deployment.</p>
+                                {/* Duration Unit Selector */}
+                                <div className="flex flex-col gap-2">
+                                    <Label className="text-xs text-neutral-450 uppercase font-bold tracking-wider">Select Billing Cycle</Label>
+                                    <div className="flex bg-neutral-100 dark:bg-neutral-950 p-1 rounded-lg border">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleUnitChange('days')}
+                                            className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
+                                                durationUnit === 'days'
+                                                    ? 'bg-white dark:bg-neutral-800 text-indigo-600 shadow-sm border border-neutral-200/50 dark:border-neutral-700'
+                                                    : 'text-neutral-500 hover:text-neutral-850'
+                                            }`}
+                                        >
+                                            Daily Billing (Days)
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleUnitChange('weeks')}
+                                            className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
+                                                durationUnit === 'weeks'
+                                                    ? 'bg-white dark:bg-neutral-800 text-indigo-600 shadow-sm border border-neutral-200/50 dark:border-neutral-700'
+                                                    : 'text-neutral-500 hover:text-neutral-850'
+                                            }`}
+                                        >
+                                            Weekly Billing (Weeks)
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Duration Selection */}
+                                <div className="flex flex-col gap-2">
+                                    <Label className="text-xs text-neutral-450 uppercase font-bold tracking-wider">Select Hosting Duration</Label>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        {durationUnit === 'days' ? (
+                                            <>
+                                                {['1', '2', '3', '7', '30', 'custom'].map((val) => (
+                                                    <button
+                                                        key={val}
+                                                        type="button"
+                                                        onClick={() => setDurationMode(val)}
+                                                        className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all text-xs ${
+                                                            durationMode === val
+                                                                ? 'border-indigo-600 bg-indigo-50/50 text-indigo-750 dark:bg-indigo-950/20'
+                                                                : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                        }`}
+                                                    >
+                                                        <span>{val === 'custom' ? 'Custom Days' : `${val} ${val === '1' ? 'Day' : 'Days'}`}</span>
+                                                        {val !== 'custom' && <span className="text-[10px] opacity-60">₹{parseInt(val) * 2}</span>}
+                                                    </button>
+                                                ))}
+                                            </>
+                                        ) : (
+                                            <>
+                                                {['1', '2', '4', '12', '26', 'custom'].map((val) => (
+                                                    <button
+                                                        key={val}
+                                                        type="button"
+                                                        onClick={() => setDurationMode(val)}
+                                                        className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all text-xs ${
+                                                            durationMode === val
+                                                                ? 'border-indigo-600 bg-indigo-50/50 text-indigo-750 dark:bg-indigo-950/20'
+                                                                : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                        }`}
+                                                    >
+                                                        <span>{val === 'custom' ? 'Custom Weeks' : `${val} ${val === '1' ? 'Week' : 'Weeks'}`}</span>
+                                                        {val !== 'custom' && <span className="text-[10px] opacity-60">₹{parseInt(val) * 7 * 2}</span>}
+                                                    </button>
+                                                ))}
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Custom Input Selection */}
+                                {durationMode === 'custom' && (
+                                    <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/30 flex flex-col gap-4">
+                                        {durationUnit === 'days' ? (
+                                            <div className="flex flex-col gap-2">
+                                                <Label htmlFor="custom_reseller_days" className="text-xs text-neutral-450 font-bold uppercase tracking-wider">Number of Days</Label>
+                                                <div className="flex gap-2">
+                                                    <select
+                                                        value={customDays <= 30 ? customDays : 'manual'}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            if (val !== 'manual') setCustomDays(Number(val));
+                                                        }}
+                                                        className="flex-1 h-9 rounded-md border border-neutral-200 bg-white text-xs px-3 focus:ring-1 focus:ring-indigo-650"
+                                                    >
+                                                        {Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
+                                                            <option key={d} value={d}>{d} Days</option>
+                                                        ))}
+                                                        <option value="manual">Enter Days Manually</option>
+                                                    </select>
+                                                    {(customDays > 30 || !Array.from({ length: 30 }, (_, i) => i + 1).includes(customDays)) && (
+                                                        <Input
+                                                            id="custom_reseller_days"
+                                                            type="number"
+                                                            min="1"
+                                                            value={customDays}
+                                                            onChange={(e) => setCustomDays(Math.max(1, parseInt(e.target.value) || 1))}
+                                                            className="w-24 text-center h-9"
+                                                        />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col gap-2">
+                                                <Label htmlFor="custom_reseller_weeks" className="text-xs text-neutral-450 font-bold uppercase tracking-wider">Number of Weeks</Label>
+                                                <div className="flex gap-2">
+                                                    <select
+                                                        value={customWeeks <= 12 ? customWeeks : 'manual'}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            if (val !== 'manual') setCustomWeeks(Number(val));
+                                                        }}
+                                                        className="flex-1 h-9 rounded-md border border-neutral-200 bg-white text-xs px-3 focus:ring-1 focus:ring-indigo-650"
+                                                    >
+                                                        {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
+                                                            <option key={w} value={w}>{w} Weeks</option>
+                                                        ))}
+                                                        <option value="manual">Enter Weeks Manually</option>
+                                                    </select>
+                                                    {(customWeeks > 12 || !Array.from({ length: 12 }, (_, i) => i + 1).includes(customWeeks)) && (
+                                                        <Input
+                                                            id="custom_reseller_weeks"
+                                                            type="number"
+                                                            min="1"
+                                                            value={customWeeks}
+                                                            onChange={(e) => setCustomWeeks(Math.max(1, parseInt(e.target.value) || 1))}
+                                                            className="w-24 text-center h-9"
+                                                        />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
-                                {/* Cost & Balance Summary */}
-                                <div className="border rounded-xl p-4 bg-neutral-50/50 flex flex-col gap-2 mt-2">
-                                    <div className="flex justify-between items-center text-sm border-b pb-2">
-                                        <span className="text-neutral-500">Wallet Balance:</span>
-                                        <span className="font-bold text-neutral-800">₹{wallet.balance.toFixed(2)}</span>
+                                {/* Cost & Balance breakdown */}
+                                <div className="bg-neutral-50 dark:bg-neutral-950 p-4 rounded-xl border flex flex-col gap-2 text-xs">
+                                    <div className="flex justify-between items-center text-neutral-500">
+                                        <span>Wallet Balance:</span>
+                                        <span className="font-bold text-neutral-800 dark:text-neutral-200">₹{wallet.balance.toFixed(2)}</span>
                                     </div>
-                                    <div className="flex justify-between items-center text-sm border-b pb-2">
-                                        <span className="text-neutral-500">Hosting Cost:</span>
-                                        <span className="font-extrabold text-neutral-800">₹{cost.toFixed(2)}</span>
+                                    <div className="flex justify-between items-center text-neutral-500">
+                                        <span>Duration:</span>
+                                        <span className="font-bold text-neutral-800 dark:text-neutral-200">{days} days (Rate: ₹2.00 / day)</span>
                                     </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-indigo-700 font-bold">Remaining Balance:</span>
-                                        <span className={`font-black text-base ${hasSufficientBalance ? 'text-indigo-750' : 'text-red-500'}`}>
+                                    <div className="flex justify-between items-center text-neutral-500 border-t pt-2.5">
+                                        <span>Hosting Cost:</span>
+                                        <span className="font-bold text-neutral-850 dark:text-neutral-100">₹{cost.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-t pt-2.5 text-sm font-black text-neutral-900 dark:text-neutral-100">
+                                        <span>Remaining Balance:</span>
+                                        <span className={hasSufficientBalance ? 'text-indigo-600' : 'text-red-500'}>
                                             ₹{(wallet.balance - cost).toFixed(2)}
                                         </span>
                                     </div>
                                 </div>
 
-                                {/* Insufficient Wallet Warning */}
+                                {/* Insufficient balance message */}
                                 {!hasSufficientBalance && (
-                                    <div className="p-3.5 bg-red-50 border border-red-150 text-xs text-red-700 rounded-xl flex items-start gap-2">
-                                        <ShieldAlert className="size-4 shrink-0 mt-0.5" />
+                                    <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-150 dark:border-red-900/50 text-xs text-red-750 dark:text-red-400 rounded-xl flex items-start gap-2">
+                                        <AlertCircle className="size-4 shrink-0 mt-0.5" />
                                         <div>
                                             <p className="font-bold">Insufficient Balance</p>
-                                            <p className="mt-0.5">Please recharge your wallet with at least ₹{(cost - wallet.balance).toFixed(2)} to host this site.</p>
-                                            <Link href="/reseller/wallet" className="underline font-bold mt-1.5 inline-block hover:text-red-850">
+                                            <p className="mt-0.5">You need to recharge at least ₹{(cost - wallet.balance).toFixed(2)} to host this site.</p>
+                                            <Link href="/reseller/wallet" className="underline font-bold mt-1 inline-block hover:text-red-800">
                                                 Recharge Wallet Now &rarr;
                                             </Link>
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Action Buttons */}
+                                {/* Confirm buttons */}
                                 <div className="flex justify-end gap-3 mt-4 border-t pt-4">
                                     <Button type="button" variant="outline" onClick={() => setHostingTarget(null)}>Cancel</Button>
                                     <Button 
                                         type="submit" 
-                                        disabled={renewForm.processing || !hasSufficientBalance || cost <= 0} 
-                                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex-1"
+                                        disabled={isCheckingOut || !hasSufficientBalance || cost <= 0} 
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex-1 flex items-center justify-center gap-1.5"
                                     >
-                                        {renewForm.processing ? 'Activating server...' : 'Confirm & Host Site'}
+                                        {isCheckingOut ? (
+                                            <>
+                                                <Loader2 className="size-4 animate-spin" />
+                                                Confirming server...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Check className="size-4" />
+                                                Pay from Wallet & Host
+                                            </>
+                                        )}
                                     </Button>
                                 </div>
                             </form>

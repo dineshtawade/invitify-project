@@ -62,6 +62,8 @@ class DashboardController extends Controller
                 'id' => $wallet->id,
                 'balance' => $wallet->balance,
                 'status' => $wallet->status,
+                'total_earnings' => $wallet->transactions()->where('type', 'credit')->sum('amount'),
+                'pending_withdrawals' => $user->redemptionRequests()->where('status', 'pending')->sum('amount'),
             ],
             'stats' => [
                 'total_referrals' => $totalReferrals,
@@ -81,6 +83,12 @@ class DashboardController extends Controller
 
         $validated = $request->validate([
             'amount' => 'required|numeric|min:100', // Minimum ₹100 withdrawal
+            'upi_id' => 'nullable|string|max:255',
+            'bank_name' => 'nullable|string|max:255',
+            'account_holder_name' => 'nullable|string|max:255',
+            'account_number' => 'nullable|string|max:255',
+            'ifsc_code' => 'nullable|string|max:255',
+            'qr_code' => 'nullable|image|max:2048', // Max 2MB QR Code image
         ]);
 
         if ($validated['amount'] > $wallet->balance) {
@@ -93,11 +101,35 @@ class DashboardController extends Controller
             return redirect()->back()->with('error', 'You already have a pending redemption request.');
         }
 
+        // Verify that at least one complete payment method is provided
+        $hasUpi = !empty($validated['upi_id']);
+        $hasQr = $request->hasFile('qr_code');
+        $hasBank = !empty($validated['bank_name']) && 
+                    !empty($validated['account_holder_name']) && 
+                    !empty($validated['account_number']) && 
+                    !empty($validated['ifsc_code']);
+
+        if (!$hasUpi && !$hasQr && !$hasBank) {
+            return redirect()->back()->with('error', 'Please provide either a UPI ID, QR Code image, or complete Bank Account Details.');
+        }
+
+        $qrCodePath = null;
+        if ($request->hasFile('qr_code')) {
+            $path = $request->file('qr_code')->store('qr_codes', 'public');
+            $qrCodePath = '/storage/' . $path;
+        }
+
         RedemptionRequest::create([
             'user_id' => $user->id,
             'wallet_id' => $wallet->id,
             'amount' => $validated['amount'],
             'status' => 'pending',
+            'upi_id' => $validated['upi_id'] ?? null,
+            'bank_name' => $validated['bank_name'] ?? null,
+            'account_holder_name' => $validated['account_holder_name'] ?? null,
+            'account_number' => $validated['account_number'] ?? null,
+            'ifsc_code' => $validated['ifsc_code'] ?? null,
+            'qr_code_path' => $qrCodePath,
         ]);
 
         return redirect()->back()->with('status', 'Redemption request submitted. We will process it shortly.');
@@ -107,8 +139,8 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        if (is_null($user->referral_discount_percentage) || is_null($user->referral_commission_percentage)) {
-            return redirect()->back()->with('error', 'Super Admin has not configured your discount and commission rates yet. Please contact support.');
+        if (is_null($user->referral_discount_percentage)) {
+            return redirect()->back()->with('error', 'Super Admin has not configured your discount allocation yet. Please contact support.');
         }
 
         // Check max codes
@@ -119,6 +151,7 @@ class DashboardController extends Controller
 
         $validated = $request->validate([
             'code' => 'nullable|string|alpha_num|max:32|unique:referral_codes,code',
+            'discount_percentage' => 'required|numeric|min:0|max:' . floatval($user->referral_discount_percentage),
         ]);
 
         $codeStr = strtoupper($validated['code'] ?? '');
@@ -129,14 +162,59 @@ class DashboardController extends Controller
             } while (ReferralCode::where('code', $codeStr)->exists());
         }
 
+        $discount = floatval($validated['discount_percentage']);
+        $commission = floatval($user->referral_discount_percentage) - $discount;
+
         ReferralCode::create([
             'user_id' => $user->id,
             'code' => $codeStr,
-            'discount_percentage' => $user->referral_discount_percentage,
-            'commission_percentage' => $user->referral_commission_percentage,
+            'discount_percentage' => $discount,
+            'commission_percentage' => $commission,
             'is_active' => true,
         ]);
 
         return redirect()->back()->with('status', 'Referral code created successfully.');
+    }
+
+    public function wallet()
+    {
+        $user = auth()->user();
+        $wallet = $user->getOrCreateWallet();
+
+        // Wallet history
+        $walletHistory = $wallet->transactions()
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return Inertia::render('referral-partner/wallet', [
+            'wallet' => [
+                'id' => $wallet->id,
+                'balance' => $wallet->balance,
+                'status' => $wallet->status,
+                'total_earnings' => $wallet->transactions()->where('type', 'credit')->sum('amount'),
+                'pending_withdrawals' => $user->redemptionRequests()->where('status', 'pending')->sum('amount'),
+            ],
+            'walletHistory' => $walletHistory,
+        ]);
+    }
+
+    public function paymentDetails()
+    {
+        $user = auth()->user();
+        $wallet = $user->getOrCreateWallet();
+
+        // Redemption requests
+        $redemptions = $user->redemptionRequests()->orderBy('created_at', 'desc')->get();
+
+        return Inertia::render('referral-partner/payment-details', [
+            'wallet' => [
+                'id' => $wallet->id,
+                'balance' => $wallet->balance,
+                'status' => $wallet->status,
+                'total_earnings' => $wallet->transactions()->where('type', 'credit')->sum('amount'),
+                'pending_withdrawals' => $user->redemptionRequests()->where('status', 'pending')->sum('amount'),
+            ],
+            'redemptions' => $redemptions,
+        ]);
     }
 }

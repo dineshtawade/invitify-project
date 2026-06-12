@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Head, useForm } from '@inertiajs/react';
-import { Mail, Sparkles, MapPin, Calendar, Users, MessageSquare, CheckCircle, Heart, Cake, Baby, Award } from 'lucide-react';
+import { Head, useForm, Link } from '@inertiajs/react';
+import { Mail, Sparkles, MapPin, Calendar, Users, MessageSquare, CheckCircle, Heart, Cake, Baby, Award, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,6 +37,7 @@ interface PageProps {
     flash?: {
         status?: string;
     };
+    previewMode?: 'draft' | 'expired' | null;
 }
 
 const themePresets = {
@@ -74,7 +75,7 @@ const themePresets = {
     },
 };
 
-export default function PublicInvitationSite({ website, flash }: PageProps) {
+export default function PublicInvitationSite({ website, flash, previewMode = null }: PageProps) {
     const fontStyles: Record<string, string> = {
         playfair: "'Playfair Display', serif",
         vibes: "'Great Vibes', cursive",
@@ -208,7 +209,7 @@ export default function PublicInvitationSite({ website, flash }: PageProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/sites/${website.slug}/rsvp`, {
+        post(`/mini-website/${website.slug}/rsvp`, {
             preserveScroll: true,
             onSuccess: () => {
                 setFormSubmitted(true);
@@ -225,7 +226,35 @@ export default function PublicInvitationSite({ website, flash }: PageProps) {
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&display=swap" rel="stylesheet" />
             </Head>
-            <div className={`min-h-screen bg-gradient-to-b py-16 px-4 sm:px-6 font-sans selection:bg-neutral-900 selection:text-white transition-colors ${activeTheme.bg}`}>
+            <div className={`min-h-screen bg-gradient-to-b py-16 px-4 sm:px-6 font-sans selection:bg-neutral-900 selection:text-white transition-colors relative ${activeTheme.bg}`}>
+                
+                {previewMode && (
+                    <div className={`w-full max-w-xl mx-auto mb-6 py-2.5 px-4 text-xs font-bold text-center flex flex-col sm:flex-row items-center justify-center gap-2 text-white rounded-2xl shadow-md ${
+                        previewMode === 'draft' ? 'bg-amber-600' : 'bg-rose-600'
+                    }`}>
+                        <div className="flex items-center gap-1.5 justify-center">
+                            <AlertCircle className="size-4 shrink-0" />
+                            <span>
+                                {previewMode === 'draft' 
+                                    ? `Draft Mode Preview` 
+                                    : `Hosting Expired Preview`
+                                }
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-3 justify-center">
+                            <Link 
+                                href={previewMode === 'draft' 
+                                    ? `/customer/mini-websites/${website.id}/edit` 
+                                    : `/customer/mini-websites`
+                                }
+                                className="underline hover:opacity-80 transition-opacity font-bold"
+                            >
+                                {previewMode === 'draft' ? 'Publish Website' : 'Purchase Hosting'}
+                            </Link>
+                        </div>
+                    </div>
+                )}
+
                 <div className="max-w-xl mx-auto flex flex-col gap-10">
                     
                     {/* Visual Card Wrapper */}

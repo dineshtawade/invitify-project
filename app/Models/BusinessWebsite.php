@@ -20,11 +20,13 @@ class BusinessWebsite extends Model
         'pages',
         'meta_description',
         'meta_keywords',
+        'is_purchased',
     ];
 
     protected $casts = [
         'pages' => 'array',
         'is_published' => 'boolean',
+        'is_purchased' => 'boolean',
         'expires_at' => 'datetime',
     ];
 

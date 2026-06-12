@@ -17,16 +17,22 @@ export interface ElementConfig {
     isItalic?: boolean;
     isEditable?: boolean;
     editableLabel?: string;
+    multiline?: boolean;
 }
 
 export interface PageConfig {
     id: string;
     bg_gradient: string;
+    borderStyle?: 'none' | 'solid' | 'dashed' | 'double' | 'floral' | 'classic';
+    borderColor?: string;
+    borderWidth?: number;
     elements: ElementConfig[];
 }
 
 export interface InvitationConfig {
-    aspectRatio: 'standard' | 'square' | 'landscape' | 'mobile';
+    aspectRatio: 'standard' | 'square' | 'landscape' | 'mobile' | 'custom';
+    width?: number;
+    height?: number;
     pages: PageConfig[];
 }
 
@@ -51,9 +57,14 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
     if (config.pages && Array.isArray(config.pages)) {
         return {
             aspectRatio: config.aspectRatio || 'standard',
+            width: config.width || 350,
+            height: config.height || 490,
             pages: config.pages.map((p: any) => ({
                 id: p.id || `page-${Math.random().toString(36).substr(2, 9)}`,
                 bg_gradient: p.bg_gradient || bg_gradient_default,
+                borderStyle: p.borderStyle || 'none',
+                borderColor: p.borderColor || '#e4e4e7',
+                borderWidth: p.borderWidth || 1,
                 elements: (p.elements || []).map((e: any) => ({
                     id: e.id || `elem-${Math.random().toString(36).substr(2, 9)}`,
                     type: e.type,
@@ -73,6 +84,7 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
                     isItalic: e.isItalic,
                     isEditable: e.isEditable,
                     editableLabel: e.editableLabel,
+                    multiline: e.multiline,
                 }))
             }))
         };
@@ -196,10 +208,15 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
 
     return {
         aspectRatio: 'standard',
+        width: 350,
+        height: 490,
         pages: [
             {
                 id: 'page-1',
                 bg_gradient: bg_gradient_default,
+                borderStyle: 'none',
+                borderColor: '#e4e4e7',
+                borderWidth: 1,
                 elements
             }
         ]
@@ -209,10 +226,15 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
 export function createEmptyConfig(bg_gradient_default: string): InvitationConfig {
     return {
         aspectRatio: 'standard',
+        width: 350,
+        height: 490,
         pages: [
             {
                 id: 'page-1',
                 bg_gradient: bg_gradient_default,
+                borderStyle: 'none',
+                borderColor: '#e4e4e7',
+                borderWidth: 1,
                 elements: []
             }
         ]
@@ -220,8 +242,9 @@ export function createEmptyConfig(bg_gradient_default: string): InvitationConfig
 }
 
 export const ASPECT_RATIOS = {
-    standard: { label: 'Standard (3:4.2)', class: 'aspect-[3/4.2]' },
-    square: { label: 'Square (1:1)', class: 'aspect-square' },
-    landscape: { label: 'Landscape (16:9)', class: 'aspect-video' },
-    mobile: { label: 'Mobile (9:16)', class: 'aspect-[9/16]' },
+    standard: { label: 'Standard (3:4.2)', class: 'aspect-[3/4.2]', targetWidth: 350, targetHeight: 490 },
+    square: { label: 'Square (1:1)', class: 'aspect-square', targetWidth: 350, targetHeight: 350 },
+    landscape: { label: 'Landscape (16:9)', class: 'aspect-video', targetWidth: 500, targetHeight: 281 },
+    mobile: { label: 'Mobile (9:16)', class: 'aspect-[9/16]', targetWidth: 300, targetHeight: 533 },
+    custom: { label: 'Custom Layout', class: '', targetWidth: 350, targetHeight: 490 }
 };

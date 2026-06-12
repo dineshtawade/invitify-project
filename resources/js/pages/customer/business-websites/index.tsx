@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,20 @@ export default function BusinessWebsitesIndex({ websites, templates }: { website
         slug: '',
         theme: 'royal',
     });
+
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const templateId = urlParams.get('template_id');
+        if (templateId && templates.some(tpl => tpl.id === Number(templateId))) {
+            setData((prev) => ({
+                ...prev,
+                template_id: String(templateId),
+            }));
+            setIsCreateOpen(true);
+            // Clear URL parameter so refreshing doesn't reopen it
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, [templates]);
 
     const handleCreate = (e: React.FormEvent) => {
         e.preventDefault();

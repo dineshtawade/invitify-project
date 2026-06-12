@@ -122,7 +122,7 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
             {/* Header Navigation */}
             <header className={`fixed top-0 inset-x-0 z-50 ${theme.nav} border-b`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <Link href={`/sites/${website.slug}`} className="font-black text-xl tracking-tight">
+                    <Link href={`/business/${website.slug}`} className="font-black text-xl tracking-tight">
                         {website.title}
                     </Link>
 
@@ -135,7 +135,7 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                             return (
                                 <Link 
                                     key={slug} 
-                                    href={`/sites/${website.slug}/${slug}`}
+                                    href={`/business/${website.slug}/${slug}`}
                                     className={`text-sm font-bold uppercase tracking-wider transition-all hover:opacity-100 ${isActive ? 'opacity-100 text-blue-600 dark:text-blue-400' : 'opacity-60'}`}
                                 >
                                     {navPage.title}
@@ -159,7 +159,7 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                             return (
                                 <Link 
                                     key={slug} 
-                                    href={`/sites/${website.slug}/${slug}`}
+                                    href={`/business/${website.slug}/${slug}`}
                                     onClick={() => setIsMenuOpen(false)}
                                     className={`p-3 rounded-xl text-center font-bold tracking-widest uppercase text-sm ${isActive ? theme.accent : 'bg-neutral-50 dark:bg-neutral-800'}`}
                                 >
@@ -342,7 +342,7 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
             <footer className="bg-neutral-950 text-neutral-400 py-12 border-t border-neutral-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex flex-col items-center md:items-start gap-2">
-                        <Link href={`/sites/${website.slug}`} className="font-black text-2xl tracking-tight text-white">
+                        <Link href={`/business/${website.slug}`} className="font-black text-2xl tracking-tight text-white">
                             {website.title}
                         </Link>
                         <p className="text-sm">© {new Date().getFullYear()} All rights reserved.</p>
@@ -355,7 +355,7 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                             return (
                                 <Link 
                                     key={slug} 
-                                    href={`/sites/${website.slug}/${slug}`}
+                                    href={`/business/${website.slug}/${slug}`}
                                     className="text-sm font-bold uppercase tracking-wider hover:text-white transition-colors"
                                 >
                                     {navPage.title}

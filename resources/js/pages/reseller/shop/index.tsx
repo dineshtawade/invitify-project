@@ -299,7 +299,7 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                         onClick={() => handleSelectTemplate(tpl, 'mini-website')}
                                         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-all group-hover:scale-[1.01]"
                                     >
-                                        Configure & Buy
+                                        Configure & Customize
                                     </Button>
                                 </div>
                             </div>
@@ -349,7 +349,7 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                         onClick={() => handleSelectTemplate(tpl, 'business-website')}
                                         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-all group-hover:scale-[1.01]"
                                     >
-                                        Configure & Buy
+                                        Configure & Customize
                                     </Button>
                                 </div>
                             </div>
@@ -367,10 +367,13 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                     <DialogContent className="sm:max-w-md">
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-2 text-xl">
-                                <Sparkles className="size-5 text-indigo-600 animate-spin" /> Confirm Purchase
+                                <Sparkles className="size-5 text-indigo-600 animate-pulse" /> 
+                                {selectedTemplate?.type === 'invitation' ? 'Confirm Purchase' : 'Configure & Customize Website'}
                             </DialogTitle>
                             <DialogDescription>
-                                Verify details below to purchase this template using your wallet balance.
+                                {selectedTemplate?.type === 'invitation' 
+                                    ? 'Verify details below to purchase this template using your wallet balance.' 
+                                    : 'Choose a title, slug and theme to initialize this website template. You will customize the content as a draft first, then buy it when customization is complete.'}
                             </DialogDescription>
                         </DialogHeader>
 
@@ -382,18 +385,27 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                         <span className="text-neutral-500">Template Name:</span>
                                         <span className="font-bold text-neutral-900">{selectedTemplate.name}</span>
                                     </div>
-                                    <div className="flex justify-between items-center text-sm border-b pb-2">
-                                        <span className="text-neutral-500">Retail Value:</span>
-                                        <span className="text-neutral-400 line-through">₹{selectedTemplate.price.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-indigo-700 font-bold">Reseller Price:</span>
-                                        <span className="text-lg font-black text-indigo-700">₹{selectedTemplate.reseller_price.toFixed(2)}</span>
-                                    </div>
+                                    {selectedTemplate.type === 'invitation' ? (
+                                        <>
+                                            <div className="flex justify-between items-center text-sm border-b pb-2">
+                                                <span className="text-neutral-500">Retail Value:</span>
+                                                <span className="text-neutral-400 line-through">₹{selectedTemplate.price.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-sm">
+                                                <span className="text-indigo-700 font-bold">Reseller Price:</span>
+                                                <span className="text-lg font-black text-indigo-700">₹{selectedTemplate.reseller_price.toFixed(2)}</span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-neutral-500">Template Reseller Price:</span>
+                                            <span className="font-bold text-indigo-700">₹{selectedTemplate.reseller_price.toFixed(2)} (Pay after customization)</span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Balance Warning if needed */}
-                                {!hasSufficientBalance && (
+                                {selectedTemplate.type === 'invitation' && !hasSufficientBalance && (
                                     <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl text-xs text-red-700 flex items-start gap-2">
                                         <ShieldAlert className="size-4 shrink-0 mt-0.5" />
                                         <div>
@@ -480,10 +492,10 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                             <Button type="button" variant="outline" onClick={() => setSelectedTemplate(null)}>Cancel</Button>
                                             <Button 
                                                 type="submit" 
-                                                disabled={websiteForm.processing || !hasSufficientBalance} 
+                                                disabled={websiteForm.processing} 
                                                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex-1"
                                             >
-                                                {websiteForm.processing ? 'Configuring...' : 'Verify & Purchase Site'}
+                                                {websiteForm.processing ? 'Configuring...' : 'Customize Template & Edit'}
                                             </Button>
                                         </div>
                                     </form>

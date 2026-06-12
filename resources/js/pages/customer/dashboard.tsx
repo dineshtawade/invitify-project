@@ -230,7 +230,7 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [] }:
                                             <tr key={w.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20">
                                                 <td className="px-5 py-3 font-semibold text-neutral-900 dark:text-neutral-100">
                                                     <div>{w.title}</div>
-                                                    <div className="text-[10px] text-neutral-450 font-mono mt-0.5 select-all">/sites/{w.slug}</div>
+                                                    <div className="text-[10px] text-neutral-450 font-mono mt-0.5 select-all">/mini-website/{w.slug}</div>
                                                 </td>
                                                 <td className="px-5 py-3 capitalize">{w.type}</td>
                                                 <td className="px-5 py-3">

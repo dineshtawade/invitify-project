@@ -18,10 +18,34 @@ class TemplateController extends Controller
      */
     public function index()
     {
-        $templates = Template::all();
+        $templates = Template::all()->map(fn($t) => [
+            'id' => $t->id,
+            'name' => $t->name,
+            'category' => $t->category,
+            'price' => floatval($t->price),
+            'bg_gradient' => $t->bg_gradient,
+            'default_config' => $t->default_config,
+        ]);
+
+        $miniTemplates = \App\Models\MiniWebsiteTemplate::all()->map(fn($t) => [
+            'id' => $t->id,
+            'name' => $t->name,
+            'type' => $t->type,
+            'price' => floatval($t->price),
+            'preview_image' => $t->preview_image,
+        ]);
+
+        $businessTemplates = \App\Models\BusinessWebsiteTemplate::all()->map(fn($t) => [
+            'id' => $t->id,
+            'name' => $t->name,
+            'price' => floatval($t->price),
+            'preview_image' => $t->preview_image,
+        ]);
 
         return Inertia::render('customer/templates/index', [
             'templates' => $templates,
+            'miniTemplates' => $miniTemplates,
+            'businessTemplates' => $businessTemplates,
         ]);
     }
 
@@ -254,7 +278,8 @@ class TemplateController extends Controller
         if ($referralCodeId) {
             $referralCode = ReferralCode::find($referralCodeId);
             if ($referralCode) {
-                $commissionAmount = round($discountAmount * ($referralCode->commission_percentage / 100), 2);
+                $originalPrice = floatval($referralData['original_price'] ?? 0);
+                $commissionAmount = round($originalPrice * ($referralCode->commission_percentage / 100), 2);
             }
         }
 
