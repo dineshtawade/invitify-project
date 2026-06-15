@@ -70,7 +70,7 @@ export default function ResellerPaymentHistory({ wallet, transactions = [], manu
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Wallet Ledger Transactions (2/3 width) */}
                     <div className="lg:col-span-2 flex flex-col gap-4">
-                        <h2 className="text-lg font-bold text-neutral-800">Wallet Transaction Ledger</h2>
+                        <h2 className="text-lg font-bold">Wallet Transaction Ledger</h2>
                         {transactions.length === 0 ? (
                             <div className="border border-dashed rounded-2xl p-12 text-center text-neutral-400">
                                 <History className="size-12 mx-auto mb-3 opacity-30 text-neutral-500" />
@@ -81,9 +81,8 @@ export default function ResellerPaymentHistory({ wallet, transactions = [], manu
                                 {transactions.map(tx => (
                                     <div key={tx.id} className="bg-white border rounded-xl p-4 flex justify-between items-center text-sm shadow-xs transition-hover hover:border-neutral-300">
                                         <div className="flex items-center gap-3">
-                                            <div className={`size-9 rounded-full flex items-center justify-center ${
-                                                tx.type === 'credit' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
-                                            }`}>
+                                            <div className={`size-9 rounded-full flex items-center justify-center ${tx.type === 'credit' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
+                                                }`}>
                                                 {tx.type === 'credit' ? <ArrowDownRight className="size-5" /> : <ArrowUpRight className="size-5" />}
                                             </div>
                                             <div>
@@ -91,9 +90,8 @@ export default function ResellerPaymentHistory({ wallet, transactions = [], manu
                                                 <p className="text-[10px] text-neutral-400 mt-0.5">{new Date(tx.created_at).toLocaleString()}</p>
                                             </div>
                                         </div>
-                                        <span className={`font-black text-base shrink-0 ${
-                                            tx.type === 'credit' ? 'text-green-600' : 'text-red-500'
-                                        }`}>
+                                        <span className={`font-black text-base shrink-0 ${tx.type === 'credit' ? 'text-green-600' : 'text-red-500'
+                                            }`}>
                                             {tx.type === 'credit' ? '+' : '-'}₹{parseFloat(tx.amount).toFixed(2)}
                                         </span>
                                     </div>
@@ -104,7 +102,7 @@ export default function ResellerPaymentHistory({ wallet, transactions = [], manu
 
                     {/* Processed Manual Deposits History (1/3 width) */}
                     <div className="flex flex-col gap-4">
-                        <h2 className="text-lg font-bold text-neutral-800">Manual Deposits Log</h2>
+                        <h2 className="text-lg font-bold">Manual Deposits Log</h2>
                         {processedDeposits.length === 0 ? (
                             <div className="border border-dashed rounded-2xl p-8 text-center text-neutral-400 text-xs">
                                 <Banknote className="size-8 mx-auto mb-2 opacity-30 text-neutral-500" />
@@ -116,29 +114,28 @@ export default function ResellerPaymentHistory({ wallet, transactions = [], manu
                                     <div key={req.id} className="bg-white border rounded-xl p-4 flex flex-col gap-2 text-xs shadow-xs">
                                         <div className="flex justify-between items-center">
                                             <span className="font-bold text-neutral-850">₹{parseFloat(req.amount).toFixed(2)}</span>
-                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold flex items-center gap-0.5 ${
-                                                req.status === 'approved' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-                                            }`}>
+                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold flex items-center gap-0.5 ${req.status === 'approved' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                                                }`}>
                                                 {req.status === 'approved' ? <CheckCircle2 className="size-3" /> : <XCircle className="size-3" />}
                                                 {req.status.toUpperCase()}
                                             </span>
                                         </div>
-                                        <p className="text-[10px] text-neutral-500">UTR: <span className="font-mono">{req.utr}</span></p>
+                                        <p className="text-[10px] text-neutral-800">UTR: <span className="font-mono">{req.utr}</span></p>
                                         {req.status === 'approved' && parseFloat(req.bonus_amount) > 0 && (
                                             <p className="text-[10px] text-green-600 font-semibold bg-green-50/50 p-1.5 rounded-sm">
                                                 Bonus Credited: +₹{parseFloat(req.bonus_amount).toFixed(2)} ({req.bonus_percentage}%)
                                             </p>
                                         )}
                                         {req.admin_notes && (
-                                            <p className="text-[10px] text-neutral-500 italic bg-neutral-50 p-1.5 rounded-sm border-l-2">
+                                            <p className="text-[10px] text-neutral-800 italic bg-neutral-50 p-1.5 rounded-sm border-l-2">
                                                 Note: {req.admin_notes}
                                             </p>
                                         )}
-                                        <div className="flex justify-between items-center text-[10px] text-neutral-400 border-t pt-2 mt-1">
+                                        <div className="flex justify-between items-center text-[10px] text-neutral-800 border-t pt-2 mt-1">
                                             <span>{new Date(req.created_at).toLocaleDateString()}</span>
-                                            <Button 
-                                                variant="ghost" 
-                                                size="sm" 
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 className="h-5 px-1 text-[10px] text-indigo-600 hover:bg-indigo-50"
                                                 onClick={() => setScreenshotPreview(req.screenshot_path)}
                                             >

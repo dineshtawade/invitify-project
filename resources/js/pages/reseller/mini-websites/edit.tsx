@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { 
-    Globe, Save, ExternalLink, CreditCard, Ticket, Check, 
+import {
+    Globe, Save, ExternalLink, CreditCard, Ticket, Check,
     AlertCircle, Loader2, Calendar, ShieldAlert, Sparkles
 } from 'lucide-react';
 import { SharedEditor } from '@/components/design-editor/SharedEditor';
@@ -137,10 +137,10 @@ export default function ResellerMiniWebsiteEdit({ wallet, website }: PageProps) 
             { title: website.title, href: `/reseller/mini-websites/${website.id}/edit` },
         ]}>
             <Head title={`Edit: ${website.title}`} />
-            
+
             <div className="flex flex-col h-[calc(100vh-4rem)]">
                 {/* Header Navbar */}
-                <div className="bg-white border-b px-6 py-4 flex items-center justify-between shrink-0">
+                <div className="border-b px-6 py-4 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-3">
                         <Globe className="size-6 text-indigo-650" />
                         <div>
@@ -154,7 +154,7 @@ export default function ResellerMiniWebsiteEdit({ wallet, website }: PageProps) 
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2 border-r pr-6">
                             <Label htmlFor="published" className={`text-sm font-bold ${website.is_purchased ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>Published</Label>
-                            <input 
+                            <input
                                 type="checkbox"
                                 id="published"
                                 checked={data.is_published}
@@ -166,8 +166,8 @@ export default function ResellerMiniWebsiteEdit({ wallet, website }: PageProps) 
 
                         <div className="flex items-center gap-2">
                             <Label className="text-sm font-bold">Theme</Label>
-                            <select 
-                                value={data.theme} 
+                            <select
+                                value={data.theme}
                                 onChange={(e) => setData('theme', e.target.value)}
                                 className="h-9 rounded-md border border-neutral-200 text-sm px-3 focus:ring-indigo-500"
                             >
@@ -184,18 +184,18 @@ export default function ResellerMiniWebsiteEdit({ wallet, website }: PageProps) 
                             </Button>
 
                             {website.is_purchased ? (
-                                <Button 
-                                    onClick={handleBuyClick} 
-                                    disabled={processing || isCheckingOut} 
+                                <Button
+                                    onClick={handleBuyClick}
+                                    disabled={processing || isCheckingOut}
                                     className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md flex items-center gap-1.5 font-bold"
                                 >
-                                    <CreditCard className="size-4" /> 
+                                    <CreditCard className="size-4" />
                                     {website.is_expired ? 'Purchase Hosting' : 'Renew Hosting'}
                                 </Button>
                             ) : (
-                                <Button 
-                                    onClick={() => setIsTemplateCheckoutOpen(true)} 
-                                    disabled={processing || isTemplatePurchasing} 
+                                <Button
+                                    onClick={() => setIsTemplateCheckoutOpen(true)}
+                                    disabled={processing || isTemplatePurchasing}
                                     className="bg-amber-600 hover:bg-amber-700 text-white shadow-md flex items-center gap-1.5 font-bold animate-pulse"
                                 >
                                     <CreditCard className="size-4" /> Buy Template
@@ -212,9 +212,9 @@ export default function ResellerMiniWebsiteEdit({ wallet, website }: PageProps) 
                             <ShieldAlert className="size-4 text-amber-600" />
                             This is an unpaid draft website template. You can customize the content as needed. Please complete your customization and purchase the template license (₹{website.reseller_price.toFixed(2)}) to publish or host it.
                         </span>
-                        <Button 
-                            onClick={() => setIsTemplateCheckoutOpen(true)} 
-                            size="sm" 
+                        <Button
+                            onClick={() => setIsTemplateCheckoutOpen(true)}
+                            size="sm"
                             className="bg-amber-600 hover:bg-amber-700 text-white h-7 text-[11px] font-bold px-3 shadow-xs"
                         >
                             Complete & Buy Template
@@ -223,8 +223,8 @@ export default function ResellerMiniWebsiteEdit({ wallet, website }: PageProps) 
                 )}
 
                 {/* Editor Body */}
-                <SharedEditor 
-                    blocks={data.config} 
+                <SharedEditor
+                    blocks={data.config}
                     onChange={(blocks) => setData('config', blocks)}
                     isInvitation={true}
                     title={data.title}
@@ -257,22 +257,20 @@ export default function ResellerMiniWebsiteEdit({ wallet, website }: PageProps) 
                                 <button
                                     type="button"
                                     onClick={() => handleUnitChange('days')}
-                                    className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
-                                        durationUnit === 'days'
-                                            ? 'bg-white dark:bg-neutral-800 text-indigo-600 shadow-sm border border-neutral-200/50 dark:border-neutral-700'
-                                            : 'text-neutral-400 hover:text-neutral-850'
-                                    }`}
+                                    className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${durationUnit === 'days'
+                                        ? 'bg-white dark:bg-neutral-800 text-indigo-600 shadow-sm border border-neutral-200/50 dark:border-neutral-700'
+                                        : 'text-neutral-400 hover:text-neutral-850'
+                                        }`}
                                 >
                                     Daily Billing (Days)
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => handleUnitChange('weeks')}
-                                    className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
-                                        durationUnit === 'weeks'
-                                            ? 'bg-white dark:bg-neutral-800 text-indigo-600 shadow-sm border border-neutral-200/50 dark:border-neutral-700'
-                                            : 'text-neutral-400 hover:text-neutral-850'
-                                    }`}
+                                    className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${durationUnit === 'weeks'
+                                        ? 'bg-white dark:bg-neutral-800 text-indigo-600 shadow-sm border border-neutral-200/50 dark:border-neutral-700'
+                                        : 'text-neutral-400 hover:text-neutral-850'
+                                        }`}
                                 >
                                     Weekly Billing (Weeks)
                                 </button>
@@ -290,11 +288,10 @@ export default function ResellerMiniWebsiteEdit({ wallet, website }: PageProps) 
                                                 key={val}
                                                 type="button"
                                                 onClick={() => setDurationMode(val)}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all text-xs ${
-                                                    durationMode === val
-                                                        ? 'border-indigo-600 bg-indigo-50/50 text-indigo-750 dark:bg-indigo-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all text-xs ${durationMode === val
+                                                    ? 'border-indigo-600 bg-indigo-50/50 text-indigo-750 dark:bg-indigo-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span>{val === 'custom' ? 'Custom Days' : `${val} ${val === '1' ? 'Day' : 'Days'}`}</span>
                                                 {val !== 'custom' && <span className="text-[10px] opacity-60">₹{parseInt(val) * 2}</span>}
@@ -308,11 +305,10 @@ export default function ResellerMiniWebsiteEdit({ wallet, website }: PageProps) 
                                                 key={val}
                                                 type="button"
                                                 onClick={() => setDurationMode(val)}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all text-xs ${
-                                                    durationMode === val
-                                                        ? 'border-indigo-600 bg-indigo-50/50 text-indigo-750 dark:bg-indigo-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all text-xs ${durationMode === val
+                                                    ? 'border-indigo-600 bg-indigo-50/50 text-indigo-750 dark:bg-indigo-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span>{val === 'custom' ? 'Custom Weeks' : `${val} ${val === '1' ? 'Week' : 'Weeks'}`}</span>
                                                 {val !== 'custom' && <span className="text-[10px] opacity-60">₹{parseInt(val) * 7 * 2}</span>}
@@ -427,9 +423,9 @@ export default function ResellerMiniWebsiteEdit({ wallet, website }: PageProps) 
                         {/* Confirm buttons */}
                         <div className="flex justify-end gap-3 mt-4 border-t pt-4">
                             <Button type="button" variant="outline" onClick={() => setIsCheckoutOpen(false)}>Cancel</Button>
-                            <Button 
-                                type="submit" 
-                                disabled={isCheckingOut || !hasSufficientBalance || cost <= 0} 
+                            <Button
+                                type="submit"
+                                disabled={isCheckingOut || !hasSufficientBalance || cost <= 0}
                                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex-1 flex items-center justify-center gap-1.5"
                             >
                                 {isCheckingOut ? (
@@ -498,9 +494,9 @@ export default function ResellerMiniWebsiteEdit({ wallet, website }: PageProps) 
 
                         <div className="flex justify-end gap-3 mt-4 border-t pt-4">
                             <Button type="button" variant="outline" onClick={() => setIsTemplateCheckoutOpen(false)}>Cancel</Button>
-                            <Button 
-                                type="submit" 
-                                disabled={isTemplatePurchasing || wallet.balance < website.reseller_price} 
+                            <Button
+                                type="submit"
+                                disabled={isTemplatePurchasing || wallet.balance < website.reseller_price}
                                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex-1 flex items-center justify-center gap-1.5"
                             >
                                 {isTemplatePurchasing ? (

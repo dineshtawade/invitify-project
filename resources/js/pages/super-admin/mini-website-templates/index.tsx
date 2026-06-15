@@ -86,7 +86,7 @@ export default function MiniWebsiteTemplatesIndex({ templates = [] }: { template
 
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {templates.map((t) => (
-                        <div key={t.id} className="rounded-2xl border bg-white p-5 shadow-xs flex flex-col justify-between">
+                        <div key={t.id} className="rounded-2xl border p-5 shadow-xs flex flex-col justify-between">
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center justify-between">
                                     <span className="bg-pink-100 text-pink-700 px-2 py-0.5 rounded text-xs font-bold uppercase">Mini Site</span>
@@ -96,7 +96,7 @@ export default function MiniWebsiteTemplatesIndex({ templates = [] }: { template
                             </div>
                             <div className="flex gap-2 mt-6 border-t pt-4">
                                 <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex-1"><Pencil className="size-3 mr-1" /> Edit</Button>
-                                <Button onClick={() => { if(confirm('Delete?')) router.delete(`/super-admin/mini-website-templates/${t.id}`) }} variant="destructive" size="sm"><Trash className="size-3" /></Button>
+                                <Button onClick={() => { if (confirm('Delete?')) router.delete(`/super-admin/mini-website-templates/${t.id}`) }} variant="destructive" size="sm"><Trash className="size-3" /></Button>
                             </div>
                         </div>
                     ))}
@@ -114,16 +114,16 @@ export default function MiniWebsiteTemplatesIndex({ templates = [] }: { template
                                     <Input value={data.name} onChange={e => setData('name', e.target.value)} className="h-8" />
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Label className="text-xs">Price</Label>
+                                    <Label className="text-xs">Price / Day</Label>
                                     <Input type="number" step="0.01" value={data.price} onChange={e => setData('price', e.target.value)} className="h-8 w-24" />
                                 </div>
                             </div>
                         </DialogHeader>
 
                         <div className="flex-1 overflow-hidden">
-                            <SharedEditor 
-                                blocks={data.config} 
-                                onChange={(blocks) => setData('config', blocks)} 
+                            <SharedEditor
+                                blocks={data.config}
+                                onChange={(blocks) => setData('config', blocks)}
                                 isInvitation={true}
                                 title={data.name}
                             />

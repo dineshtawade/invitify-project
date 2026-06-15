@@ -196,7 +196,7 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                                             </div>
 
                                             <Link
-                                                href={`/customer/templates/${t.id}/customize`}
+                                                href={`/templates/${t.id}/customize`}
                                                 className="mt-6 flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
                                             >
                                                 Customize <ArrowRight className="size-4" />

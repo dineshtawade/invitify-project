@@ -79,7 +79,7 @@ export default function PaymentDetailsPage({
                         </h1>
                         <p className="text-neutral-500 mt-1">Request payouts and check status of approved transfers.</p>
                     </div>
-                    <Button 
+                    <Button
                         onClick={() => setIsRedeemOpen(true)}
                         disabled={hasPending || Number(wallet.balance) < 100}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white"
@@ -127,29 +127,28 @@ export default function PaymentDetailsPage({
                     ) : (
                         <div className="flex flex-col gap-4">
                             {redemptions.map(r => (
-                                <div key={r.id} className="bg-white border rounded-2xl p-5 flex flex-col gap-3 shadow-sm hover:shadow transition-shadow">
+                                <div key={r.id} className="border rounded-2xl p-5 flex flex-col gap-3 shadow-sm hover:shadow transition-shadow">
                                     <div className="flex items-center justify-between flex-wrap gap-2">
                                         <div className="flex items-center gap-3">
                                             {r.status === 'pending' && <Clock className="size-5 text-amber-500" />}
                                             {(r.status === 'approved' || r.status === 'paid') && <CheckCircle className="size-5 text-green-600" />}
                                             {r.status === 'rejected' && <XCircle className="size-5 text-red-500" />}
                                             <div>
-                                                <p className="font-bold text-lg text-neutral-800">₹{parseFloat(r.amount).toFixed(2)} Withdrawal</p>
+                                                <p className="font-bold text-lg">₹{parseFloat(r.amount).toFixed(2)} Withdrawal</p>
                                                 <p className="text-xs text-neutral-400">{new Date(r.created_at).toLocaleString()}</p>
                                             </div>
                                         </div>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                            r.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${r.status === 'pending' ? 'bg-amber-100 text-amber-700' :
                                             (r.status === 'approved' || r.status === 'paid') ? 'bg-green-100 text-green-700' :
-                                            'bg-red-100 text-red-700'
-                                        }`}>
+                                                'bg-red-100 text-red-700'
+                                            }`}>
                                             {r.status.toUpperCase()}
                                         </span>
                                     </div>
 
                                     {/* Submitted payout details */}
-                                    <div className="bg-neutral-50 rounded-xl p-3 text-xs flex flex-col gap-1.5 border">
-                                        <p className="text-neutral-500 font-bold uppercase text-[9px] tracking-wider">Submitted payout info:</p>
+                                    <div className="rounded-xl p-3 text-xs flex flex-col gap-1.5 border">
+                                        <p className=" font-bold uppercase text-[9px] tracking-wider">Submitted payout info:</p>
                                         {r.upi_id && <p>• <strong>UPI ID:</strong> {r.upi_id}</p>}
                                         {r.bank_name && (
                                             <p>• <strong>Bank account:</strong> {r.bank_name} | Account: {r.account_number} | IFSC: {r.ifsc_code} | Name: {r.account_holder_name}</p>
@@ -157,9 +156,9 @@ export default function PaymentDetailsPage({
                                         {r.qr_code_path && (
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span>• <strong>QR Code Image:</strong></span>
-                                                <Button 
-                                                    variant="outline" 
-                                                    size="sm" 
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
                                                     onClick={() => setSelectedQR(r.qr_code_path)}
                                                     className="h-6 px-2 text-[10px]"
                                                 >
@@ -173,13 +172,13 @@ export default function PaymentDetailsPage({
                                     {(r.admin_notes || r.payment_proof_path) && (
                                         <div className="border-t pt-3 flex flex-col gap-2">
                                             {r.admin_notes && (
-                                                <p className="text-xs text-neutral-600">
+                                                <p className="text-xs">
                                                     <strong>Admin Note:</strong> {r.admin_notes}
                                                 </p>
                                             )}
                                             {r.payment_proof_path && (
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-xs text-neutral-600"><strong>Payment Receipt:</strong></span>
+                                                    <span className="text-xs"><strong>Payment Receipt:</strong></span>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
@@ -210,17 +209,17 @@ export default function PaymentDetailsPage({
                                 <p className="text-[10px] text-indigo-500 uppercase font-bold tracking-wider">Available Balance</p>
                                 <p className="text-3xl font-black text-indigo-700">₹{Number(wallet.balance).toFixed(2)}</p>
                             </div>
-                            
+
                             <div className="grid gap-2">
                                 <Label>Withdrawal Amount (₹)</Label>
-                                <Input 
-                                    type="number" 
-                                    min={100} 
-                                    max={wallet.balance} 
-                                    value={redeemForm.data.amount} 
-                                    onChange={e => redeemForm.setData('amount', e.target.value)} 
-                                    required 
-                                    placeholder="Enter amount (Minimum ₹100)" 
+                                <Input
+                                    type="number"
+                                    min={100}
+                                    max={wallet.balance}
+                                    value={redeemForm.data.amount}
+                                    onChange={e => redeemForm.setData('amount', e.target.value)}
+                                    required
+                                    placeholder="Enter amount (Minimum ₹100)"
                                 />
                                 {redeemForm.errors.amount && <p className="text-red-500 text-xs">{redeemForm.errors.amount}</p>}
                             </div>
@@ -229,23 +228,23 @@ export default function PaymentDetailsPage({
                             <div className="mt-2 border-t pt-4">
                                 <Label className="mb-2 block font-bold">Select Payout Method (provide at least one)</Label>
                                 <div className="grid grid-cols-3 gap-2 bg-neutral-100 p-1 rounded-xl mb-4 text-xs font-medium">
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setActiveTab('upi')} 
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('upi')}
                                         className={`py-1.5 rounded-lg text-center ${activeTab === 'upi' ? 'bg-white shadow' : 'text-neutral-500'}`}
                                     >
                                         UPI ID
                                     </button>
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setActiveTab('bank')} 
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('bank')}
                                         className={`py-1.5 rounded-lg text-center ${activeTab === 'bank' ? 'bg-white shadow' : 'text-neutral-500'}`}
                                     >
                                         Bank Details
                                     </button>
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setActiveTab('qr')} 
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('qr')}
                                         className={`py-1.5 rounded-lg text-center ${activeTab === 'qr' ? 'bg-white shadow' : 'text-neutral-500'}`}
                                     >
                                         QR Code
@@ -256,10 +255,10 @@ export default function PaymentDetailsPage({
                                 {activeTab === 'upi' && (
                                     <div className="grid gap-2 animate-in fade-in duration-200">
                                         <Label>Your UPI ID</Label>
-                                        <Input 
-                                            value={redeemForm.data.upi_id} 
-                                            onChange={e => redeemForm.setData('upi_id', e.target.value)} 
-                                            placeholder="e.g. name@upi" 
+                                        <Input
+                                            value={redeemForm.data.upi_id}
+                                            onChange={e => redeemForm.setData('upi_id', e.target.value)}
+                                            placeholder="e.g. name@upi"
                                         />
                                         {redeemForm.errors.upi_id && <p className="text-red-500 text-xs">{redeemForm.errors.upi_id}</p>}
                                     </div>
@@ -270,35 +269,35 @@ export default function PaymentDetailsPage({
                                     <div className="grid gap-3 animate-in fade-in duration-200">
                                         <div className="grid gap-1.5">
                                             <Label>Account Holder Name</Label>
-                                            <Input 
-                                                value={redeemForm.data.account_holder_name} 
-                                                onChange={e => redeemForm.setData('account_holder_name', e.target.value)} 
-                                                placeholder="Full name" 
+                                            <Input
+                                                value={redeemForm.data.account_holder_name}
+                                                onChange={e => redeemForm.setData('account_holder_name', e.target.value)}
+                                                placeholder="Full name"
                                             />
                                         </div>
                                         <div className="grid gap-1.5">
                                             <Label>Bank Account Number</Label>
-                                            <Input 
-                                                value={redeemForm.data.account_number} 
-                                                onChange={e => redeemForm.setData('account_number', e.target.value)} 
-                                                placeholder="Account number" 
+                                            <Input
+                                                value={redeemForm.data.account_number}
+                                                onChange={e => redeemForm.setData('account_number', e.target.value)}
+                                                placeholder="Account number"
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-2">
                                             <div className="grid gap-1.5">
                                                 <Label>Bank Name</Label>
-                                                <Input 
-                                                    value={redeemForm.data.bank_name} 
-                                                    onChange={e => redeemForm.setData('bank_name', e.target.value)} 
-                                                    placeholder="e.g. HDFC" 
+                                                <Input
+                                                    value={redeemForm.data.bank_name}
+                                                    onChange={e => redeemForm.setData('bank_name', e.target.value)}
+                                                    placeholder="e.g. HDFC"
                                                 />
                                             </div>
                                             <div className="grid gap-1.5">
                                                 <Label>IFSC Code</Label>
-                                                <Input 
-                                                    value={redeemForm.data.ifsc_code} 
-                                                    onChange={e => redeemForm.setData('ifsc_code', e.target.value.toUpperCase())} 
-                                                    placeholder="IFSC" 
+                                                <Input
+                                                    value={redeemForm.data.ifsc_code}
+                                                    onChange={e => redeemForm.setData('ifsc_code', e.target.value.toUpperCase())}
+                                                    placeholder="IFSC"
                                                 />
                                             </div>
                                         </div>
@@ -309,10 +308,10 @@ export default function PaymentDetailsPage({
                                 {activeTab === 'qr' && (
                                     <div className="grid gap-2 animate-in fade-in duration-200">
                                         <Label>Upload Payment QR Code Image</Label>
-                                        <Input 
-                                            type="file" 
+                                        <Input
+                                            type="file"
                                             accept="image/*"
-                                            onChange={e => redeemForm.setData('qr_code', e.target.files?.[0] || null)} 
+                                            onChange={e => redeemForm.setData('qr_code', e.target.files?.[0] || null)}
                                         />
                                         <p className="text-[10px] text-neutral-400">Upload a screenshot of your Google Pay/PhonePe/Paytm QR Code.</p>
                                         {redeemForm.errors.qr_code && <p className="text-red-500 text-xs">{redeemForm.errors.qr_code}</p>}
@@ -335,10 +334,10 @@ export default function PaymentDetailsPage({
                             <DialogTitle>Payout QR Code</DialogTitle>
                         </DialogHeader>
                         {selectedQR && (
-                            <img 
-                                src={selectedQR} 
-                                alt="Payout QR Code" 
-                                className="max-w-full max-h-[350px] object-contain border rounded-xl p-2 bg-white mt-4" 
+                            <img
+                                src={selectedQR}
+                                alt="Payout QR Code"
+                                className="max-w-full max-h-[350px] object-contain border rounded-xl p-2 bg-white mt-4"
                             />
                         )}
                         <Button onClick={() => setSelectedQR(null)} className="mt-4 w-full">Close</Button>
@@ -352,10 +351,10 @@ export default function PaymentDetailsPage({
                             <DialogTitle>Payment Receipt / Proof</DialogTitle>
                         </DialogHeader>
                         {selectedReceipt && (
-                            <img 
-                                src={selectedReceipt} 
-                                alt="Payment Receipt" 
-                                className="max-w-full max-h-[400px] object-contain border rounded-xl p-2 bg-white mt-4" 
+                            <img
+                                src={selectedReceipt}
+                                alt="Payment Receipt"
+                                className="max-w-full max-h-[400px] object-contain border rounded-xl p-2 bg-white mt-4"
                             />
                         )}
                         <Button onClick={() => setSelectedReceipt(null)} className="mt-4 w-full">Close</Button>

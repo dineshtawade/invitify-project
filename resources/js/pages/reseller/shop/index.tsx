@@ -59,7 +59,7 @@ interface ShopPageProps {
 
 export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
     const [activeTab, setActiveTab] = useState<'invitations' | 'mini-websites' | 'business-websites'>('invitations');
-    
+
     // Purchase dialogs state
     const [selectedTemplate, setSelectedTemplate] = useState<{
         id: number;
@@ -116,8 +116,8 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
 
     const handleWebsiteSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const route = selectedTemplate?.type === 'mini-website' 
-            ? '/reseller/purchase/mini-website' 
+        const route = selectedTemplate?.type === 'mini-website'
+            ? '/reseller/purchase/mini-website'
             : '/reseller/purchase/business-website';
 
         websiteForm.post(route, {
@@ -137,8 +137,8 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
         websiteForm.setData('slug', slugified);
     };
 
-    const hasSufficientBalance = selectedTemplate 
-        ? wallet.balance >= selectedTemplate.reseller_price 
+    const hasSufficientBalance = selectedTemplate
+        ? wallet.balance >= selectedTemplate.reseller_price
         : true;
 
     return (
@@ -162,8 +162,8 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                             <p className="text-[10px] text-indigo-800 font-bold uppercase tracking-wider">Wallet Balance</p>
                             <p className="text-xl font-black text-indigo-950">₹{wallet.balance.toFixed(2)}</p>
                         </div>
-                        <Link 
-                            href="/reseller/wallet" 
+                        <Link
+                            href="/reseller/wallet"
                             className="ml-4 text-xs font-bold text-indigo-600 bg-white border border-indigo-200 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-all"
                         >
                             Add Funds
@@ -175,33 +175,30 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                 <div className="flex gap-2 border-b pb-px overflow-x-auto">
                     <button
                         onClick={() => setActiveTab('invitations')}
-                        className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                            activeTab === 'invitations'
-                                ? 'border-indigo-600 text-indigo-650'
-                                : 'border-transparent text-neutral-500 hover:text-neutral-800'
-                        }`}
+                        className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'invitations'
+                            ? 'border-indigo-600 text-indigo-650'
+                            : 'border-transparent text-neutral-500 hover:text-neutral-800'
+                            }`}
                     >
                         <LayoutGrid className="size-4" />
                         Invitation Cards ({catalog.templates.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('mini-websites')}
-                        className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                            activeTab === 'mini-websites'
-                                ? 'border-indigo-600 text-indigo-650'
-                                : 'border-transparent text-neutral-500 hover:text-neutral-800'
-                        }`}
+                        className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'mini-websites'
+                            ? 'border-indigo-600 text-indigo-650'
+                            : 'border-transparent text-neutral-500 hover:text-neutral-800'
+                            }`}
                     >
                         <Store className="size-4" />
                         Mini Websites ({catalog.miniTemplates.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('business-websites')}
-                        className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                            activeTab === 'business-websites'
-                                ? 'border-indigo-600 text-indigo-650'
-                                : 'border-transparent text-neutral-500 hover:text-neutral-800'
-                        }`}
+                        className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'business-websites'
+                            ? 'border-indigo-600 text-indigo-650'
+                            : 'border-transparent text-neutral-500 hover:text-neutral-800'
+                            }`}
                     >
                         <Globe className="size-4" />
                         Business Websites ({catalog.businessTemplates.length})
@@ -212,23 +209,22 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                 {activeTab === 'invitations' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         {catalog.templates.map(tpl => (
-                            <div key={tpl.id} className="group relative bg-white border border-neutral-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:border-neutral-200 transition-all flex flex-col justify-between">
+                            <div key={tpl.id} className="group relative  border border-neutral-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:border-neutral-200 transition-all flex flex-col justify-between">
                                 {/* Visual Card Body */}
                                 <div className="p-5 flex flex-col gap-4">
-                                    <div 
-                                        className={`h-40 w-full rounded-xl flex items-center justify-center p-4 text-center font-bold text-white text-lg shadow-inner ${
-                                            tpl.bg_gradient || 'bg-gradient-to-br from-indigo-500 to-purple-650'
-                                        }`}
+                                    <div
+                                        className={`h-40 w-full rounded-xl flex items-center justify-center p-4 text-center font-bold text-white text-lg shadow-inner ${tpl.bg_gradient || 'bg-gradient-to-br from-indigo-500 to-purple-650'
+                                            }`}
                                     >
                                         <div className="bg-black/20 backdrop-blur-xs px-3 py-1.5 rounded-lg border border-white/10">
                                             {tpl.name}
                                         </div>
                                     </div>
                                     <div>
-                                        <span className="text-[10px] bg-indigo-50 text-indigo-650 font-bold px-2 py-0.5 rounded-full uppercase">
+                                        <span className="text-[10px] bg-indigo-500 text-indigo-650 font-bold px-2 py-0.5 rounded-full uppercase">
                                             {tpl.category || 'Invitation'}
                                         </span>
-                                        <h3 className="font-bold text-neutral-800 text-base mt-2">{tpl.name}</h3>
+                                        <h3 className="font-bold text-base mt-2">{tpl.name}</h3>
                                         <div className="flex items-center gap-2.5 mt-3">
                                             <div>
                                                 <p className="text-[10px] text-neutral-400 line-through">Retail: ₹{tpl.price.toFixed(2)}</p>
@@ -242,7 +238,7 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                 </div>
                                 {/* Footer Action */}
                                 <div className="border-t p-4 bg-neutral-50/50">
-                                    <Button 
+                                    <Button
                                         onClick={() => handleSelectTemplate(tpl, 'invitation')}
                                         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-all group-hover:scale-[1.01]"
                                     >
@@ -262,14 +258,14 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                 {activeTab === 'mini-websites' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                         {catalog.miniTemplates.map(tpl => (
-                            <div key={tpl.id} className="group relative bg-white border border-neutral-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:border-neutral-200 transition-all flex flex-col justify-between">
+                            <div key={tpl.id} className="group relative border border-neutral-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:border-neutral-200 transition-all flex flex-col justify-between">
                                 <div className="p-5 flex flex-col gap-4">
-                                    <div className="h-48 w-full bg-neutral-100 rounded-xl overflow-hidden relative border flex items-center justify-center">
+                                    <div className="h-48 w-full rounded-xl overflow-hidden relative border flex items-center justify-center">
                                         {tpl.preview_image ? (
-                                            <img 
-                                                src={tpl.preview_image} 
-                                                alt={tpl.name} 
-                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                                            <img
+                                                src={tpl.preview_image}
+                                                alt={tpl.name}
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                             />
                                         ) : (
                                             <div className="flex flex-col items-center gap-1.5 text-neutral-400">
@@ -282,7 +278,7 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                         </div>
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-neutral-800 text-base">{tpl.name}</h3>
+                                        <h3 className="font-bold text-base">{tpl.name}</h3>
                                         <div className="flex items-center gap-2.5 mt-3">
                                             <div>
                                                 <p className="text-[10px] text-neutral-400 line-through">Retail: ₹{tpl.price.toFixed(2)}</p>
@@ -295,7 +291,7 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                     </div>
                                 </div>
                                 <div className="border-t p-4 bg-neutral-50/50">
-                                    <Button 
+                                    <Button
                                         onClick={() => handleSelectTemplate(tpl, 'mini-website')}
                                         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-all group-hover:scale-[1.01]"
                                     >
@@ -315,14 +311,14 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                 {activeTab === 'business-websites' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                         {catalog.businessTemplates.filter(t => t.is_active).map(tpl => (
-                            <div key={tpl.id} className="group relative bg-white border border-neutral-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:border-neutral-200 transition-all flex flex-col justify-between">
+                            <div key={tpl.id} className="group relative border border-neutral-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:border-neutral-200 transition-all flex flex-col justify-between">
                                 <div className="p-5 flex flex-col gap-4">
                                     <div className="h-48 w-full bg-neutral-100 rounded-xl overflow-hidden relative border flex items-center justify-center">
                                         {tpl.preview_image ? (
-                                            <img 
-                                                src={tpl.preview_image} 
-                                                alt={tpl.name} 
-                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                                            <img
+                                                src={tpl.preview_image}
+                                                alt={tpl.name}
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                             />
                                         ) : (
                                             <div className="flex flex-col items-center gap-1.5 text-neutral-400">
@@ -345,7 +341,7 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                     </div>
                                 </div>
                                 <div className="border-t p-4 bg-neutral-50/50">
-                                    <Button 
+                                    <Button
                                         onClick={() => handleSelectTemplate(tpl, 'business-website')}
                                         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-all group-hover:scale-[1.01]"
                                     >
@@ -367,12 +363,12 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                     <DialogContent className="sm:max-w-md">
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-2 text-xl">
-                                <Sparkles className="size-5 text-indigo-600 animate-pulse" /> 
+                                <Sparkles className="size-5 text-indigo-600 animate-pulse" />
                                 {selectedTemplate?.type === 'invitation' ? 'Confirm Purchase' : 'Configure & Customize Website'}
                             </DialogTitle>
                             <DialogDescription>
-                                {selectedTemplate?.type === 'invitation' 
-                                    ? 'Verify details below to purchase this template using your wallet balance.' 
+                                {selectedTemplate?.type === 'invitation'
+                                    ? 'Verify details below to purchase this template using your wallet balance.'
                                     : 'Choose a title, slug and theme to initialize this website template. You will customize the content as a draft first, then buy it when customization is complete.'}
                             </DialogDescription>
                         </DialogHeader>
@@ -411,8 +407,8 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                         <div>
                                             <p className="font-bold">Insufficient Wallet Balance</p>
                                             <p className="mt-0.5">You need an additional ₹{(selectedTemplate.reseller_price - wallet.balance).toFixed(2)} to complete this checkout.</p>
-                                            <Link 
-                                                href="/reseller/wallet" 
+                                            <Link
+                                                href="/reseller/wallet"
                                                 className="mt-2 inline-block font-bold underline hover:text-red-800"
                                             >
                                                 Go to Wallet Recharge &rarr;
@@ -426,9 +422,9 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                     <form onSubmit={handleInvitationSubmit} className="mt-4 flex flex-col gap-4">
                                         <div className="flex justify-end gap-3 mt-2">
                                             <Button type="button" variant="outline" onClick={() => setSelectedTemplate(null)}>Cancel</Button>
-                                            <Button 
-                                                type="submit" 
-                                                disabled={invitationForm.processing || !hasSufficientBalance} 
+                                            <Button
+                                                type="submit"
+                                                disabled={invitationForm.processing || !hasSufficientBalance}
                                                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6"
                                             >
                                                 {invitationForm.processing ? 'Processing...' : 'Confirm Wallet Purchase'}
@@ -477,7 +473,7 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                                 id="site_theme"
                                                 value={websiteForm.data.theme}
                                                 onChange={e => websiteForm.setData('theme', e.target.value as any)}
-                                                className="flex h-9 w-full rounded-md border border-neutral-200 bg-white px-3 py-1 text-sm shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-indigo-650"
+                                                className="flex h-9 w-full rounded-md border border-neutral-200 bg-blue-800 px-3 py-1 text-sm shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-indigo-650"
                                                 required
                                             >
                                                 <option value="clean">Clean (Modern minimalist)</option>
@@ -490,9 +486,9 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
 
                                         <div className="flex justify-end gap-3 mt-4 border-t pt-4">
                                             <Button type="button" variant="outline" onClick={() => setSelectedTemplate(null)}>Cancel</Button>
-                                            <Button 
-                                                type="submit" 
-                                                disabled={websiteForm.processing} 
+                                            <Button
+                                                type="submit"
+                                                disabled={websiteForm.processing}
                                                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex-1"
                                             >
                                                 {websiteForm.processing ? 'Configuring...' : 'Customize Template & Edit'}

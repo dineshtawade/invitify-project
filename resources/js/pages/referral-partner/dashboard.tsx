@@ -168,8 +168,8 @@ export default function ReferralPartnerDashboard({
                             <Wallet className="size-3" /> Available Balance
                         </div>
                         <div className="text-4xl font-black mt-2">₹{Number(wallet.balance).toFixed(2)}</div>
-                        <Button 
-                            onClick={() => setIsRedeemOpen(true)} 
+                        <Button
+                            onClick={() => setIsRedeemOpen(true)}
                             disabled={hasPending || Number(wallet.balance) < 100}
                             className="mt-4 bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm"
                             size="sm"
@@ -265,14 +265,14 @@ export default function ReferralPartnerDashboard({
                                     <p className="font-bold">Discount Allocation: {partner.referral_discount_percentage}%</p>
                                     <p className="text-xs">Specify how much discount you want to offer to customers. The remaining allocation becomes your dynamic commission percentage.</p>
                                 </div>
-                                
+
                                 <div className="grid gap-2">
                                     <Label>Custom Code (optional)</Label>
-                                    <Input 
-                                        value={codeForm.data.code} 
-                                        onChange={e => codeForm.setData('code', e.target.value.toUpperCase())} 
-                                        placeholder="e.g. SAVE10 (Letters & numbers only)" 
-                                        maxLength={32} 
+                                    <Input
+                                        value={codeForm.data.code}
+                                        onChange={e => codeForm.setData('code', e.target.value.toUpperCase())}
+                                        placeholder="e.g. SAVE10 (Letters & numbers only)"
+                                        maxLength={32}
                                     />
                                     {codeForm.errors.code && <p className="text-red-500 text-xs">{codeForm.errors.code}</p>}
                                 </div>
@@ -282,14 +282,14 @@ export default function ReferralPartnerDashboard({
                                         <Label>Customer Discount Percentage (%)</Label>
                                         <span className="font-bold text-indigo-600">{chosenDiscount}%</span>
                                     </div>
-                                    <Input 
+                                    <Input
                                         type="range"
                                         min="0"
                                         max={discountAllocation}
-                                        value={codeForm.data.discount_percentage} 
-                                        onChange={e => codeForm.setData('discount_percentage', e.target.value)} 
+                                        value={codeForm.data.discount_percentage}
+                                        onChange={e => codeForm.setData('discount_percentage', e.target.value)}
                                         className="h-2 bg-indigo-100 rounded-lg cursor-pointer"
-                                        required 
+                                        required
                                     />
                                     <div className="flex justify-between text-xs text-neutral-500 font-medium px-1">
                                         <span>0% (Full Comm)</span>
@@ -359,7 +359,7 @@ export default function ReferralPartnerDashboard({
                         <h2 className="text-lg font-bold mb-4">Wallet History</h2>
                         <div className="flex flex-col gap-2">
                             {walletHistory.map(item => (
-                                <div key={item.id} className="bg-white border rounded-xl p-4 flex items-center justify-between">
+                                <div key={item.id} className="border rounded-xl p-4 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className={`size-8 rounded-full flex items-center justify-center ${item.type === 'credit' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
                                             {item.type === 'credit' ? <ArrowDownRight className="size-4" /> : <ArrowUpRight className="size-4" />}
@@ -384,10 +384,10 @@ export default function ReferralPartnerDashboard({
                         <h2 className="text-lg font-bold mb-4">Withdrawal & Payout History</h2>
                         <div className="flex flex-col gap-3">
                             {redemptions.map(r => (
-                                <div key={r.id} className="bg-white border rounded-xl p-5 flex flex-col gap-3">
+                                <div key={r.id} className=" border rounded-xl p-5 flex flex-col gap-3">
                                     <div className="flex items-center justify-between flex-wrap gap-2">
                                         <div className="flex items-center gap-3">
-                                            {r.status === 'pending' && <Clock className="size-5 text-amber-500" />}
+                                            {r.status === 'pending' && <Clock className="size-5 text-amber-800" />}
                                             {(r.status === 'approved' || r.status === 'paid') && <CheckCircle className="size-5 text-green-600" />}
                                             {r.status === 'rejected' && <XCircle className="size-5 text-red-500" />}
                                             <div>
@@ -395,17 +395,16 @@ export default function ReferralPartnerDashboard({
                                                 <p className="text-xs text-neutral-400">{new Date(r.created_at).toLocaleString()}</p>
                                             </div>
                                         </div>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                            r.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${r.status === 'pending' ? 'bg-amber-100 text-amber-700' :
                                             (r.status === 'approved' || r.status === 'paid') ? 'bg-green-100 text-green-700' :
-                                            'bg-red-100 text-red-700'
-                                        }`}>
+                                                'bg-red-100 text-red-700'
+                                            }`}>
                                             {r.status.toUpperCase()}
                                         </span>
                                     </div>
 
                                     {/* Show Submitted Payment Details */}
-                                    <div className="bg-neutral-50 rounded-xl p-3 text-xs flex flex-col gap-1.5 border">
+                                    <div className="rounded-xl p-3 text-xs flex flex-col gap-1.5 border">
                                         <p className="text-neutral-500 font-bold uppercase text-[9px] tracking-wider">Submitted Payout Details:</p>
                                         {r.upi_id && <p>• <strong>UPI ID:</strong> {r.upi_id}</p>}
                                         {r.bank_name && (
@@ -414,9 +413,9 @@ export default function ReferralPartnerDashboard({
                                         {r.qr_code_path && (
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span>• <strong>QR Code Image:</strong></span>
-                                                <Button 
-                                                    variant="outline" 
-                                                    size="sm" 
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
                                                     onClick={() => setSelectedQR(r.qr_code_path)}
                                                     className="h-6 px-2 text-[10px]"
                                                 >
@@ -430,13 +429,13 @@ export default function ReferralPartnerDashboard({
                                     {(r.admin_notes || r.payment_proof_path) && (
                                         <div className="border-t pt-3 flex flex-col gap-2">
                                             {r.admin_notes && (
-                                                <p className="text-xs text-neutral-600">
+                                                <p className="text-xs ">
                                                     <strong>Admin Note:</strong> {r.admin_notes}
                                                 </p>
                                             )}
                                             {r.payment_proof_path && (
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-xs text-neutral-600"><strong>Payment Receipt:</strong></span>
+                                                    <span className="text-xs "><strong>Payment Receipt:</strong></span>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
@@ -467,17 +466,17 @@ export default function ReferralPartnerDashboard({
                                 <p className="text-[10px] text-indigo-500 uppercase font-bold tracking-wider">Available Balance</p>
                                 <p className="text-3xl font-black text-indigo-700">₹{Number(wallet.balance).toFixed(2)}</p>
                             </div>
-                            
+
                             <div className="grid gap-2">
                                 <Label>Withdrawal Amount (₹)</Label>
-                                <Input 
-                                    type="number" 
-                                    min={100} 
-                                    max={wallet.balance} 
-                                    value={redeemForm.data.amount} 
-                                    onChange={e => redeemForm.setData('amount', e.target.value)} 
-                                    required 
-                                    placeholder="Enter amount (Minimum ₹100)" 
+                                <Input
+                                    type="number"
+                                    min={100}
+                                    max={wallet.balance}
+                                    value={redeemForm.data.amount}
+                                    onChange={e => redeemForm.setData('amount', e.target.value)}
+                                    required
+                                    placeholder="Enter amount (Minimum ₹100)"
                                 />
                                 {redeemForm.errors.amount && <p className="text-red-500 text-xs">{redeemForm.errors.amount}</p>}
                             </div>
@@ -486,23 +485,23 @@ export default function ReferralPartnerDashboard({
                             <div className="mt-2 border-t pt-4">
                                 <Label className="mb-2 block font-bold">Select Payout Method (provide at least one)</Label>
                                 <div className="grid grid-cols-3 gap-2 bg-neutral-100 p-1 rounded-xl mb-4 text-xs font-medium">
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setActiveTab('upi')} 
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('upi')}
                                         className={`py-1.5 rounded-lg text-center ${activeTab === 'upi' ? 'bg-white shadow' : 'text-neutral-500'}`}
                                     >
                                         UPI ID
                                     </button>
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setActiveTab('bank')} 
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('bank')}
                                         className={`py-1.5 rounded-lg text-center ${activeTab === 'bank' ? 'bg-white shadow' : 'text-neutral-500'}`}
                                     >
                                         Bank Details
                                     </button>
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setActiveTab('qr')} 
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('qr')}
                                         className={`py-1.5 rounded-lg text-center ${activeTab === 'qr' ? 'bg-white shadow' : 'text-neutral-500'}`}
                                     >
                                         QR Code
@@ -513,10 +512,10 @@ export default function ReferralPartnerDashboard({
                                 {activeTab === 'upi' && (
                                     <div className="grid gap-2 animate-in fade-in duration-200">
                                         <Label>Your UPI ID</Label>
-                                        <Input 
-                                            value={redeemForm.data.upi_id} 
-                                            onChange={e => redeemForm.setData('upi_id', e.target.value)} 
-                                            placeholder="e.g. name@upi" 
+                                        <Input
+                                            value={redeemForm.data.upi_id}
+                                            onChange={e => redeemForm.setData('upi_id', e.target.value)}
+                                            placeholder="e.g. name@upi"
                                         />
                                         {redeemForm.errors.upi_id && <p className="text-red-500 text-xs">{redeemForm.errors.upi_id}</p>}
                                     </div>
@@ -527,35 +526,35 @@ export default function ReferralPartnerDashboard({
                                     <div className="grid gap-3 animate-in fade-in duration-200">
                                         <div className="grid gap-1.5">
                                             <Label>Account Holder Name</Label>
-                                            <Input 
-                                                value={redeemForm.data.account_holder_name} 
-                                                onChange={e => redeemForm.setData('account_holder_name', e.target.value)} 
-                                                placeholder="Full name" 
+                                            <Input
+                                                value={redeemForm.data.account_holder_name}
+                                                onChange={e => redeemForm.setData('account_holder_name', e.target.value)}
+                                                placeholder="Full name"
                                             />
                                         </div>
                                         <div className="grid gap-1.5">
                                             <Label>Bank Account Number</Label>
-                                            <Input 
-                                                value={redeemForm.data.account_number} 
-                                                onChange={e => redeemForm.setData('account_number', e.target.value)} 
-                                                placeholder="Account number" 
+                                            <Input
+                                                value={redeemForm.data.account_number}
+                                                onChange={e => redeemForm.setData('account_number', e.target.value)}
+                                                placeholder="Account number"
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-2">
                                             <div className="grid gap-1.5">
                                                 <Label>Bank Name</Label>
-                                                <Input 
-                                                    value={redeemForm.data.bank_name} 
-                                                    onChange={e => redeemForm.setData('bank_name', e.target.value)} 
-                                                    placeholder="e.g. HDFC" 
+                                                <Input
+                                                    value={redeemForm.data.bank_name}
+                                                    onChange={e => redeemForm.setData('bank_name', e.target.value)}
+                                                    placeholder="e.g. HDFC"
                                                 />
                                             </div>
                                             <div className="grid gap-1.5">
                                                 <Label>IFSC Code</Label>
-                                                <Input 
-                                                    value={redeemForm.data.ifsc_code} 
-                                                    onChange={e => redeemForm.setData('ifsc_code', e.target.value.toUpperCase())} 
-                                                    placeholder="IFSC" 
+                                                <Input
+                                                    value={redeemForm.data.ifsc_code}
+                                                    onChange={e => redeemForm.setData('ifsc_code', e.target.value.toUpperCase())}
+                                                    placeholder="IFSC"
                                                 />
                                             </div>
                                         </div>
@@ -566,10 +565,10 @@ export default function ReferralPartnerDashboard({
                                 {activeTab === 'qr' && (
                                     <div className="grid gap-2 animate-in fade-in duration-200">
                                         <Label>Upload Payment QR Code Image</Label>
-                                        <Input 
-                                            type="file" 
+                                        <Input
+                                            type="file"
                                             accept="image/*"
-                                            onChange={e => redeemForm.setData('qr_code', e.target.files?.[0] || null)} 
+                                            onChange={e => redeemForm.setData('qr_code', e.target.files?.[0] || null)}
                                         />
                                         <p className="text-[10px] text-neutral-400">Upload a screenshot of your Google Pay/PhonePe/Paytm QR Code.</p>
                                         {redeemForm.errors.qr_code && <p className="text-red-500 text-xs">{redeemForm.errors.qr_code}</p>}
@@ -592,10 +591,10 @@ export default function ReferralPartnerDashboard({
                             <DialogTitle>Payout QR Code</DialogTitle>
                         </DialogHeader>
                         {selectedQR && (
-                            <img 
-                                src={selectedQR} 
-                                alt="Payout QR Code" 
-                                className="max-w-full max-h-[350px] object-contain border rounded-xl p-2 bg-white mt-4" 
+                            <img
+                                src={selectedQR}
+                                alt="Payout QR Code"
+                                className="max-w-full max-h-[350px] object-contain border rounded-xl p-2 bg-white mt-4"
                             />
                         )}
                         <Button onClick={() => setSelectedQR(null)} className="mt-4 w-full">Close</Button>
@@ -609,10 +608,10 @@ export default function ReferralPartnerDashboard({
                             <DialogTitle>Payment Receipt / Proof</DialogTitle>
                         </DialogHeader>
                         {selectedReceipt && (
-                            <img 
-                                src={selectedReceipt} 
-                                alt="Payment Receipt" 
-                                className="max-w-full max-h-[400px] object-contain border rounded-xl p-2 bg-white mt-4" 
+                            <img
+                                src={selectedReceipt}
+                                alt="Payment Receipt"
+                                className="max-w-full max-h-[400px] object-contain border rounded-xl p-2 bg-white mt-4"
                             />
                         )}
                         <Button onClick={() => setSelectedReceipt(null)} className="mt-4 w-full">Close</Button>

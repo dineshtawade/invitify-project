@@ -124,7 +124,9 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
         textColor: textColor,
         textAlign: 'center',
         fontWeight: 'bold',
-        isItalic: false
+        isItalic: false,
+        isEditable: true,
+        editableLabel: 'Header Title'
     });
 
     // 3. Hosts Element
@@ -141,7 +143,9 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
             fontStyle: font,
             textColor: textColor,
             textAlign: 'center',
-            isItalic: true
+            isItalic: true,
+            isEditable: true,
+            editableLabel: 'Host Message'
         });
     }
 
@@ -159,6 +163,8 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
         textColor: textColor,
         textAlign: 'center',
         fontWeight: 'bold',
+        isEditable: true,
+        editableLabel: 'Guest of Honor / Couple Names'
     });
 
     // 5. Date & Time Element
@@ -174,7 +180,9 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
         fontStyle: font,
         textColor: textColor,
         textAlign: 'center',
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        isEditable: true,
+        editableLabel: 'Date & Time'
     });
 
     // 6. Venue Element
@@ -190,7 +198,10 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
         fontStyle: font,
         textColor: textColor,
         textAlign: 'center',
-        isItalic: true
+        isItalic: true,
+        isEditable: true,
+        editableLabel: 'Venue Address',
+        multiline: true
     });
 
     // 7. Image Element
@@ -202,7 +213,9 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
             x: positions.image?.x || 20,
             y: positions.image?.y || 78,
             w: positions.image?.w || 60,
-            h: positions.image?.h || 18
+            h: positions.image?.h || 18,
+            isEditable: true,
+            editableLabel: 'Invitation Photo'
         });
     }
 

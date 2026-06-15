@@ -176,8 +176,8 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [] }:
                                         </div>
 
                                         <Link
-                                            href={`/customer/templates/${t.id}/customize`}
-                                            className="mt-4 flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-center text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
+                                            href={`/templates/${t.id}/customize`}
+                                            className="mt-4 flex items-center justify-center gap-1.5 rounded-lg bg-blue-650 px-4 py-2 text-center text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
                                         >
                                             Customize <ArrowRight className="size-3.5" />
                                         </Link>

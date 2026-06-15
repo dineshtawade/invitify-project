@@ -9,6 +9,23 @@ export type User = {
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
+    reseller_details?: {
+        business_name: string;
+        mobile_number: string;
+        email: string;
+        gst_number: string;
+        business_address?: string;
+    } | null;
+    referral_details?: {
+        city: string;
+        email: string;
+        phone_number: string;
+        social_media?: Array<{
+            platform: string;
+            username: string;
+            followers: number;
+        }>;
+    } | null;
     [key: string]: unknown;
 };
 

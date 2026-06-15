@@ -74,13 +74,13 @@ export default function BusinessWebsitesIndex({ websites, templates }: { website
                 ) : (
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         {websites.map(site => (
-                            <div key={site.id} className="bg-white border rounded-2xl p-5 shadow-xs flex flex-col justify-between group hover:shadow-md transition-shadow relative overflow-hidden">
+                            <div key={site.id} className="border rounded-2xl p-5 shadow-xs flex flex-col justify-between group hover:shadow-md transition-shadow relative overflow-hidden">
                                 {site.is_expired && (
                                     <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">
                                         EXPIRED
                                     </div>
                                 )}
-                                
+
                                 <div>
                                     <div className="flex items-center gap-2 mb-3">
                                         <div className={`size-3 rounded-full ${site.is_published ? 'bg-green-500' : 'bg-neutral-300'}`} title={site.is_published ? 'Published' : 'Draft'} />
@@ -93,7 +93,7 @@ export default function BusinessWebsitesIndex({ websites, templates }: { website
 
                                 <div className="flex items-center gap-2 mt-4 pt-4 border-t">
                                     <Link href={`/customer/business-websites/${site.id}/edit`} className="flex-1">
-                                        <Button variant="outline" className="w-full bg-neutral-50 hover:bg-neutral-100">
+                                        <Button variant="outline" className="w-full bg-blue-600 text-white hover:bg-blue-700">
                                             <Settings className="size-4 mr-2" /> Editor
                                         </Button>
                                     </Link>
@@ -113,7 +113,7 @@ export default function BusinessWebsitesIndex({ websites, templates }: { website
                         <form onSubmit={handleCreate} className="flex flex-col gap-4 py-4">
                             <div className="grid gap-2">
                                 <Label>Template</Label>
-                                <select 
+                                <select
                                     className="flex h-9 w-full rounded-md border border-neutral-200 bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-neutral-950"
                                     value={data.template_id}
                                     onChange={e => setData('template_id', e.target.value)}
@@ -144,7 +144,7 @@ export default function BusinessWebsitesIndex({ websites, templates }: { website
 
                             <div className="grid gap-2">
                                 <Label>Theme Preset</Label>
-                                <select 
+                                <select
                                     className="flex h-9 w-full rounded-md border border-neutral-200 bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-neutral-950"
                                     value={data.theme}
                                     onChange={e => setData('theme', e.target.value)}

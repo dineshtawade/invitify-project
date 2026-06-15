@@ -13,6 +13,28 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('/privacy-policy', function () {
+    return Inertia::render('public/privacy-policy');
+})->name('privacy-policy');
+
+Route::get('/terms-and-conditions', function () {
+    return Inertia::render('public/terms-and-conditions');
+})->name('terms-and-conditions');
+
+Route::get('/refund-policy', function () {
+    return Inertia::render('public/refund-policy');
+})->name('refund-policy');
+
+Route::get('/disclaimer', function () {
+    return Inertia::render('public/disclaimer');
+})->name('disclaimer');
+
+Route::get('/cookie-policy', function () {
+    return Inertia::render('public/cookie-policy');
+})->name('cookie-policy');
+
+
+
 Route::get('templates/{template}/customize', [\App\Http\Controllers\Customer\TemplateController::class, 'edit'])
     ->name('customer.templates.customize');
 

@@ -50,10 +50,10 @@ export default function BusinessWebsiteEdit({ website }: { website: any }) {
             { title: website.title, href: `/customer/business-websites/${website.id}/edit` },
         ]}>
             <Head title={`Edit: ${website.title}`} />
-            
+
             <div className="flex flex-col h-[calc(100vh-4rem)]">
                 {/* Header Navbar */}
-                <div className="bg-white border-b px-6 py-4 flex items-center justify-between shrink-0">
+                <div className="border-b px-6 py-4 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-3">
                         <Briefcase className="size-6 text-blue-600" />
                         <div>
@@ -67,7 +67,7 @@ export default function BusinessWebsiteEdit({ website }: { website: any }) {
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2 border-r pr-6">
                             <Label htmlFor="published" className="text-sm font-bold cursor-pointer">Published</Label>
-                            <input 
+                            <input
                                 type="checkbox"
                                 id="published"
                                 checked={data.is_published}
@@ -78,10 +78,11 @@ export default function BusinessWebsiteEdit({ website }: { website: any }) {
 
                         <div className="flex items-center gap-2 border-r pr-6">
                             <Label className="text-sm font-bold">Theme</Label>
-                            <select 
-                                value={data.theme} 
+                            <select
+                                value={data.theme}
                                 onChange={(e) => setData('theme', e.target.value)}
-                                className="h-9 rounded-md border border-neutral-200 text-sm px-3 focus:ring-blue-500"
+                                className="h-9 rounded-md border border-neutral-300 bg-white text-neutral-900 text-sm px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                style={{ backgroundColor: 'white', color: '#1a1a1a' }}
                             >
                                 <option value="royal">Royal Professional</option>
                                 <option value="cozy">Cozy Warm</option>
@@ -114,15 +115,14 @@ export default function BusinessWebsiteEdit({ website }: { website: any }) {
                         <button
                             key={page.slug}
                             onClick={() => setActiveTab(page.slug)}
-                            className={`px-4 py-2 rounded-t-lg text-sm font-bold flex items-center gap-2 border-x border-t transition-all ${
-                                activeTab === page.slug 
-                                    ? 'bg-white text-blue-600 border-neutral-200 border-b-transparent shadow-sm' 
-                                    : 'bg-neutral-50/50 text-neutral-500 border-transparent hover:bg-neutral-200'
-                            }`}
+                            className={`px-4 py-2 rounded-t-lg text-sm font-bold flex items-center gap-2 border-x border-t transition-all ${activeTab === page.slug
+                                ? 'bg-white text-blue-600 border-neutral-200 border-b-transparent shadow-sm'
+                                : 'bg-neutral-50/50 text-neutral-500 border-transparent hover:bg-neutral-200'
+                                }`}
                         >
-                            <input 
-                                type="checkbox" 
-                                checked={page.enabled} 
+                            <input
+                                type="checkbox"
+                                checked={page.enabled}
                                 onChange={() => togglePageEnabled(page.slug)}
                                 onClick={e => e.stopPropagation()}
                                 className="rounded border-neutral-300 text-blue-600"
@@ -139,9 +139,9 @@ export default function BusinessWebsiteEdit({ website }: { website: any }) {
                             This page is disabled. Check the box above to enable and edit it.
                         </div>
                     ) : (
-                        <SharedEditor 
+                        <SharedEditor
                             key={activeTab}
-                            blocks={currentBlocks} 
+                            blocks={currentBlocks}
                             onChange={handleBlocksChange}
                             isInvitation={false}
                             title={data.title}

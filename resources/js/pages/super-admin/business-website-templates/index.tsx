@@ -107,7 +107,7 @@ export default function BusinessWebsiteTemplatesIndex({ templates = [] }: { temp
 
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {templates.map((t) => (
-                        <div key={t.id} className="rounded-2xl border bg-white p-5 shadow-xs flex flex-col justify-between">
+                        <div key={t.id} className="rounded-2xl border p-5 shadow-xs flex flex-col justify-between">
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center justify-between">
                                     <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold uppercase">Business Site</span>
@@ -117,7 +117,7 @@ export default function BusinessWebsiteTemplatesIndex({ templates = [] }: { temp
                             </div>
                             <div className="flex gap-2 mt-6 border-t pt-4">
                                 <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex-1"><Pencil className="size-3 mr-1" /> Edit</Button>
-                                <Button onClick={() => { if(confirm('Delete?')) router.delete(`/super-admin/business-website-templates/${t.id}`) }} variant="destructive" size="sm"><Trash className="size-3" /></Button>
+                                <Button onClick={() => { if (confirm('Delete?')) router.delete(`/super-admin/business-website-templates/${t.id}`) }} variant="destructive" size="sm"><Trash className="size-3" /></Button>
                             </div>
                         </div>
                     ))}
@@ -150,15 +150,14 @@ export default function BusinessWebsiteTemplatesIndex({ templates = [] }: { temp
                                 <button
                                     key={page.slug}
                                     onClick={() => setActiveTab(page.slug)}
-                                    className={`px-4 py-2 rounded-t-lg text-sm font-bold flex items-center gap-2 border-x border-t transition-all ${
-                                        activeTab === page.slug 
-                                            ? 'bg-white text-blue-600 border-neutral-200 border-b-transparent shadow-sm' 
-                                            : 'bg-neutral-50/50 text-neutral-500 border-transparent hover:bg-neutral-200'
-                                    }`}
+                                    className={`px-4 py-2 rounded-t-lg text-sm font-bold flex items-center gap-2 border-x border-t transition-all ${activeTab === page.slug
+                                        ? 'bg-white text-blue-600 border-neutral-200 border-b-transparent shadow-sm'
+                                        : 'bg-neutral-50/50 text-neutral-500 border-transparent hover:bg-neutral-200'
+                                        }`}
                                 >
-                                    <input 
-                                        type="checkbox" 
-                                        checked={page.enabled} 
+                                    <input
+                                        type="checkbox"
+                                        checked={page.enabled}
                                         onChange={() => togglePageEnabled(page.slug)}
                                         onClick={e => e.stopPropagation()}
                                         className="rounded border-neutral-300 text-blue-600"
@@ -174,10 +173,10 @@ export default function BusinessWebsiteTemplatesIndex({ templates = [] }: { temp
                                     This page is disabled. Check the box above to enable and edit it.
                                 </div>
                             ) : (
-                                <SharedEditor 
+                                <SharedEditor
                                     key={activeTab} // Force remount on tab change
-                                    blocks={currentBlocks} 
-                                    onChange={handleBlocksChange} 
+                                    blocks={currentBlocks}
+                                    onChange={handleBlocksChange}
                                     isInvitation={false}
                                     title={data.name}
                                     pagesNav={pagesNav}

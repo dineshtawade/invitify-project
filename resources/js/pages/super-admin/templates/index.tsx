@@ -12,10 +12,10 @@ import {
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
-import { 
-    Plus, Pencil, Trash, Layers, Sparkles, Heart, 
-    Cake, Baby, Award, Move, Type, Image as ImageIcon, 
-    Smile, Link, MapPin, Compass, Gift, Calendar, Clock, 
+import {
+    Plus, Pencil, Trash, Layers, Sparkles, Heart,
+    Cake, Baby, Award, Move, Type, Image as ImageIcon,
+    Smile, Link, MapPin, Compass, Gift, Calendar, Clock,
     Music, Wine, Star, Bell, ZoomIn, ZoomOut, Check, ArrowRight,
     Laptop, Tablet, Smartphone, Settings
 } from 'lucide-react';
@@ -89,7 +89,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
     const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
     const [zoom, setZoom] = useState(1);
     const [activeMobileView, setActiveMobileView] = useState<'editor' | 'preview'>('editor');
-    
+
     // Viewport size simulator
     const [previewViewport, setPreviewViewport] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
     const [cardWidth, setCardWidth] = useState(350);
@@ -121,16 +121,16 @@ export default function TemplatesIndex({ templates }: PageProps) {
             }
         });
         observer.observe(cardRef.current);
-        
+
         // Immediate calculation
         setCardWidth(cardRef.current.clientWidth);
-        
+
         return () => observer.disconnect();
     }, [isOpen, activePageIndex, previewViewport, data.default_config.aspectRatio, data.default_config.width]);
 
     // Target width for scaling calculation
-    const targetWidth = data.default_config.aspectRatio === 'custom' 
-        ? (data.default_config.width || 350) 
+    const targetWidth = data.default_config.aspectRatio === 'custom'
+        ? (data.default_config.width || 350)
         : (ratioData.targetWidth || 350);
 
     const scaleRatio = cardWidth / targetWidth;
@@ -366,7 +366,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
             const updatedPages = [...prev.default_config.pages];
             updatedPages[activePageIndex] = {
                 ...updatedPages[activePageIndex],
-                elements: updatedPages[activePageIndex].elements.map(e => 
+                elements: updatedPages[activePageIndex].elements.map(e =>
                     e.id === elementId ? { ...e, ...updates } : e
                 )
             };
@@ -504,7 +504,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
                 <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
                     <div className="overflow-x-auto">
                         <table className="w-full border-collapse text-left text-sm text-neutral-500 dark:text-neutral-400">
-                            <thead className="bg-neutral-50 text-[11px] font-bold uppercase tracking-wider text-neutral-700 dark:bg-neutral-850/60 dark:text-neutral-300 border-b border-neutral-200 dark:border-neutral-800">
+                            <thead className=" text-[11px] font-bold uppercase tracking-wider text-neutral-700 dark:bg-neutral-850/60 dark:text-neutral-300 border-b border-neutral-200 dark:border-neutral-800">
                                 <tr>
                                     <th scope="col" className="px-6 py-4">Name</th>
                                     <th scope="col" className="px-6 py-4">Category</th>
@@ -534,8 +534,8 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     {isCustomBg ? (
-                                                        <span 
-                                                            className="inline-block w-24 h-6 rounded border border-neutral-300 dark:border-neutral-700" 
+                                                        <span
+                                                            className="inline-block w-24 h-6 rounded border border-neutral-300 dark:border-neutral-700"
                                                             style={{ background: t.bg_gradient }}
                                                         />
                                                     ) : (
@@ -583,7 +583,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
                     </DialogHeader>
 
                     <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
-                        
+
                         {/* Meta controls panel row */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 pb-3 border-b bg-neutral-50 dark:bg-neutral-950/20 shrink-0">
                             <div className="grid gap-1">
@@ -656,7 +656,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
 
                         {/* Split panel workspace */}
                         <div className="flex-1 grid lg:grid-cols-[1fr_1.1fr] overflow-hidden min-h-0">
-                            
+
                             {/* Left Panel: Controls Form */}
                             <div className="flex flex-col border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden h-full">
                                 {/* Tab Selectors */}
@@ -672,11 +672,10 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                             key={tab.id}
                                             type="button"
                                             onClick={() => setActiveTab(tab.id as any)}
-                                            className={`flex-1 py-3 text-[11px] font-bold border-b-2 text-center transition-all ${
-                                                activeTab === tab.id
-                                                    ? 'border-indigo-650 text-indigo-650 dark:border-indigo-400 dark:text-indigo-400 bg-white dark:bg-neutral-900'
-                                                    : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300'
-                                            }`}
+                                            className={`flex-1 py-3 text-[11px] font-bold border-b-2 text-center transition-all ${activeTab === tab.id
+                                                ? 'border-indigo-650 text-indigo-650 dark:border-indigo-400 dark:text-indigo-400 bg-white dark:bg-neutral-900'
+                                                : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300'
+                                                }`}
                                         >
                                             {tab.label}
                                         </button>
@@ -696,11 +695,10 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                             key={ratio}
                                                             type="button"
                                                             onClick={() => handleRatioChange(ratio)}
-                                                            className={`py-1.5 px-3 text-xs border font-bold rounded-lg text-center transition-all ${
-                                                                data.default_config.aspectRatio === ratio
-                                                                    ? 'border-indigo-650 bg-indigo-50/25 text-indigo-650 dark:border-indigo-400 dark:text-indigo-400 dark:bg-indigo-950/20'
-                                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                            }`}
+                                                            className={`py-1.5 px-3 text-xs border font-bold rounded-lg text-center transition-all ${data.default_config.aspectRatio === ratio
+                                                                ? 'border-indigo-650 bg-indigo-50/25 text-indigo-650 dark:border-indigo-400 dark:text-indigo-400 dark:bg-indigo-950/20'
+                                                                : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                                }`}
                                                         >
                                                             {ASPECT_RATIOS[ratio].label}
                                                         </button>
@@ -712,7 +710,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                     <div className="grid grid-cols-2 gap-3 mt-2 bg-neutral-50 dark:bg-neutral-950/40 p-3 rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800">
                                                         <div className="grid gap-1">
                                                             <Label htmlFor="custWidth" className="text-[10px] uppercase font-bold text-neutral-450">Custom Width (px)</Label>
-                                                            <Input 
+                                                            <Input
                                                                 id="custWidth"
                                                                 type="number"
                                                                 value={data.default_config.width || 350}
@@ -722,7 +720,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                         </div>
                                                         <div className="grid gap-1">
                                                             <Label htmlFor="custHeight" className="text-[10px] uppercase font-bold text-neutral-450">Custom Height (px)</Label>
-                                                            <Input 
+                                                            <Input
                                                                 id="custHeight"
                                                                 type="number"
                                                                 value={data.default_config.height || 490}
@@ -741,32 +739,32 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                     <div className="grid grid-cols-3 gap-2 items-center bg-neutral-50 dark:bg-neutral-950/25 p-3 rounded-xl border border-neutral-150 dark:border-neutral-850">
                                                         <div className="flex flex-col gap-1 text-center">
                                                             <span className="text-[9px] uppercase font-bold text-neutral-400">Start Color</span>
-                                                            <input 
-                                                                type="color" 
-                                                                value={customGradStart} 
+                                                            <input
+                                                                type="color"
+                                                                value={customGradStart}
                                                                 onChange={(e) => { setCustomGradStart(e.target.value); }}
                                                                 onBlur={applyCustomGradient}
-                                                                className="w-full h-8 cursor-pointer rounded border" 
+                                                                className="w-full h-8 cursor-pointer rounded border"
                                                             />
                                                         </div>
                                                         <div className="flex flex-col gap-1 text-center">
                                                             <span className="text-[9px] uppercase font-bold text-neutral-400">End Color</span>
-                                                            <input 
-                                                                type="color" 
-                                                                value={customGradEnd} 
+                                                            <input
+                                                                type="color"
+                                                                value={customGradEnd}
                                                                 onChange={(e) => { setCustomGradEnd(e.target.value); }}
                                                                 onBlur={applyCustomGradient}
-                                                                className="w-full h-8 cursor-pointer rounded border" 
+                                                                className="w-full h-8 cursor-pointer rounded border"
                                                             />
                                                         </div>
                                                         <div className="flex flex-col gap-1 text-center">
                                                             <span className="text-[9px] uppercase font-bold text-neutral-400">Angle (Deg)</span>
-                                                            <Input 
-                                                                type="number" 
-                                                                value={customGradAngle} 
+                                                            <Input
+                                                                type="number"
+                                                                value={customGradAngle}
                                                                 onChange={(e) => { setCustomGradAngle(parseInt(e.target.value) || 0); }}
                                                                 onBlur={applyCustomGradient}
-                                                                className="h-8 text-xs text-center" 
+                                                                className="h-8 text-xs text-center"
                                                             />
                                                         </div>
                                                     </div>
@@ -810,11 +808,11 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                             <option value="classic">Classic Inset</option>
                                                         </select>
                                                     </div>
-                                                    
+
                                                     {activePage?.borderStyle && activePage.borderStyle !== 'none' && (
                                                         <div className="grid gap-1">
                                                             <Label className="text-[10px] uppercase font-bold text-neutral-450">Border Thickness</Label>
-                                                            <Input 
+                                                            <Input
                                                                 type="number"
                                                                 min="1"
                                                                 max="15"
@@ -830,13 +828,13 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                     <div className="grid gap-1 bg-neutral-50 dark:bg-neutral-950/20 p-3 rounded-xl border border-neutral-100 dark:border-neutral-800">
                                                         <Label className="text-[10px] uppercase font-bold text-neutral-450 mb-1">Border Color</Label>
                                                         <div className="flex gap-2 items-center">
-                                                            <input 
+                                                            <input
                                                                 type="color"
                                                                 value={activePage.borderColor || '#e4e4e7'}
                                                                 onChange={(e) => handlePageBorderChange({ borderColor: e.target.value })}
                                                                 className="w-10 h-8 p-0 cursor-pointer rounded border"
                                                             />
-                                                            <Input 
+                                                            <Input
                                                                 type="text"
                                                                 value={activePage.borderColor || '#e4e4e7'}
                                                                 onChange={(e) => handlePageBorderChange({ borderColor: e.target.value })}
@@ -851,7 +849,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                             <div className="border-t border-neutral-100 pt-4 dark:border-neutral-800 flex flex-col gap-3">
                                                 <div className="flex items-center justify-between">
                                                     <h3 className="font-bold text-xs text-neutral-800 dark:text-neutral-200 uppercase tracking-wider">Card Pages</h3>
-                                                    <Button 
+                                                    <Button
                                                         type="button"
                                                         onClick={handleAddPage}
                                                         size="sm"
@@ -863,19 +861,18 @@ export default function TemplatesIndex({ templates }: PageProps) {
 
                                                 <div className="flex flex-col gap-2">
                                                     {data.default_config.pages.map((p, idx) => (
-                                                        <div 
-                                                            key={p.id} 
+                                                        <div
+                                                            key={p.id}
                                                             onClick={() => { setActivePageIndex(idx); setSelectedElementId(null); }}
-                                                            className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                                                                activePageIndex === idx
-                                                                    ? 'border-indigo-650 bg-indigo-50/15 dark:border-indigo-400'
-                                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-850'
-                                                            }`}
+                                                            className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${activePageIndex === idx
+                                                                ? 'border-indigo-650 bg-indigo-50/15 dark:border-indigo-400'
+                                                                : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-850'
+                                                                }`}
                                                         >
                                                             <span className="text-xs font-bold">Page {idx + 1}</span>
                                                             {data.default_config.pages.length > 1 && (
-                                                                <button 
-                                                                    type="button" 
+                                                                <button
+                                                                    type="button"
                                                                     onClick={(e) => { e.stopPropagation(); handleDeletePage(idx); }}
                                                                     className="text-neutral-400 hover:text-red-500 p-1"
                                                                 >
@@ -1004,7 +1001,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                             />
                                                             User Customizable Field
                                                         </label>
-                                                        
+
                                                         {selectedElement.isEditable && (
                                                             <>
                                                                 <div className="grid gap-1">
@@ -1382,7 +1379,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
 
                             {/* Right Panel: Bounding Live Preview Canvas */}
                             <div className="flex flex-col items-center justify-start py-6 p-4 md:p-6 bg-neutral-100/50 dark:bg-neutral-950/20 overflow-y-auto overflow-x-auto h-full">
-                                
+
                                 {/* Canvas actions toolbar */}
                                 <div className="flex flex-col sm:flex-row items-center gap-4 mb-5 justify-between w-full max-w-lg shrink-0 bg-white dark:bg-neutral-900 p-3 rounded-2xl border">
                                     {/* Page navigation */}
@@ -1392,11 +1389,10 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                 key={idx}
                                                 type="button"
                                                 onClick={() => { setActivePageIndex(idx); setSelectedElementId(null); }}
-                                                className={`size-7 text-[10px] font-bold rounded-full border transition-all ${
-                                                    activePageIndex === idx
-                                                        ? 'bg-indigo-600 text-white border-indigo-600'
-                                                        : 'bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-600 dark:bg-neutral-900 dark:border-neutral-850 dark:text-neutral-400'
-                                                }`}
+                                                className={`size-7 text-[10px] font-bold rounded-full border transition-all ${activePageIndex === idx
+                                                    ? 'bg-indigo-600 text-white border-indigo-600'
+                                                    : 'bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-600 dark:bg-neutral-900 dark:border-neutral-850 dark:text-neutral-400'
+                                                    }`}
                                             >
                                                 P{idx + 1}
                                             </button>
@@ -1433,23 +1429,23 @@ export default function TemplatesIndex({ templates }: PageProps) {
 
                                     {/* Zoom controls */}
                                     <div className="flex items-center gap-1 bg-neutral-50 dark:bg-neutral-950 border rounded-lg px-2 py-0.5 text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => setZoom(prev => Math.max(0.5, prev - 0.1))}
                                             className="px-1 py-0.5 hover:bg-neutral-100 rounded dark:hover:bg-neutral-850 text-sm font-bold"
                                         >
                                             －
                                         </button>
                                         <span className="w-8 text-center font-mono text-[9px]">{Math.round(zoom * 100)}%</span>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => setZoom(prev => Math.min(2.0, prev + 0.1))}
                                             className="px-1 py-0.5 hover:bg-neutral-100 rounded dark:hover:bg-neutral-850 text-sm font-bold"
                                         >
                                             ＋
                                         </button>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => setZoom(1)}
                                             className="px-1.5 py-0.5 hover:bg-neutral-100 rounded dark:hover:bg-neutral-850 text-[9px] text-indigo-600"
                                         >
@@ -1464,15 +1460,15 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                         ref={cardRef}
                                         onClick={() => setSelectedElementId(null)}
                                         style={{
-                                            aspectRatio: data.default_config.aspectRatio === 'custom' 
-                                                ? `${data.default_config.width || 350}/${data.default_config.height || 490}` 
+                                            aspectRatio: data.default_config.aspectRatio === 'custom'
+                                                ? `${data.default_config.width || 350}/${data.default_config.height || 490}`
                                                 : undefined,
                                             // Apply ratio data class inline if not custom size
                                             height: data.default_config.aspectRatio !== 'custom' ? undefined : 'auto',
                                             transform: `scale(${zoom})`,
                                             transformOrigin: 'top center',
-                                            background: activePage?.bg_gradient?.startsWith('linear-gradient') 
-                                                ? activePage.bg_gradient 
+                                            background: activePage?.bg_gradient?.startsWith('linear-gradient')
+                                                ? activePage.bg_gradient
                                                 : undefined,
                                         }}
                                         // Set tailwind background gradient classes if not custom
@@ -1480,7 +1476,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                     >
                                         {/* Decorative Border Overlay */}
                                         {activePage?.borderStyle && activePage.borderStyle !== 'none' && (
-                                            <div 
+                                            <div
                                                 className="absolute pointer-events-none rounded-2xl"
                                                 style={{
                                                     top: '12px',
@@ -1495,7 +1491,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                             >
                                                 {(activePage.borderStyle === 'floral' || activePage.borderStyle === 'classic') && (
                                                     <>
-                                                        <div 
+                                                        <div
                                                             className="absolute size-5 border-t border-l"
                                                             style={{
                                                                 top: '-1px',
@@ -1506,7 +1502,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                                 borderTopLeftRadius: '4px',
                                                             }}
                                                         />
-                                                        <div 
+                                                        <div
                                                             className="absolute size-5 border-t border-r"
                                                             style={{
                                                                 top: '-1px',
@@ -1517,7 +1513,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                                 borderTopRightRadius: '4px',
                                                             }}
                                                         />
-                                                        <div 
+                                                        <div
                                                             className="absolute size-5 border-b border-l"
                                                             style={{
                                                                 bottom: '-1px',
@@ -1528,7 +1524,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                                 borderBottomLeftRadius: '4px',
                                                             }}
                                                         />
-                                                        <div 
+                                                        <div
                                                             className="absolute size-5 border-b border-r"
                                                             style={{
                                                                 bottom: '-1px',
@@ -1569,11 +1565,10 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                     key={elem.id}
                                                     style={style}
                                                     onMouseDown={(e) => handleCanvasMouseDown(elem.id, e, false)}
-                                                    className={`transition-all duration-75 relative group border p-0.5 leading-tight select-none break-words overflow-hidden ${
-                                                        isSelected 
-                                                            ? 'border-indigo-650 bg-indigo-500/10 shadow-xs z-30' 
-                                                            : 'border-transparent hover:border-dashed hover:border-neutral-400 hover:z-20 cursor-move'
-                                                    }`}
+                                                    className={`transition-all duration-75 relative group border p-0.5 leading-tight select-none break-words overflow-hidden ${isSelected
+                                                        ? 'border-indigo-650 bg-indigo-500/10 shadow-xs z-30'
+                                                        : 'border-transparent hover:border-dashed hover:border-neutral-400 hover:z-20 cursor-move'
+                                                        }`}
                                                 >
                                                     {elem.type === 'text' && (
                                                         <span className="w-full pointer-events-none">{elem.content}</span>
@@ -1606,11 +1601,11 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                     )}
 
                                                     {elem.type === 'link' && (
-                                                        <button 
-                                                            type="button" 
+                                                        <button
+                                                            type="button"
                                                             className="px-3 py-1.5 bg-neutral-900/10 border pointer-events-none rounded-full flex items-center justify-center gap-1 shrink-0"
-                                                            style={{ 
-                                                                borderColor: elem.textColor || '#1f2937', 
+                                                            style={{
+                                                                borderColor: elem.textColor || '#1f2937',
                                                                 color: elem.textColor || '#1f2937',
                                                                 fontSize: `${Math.max(8, 9 * scaleRatio)}px`,
                                                                 borderWidth: `${Math.max(1, 1 * scaleRatio)}px`

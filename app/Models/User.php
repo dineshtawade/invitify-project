@@ -28,6 +28,8 @@ class User extends Authenticatable
         'referral_discount_percentage',
         'referral_commission_percentage',
         'referral_max_codes',
+        'reseller_details',
+        'referral_details',
     ];
 
     /**
@@ -54,6 +56,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'is_approved' => 'boolean',
+            'reseller_details' => 'array',
+            'referral_details' => 'array',
         ];
     }
 

@@ -106,7 +106,7 @@ export default function WalletsIndex({ wallets, redemptionRequests }: { wallets:
                                         <p className="font-bold text-neutral-800">{req.user.name} <span className="text-neutral-400 font-normal text-sm">({req.user.email})</span></p>
                                         <p className="text-sm text-neutral-600 mt-0.5">Requesting <span className="font-bold text-emerald-700">₹{parseFloat(req.amount).toFixed(2)}</span> withdrawal</p>
                                         <p className="text-xs text-neutral-400 mt-1">{new Date(req.created_at).toLocaleString()}</p>
-                                        
+
                                         {/* Quick Payment details preview */}
                                         <div className="mt-2 text-xs text-neutral-500 flex flex-wrap gap-x-4 gap-y-1">
                                             {req.upi_id && <span><strong>UPI:</strong> {req.upi_id}</span>}
@@ -172,7 +172,7 @@ export default function WalletsIndex({ wallets, redemptionRequests }: { wallets:
                                         <tr key={w.id} className="border-t hover:bg-neutral-50/50">
                                             <td className="px-4 py-3">
                                                 <p className="font-bold">{w.user_name}</p>
-                                                <p className="text-xs text-neutral-400">{w.user_email}</p>
+                                                <p className="text-xs text-neutral-800">{w.user_email}</p>
                                             </td>
                                             <td className="px-4 py-3 text-center font-bold text-lg text-emerald-700">₹{Number(w.balance).toFixed(2)}</td>
                                             <td className="px-4 py-3 text-center text-green-600">
@@ -219,7 +219,7 @@ export default function WalletsIndex({ wallets, redemptionRequests }: { wallets:
                                         <tr key={req.id} className="border-t hover:bg-neutral-50/50">
                                             <td className="px-4 py-3">
                                                 <p className="font-bold">{req.user.name}</p>
-                                                <p className="text-xs text-neutral-400">{req.user.email}</p>
+                                                <p className="text-xs text-neutral-800">{req.user.email}</p>
                                             </td>
                                             <td className="px-4 py-3 text-center font-bold text-neutral-800">₹{parseFloat(req.amount).toFixed(2)}</td>
                                             <td className="px-4 py-3 text-left text-xs max-w-xs">
@@ -230,9 +230,8 @@ export default function WalletsIndex({ wallets, redemptionRequests }: { wallets:
                                                 {req.admin_notes && <p className="text-amber-700 italic mt-0.5">Note: {req.admin_notes}</p>}
                                             </td>
                                             <td className="px-4 py-3 text-center">
-                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                                    req.status === 'approved' || req.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                                                }`}>
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${req.status === 'approved' || req.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                                    }`}>
                                                     {req.status.toUpperCase()}
                                                 </span>
                                             </td>
@@ -271,21 +270,21 @@ export default function WalletsIndex({ wallets, redemptionRequests }: { wallets:
                                 <div className="bg-neutral-50 border rounded-xl p-4 flex flex-col gap-2 text-sm">
                                     <p><strong>Partner:</strong> {selectedRequest.user.name} ({selectedRequest.user.email})</p>
                                     <p><strong>Amount:</strong> <span className="font-bold text-emerald-700">₹{parseFloat(selectedRequest.amount).toFixed(2)}</span></p>
-                                    
+
                                     {/* Partner Payment Details */}
                                     <div className="mt-2 border-t pt-3 flex flex-col gap-2 bg-white p-3 rounded-lg border">
                                         <p className="text-[10px] font-bold uppercase text-neutral-400 tracking-wider">Payout Details Provided:</p>
-                                        
+
                                         {selectedRequest.upi_id && (
                                             <div>
                                                 <p className="text-xs text-neutral-500">UPI ID:</p>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <code className="font-mono text-sm bg-neutral-100 px-1.5 py-0.5 rounded text-neutral-800">{selectedRequest.upi_id}</code>
-                                                    <Button 
-                                                        type="button" 
-                                                        variant="ghost" 
-                                                        size="sm" 
-                                                        onClick={() => navigator.clipboard.writeText(selectedRequest.upi_id || '')} 
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => navigator.clipboard.writeText(selectedRequest.upi_id || '')}
                                                         className="h-6 px-1.5 text-[10px]"
                                                     >
                                                         Copy
@@ -318,10 +317,10 @@ export default function WalletsIndex({ wallets, redemptionRequests }: { wallets:
                                         {selectedRequest.qr_code_path && (
                                             <div className="flex items-center justify-between border-t pt-2 mt-1">
                                                 <span className="text-xs text-neutral-600">Attached QR Code:</span>
-                                                <Button 
-                                                    type="button" 
-                                                    variant="outline" 
-                                                    size="sm" 
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
                                                     onClick={() => setSelectedQR(selectedRequest.qr_code_path)}
                                                     className="h-7 px-2 text-[10px]"
                                                 >
@@ -334,11 +333,11 @@ export default function WalletsIndex({ wallets, redemptionRequests }: { wallets:
 
                                 <div className="grid gap-2 mt-2">
                                     <Label>Upload Payment Receipt / Proof *</Label>
-                                    <Input 
-                                        type="file" 
+                                    <Input
+                                        type="file"
                                         accept="image/*"
-                                        onChange={e => approveForm.setData('payment_proof', e.target.files?.[0] || null)} 
-                                        required 
+                                        onChange={e => approveForm.setData('payment_proof', e.target.files?.[0] || null)}
+                                        required
                                     />
                                     <p className="text-[10px] text-neutral-400">Please transfer payment manually first, then upload proof.</p>
                                     {approveForm.errors.payment_proof && <p className="text-red-500 text-xs">{approveForm.errors.payment_proof}</p>}
@@ -346,10 +345,10 @@ export default function WalletsIndex({ wallets, redemptionRequests }: { wallets:
 
                                 <div className="grid gap-2">
                                     <Label>Admin Notes / Reference ID</Label>
-                                    <Input 
-                                        placeholder="e.g. Transferred via GPay, Ref ID 12345..." 
-                                        value={approveForm.data.admin_notes} 
-                                        onChange={e => approveForm.setData('admin_notes', e.target.value)} 
+                                    <Input
+                                        placeholder="e.g. Transferred via GPay, Ref ID 12345..."
+                                        value={approveForm.data.admin_notes}
+                                        onChange={e => approveForm.setData('admin_notes', e.target.value)}
                                     />
                                     {approveForm.errors.admin_notes && <p className="text-red-500 text-xs">{approveForm.errors.admin_notes}</p>}
                                 </div>
@@ -358,22 +357,22 @@ export default function WalletsIndex({ wallets, redemptionRequests }: { wallets:
                                     <Label>Completion Status</Label>
                                     <div className="flex items-center gap-4 mt-1">
                                         <label className="flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
-                                            <input 
-                                                type="radio" 
-                                                name="approve_status" 
-                                                value="paid" 
-                                                checked={approveForm.data.status === 'paid'} 
-                                                onChange={e => approveForm.setData('status', e.target.value)} 
+                                            <input
+                                                type="radio"
+                                                name="approve_status"
+                                                value="paid"
+                                                checked={approveForm.data.status === 'paid'}
+                                                onChange={e => approveForm.setData('status', e.target.value)}
                                             />
                                             PAID (Recommended)
                                         </label>
                                         <label className="flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
-                                            <input 
-                                                type="radio" 
-                                                name="approve_status" 
-                                                value="approved" 
-                                                checked={approveForm.data.status === 'approved'} 
-                                                onChange={e => approveForm.setData('status', e.target.value)} 
+                                            <input
+                                                type="radio"
+                                                name="approve_status"
+                                                value="approved"
+                                                checked={approveForm.data.status === 'approved'}
+                                                onChange={e => approveForm.setData('status', e.target.value)}
                                             />
                                             APPROVED
                                         </label>
@@ -401,11 +400,11 @@ export default function WalletsIndex({ wallets, redemptionRequests }: { wallets:
                                 <p className="text-sm">Rejecting payout request of <span className="font-bold text-red-600">₹{parseFloat(rejectRequest.amount).toFixed(2)}</span> for {rejectRequest.user.name}.</p>
                                 <div className="grid gap-2">
                                     <Label>Reason for Rejection *</Label>
-                                    <Input 
-                                        placeholder="e.g. Invalid bank details / name mismatch..." 
-                                        value={rejectForm.data.admin_notes} 
-                                        onChange={e => rejectForm.setData('admin_notes', e.target.value)} 
-                                        required 
+                                    <Input
+                                        placeholder="e.g. Invalid bank details / name mismatch..."
+                                        value={rejectForm.data.admin_notes}
+                                        onChange={e => rejectForm.setData('admin_notes', e.target.value)}
+                                        required
                                     />
                                     {rejectForm.errors.admin_notes && <p className="text-red-500 text-xs">{rejectForm.errors.admin_notes}</p>}
                                 </div>
@@ -425,10 +424,10 @@ export default function WalletsIndex({ wallets, redemptionRequests }: { wallets:
                             <DialogTitle>Partner QR Code</DialogTitle>
                         </DialogHeader>
                         {selectedQR && (
-                            <img 
-                                src={selectedQR} 
-                                alt="Partner QR Code" 
-                                className="max-w-full max-h-[350px] object-contain border rounded-xl p-2 bg-white mt-4" 
+                            <img
+                                src={selectedQR}
+                                alt="Partner QR Code"
+                                className="max-w-full max-h-[350px] object-contain border rounded-xl p-2 bg-white mt-4"
                             />
                         )}
                         <Button onClick={() => setSelectedQR(null)} className="mt-4 w-full">Close</Button>
@@ -442,10 +441,10 @@ export default function WalletsIndex({ wallets, redemptionRequests }: { wallets:
                             <DialogTitle>Receipt / Proof of Payment</DialogTitle>
                         </DialogHeader>
                         {selectedReceipt && (
-                            <img 
-                                src={selectedReceipt} 
-                                alt="Payment Proof" 
-                                className="max-w-full max-h-[400px] object-contain border rounded-xl p-2 bg-white mt-4" 
+                            <img
+                                src={selectedReceipt}
+                                alt="Payment Proof"
+                                className="max-w-full max-h-[400px] object-contain border rounded-xl p-2 bg-white mt-4"
                             />
                         )}
                         <Button onClick={() => setSelectedReceipt(null)} className="mt-4 w-full">Close</Button>

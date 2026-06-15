@@ -79,13 +79,13 @@ export default function WalletPage({
                     ) : (
                         <div className="flex flex-col gap-3">
                             {walletHistory.map(item => (
-                                <div key={item.id} className="bg-white border rounded-2xl p-4 flex items-center justify-between shadow-sm hover:shadow transition-shadow">
+                                <div key={item.id} className="border rounded-2xl p-4 flex items-center justify-between shadow-sm hover:shadow transition-shadow">
                                     <div className="flex items-center gap-3">
                                         <div className={`size-10 rounded-full flex items-center justify-center ${item.type === 'credit' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
                                             {item.type === 'credit' ? <ArrowDownRight className="size-5" /> : <ArrowUpRight className="size-5" />}
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-neutral-800">{item.description || (item.type === 'credit' ? 'Commission Credit' : 'Wallet Debit')}</p>
+                                            <p className="text-sm font-bold">{item.description || (item.type === 'credit' ? 'Commission Credit' : 'Wallet Debit')}</p>
                                             <p className="text-xs text-neutral-400 mt-0.5">{new Date(item.created_at).toLocaleString()}</p>
                                         </div>
                                     </div>

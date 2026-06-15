@@ -4,8 +4,8 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-    ShieldAlert, ShieldCheck, Search, Eye, Wallet, 
+import {
+    ShieldAlert, ShieldCheck, Search, Eye, Wallet,
     Calendar, Mail, User, CheckCircle2, XCircle, ArrowRight,
     Tag, Landmark, Globe, Layers, Award
 } from 'lucide-react';
@@ -55,6 +55,23 @@ interface UserDetail {
     purchased_templates_count: number;
     mini_websites_count: number;
     business_websites_count: number;
+    reseller_details: {
+        business_name: string;
+        mobile_number: string;
+        email: string;
+        gst_number: string;
+        business_address?: string;
+    } | null;
+    referral_details: {
+        city: string;
+        email: string;
+        phone_number: string;
+        social_media?: Array<{
+            platform: string;
+            username: string;
+            followers: number;
+        }>;
+    } | null;
 }
 
 interface LinkItem {
@@ -192,7 +209,7 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                 <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
                     <div className="overflow-x-auto">
                         <table className="w-full border-collapse text-left text-sm text-neutral-500 dark:text-neutral-400">
-                            <thead className="bg-neutral-50 text-[11px] font-bold uppercase tracking-wider text-neutral-700 dark:bg-neutral-850/60 dark:text-neutral-300 border-b border-neutral-200 dark:border-neutral-800">
+                            <thead className=" text-[11px] font-bold uppercase tracking-wider text-neutral-700 dark:bg-neutral-850/60 dark:text-neutral-300 border-b border-neutral-200 dark:border-neutral-800">
                                 <tr>
                                     <th scope="col" className="px-6 py-4">User Details</th>
                                     <th scope="col" className="px-6 py-4">Role</th>
@@ -301,11 +318,10 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                                         <Link
                                             key={idx}
                                             href={link.url}
-                                            className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-bold transition-all ${
-                                                link.active
-                                                    ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-700 dark:border-indigo-700'
-                                                    : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-350 dark:hover:bg-neutral-800'
-                                            }`}
+                                            className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-bold transition-all ${link.active
+                                                ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-700 dark:border-indigo-700'
+                                                : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-350 dark:hover:bg-neutral-800'
+                                                }`}
                                             dangerouslySetInnerHTML={{ __html: cleanLabel }}
                                         />
                                     );
@@ -333,10 +349,10 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                                     <p className="text-xs font-medium text-neutral-450 dark:text-neutral-400">{selectedUser.email}</p>
                                 </div>
                             </div>
-                            <Button 
-                                onClick={() => { setShowModal(false); setSelectedUser(null); }} 
-                                variant="ghost" 
-                                size="sm" 
+                            <Button
+                                onClick={() => { setShowModal(false); setSelectedUser(null); }}
+                                variant="ghost"
+                                size="sm"
                                 className="rounded-xl size-8 p-0"
                             >
                                 <XCircle className="size-5 text-neutral-400 hover:text-neutral-600" />
@@ -394,6 +410,90 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Conditional Reseller Details */}
+                            {selectedUser.role === 'reseller' && selectedUser.reseller_details && (
+                                <div className="rounded-xl border border-neutral-150 dark:border-neutral-800 p-4 bg-blue-50/5 dark:bg-blue-950/5">
+                                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-1.5">
+                                        <CheckCircle2 className="size-3.5 text-blue-600" /> Reseller Business Profile
+                                    </h4>
+                                    <div className="grid gap-3 sm:grid-cols-2 text-xs">
+                                        <div>
+                                            <span className="text-neutral-450 font-bold block">Business Name</span>
+                                            <span className="text-neutral-900 dark:text-neutral-100 font-semibold text-sm">{selectedUser.reseller_details.business_name}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-neutral-450 font-bold block">GST Number</span>
+                                            <span className="text-neutral-900 dark:text-neutral-100 font-mono font-bold">{selectedUser.reseller_details.gst_number}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-neutral-450 font-bold block">Contact Email</span>
+                                            <span className="text-neutral-900 dark:text-neutral-100 font-semibold">{selectedUser.reseller_details.email}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-neutral-450 font-bold block">Mobile Number</span>
+                                            <span className="text-neutral-900 dark:text-neutral-100 font-semibold">{selectedUser.reseller_details.mobile_number}</span>
+                                        </div>
+                                        {selectedUser.reseller_details.business_address && (
+                                            <div className="sm:col-span-2">
+                                                <span className="text-neutral-450 font-bold block">Business Address</span>
+                                                <span className="text-neutral-900 dark:text-neutral-100 font-semibold">{selectedUser.reseller_details.business_address}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Conditional Referral Partner Details */}
+                            {selectedUser.role === 'referral_partner' && selectedUser.referral_details && (
+                                <div className="rounded-xl border border-neutral-150 dark:border-neutral-800 p-4 bg-amber-50/5 dark:bg-amber-950/5">
+                                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-450 mb-3 flex items-center gap-1.5">
+                                        <Award className="size-3.5 text-amber-600" /> Referral Partner Profile
+                                    </h4>
+                                    <div className="grid gap-3 sm:grid-cols-3 text-xs mb-4">
+                                        <div>
+                                            <span className="text-neutral-450 font-bold block">City</span>
+                                            <span className="text-neutral-900 dark:text-neutral-100 font-semibold">{selectedUser.referral_details.city}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-neutral-450 font-bold block">Contact Email</span>
+                                            <span className="text-neutral-900 dark:text-neutral-100 font-semibold">{selectedUser.referral_details.email}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-neutral-450 font-bold block">Phone Number</span>
+                                            <span className="text-neutral-900 dark:text-neutral-100 font-semibold">{selectedUser.referral_details.phone_number}</span>
+                                        </div>
+                                    </div>
+
+                                    {selectedUser.referral_details.social_media && selectedUser.referral_details.social_media.length > 0 && (
+                                        <div className="mt-3">
+                                            <span className="text-neutral-450 font-bold text-xs block mb-2">Social Media Accounts</span>
+                                            <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+                                                <table className="w-full text-left text-xs text-neutral-500 dark:text-neutral-455">
+                                                    <thead className="bg-neutral-50 dark:bg-neutral-850/50 text-[10px] font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-305 border-b border-neutral-200 dark:border-neutral-800">
+                                                        <tr>
+                                                            <th className="px-4 py-2">Platform</th>
+                                                            <th className="px-4 py-2">Username / ID</th>
+                                                            <th className="px-4 py-2 text-right">Followers</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                                                        {selectedUser.referral_details.social_media.map((social, idx) => (
+                                                            <tr key={idx} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/15">
+                                                                <td className="px-4 py-2 font-bold text-neutral-900 dark:text-neutral-150">{social.platform}</td>
+                                                                <td className="px-4 py-2 font-semibold text-indigo-650 dark:text-indigo-400 select-all">{social.username}</td>
+                                                                <td className="px-4 py-2 text-right font-bold text-neutral-900 dark:text-neutral-200">
+                                                                    {new Intl.NumberFormat('en-IN').format(social.followers)}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Grid 2: Platform Stats */}
                             <div className="rounded-xl border border-neutral-150 dark:border-neutral-800 p-4">
@@ -483,15 +583,15 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                         <div className="border-t border-neutral-100 dark:border-neutral-800 pt-4 flex items-center justify-end gap-2.5">
                             {!selectedUser.is_approved ? (
                                 <>
-                                    <Button 
-                                        onClick={() => { setShowModal(false); setSelectedUser(null); }} 
-                                        variant="outline" 
+                                    <Button
+                                        onClick={() => { setShowModal(false); setSelectedUser(null); }}
+                                        variant="outline"
                                         size="sm"
                                         className="h-9 rounded-xl text-xs font-bold"
                                     >
                                         Cancel
                                     </Button>
-                                    <Button 
+                                    <Button
                                         onClick={() => handleApprove(selectedUser.id)}
                                         size="sm"
                                         className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-700 dark:hover:bg-emerald-800 text-xs font-bold rounded-xl px-5"
@@ -500,8 +600,8 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                                     </Button>
                                 </>
                             ) : (
-                                <Button 
-                                    onClick={() => { setShowModal(false); setSelectedUser(null); }} 
+                                <Button
+                                    onClick={() => { setShowModal(false); setSelectedUser(null); }}
                                     size="sm"
                                     className="h-9 bg-neutral-900 hover:bg-neutral-850 dark:bg-neutral-800 dark:hover:bg-neutral-750 text-white text-xs font-bold rounded-xl px-5"
                                 >
