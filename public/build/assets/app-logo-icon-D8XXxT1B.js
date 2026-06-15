@@ -1,0 +1,1 @@
+import{c as o,j as n}from"./app-BPFE0TaO.js";function s(i){const t=o.c(2);let e;return t[0]!==i?(e=n.jsx("img",{src:"/theinvitify-removebg-preview.png",alt:"Invitify Logo",...i}),t[0]=i,t[1]=e):e=t[1],e}export{s as A};
