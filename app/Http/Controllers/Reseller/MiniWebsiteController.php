@@ -33,7 +33,8 @@ class MiniWebsiteController extends Controller
                 'expires_at' => $mini_website->expires_at ? $mini_website->expires_at->toIso8601String() : null,
                 'is_expired' => $mini_website->isSubscriptionExpired(),
                 'config' => $mini_website->config,
-            ]
+            ],
+            'customBlocks' => \App\Models\CustomBlock::orderBy('name')->get(),
         ]);
     }
 

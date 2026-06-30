@@ -1,4 +1,5 @@
 export interface Block {
+    [key: string]: any;
     id: string;
     type: string;
     title?: string;
@@ -106,6 +107,74 @@ export const getNewBlockDefaults = (type: string, isInvitation = false): Block =
             { time: '11:30 AM', title: 'Main Ceremony', desc: 'The holy rituals and vows.' },
             { time: '01:00 PM', title: 'Grand Lunch Feast', desc: 'Delicious food served at the main hall.' }
         ];
+    } else if (type === 'advanced_section') {
+        newBlock.bg_type = 'color';
+        newBlock.bg_color = '#ffffff';
+        newBlock.bg_gradient = 'from-indigo-500 via-purple-500 to-pink-500';
+        newBlock.bg_image = '';
+        newBlock.bg_overlay_color = '#000000';
+        newBlock.bg_overlay_opacity = '0.4';
+        
+        newBlock.section_width = 'max-w-4xl';
+        newBlock.section_height = 'auto';
+        newBlock.padding_top = 'py-12';
+        newBlock.padding_bottom = '';
+        newBlock.padding_left = 'px-6';
+        newBlock.padding_right = '';
+        newBlock.margin_top = 'my-4';
+        newBlock.margin_bottom = '';
+        newBlock.border_color = '#e5e7eb';
+        newBlock.border_width = 'border-0';
+        newBlock.border_style = 'solid';
+        newBlock.border_radius = 'rounded-2xl';
+        newBlock.box_shadow = 'shadow-md';
+        
+        newBlock.header_text = 'Fully Customizable Section';
+        newBlock.header_tag = 'h2';
+        newBlock.header_font_family = 'Outfit';
+        newBlock.header_font_size = 'text-3xl';
+        newBlock.header_font_weight = 'font-bold';
+        newBlock.header_color = '#111827';
+        newBlock.header_align = 'center';
+        
+        newBlock.desc_text = 'This section block provides absolute visual design controls over every element including background, typography, button, custom animation, responsive displays, and custom CSS injections. Customize it to fit your brand identity.';
+        newBlock.desc_font_family = 'Inter';
+        newBlock.desc_font_size = 'text-sm';
+        newBlock.desc_font_weight = 'font-normal';
+        newBlock.desc_color = '#4b5563';
+        newBlock.desc_line_height = 'leading-relaxed';
+        newBlock.desc_align = 'center';
+        
+        newBlock.btn_text = 'Get Started Now';
+        newBlock.btn_url = '#';
+        newBlock.btn_bg_color = '#2563eb';
+        newBlock.btn_text_color = '#ffffff';
+        newBlock.btn_hover_effect = 'scale';
+        newBlock.btn_border_color = '';
+        newBlock.btn_border_width = 'border-0';
+        newBlock.btn_border_radius = 'rounded-full';
+        newBlock.btn_font_size = 'text-xs';
+        newBlock.btn_padding_x = 'px-6';
+        newBlock.btn_padding_y = 'py-2.5';
+        newBlock.btn_icon = 'arrow-right';
+        
+        newBlock.image_url = 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80';
+        newBlock.image_alt = 'Advanced design illustration';
+        newBlock.image_size = 'medium';
+        newBlock.image_radius = 'rounded-xl';
+        
+        newBlock.content_align = 'flex-col items-center';
+        newBlock.animation_type = 'slide-up';
+        
+        newBlock.visibility_desktop = true;
+        newBlock.visibility_tablet = true;
+        newBlock.visibility_mobile = true;
+        
+        newBlock.custom_class = '';
+        newBlock.custom_id = `sec_${Math.random().toString(36).substring(2, 9)}`;
+        newBlock.custom_css = '';
+        newBlock.z_index = 'z-0';
+        newBlock.positioning = 'relative';
     }
 
     return newBlock;

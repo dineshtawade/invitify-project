@@ -49,13 +49,20 @@ interface WelcomeMiniWebsiteTemplate {
     config: any[];
 }
 
+interface Category {
+    id: number;
+    name: string;
+    slug: string;
+}
+
 interface WelcomeProps {
     canRegister?: boolean;
     templates?: Template[];
     miniWebsiteTemplates?: WelcomeMiniWebsiteTemplate[];
+    categories?: Category[];
 }
 
-export default function Welcome({ canRegister = true, templates = [], miniWebsiteTemplates = [] }: WelcomeProps) {
+export default function Welcome({ canRegister = true, templates = [], miniWebsiteTemplates = [], categories = [] }: WelcomeProps) {
     const { auth } = usePage().props;
 
     // View toggle: 'cards' or 'websites'
@@ -63,7 +70,13 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
 
     // Card templates category states
     const [selectedCategory, setSelectedCategory] = useState('all');
-    const categories = ['all', 'wedding', 'birthday', 'party', 'anniversary', 'baby_shower'];
+    const categoriesList = ['all', ...categories.map(c => c.slug)];
+
+    const getCategoryName = (slug: string) => {
+        if (slug === 'all') return 'All Cards';
+        const found = categories.find(c => c.slug === slug);
+        return found ? found.name : slug.replace('_', ' ');
+    };
 
     const filteredTemplates = selectedCategory === 'all'
         ? templates
@@ -495,7 +508,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                         {/* Category Selector Tabs based on active module */}
                         {activeModule === 'cards' ? (
                             <div className="flex flex-wrap gap-2 bg-neutral-100/80 p-1 rounded-xl dark:bg-neutral-900/80 border border-neutral-200/30 dark:border-neutral-850/30 w-fit">
-                                {categories.map((cat) => (
+                                {categoriesList.map((cat) => (
                                     <button
                                         key={cat}
                                         onClick={() => setSelectedCategory(cat)}
@@ -504,7 +517,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                             : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
                                             }`}
                                     >
-                                        {cat === 'all' ? 'All Cards' : cat.replace('_', ' ')}
+                                        {getCategoryName(cat)}
                                     </button>
                                 ))}
                             </div>

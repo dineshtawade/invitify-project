@@ -28,6 +28,8 @@ class SettingsController extends Controller
                 'reseller_upi_id' => SystemSetting::get('reseller_upi_id', ''),
                 'reseller_default_bonus_percentage' => SystemSetting::get('reseller_default_bonus_percentage', '0'),
             ],
+            'categories' => \App\Models\Category::orderBy('name')->get(),
+            'customBlocks' => \App\Models\CustomBlock::orderBy('name')->get(),
         ]);
     }
 

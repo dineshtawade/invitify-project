@@ -12,17 +12,35 @@ interface SharedEditorProps {
     pagesNav?: { slug: string; title: string; active: boolean }[];
     isInvitation?: boolean;
     isCustomerMode?: boolean;
+    customBlocks?: any[];
 }
 
-export function SharedEditor({ blocks, onChange, title, slug, pagesNav, isInvitation = false, isCustomerMode = false }: SharedEditorProps) {
+export function SharedEditor({ blocks, onChange, title, slug, pagesNav, isInvitation = false, isCustomerMode = false, customBlocks = [] }: SharedEditorProps) {
     const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
     const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
     const handleAddBlock = (type: string) => {
         if (!type) return;
-        const newBlock = getNewBlockDefaults(type, isInvitation);
-        onChange([...blocks, newBlock]);
-        setActiveSectionId(newBlock.id);
+        const customBlock = customBlocks.find(cb => cb.type === type);
+        if (customBlock) {
+            const defaults: Record<string, any> = {};
+            if (customBlock.fields && Array.isArray(customBlock.fields)) {
+                customBlock.fields.forEach((f: any) => {
+                    defaults[f.name] = f.default || '';
+                });
+            }
+            const newBlock = {
+                id: `block_${type}_${Math.random().toString(36).substring(2, 9)}`,
+                type,
+                ...defaults
+            } as Block;
+            onChange([...blocks, newBlock]);
+            setActiveSectionId(newBlock.id);
+        } else {
+            const newBlock = getNewBlockDefaults(type, isInvitation);
+            onChange([...blocks, newBlock]);
+            setActiveSectionId(newBlock.id);
+        }
     };
 
     const handleUpdateBlock = (id: string, updates: Partial<Block>) => {
@@ -53,21 +71,31 @@ export function SharedEditor({ blocks, onChange, title, slug, pagesNav, isInvita
                         {!isCustomerMode && (
                             <select 
                                 onChange={(e) => { handleAddBlock(e.target.value); e.target.value = ''; }} 
-                                className="h-8 rounded-md border border-neutral-200 bg-white text-xs px-2 shadow-xs dark:bg-neutral-900 dark:border-neutral-800"
+                                className="h-8 rounded-md border border-neutral-200 bg-white text-xs px-2 shadow-xs dark:bg-neutral-900 dark:border-neutral-850"
                             >
                                 <option value="">+ Add Block</option>
-                                <option value="hero">Hero Section</option>
-                                <option value="text">Text Section</option>
-                                <option value="swiper">Photo Slider</option>
-                                <option value="video">Video Embed</option>
-                                <option value="links">Button Links</option>
-                                <option value="icons_grid">Features Grid</option>
-                                <option value="form">{isInvitation ? 'RSVP Form' : 'Contact Form'}</option>
-                                <option value="countdown">Countdown Timer</option>
-                                <option value="map">Google Map</option>
-                                <option value="timeline">Timeline Schedule</option>
-                                {!isInvitation && <option value="faq">FAQ Accordion</option>}
-                                {!isInvitation && <option value="testimonials">Testimonials</option>}
+                                <optgroup label="Standard Blocks">
+                                    <option value="advanced_section">★ Advanced Section</option>
+                                    <option value="hero">Hero Section</option>
+                                    <option value="text">Text Section</option>
+                                    <option value="swiper">Photo Slider</option>
+                                    <option value="video">Video Embed</option>
+                                    <option value="links">Button Links</option>
+                                    <option value="icons_grid">Features Grid</option>
+                                    <option value="form">{isInvitation ? 'RSVP Form' : 'Contact Form'}</option>
+                                    <option value="countdown">Countdown Timer</option>
+                                    <option value="map">Google Map</option>
+                                    <option value="timeline">Timeline Schedule</option>
+                                    {!isInvitation && <option value="faq">FAQ Accordion</option>}
+                                    {!isInvitation && <option value="testimonials">Testimonials</option>}
+                                </optgroup>
+                                {customBlocks.length > 0 && (
+                                    <optgroup label="Custom Layout Blocks">
+                                        {customBlocks.map(cb => (
+                                            <option key={cb.id} value={cb.type}>{cb.name}</option>
+                                        ))}
+                                    </optgroup>
+                                )}
                             </select>
                         )}
                     </div>
@@ -113,7 +141,7 @@ export function SharedEditor({ blocks, onChange, title, slug, pagesNav, isInvita
                                             </div>
                                         )}
                                     </div>
-                                    {isActive && <BlockSettings block={block} onUpdate={handleUpdateBlock} isCustomerMode={isCustomerMode} />}
+                                    {isActive && <BlockSettings block={block} onUpdate={handleUpdateBlock} isCustomerMode={isCustomerMode} customBlocks={customBlocks} />}
                                 </div>
                             );
                         })}
@@ -154,6 +182,7 @@ export function SharedEditor({ blocks, onChange, title, slug, pagesNav, isInvita
                         slug={slug}
                         pagesNav={pagesNav}
                         isInvitation={isInvitation}
+                        customBlocks={customBlocks}
                     />
                 </div>
             </div>

@@ -46,6 +46,7 @@ class TemplateController extends Controller
             'templates' => $templates,
             'miniTemplates' => $miniTemplates,
             'businessTemplates' => $businessTemplates,
+            'categories' => \App\Models\Category::orderBy('name')->get(),
         ]);
     }
 

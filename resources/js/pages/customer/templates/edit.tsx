@@ -19,6 +19,7 @@ import {
     Music, Wine, Bell, XCircle, Smile
 } from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
+import { getCsrfHeaders } from '@/lib/utils';
 
 interface Template {
     id: number;
@@ -188,7 +189,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                            ...getCsrfHeaders()
                         }
                     });
 

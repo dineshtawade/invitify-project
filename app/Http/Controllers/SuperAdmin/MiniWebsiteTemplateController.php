@@ -15,6 +15,7 @@ class MiniWebsiteTemplateController extends Controller
 
         return Inertia::render('super-admin/mini-website-templates/index', [
             'templates' => $templates,
+            'customBlocks' => \App\Models\CustomBlock::orderBy('name')->get(),
         ]);
     }
 

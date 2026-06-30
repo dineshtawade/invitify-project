@@ -15,7 +15,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Mini Website Templates', href: '/super-admin/mini-website-templates' },
 ];
 
-export default function MiniWebsiteTemplatesIndex({ templates = [] }: { templates: any[] }) {
+export default function MiniWebsiteTemplatesIndex({ templates = [], customBlocks = [] }: { templates: any[], customBlocks?: any[] }) {
     const [isOpen, setIsOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<any | null>(null);
 
@@ -126,6 +126,7 @@ export default function MiniWebsiteTemplatesIndex({ templates = [] }: { template
                                 onChange={(blocks) => setData('config', blocks)}
                                 isInvitation={true}
                                 title={data.name}
+                                customBlocks={customBlocks}
                             />
                         </div>
 

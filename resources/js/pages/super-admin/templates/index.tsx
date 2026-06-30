@@ -41,8 +41,15 @@ interface Template {
     default_config: any;
 }
 
+interface Category {
+    id: number;
+    name: string;
+    slug: string;
+}
+
 interface PageProps {
     templates: Template[];
+    categories: Category[];
 }
 
 const fontStyles: Record<string, string> = {
@@ -79,7 +86,7 @@ const gradientPresets = [
     { name: 'Classic Gold', value: 'from-amber-100 via-yellow-50 to-amber-200 text-neutral-800' },
 ];
 
-export default function TemplatesIndex({ templates }: PageProps) {
+export default function TemplatesIndex({ templates, categories = [] }: PageProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
     const [activeTab, setActiveTab] = useState<'pages' | 'text' | 'image' | 'icon' | 'link'>('pages');
@@ -102,7 +109,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
 
     const { data, setData, post, put, reset, processing, errors } = useForm({
         name: '',
-        category: 'wedding',
+        category: categories[0]?.slug || 'wedding',
         price: '9.99',
         bg_gradient: 'from-stone-100 to-rose-50 text-neutral-800',
         default_config: normalizeConfig(null),
@@ -176,7 +183,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
         reset();
         setData({
             name: '',
-            category: 'wedding',
+            category: categories[0]?.slug || 'wedding',
             price: '9.99',
             bg_gradient: 'from-stone-100 to-rose-50 text-neutral-800',
             default_config: normalizeConfig(null),
@@ -607,11 +614,9 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                     onChange={(e) => setData('category', e.target.value)}
                                     className="flex h-8.5 w-full rounded-lg border border-neutral-200 bg-white px-3 py-1 text-xs shadow-2xs transition-colors dark:border-neutral-800 dark:bg-neutral-950 focus:ring-1 focus:ring-indigo-500"
                                 >
-                                    <option value="wedding">Wedding</option>
-                                    <option value="birthday">Birthday</option>
-                                    <option value="party">Party</option>
-                                    <option value="anniversary">Anniversary</option>
-                                    <option value="baby_shower">Baby Shower</option>
+                                    {categories.map((cat) => (
+                                        <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                                    ))}
                                 </select>
                             </div>
 

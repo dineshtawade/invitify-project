@@ -8,10 +8,12 @@ interface BlockSettingsProps {
     block: Block;
     onUpdate: (id: string, updates: Partial<Block>) => void;
     isCustomerMode?: boolean;
+    customBlocks?: any[];
 }
 
-export function BlockSettings({ block, onUpdate, isCustomerMode = false }: BlockSettingsProps) {
+export function BlockSettings({ block, onUpdate, isCustomerMode = false, customBlocks = [] }: BlockSettingsProps) {
     const handleUpdate = (updates: Partial<Block>) => onUpdate(block.id, updates);
+    const customBlock = customBlocks.find(cb => cb.type === block.type);
 
     const handleUpdateListItem = (listKey: keyof Block, index: number, key: string, val: string) => {
         const list = (block[listKey] as any[]) || [];
@@ -152,6 +154,61 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false }: Block
                             </div>
                         </>
                     )}
+                </div>
+            )}
+
+            {/* --- Custom Block Dynamic Settings --- */}
+            {customBlock && (
+                <div className="flex flex-col gap-4">
+                    <div className="border-b pb-2">
+                        <h4 className="font-bold text-sm text-neutral-800 dark:text-neutral-200">Custom Block Parameters</h4>
+                    </div>
+                    {customBlock.fields && Array.isArray(customBlock.fields) && customBlock.fields.map((field: any) => {
+                        const value = block[field.name] !== undefined ? block[field.name] : field.default;
+                        
+                        return (
+                            <div key={field.name} className="grid gap-1">
+                                <Label className="text-[10px] text-neutral-500 uppercase font-bold">{field.label}</Label>
+                                {field.type === 'textarea' ? (
+                                    <textarea
+                                        value={value}
+                                        onChange={(e) => handleUpdate({ [field.name]: e.target.value })}
+                                        rows={3}
+                                        className="flex w-full rounded-md border border-neutral-200 bg-transparent px-3 py-2 text-sm shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-neutral-955 dark:bg-neutral-950"
+                                    />
+                                ) : field.type === 'color' ? (
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="color"
+                                            value={value || '#ffffff'}
+                                            onChange={(e) => handleUpdate({ [field.name]: e.target.value })}
+                                            className="w-10 h-8 p-0 cursor-pointer rounded border"
+                                        />
+                                        <Input
+                                            type="text"
+                                            value={value || ''}
+                                            onChange={(e) => handleUpdate({ [field.name]: e.target.value })}
+                                            className="h-8"
+                                        />
+                                    </div>
+                                ) : field.type === 'number' ? (
+                                    <Input
+                                        type="number"
+                                        value={value}
+                                        onChange={(e) => handleUpdate({ [field.name]: e.target.value })}
+                                        className="h-8"
+                                    />
+                                ) : (
+                                    <Input
+                                        type="text"
+                                        value={value}
+                                        onChange={(e) => handleUpdate({ [field.name]: e.target.value })}
+                                        className="h-8"
+                                    />
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 
@@ -465,6 +522,446 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false }: Block
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {/* --- Advanced Customizable Section Controls --- */}
+            {block.type === 'advanced_section' && (
+                <div className="flex flex-col gap-5">
+                    {/* Background Settings */}
+                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                        <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">1. Section Background</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Bg Type</Label>
+                                <select value={block.bg_type || 'color'} onChange={(e) => handleUpdate({ bg_type: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="color">Solid Color</option>
+                                    <option value="gradient">Gradient</option>
+                                    <option value="image">Image Background</option>
+                                </select>
+                            </div>
+                            {block.bg_type === 'color' && (
+                                <div className="grid gap-1">
+                                    <Label className="text-[9px] text-neutral-500 font-bold uppercase">Color (Hex/RGBA)</Label>
+                                    <div className="flex gap-1.5 items-center">
+                                        <input type="color" value={block.bg_color?.startsWith('#') ? block.bg_color : '#ffffff'} onChange={(e) => handleUpdate({ bg_color: e.target.value })} className="size-6 p-0 rounded cursor-pointer border" />
+                                        <Input value={block.bg_color || ''} onChange={(e) => handleUpdate({ bg_color: e.target.value })} className="h-7 text-xs flex-1" />
+                                    </div>
+                                </div>
+                            )}
+                            {block.bg_type === 'gradient' && (
+                                <div className="grid gap-1 col-span-2">
+                                    <Label className="text-[9px] text-neutral-500 font-bold uppercase">Tailwind Gradient Classes</Label>
+                                    <Input value={block.bg_gradient || ''} onChange={(e) => handleUpdate({ bg_gradient: e.target.value })} placeholder="e.g. from-indigo-500 via-purple-500 to-pink-500" className="h-7 text-xs" />
+                                </div>
+                            )}
+                        </div>
+                        {block.bg_type === 'image' && (
+                            <div className="flex flex-col gap-2">
+                                <div className="grid gap-1">
+                                    <Label className="text-[9px] text-neutral-500 font-bold uppercase">Background Image URL</Label>
+                                    <Input value={block.bg_image || ''} onChange={(e) => handleUpdate({ bg_image: e.target.value })} placeholder="https://..." className="h-7 text-xs" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid gap-1">
+                                        <Label className="text-[9px] text-neutral-500 font-bold uppercase">Overlay Color</Label>
+                                        <Input value={block.bg_overlay_color || '#000000'} onChange={(e) => handleUpdate({ bg_overlay_color: e.target.value })} className="h-7 text-xs" />
+                                    </div>
+                                    <div className="grid gap-1">
+                                        <Label className="text-[9px] text-neutral-500 font-bold uppercase">Overlay Opacity</Label>
+                                        <Input type="number" min="0" max="1" step="0.1" value={block.bg_overlay_opacity || '0.4'} onChange={(e) => handleUpdate({ bg_overlay_opacity: e.target.value })} className="h-7 text-xs" />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Layout Settings */}
+                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                        <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">2. Layout Controls</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Max Width</Label>
+                                <select value={block.section_width || 'max-w-4xl'} onChange={(e) => handleUpdate({ section_width: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="max-w-md">Small (Mobile)</option>
+                                    <option value="max-w-xl">Medium</option>
+                                    <option value="max-w-4xl">Large (Default)</option>
+                                    <option value="max-w-7xl">X-Large</option>
+                                    <option value="max-w-full">Full Width</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Section Height</Label>
+                                <select value={block.section_height || 'auto'} onChange={(e) => handleUpdate({ section_height: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="auto">Auto</option>
+                                    <option value="h-64">256px</option>
+                                    <option value="h-96">384px</option>
+                                    <option value="h-screen">Full Screen</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Padding Vertical</Label>
+                                <select value={block.padding_top || 'py-12'} onChange={(e) => handleUpdate({ padding_top: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="py-0">None (0)</option>
+                                    <option value="py-4">Small (16px)</option>
+                                    <option value="py-8">Medium (32px)</option>
+                                    <option value="py-12">Large (48px)</option>
+                                    <option value="py-20">X-Large (80px)</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Padding Horizontal</Label>
+                                <select value={block.padding_left || 'px-6'} onChange={(e) => handleUpdate({ padding_left: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="px-0">None (0)</option>
+                                    <option value="px-2">Small (8px)</option>
+                                    <option value="px-6">Medium (24px)</option>
+                                    <option value="px-12">Large (48px)</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Margin Vertical</Label>
+                                <select value={block.margin_top || 'my-4'} onChange={(e) => handleUpdate({ margin_top: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="my-0">None</option>
+                                    <option value="my-2">my-2 (Small)</option>
+                                    <option value="my-4">my-4 (Medium)</option>
+                                    <option value="my-8">my-8 (Large)</option>
+                                    <option value="my-12">my-12 (X-Large)</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Border Width</Label>
+                                <select value={block.border_width || 'border-0'} onChange={(e) => handleUpdate({ border_width: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="border-0">No Border</option>
+                                    <option value="border">Border Thin</option>
+                                    <option value="border-2">Border 2px</option>
+                                    <option value="border-4">Border 4px</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Border Color</Label>
+                                <Input value={block.border_color || '#e5e7eb'} onChange={(e) => handleUpdate({ border_color: e.target.value })} className="h-7 text-xs" />
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Border Style</Label>
+                                <select value={block.border_style || 'solid'} onChange={(e) => handleUpdate({ border_style: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="solid">Solid</option>
+                                    <option value="dashed">Dashed</option>
+                                    <option value="dotted">Dotted</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Border Radius</Label>
+                                <select value={block.border_radius || 'rounded-2xl'} onChange={(e) => handleUpdate({ border_radius: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="rounded-none">None</option>
+                                    <option value="rounded-md">Medium</option>
+                                    <option value="rounded-lg">Large</option>
+                                    <option value="rounded-2xl">2X-Large</option>
+                                    <option value="rounded-3xl">3X-Large</option>
+                                    <option value="rounded-full">Circle (Full)</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Box Shadow</Label>
+                                <select value={block.box_shadow || 'shadow-md'} onChange={(e) => handleUpdate({ box_shadow: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="shadow-none">None</option>
+                                    <option value="shadow-sm">Small</option>
+                                    <option value="shadow-md">Medium</option>
+                                    <option value="shadow-lg">Large</option>
+                                    <option value="shadow-xl">X-Large</option>
+                                    <option value="shadow-2xl">2X-Large</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Header Settings */}
+                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                        <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">3. Header Settings</h4>
+                        <div className="grid gap-1.5">
+                            <Label className="text-[9px] text-neutral-500 font-bold uppercase">Header Text</Label>
+                            <Input value={block.header_text || ''} onChange={(e) => handleUpdate({ header_text: e.target.value })} className="h-8 text-xs font-semibold" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Heading Tag</Label>
+                                <select value={block.header_tag || 'h2'} onChange={(e) => handleUpdate({ header_tag: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="h1">H1</option>
+                                    <option value="h2">H2</option>
+                                    <option value="h3">H3</option>
+                                    <option value="h4">H4</option>
+                                    <option value="h5">H5</option>
+                                    <option value="h6">H6</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Font Family</Label>
+                                <select value={block.header_font_family || 'Outfit'} onChange={(e) => handleUpdate({ header_font_family: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="Inter">Inter (Sans)</option>
+                                    <option value="Outfit">Outfit (Display)</option>
+                                    <option value="Playfair Display">Playfair (Serif)</option>
+                                    <option value="Dancing Script">Dancing Script</option>
+                                    <option value="Montserrat">Montserrat</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Font Size</Label>
+                                <select value={block.header_font_size || 'text-3xl'} onChange={(e) => handleUpdate({ header_font_size: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="text-sm">Small</option>
+                                    <option value="text-base">Base</option>
+                                    <option value="text-xl">Large</option>
+                                    <option value="text-2xl">X-Large</option>
+                                    <option value="text-3xl">2X-Large</option>
+                                    <option value="text-4xl">3X-Large</option>
+                                    <option value="text-5xl">4X-Large</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Font Weight</Label>
+                                <select value={block.header_font_weight || 'font-bold'} onChange={(e) => handleUpdate({ header_font_weight: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="font-light">Light</option>
+                                    <option value="font-normal">Normal</option>
+                                    <option value="font-semibold">Semibold</option>
+                                    <option value="font-bold">Bold</option>
+                                    <option value="font-extrabold">Extra Bold</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Text Color</Label>
+                                <Input value={block.header_color || '#111827'} onChange={(e) => handleUpdate({ header_color: e.target.value })} className="h-7 text-xs" />
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Alignment</Label>
+                                <select value={block.header_align || 'center'} onChange={(e) => handleUpdate({ header_align: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="left">Left</option>
+                                    <option value="center">Center</option>
+                                    <option value="right">Right</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Description Settings */}
+                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                        <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">4. Description Settings</h4>
+                        <div className="grid gap-1.5">
+                            <Label className="text-[9px] text-neutral-500 font-bold uppercase">Description Text</Label>
+                            <textarea value={block.desc_text || ''} onChange={(e) => handleUpdate({ desc_text: e.target.value })} rows={3} className="flex w-full rounded border border-neutral-200 bg-white px-2 py-1 text-xs" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Font Family</Label>
+                                <select value={block.desc_font_family || 'Inter'} onChange={(e) => handleUpdate({ desc_font_family: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="Inter">Inter</option>
+                                    <option value="Outfit">Outfit</option>
+                                    <option value="Playfair Display">Playfair</option>
+                                    <option value="Montserrat">Montserrat</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Font Size</Label>
+                                <select value={block.desc_font_size || 'text-sm'} onChange={(e) => handleUpdate({ desc_font_size: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="text-xs">Extra Small</option>
+                                    <option value="text-sm">Small</option>
+                                    <option value="text-base">Regular</option>
+                                    <option value="text-lg">Large</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Line Height</Label>
+                                <select value={block.desc_line_height || 'leading-relaxed'} onChange={(e) => handleUpdate({ desc_line_height: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="leading-none">None</option>
+                                    <option value="leading-tight">Tight</option>
+                                    <option value="leading-normal">Normal</option>
+                                    <option value="leading-relaxed">Relaxed</option>
+                                    <option value="leading-loose">Loose</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Text Color</Label>
+                                <Input value={block.desc_color || '#4b5563'} onChange={(e) => handleUpdate({ desc_color: e.target.value })} className="h-7 text-xs" />
+                            </div>
+                            <div className="grid gap-1 col-span-2">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Alignment</Label>
+                                <select value={block.desc_align || 'center'} onChange={(e) => handleUpdate({ desc_align: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="left">Left</option>
+                                    <option value="center">Center</option>
+                                    <option value="right">Right</option>
+                                    <option value="justify">Justify</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Button Settings */}
+                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                        <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">5. CTA Button Controls</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Button Text</Label>
+                                <Input value={block.btn_text || ''} onChange={(e) => handleUpdate({ btn_text: e.target.value })} className="h-7 text-xs" />
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Link URL</Label>
+                                <Input value={block.btn_url || ''} onChange={(e) => handleUpdate({ btn_url: e.target.value })} className="h-7 text-xs" />
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Button BG</Label>
+                                <Input value={block.btn_bg_color || ''} onChange={(e) => handleUpdate({ btn_bg_color: e.target.value })} placeholder="#2563eb" className="h-7 text-xs" />
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Text Color</Label>
+                                <Input value={block.btn_text_color || ''} onChange={(e) => handleUpdate({ btn_text_color: e.target.value })} placeholder="#ffffff" className="h-7 text-xs" />
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Border Radius</Label>
+                                <select value={block.btn_border_radius || 'rounded-full'} onChange={(e) => handleUpdate({ btn_border_radius: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="rounded-none">Square</option>
+                                    <option value="rounded-md">Medium</option>
+                                    <option value="rounded-lg">Large</option>
+                                    <option value="rounded-full">Pill (Full)</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Hover Effect</Label>
+                                <select value={block.btn_hover_effect || 'scale'} onChange={(e) => handleUpdate({ btn_hover_effect: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="none">None</option>
+                                    <option value="scale">Zoom (Scale)</option>
+                                    <option value="opacity">Opacity Glow</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Icon</Label>
+                                <select value={block.btn_icon || 'none'} onChange={(e) => handleUpdate({ btn_icon: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="none">No Icon</option>
+                                    <option value="arrow-right">Arrow Right</option>
+                                    <option value="download">Download</option>
+                                    <option value="external-link">External Link</option>
+                                    <option value="mail">Mail Envelope</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Padding</Label>
+                                <select value={block.btn_padding_x || 'px-6'} onChange={(e) => handleUpdate({ btn_padding_x: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="px-4">px-4 (Normal)</option>
+                                    <option value="px-6">px-6 (Wide)</option>
+                                    <option value="px-8">px-8 (Extra Wide)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Image Settings */}
+                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                        <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">6. Image Settings</h4>
+                        <div className="grid gap-1">
+                            <Label className="text-[9px] text-neutral-500 font-bold uppercase">Image URL</Label>
+                            <Input value={block.image_url || ''} onChange={(e) => handleUpdate({ image_url: e.target.value })} className="h-7 text-xs" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Alt Text</Label>
+                                <Input value={block.image_alt || ''} onChange={(e) => handleUpdate({ image_alt: e.target.value })} className="h-7 text-xs" />
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Display Size</Label>
+                                <select value={block.image_size || 'medium'} onChange={(e) => handleUpdate({ image_size: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="small">Small</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="large">Large</option>
+                                    <option value="full">Full Width</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1 col-span-2">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Border Radius</Label>
+                                <select value={block.image_radius || 'rounded-xl'} onChange={(e) => handleUpdate({ image_radius: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="rounded-none">Square</option>
+                                    <option value="rounded-md">Medium</option>
+                                    <option value="rounded-xl">Rounded XL</option>
+                                    <option value="rounded-full">Circle</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Structure Alignment & Animations */}
+                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                        <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">7. Alignment & Animation</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Content Align</Label>
+                                <select value={block.content_align || 'flex-col items-center'} onChange={(e) => handleUpdate({ content_align: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="flex-col items-start">Stack Left</option>
+                                    <option value="flex-col items-center">Stack Center</option>
+                                    <option value="flex-col items-end">Stack Right</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Intro Animation</Label>
+                                <select value={block.animation_type || 'slide-up'} onChange={(e) => handleUpdate({ animation_type: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="none">None</option>
+                                    <option value="fade-in">Fade In</option>
+                                    <option value="slide-up">Slide Up</option>
+                                    <option value="zoom-in">Zoom In</option>
+                                    <option value="bounce">Bounce</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Responsive Settings */}
+                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                        <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">8. Responsive Settings</h4>
+                        <div className="grid grid-cols-3 gap-2 py-1">
+                            <label className="flex items-center gap-1.5 text-[9px] font-bold uppercase cursor-pointer">
+                                <input type="checkbox" checked={block.visibility_desktop !== false} onChange={(e) => handleUpdate({ visibility_desktop: e.target.checked })} className="size-3.5 rounded border" />
+                                Desktop
+                            </label>
+                            <label className="flex items-center gap-1.5 text-[9px] font-bold uppercase cursor-pointer">
+                                <input type="checkbox" checked={block.visibility_tablet !== false} onChange={(e) => handleUpdate({ visibility_tablet: e.target.checked })} className="size-3.5 rounded border" />
+                                Tablet
+                            </label>
+                            <label className="flex items-center gap-1.5 text-[9px] font-bold uppercase cursor-pointer">
+                                <input type="checkbox" checked={block.visibility_mobile !== false} onChange={(e) => handleUpdate({ visibility_mobile: e.target.checked })} className="size-3.5 rounded border" />
+                                Mobile
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Advanced Options */}
+                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                        <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">9. Advanced CSS Specs</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">CSS class</Label>
+                                <Input value={block.custom_class || ''} onChange={(e) => handleUpdate({ custom_class: e.target.value })} placeholder="e.g. shadow-indigo-200" className="h-7 text-xs" />
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">CSS ID</Label>
+                                <Input value={block.custom_id || ''} onChange={(e) => handleUpdate({ custom_id: e.target.value })} className="h-7 text-xs" />
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Positioning</Label>
+                                <select value={block.positioning || 'relative'} onChange={(e) => handleUpdate({ positioning: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="static">Static</option>
+                                    <option value="relative">Relative</option>
+                                    <option value="absolute">Absolute</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Z-Index</Label>
+                                <select value={block.z_index || 'z-0'} onChange={(e) => handleUpdate({ z_index: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                    <option value="z-0">z-0</option>
+                                    <option value="z-10">z-10</option>
+                                    <option value="z-20">z-20</option>
+                                    <option value="z-50">z-50</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-1 col-span-2">
+                                <Label className="text-[9px] text-neutral-500 font-bold uppercase">Custom Raw CSS</Label>
+                                <textarea value={block.custom_css || ''} onChange={(e) => handleUpdate({ custom_css: e.target.value })} rows={3} placeholder={`#${block.custom_id || 'sec-id'} { \n  transform: rotate(1deg);\n}`} className="flex w-full rounded border border-neutral-200 bg-white px-2 py-1 text-[10px] font-mono" />
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

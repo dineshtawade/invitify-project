@@ -10,6 +10,7 @@ interface DevicePreviewProps {
     slug?: string;
     pagesNav?: { slug: string; title: string; active: boolean }[];
     isInvitation?: boolean;
+    customBlocks?: any[];
 }
 
 const CountdownTimer = ({ targetDate }: { targetDate?: string }) => {
@@ -57,7 +58,7 @@ const CountdownTimer = ({ targetDate }: { targetDate?: string }) => {
     );
 };
 
-export function DevicePreview({ blocks, activeSectionId, deviceType, title, slug, pagesNav, isInvitation = false }: DevicePreviewProps) {
+export function DevicePreview({ blocks, activeSectionId, deviceType, title, slug, pagesNav, isInvitation = false, customBlocks = [] }: DevicePreviewProps) {
     
     const getBlockStyle = (block: Block) => {
         const style: React.CSSProperties = {};
@@ -104,8 +105,164 @@ export function DevicePreview({ blocks, activeSectionId, deviceType, title, slug
         const spacingClass = getSpacingClass(block);
         const textStyleClass = getTextStyleClass(block);
 
+        const customBlock = customBlocks.find(cb => cb.type === block.type);
+        if (customBlock) {
+            let html = customBlock.template_html;
+            if (customBlock.fields && Array.isArray(customBlock.fields)) {
+                customBlock.fields.forEach((field: any) => {
+                    const value = block[field.name] !== undefined ? block[field.name] : field.default;
+                    html = html.replaceAll(`{{${field.name}}}`, value);
+                });
+            }
+            return (
+                <div 
+                    style={blockStyle} 
+                    className={`${spacingClass} ${textStyleClass}`}
+                    dangerouslySetInnerHTML={{ __html: html }}
+                />
+            );
+        }
+
         return (
             <div style={blockStyle} className={`${spacingClass} ${textStyleClass}`}>
+                {block.type === 'advanced_section' && (() => {
+                    const bgGradientClass = block.bg_type === 'gradient' ? block.bg_gradient : '';
+                    const responsiveClass = [
+                        block.visibility_desktop !== false ? '' : 'lg:hidden',
+                        block.visibility_tablet !== false ? '' : 'md:hidden sm:max-md:hidden',
+                        block.visibility_mobile !== false ? '' : 'max-sm:hidden',
+                    ].filter(Boolean).join(' ');
+
+                    const containerClasses = [
+                        block.padding_top || 'py-12',
+                        block.padding_bottom || '',
+                        block.padding_left || 'px-6',
+                        block.padding_right || '',
+                        block.margin_top || 'my-4',
+                        block.margin_bottom || '',
+                        block.border_width || 'border-0',
+                        block.border_style || 'solid',
+                        block.border_radius || 'rounded-2xl',
+                        block.box_shadow || 'shadow-md',
+                        block.positioning || 'relative',
+                        block.z_index || 'z-0',
+                        block.custom_class || '',
+                        responsiveClass
+                    ].filter(Boolean).join(' ');
+
+                    const getBgStyle = () => {
+                        const style: React.CSSProperties = {};
+                        if (block.bg_type === 'color' && block.bg_color) {
+                            style.backgroundColor = block.bg_color;
+                        } else if (block.bg_type === 'image' && block.bg_image) {
+                            style.backgroundImage = `url(${block.bg_image})`;
+                            style.backgroundSize = 'cover';
+                            style.backgroundPosition = 'center';
+                        }
+                        if (block.border_color) style.borderColor = block.border_color;
+                        return style;
+                    };
+
+                    return (
+                        <div 
+                            id={block.custom_id}
+                            style={getBgStyle()}
+                            className={`w-full relative overflow-hidden transition-all ${containerClasses} ${bgGradientClass} ${block.animation_type && block.animation_type !== 'none' ? `animate-${block.animation_type}` : ''}`}
+                        >
+                            {/* Background Overlay */}
+                            {block.bg_type === 'image' && block.bg_overlay_color && (
+                                <div 
+                                    className="absolute inset-0 z-0 pointer-events-none" 
+                                    style={{ 
+                                        backgroundColor: block.bg_overlay_color, 
+                                        opacity: parseFloat(block.bg_overlay_opacity || '0.4') 
+                                    }} 
+                                />
+                            )}
+
+                            {/* Scoped Custom CSS */}
+                            {block.custom_css && (
+                                <style dangerouslySetInnerHTML={{ __html: block.custom_css }} />
+                            )}
+
+                            {/* Content Container */}
+                            <div className={`relative z-10 mx-auto w-full ${block.section_width || 'max-w-4xl'} flex ${block.content_align || 'flex-col items-center'} gap-6`}>
+                                
+                                {/* Header */}
+                                {block.header_text && (() => {
+                                    const Tag = block.header_tag || 'h2';
+                                    const headerStyle: React.CSSProperties = {};
+                                    if (block.header_color) headerStyle.color = block.header_color;
+                                    if (block.header_font_family) headerStyle.fontFamily = block.header_font_family;
+                                    const className = `${block.header_font_size || 'text-3xl'} ${block.header_font_weight || 'font-bold'} text-${block.header_align || 'center'} w-full tracking-tight`;
+                                    
+                                    if (Tag === 'h1') return <h1 style={headerStyle} className={className}>{block.header_text}</h1>;
+                                    if (Tag === 'h2') return <h2 style={headerStyle} className={className}>{block.header_text}</h2>;
+                                    if (Tag === 'h3') return <h3 style={headerStyle} className={className}>{block.header_text}</h3>;
+                                    if (Tag === 'h4') return <h4 style={headerStyle} className={className}>{block.header_text}</h4>;
+                                    if (Tag === 'h5') return <h5 style={headerStyle} className={className}>{block.header_text}</h5>;
+                                    if (Tag === 'h6') return <h6 style={headerStyle} className={className}>{block.header_text}</h6>;
+                                    return <h2 style={headerStyle} className={className}>{block.header_text}</h2>;
+                                })()}
+
+                                {/* Image */}
+                                {block.image_url && (
+                                    <div className="flex justify-center w-full">
+                                        <img 
+                                            src={block.image_url} 
+                                            alt={block.image_alt || 'illustration'} 
+                                            className={`object-cover ${
+                                                block.image_size === 'small' ? 'max-w-[150px]' : 
+                                                block.image_size === 'large' ? 'max-w-[500px]' : 
+                                                block.image_size === 'full' ? 'w-full' : 'max-w-[320px]'
+                                            } ${block.image_radius || 'rounded-xl'} shadow-xs`}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Description */}
+                                {block.desc_text && (
+                                    <p 
+                                        style={{ 
+                                            color: block.desc_color || '#4b5563', 
+                                            fontFamily: block.desc_font_family || 'Inter' 
+                                        }} 
+                                        className={`${block.desc_font_size || 'text-sm'} ${block.desc_font_weight || 'font-normal'} ${block.desc_line_height || 'leading-relaxed'} text-${block.desc_align || 'center'} w-full whitespace-pre-wrap`}
+                                    >
+                                        {block.desc_text}
+                                    </p>
+                                )}
+
+                                {/* CTA Button */}
+                                {block.btn_text && (
+                                    <div className="flex justify-center w-full mt-2">
+                                        <a 
+                                            href={block.btn_url || '#'} 
+                                            style={{ 
+                                                backgroundColor: block.btn_bg_color || '#2563eb', 
+                                                color: block.btn_text_color || '#ffffff' 
+                                            }} 
+                                            className={`inline-flex items-center justify-center gap-2 ${block.btn_padding_x || 'px-6'} ${block.btn_padding_y || 'py-2.5'} ${block.btn_font_size || 'text-xs'} font-bold ${block.btn_border_radius || 'rounded-full'} transition-all duration-300 ${
+                                                block.btn_hover_effect === 'scale' ? 'hover:scale-105 active:scale-95' : 
+                                                block.btn_hover_effect === 'opacity' ? 'hover:opacity-90 active:opacity-100' : ''
+                                            } shadow-md`}
+                                        >
+                                            <span>{block.btn_text}</span>
+                                            {block.btn_icon && block.btn_icon !== 'none' && (() => {
+                                                if (block.btn_icon === 'arrow-right') return <span>→</span>;
+                                                if (block.btn_icon === 'download') return <span>↓</span>;
+                                                if (block.btn_icon === 'external-link') return <span>↗</span>;
+                                                if (block.btn_icon === 'mail') return <span>✉</span>;
+                                                return null;
+                                            })()}
+                                        </a>
+                                    </div>
+                                )}
+
+                            </div>
+                        </div>
+                    );
+                })()}
                 {block.type === 'hero' && (
                     <div className={`p-8 text-center bg-gradient-to-tr ${getBgClass(block, 'from-indigo-650 to-purple-600')} flex flex-col gap-3.5 items-center justify-center min-h-[200px]`}>
                         <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight leading-snug drop-shadow-xs">{block.title || 'Welcome'}</h2>

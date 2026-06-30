@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Users, Layers, Mail, Globe, CreditCard, Receipt, Briefcase, Share2, Wallet, ShoppingBag, History } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, Users, Layers, Mail, Globe, CreditCard, Receipt, Briefcase, Share2, Wallet, ShoppingBag, History, Settings } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -86,6 +86,11 @@ export function AppSidebar() {
                 title: 'Manage Resellers',
                 href: '/super-admin/resellers',
                 icon: Users,
+            },
+            {
+                title: 'Settings',
+                href: '/super-admin/settings',
+                icon: Settings,
             }
         );
     } else if (userRole === 'reseller') {

@@ -10,6 +10,7 @@ Route::get('/', function () {
         'canRegister' => Features::enabled(Features::registration()),
         'templates' => \App\Models\Template::all(),
         'miniWebsiteTemplates' => \App\Models\MiniWebsiteTemplate::all(),
+        'categories' => \App\Models\Category::orderBy('name')->get(),
     ]);
 })->name('home');
 
@@ -92,6 +93,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             Route::resource('mini-website-templates', \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::class);
             Route::resource('business-website-templates', \App\Http\Controllers\SuperAdmin\BusinessWebsiteTemplateController::class);
             Route::resource('transactions', \App\Http\Controllers\SuperAdmin\TransactionController::class);
+            Route::resource('categories', \App\Http\Controllers\SuperAdmin\CategoryController::class);
+            Route::resource('custom-blocks', \App\Http\Controllers\SuperAdmin\CustomBlockController::class);
         });
 
         Route::post('super-admin/users/{user}/approve', [\App\Http\Controllers\SuperAdmin\UserController::class, 'approve'])
