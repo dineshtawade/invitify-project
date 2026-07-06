@@ -52,7 +52,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
     const [selectedInvitation, setSelectedInvitation] = useState<UserTemplate | null>(null);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [copied, setCopied] = useState(false);
-    
+
     const [selectedDownloadInvitation, setSelectedDownloadInvitation] = useState<UserTemplate | null>(null);
     const [isDownloadOpen, setIsDownloadOpen] = useState(false);
     const [isDownloadingIndex, setIsDownloadingIndex] = useState<number | null>(null);
@@ -64,7 +64,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
 
     const handleDownloadPage = async (pageIdx: number) => {
         if (!selectedDownloadInvitation) return;
-        
+
         const element = document.getElementById(`download-card-page-${pageIdx}`);
         if (!element) {
             alert('Error generating preview. Please try again.');
@@ -73,7 +73,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
 
         try {
             setIsDownloadingIndex(pageIdx);
-            
+
             // Wait slightly for DOM to render
             await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -196,7 +196,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                     <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
                         My Invitations <Sparkles className="size-6 text-amber-500" />
                     </h1>
-                    <p className="text-neutral-500 dark:text-neutral-400">
+                    <p className="">
                         Manage your purchased templates, share links, or print them.
                     </p>
                 </div>
@@ -343,9 +343,9 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                                     {cfg.pages.map((page, idx) => (
                                         <div key={page.id} className="flex flex-col items-center gap-3 w-full">
                                             <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Page {idx + 1}</span>
-                                            
+
                                             {/* Rendered Invitation Card for html2image capture */}
-                                            <div 
+                                            <div
                                                 id={`download-card-page-${idx}`}
                                                 className={`w-full aspect-[3/4.2] rounded-2xl shadow-md bg-gradient-to-tr ${page.bg_gradient} relative overflow-hidden border border-neutral-200 dark:border-neutral-800`}
                                             >
@@ -392,7 +392,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                                                             )}
 
                                                             {elem.type === 'link' && (
-                                                                <span 
+                                                                <span
                                                                     className="px-2 py-0.5 bg-neutral-900/5 border rounded-full text-[8px] font-bold flex items-center gap-0.5"
                                                                     style={{ borderColor: elem.textColor || '#1f2937', color: elem.textColor || '#1f2937' }}
                                                                 >

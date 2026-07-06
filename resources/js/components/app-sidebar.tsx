@@ -58,13 +58,18 @@ export function AppSidebar() {
                 icon: Globe,
             },
             {
+                title: 'Subscription Plans',
+                href: '/super-admin/business-card-plans',
+                icon: Layers,
+            },
+            {
                 title: 'Business Templates',
                 href: '/super-admin/business-website-templates',
                 icon: Briefcase,
             },
             {
                 title: 'Payment Settings',
-                href: '/super-admin/settings',
+                href: '/super-admin/payment-settings',
                 icon: CreditCard,
             },
             {

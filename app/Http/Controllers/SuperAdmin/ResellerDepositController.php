@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ManualDeposit;
+use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
@@ -33,7 +34,19 @@ class ResellerDepositController extends Controller
         return Inertia::render('super-admin/resellers/index', [
             'deposits' => $deposits,
             'resellers' => $resellers,
+            'defaultOnlineBonus' => floatval(SystemSetting::get('reseller_default_bonus_percentage', '0')),
         ]);
+    }
+
+    public function updateOnlineBonus(Request $request)
+    {
+        $validated = $request->validate([
+            'bonus_percentage' => 'required|numeric|min:0|max:100',
+        ]);
+
+        SystemSetting::set('reseller_default_bonus_percentage', (string) $validated['bonus_percentage']);
+
+        return redirect()->back()->with('status', 'Online payment bonus updated to ' . $validated['bonus_percentage'] . '%. All future Razorpay recharges will include this bonus automatically.');
     }
 
     public function approve(Request $request, ManualDeposit $deposit)

@@ -234,8 +234,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
     return (
         <>
-            <Head>
-                <title>{website.title}</title>
+            <Head title={website.title}>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 {/* 10 Google fonts dynamic link integration */}

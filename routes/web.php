@@ -51,6 +51,11 @@ Route::post('mini-website/{slug}/contact', [\App\Http\Controllers\PublicSiteCont
 Route::get('business/{slug}/{page?}', [\App\Http\Controllers\PublicBusinessSiteController::class, 'show'])->name('public.business.show');
 Route::post('business/{slug}/contact', [\App\Http\Controllers\PublicBusinessSiteController::class, 'contact'])->name('public.business.contact');
 
+// Public Digital Business Cards Routing
+Route::get('card/{slug}', [\App\Http\Controllers\PublicCardController::class, 'show'])->name('public.card.show');
+Route::post('card/{slug}/feedback', [\App\Http\Controllers\PublicCardController::class, 'submitFeedback'])->name('public.card.feedback');
+Route::get('card/{slug}/vcard', [\App\Http\Controllers\PublicCardController::class, 'downloadVcard'])->name('public.card.vcard');
+
 Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::class])->group(function () {
     // Media Upload
     Route::post('/media/upload', [\App\Http\Controllers\MediaUploadController::class, 'upload'])->name('media.upload');
@@ -110,6 +115,12 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
         Route::delete('super-admin/templates/{template}', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'destroy'])
             ->name('super-admin.templates.destroy');
 
+        // Payment Settings
+        Route::get('super-admin/payment-settings', [\App\Http\Controllers\SuperAdmin\PaymentSettingsController::class, 'index'])
+            ->name('super-admin.payment-settings.index');
+        Route::post('super-admin/payment-settings', [\App\Http\Controllers\SuperAdmin\PaymentSettingsController::class, 'update'])
+            ->name('super-admin.payment-settings.update');
+
         // System Settings
         Route::get('super-admin/settings', [\App\Http\Controllers\SuperAdmin\SettingsController::class, 'index'])
             ->name('super-admin.settings');
@@ -117,6 +128,16 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('super-admin.settings.update');
         Route::delete('super-admin/settings/{key}', [\App\Http\Controllers\SuperAdmin\SettingsController::class, 'destroy'])
             ->name('super-admin.settings.destroy');
+
+        // Business Card Plan Management
+        Route::get('super-admin/business-card-plans', [\App\Http\Controllers\SuperAdmin\BusinessCardPlanController::class, 'index'])
+            ->name('super-admin.business-card-plans.index');
+        Route::post('super-admin/business-card-plans', [\App\Http\Controllers\SuperAdmin\BusinessCardPlanController::class, 'store'])
+            ->name('super-admin.business-card-plans.store');
+        Route::put('super-admin/business-card-plans/{businessCardPlan}', [\App\Http\Controllers\SuperAdmin\BusinessCardPlanController::class, 'update'])
+            ->name('super-admin.business-card-plans.update');
+        Route::delete('super-admin/business-card-plans/{businessCardPlan}', [\App\Http\Controllers\SuperAdmin\BusinessCardPlanController::class, 'destroy'])
+            ->name('super-admin.business-card-plans.destroy');
 
         // Manage Transactions
         Route::get('super-admin/transactions', [\App\Http\Controllers\SuperAdmin\TransactionController::class, 'index'])
@@ -136,6 +157,18 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
         Route::delete('super-admin/referrals/codes/{referralCode}', [\App\Http\Controllers\SuperAdmin\ReferralController::class, 'destroyCode'])
             ->name('super-admin.referrals.destroy-code');
 
+        // Business Card Subscription Plans Management
+        Route::get('super-admin/business-card-plans/api', [\App\Http\Controllers\SuperAdmin\BusinessCardPlanController::class, 'apiIndex'])
+            ->name('super-admin.business-card-plans.api');
+        Route::get('super-admin/business-card-plans', [\App\Http\Controllers\SuperAdmin\BusinessCardPlanController::class, 'index'])
+            ->name('super-admin.business-card-plans.index');
+        Route::post('super-admin/business-card-plans', [\App\Http\Controllers\SuperAdmin\BusinessCardPlanController::class, 'store'])
+            ->name('super-admin.business-card-plans.store');
+        Route::put('super-admin/business-card-plans/{businessCardPlan}', [\App\Http\Controllers\SuperAdmin\BusinessCardPlanController::class, 'update'])
+            ->name('super-admin.business-card-plans.update');
+        Route::delete('super-admin/business-card-plans/{businessCardPlan}', [\App\Http\Controllers\SuperAdmin\BusinessCardPlanController::class, 'destroy'])
+            ->name('super-admin.business-card-plans.destroy');
+
         // Wallet & Redemption Management
         Route::get('super-admin/wallets', [\App\Http\Controllers\SuperAdmin\WalletController::class, 'index'])
             ->name('super-admin.wallets');
@@ -153,6 +186,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('super-admin.resellers.deposits.reject');
         Route::post('super-admin/resellers/adjust-balance', [\App\Http\Controllers\SuperAdmin\ResellerDepositController::class, 'adjustBalance'])
             ->name('super-admin.resellers.adjust-balance');
+        Route::post('super-admin/resellers/update-online-bonus', [\App\Http\Controllers\SuperAdmin\ResellerDepositController::class, 'updateOnlineBonus'])
+            ->name('super-admin.resellers.update-online-bonus');
 
     });
 
@@ -271,6 +306,43 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
         Route::resource('customer/business-websites', \App\Http\Controllers\Customer\BusinessWebsiteController::class, [
             'names' => 'customer.business-websites'
         ]);
+
+        // Customer Digital Business Cards
+        Route::resource('customer/business-cards', \App\Http\Controllers\Customer\BusinessCardController::class, [
+            'names' => 'customer.business-cards'
+        ]);
+
+        // Business Card Purchase Flow
+        Route::get('customer/business-card-plans', [\App\Http\Controllers\Customer\BusinessCardController::class, 'getPlans'])
+            ->name('customer.business-card-plans');
+        Route::post('customer/business-cards/draft-create', [\App\Http\Controllers\Customer\BusinessCardController::class, 'draftCreate'])
+            ->name('customer.business-cards.draft-create');
+        Route::post('customer/business-cards/{business_card}/create-order', [\App\Http\Controllers\Customer\BusinessCardController::class, 'payOrder'])
+            ->name('customer.business-cards.create-order');
+        Route::post('customer/business-cards/{business_card}/verify-payment', [\App\Http\Controllers\Customer\BusinessCardController::class, 'verifyCardPayment'])
+            ->name('customer.business-cards.verify-payment');
+
+        Route::get('customer/static-templates', function () {
+            $templates = [];
+            for ($i = 1; $i <= 100; $i++) {
+                $thumbnail = "/images/business-cards/template{$i}.png";
+                if ($i >= 37 && $i <= 100) {
+                    $thumbnail = "/images/business-cards/pre{$i}.webp";
+                }
+                $templates[] = [
+                    'id' => $i,
+                    'name' => "Template {$i}",
+                    'css_file' => "card_css{$i}.css",
+                    'thumbnail' => $thumbnail
+                ];
+            }
+            $plans = \App\Models\BusinessCardPlan::active()->orderBy('price')->get(['id', 'name', 'duration_months', 'price', 'description']);
+            return Inertia::render('customer/static-templates/index', [
+                'templates'     => $templates,
+                'plans'         => $plans,
+                'razorpayKeyId' => \App\Models\SystemSetting::get('razorpay_key_id', ''),
+            ]);
+        })->name('customer.static-templates.index');
 
         Route::get('customer/mini-websites/{mini_website}/submissions', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'submissions'])
             ->name('customer.mini-websites.submissions');
