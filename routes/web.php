@@ -218,6 +218,18 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
         Route::post('reseller/business-websites/{business_website}/purchase-template', [\App\Http\Controllers\Reseller\PurchaseController::class, 'payBusinessWebsiteTemplate'])
             ->name('reseller.business-websites.purchase-template');
 
+        // Reseller Template Customization Flow
+        Route::get('reseller/templates/{template}/customize', [\App\Http\Controllers\Reseller\TemplateController::class, 'edit'])
+            ->name('reseller.templates.customize');
+        Route::put('reseller/user-templates/{userTemplate}/save-draft', [\App\Http\Controllers\Reseller\TemplateController::class, 'saveDraft'])
+            ->name('reseller.user-templates.save-draft');
+        Route::post('reseller/user-templates/{userTemplate}/purchase', [\App\Http\Controllers\Reseller\TemplateController::class, 'purchase'])
+            ->name('reseller.user-templates.purchase');
+        Route::post('reseller/user-templates/{userTemplate}/upload-video', [\App\Http\Controllers\Reseller\TemplateController::class, 'uploadVideo'])
+            ->name('reseller.user-templates.upload-video');
+        Route::get('reseller/my-invitations', [\App\Http\Controllers\Reseller\TemplateController::class, 'purchased'])
+            ->name('reseller.my-invitations');
+
         // Reseller Website Management & Hosting
         Route::get('reseller/websites', [\App\Http\Controllers\Reseller\HostingController::class, 'index'])
             ->name('reseller.websites.index');

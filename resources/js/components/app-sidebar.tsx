@@ -111,6 +111,11 @@ export function AppSidebar() {
                 icon: ShoppingBag,
             },
             {
+                title: 'My Invitations',
+                href: '/reseller/my-invitations',
+                icon: Mail,
+            },
+            {
                 title: 'My Hosted Websites',
                 href: '/reseller/websites',
                 icon: Globe,
