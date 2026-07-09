@@ -167,11 +167,16 @@ export default function RefundPolicy() {
 
     return (
         <>
-            <Head title="Refund Policy - Invitify">
+            <Head>
+                <title>Refund & Cancellation Policy | Invitify</title>
+                <meta name="description" content="Understand the Refund and Cancellation Policy of Invitify. Read our terms regarding payments for premium invitation templates, business cards, and subscriptions." />
+                <meta property="og:title" content="Refund & Cancellation Policy | Invitify" />
+                <meta property="og:description" content="Read our terms regarding payments, cancellations, and refunds for premium digital products at Invitify." />
+            </Head>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
-            </Head>
+
 
             <div className="min-h-screen bg-neutral-50 text-neutral-900 font-sans dark:bg-neutral-950 dark:text-neutral-50 transition-colors">
                 

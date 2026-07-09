@@ -17,9 +17,10 @@ import {
     Cake, Baby, Award, Move, Type, Image as ImageIcon,
     Smile, Link, MapPin, Compass, Gift, Calendar, Clock,
     Music, Wine, Star, Bell, ZoomIn, ZoomOut, Check, ArrowRight,
-    Laptop, Tablet, Smartphone, Settings
+    Laptop, Tablet, Smartphone, Settings, PlayCircle, Play
 } from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
+import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -36,13 +37,21 @@ interface Template {
     id: number;
     name: string;
     category: string;
+    type: 'image' | 'video';
     price: string | number;
     bg_gradient: string;
     default_config: any;
 }
 
+interface Category {
+    id: number;
+    name: string;
+    slug: string;
+}
+
 interface PageProps {
     templates: Template[];
+    categories: Category[];
 }
 
 const fontStyles: Record<string, string> = {
@@ -79,8 +88,9 @@ const gradientPresets = [
     { name: 'Classic Gold', value: 'from-amber-100 via-yellow-50 to-amber-200 text-neutral-800' },
 ];
 
-export default function TemplatesIndex({ templates }: PageProps) {
+export default function TemplatesIndex({ templates, categories = [] }: PageProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [templateMode, setTemplateMode] = useState<'select' | 'editor'>('select');
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
     const [activeTab, setActiveTab] = useState<'pages' | 'text' | 'image' | 'icon' | 'link'>('pages');
 
@@ -102,7 +112,8 @@ export default function TemplatesIndex({ templates }: PageProps) {
 
     const { data, setData, post, put, reset, processing, errors } = useForm({
         name: '',
-        category: 'wedding',
+        type: 'image' as 'image' | 'video',
+        category: categories[0]?.slug || 'wedding',
         price: '9.99',
         bg_gradient: 'from-stone-100 to-rose-50 text-neutral-800',
         default_config: normalizeConfig(null),
@@ -176,7 +187,8 @@ export default function TemplatesIndex({ templates }: PageProps) {
         reset();
         setData({
             name: '',
-            category: 'wedding',
+            type: 'image',
+            category: categories[0]?.slug || 'wedding',
             price: '9.99',
             bg_gradient: 'from-stone-100 to-rose-50 text-neutral-800',
             default_config: normalizeConfig(null),
@@ -188,14 +200,18 @@ export default function TemplatesIndex({ templates }: PageProps) {
         setZoom(1);
         setPreviewViewport('mobile');
         setActiveMobileView('editor');
+        setTemplateMode('select');
         setIsOpen(true);
     };
 
     const handleOpenEdit = (template: Template) => {
         setEditingTemplate(template);
-        const normConfig = normalizeConfig(template.default_config, template.bg_gradient);
+        const normConfig = template.type === 'video' 
+            ? (template.default_config || { video_url: null, elements: [] }) 
+            : normalizeConfig(template.default_config, template.bg_gradient);
         setData({
             name: template.name,
+            type: template.type || 'image',
             category: template.category,
             price: String(template.price),
             bg_gradient: template.bg_gradient,
@@ -221,6 +237,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
         setZoom(1);
         setPreviewViewport('mobile');
         setActiveMobileView('editor');
+        setTemplateMode('editor');
         setIsOpen(true);
     };
 
@@ -484,8 +501,7 @@ export default function TemplatesIndex({ templates }: PageProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head>
-                <title>Manage Templates</title>
+            <Head title="Manage Templates">
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&family=Dancing+Script:wght@400..700&family=Alex+Brush&family=Outfit:wght@100..900&family=Parisienne&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Pinyon+Script&display=swap" rel="stylesheet" />
@@ -533,7 +549,14 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                                     ₹{parseFloat(String(t.price)).toFixed(2)}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {isCustomBg ? (
+                                                    {t.type === 'video' ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-16 h-8 bg-neutral-900 rounded border border-neutral-700 flex items-center justify-center">
+                                                                <Play className="size-3 text-indigo-400" />
+                                                            </div>
+                                                            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Video</span>
+                                                        </div>
+                                                    ) : isCustomBg ? (
                                                         <span
                                                             className="inline-block w-24 h-6 rounded border border-neutral-300 dark:border-neutral-700"
                                                             style={{ background: t.bg_gradient }}
@@ -575,17 +598,61 @@ export default function TemplatesIndex({ templates }: PageProps) {
             {/* Template editor builder inside full screen dialog overlay */}
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogContent className="h-screen w-screen max-w-none m-0 rounded-none bg-white dark:bg-neutral-900 border-none flex flex-col p-0 max-h-none overflow-hidden select-none">
-                    <DialogHeader className="px-6 pt-5 pb-3 shrink-0 border-b flex flex-row items-center justify-between">
-                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                            <Sparkles className="size-5.5 text-indigo-600 animate-pulse" />
-                            {editingTemplate ? `Edit Template: ${data.name}` : 'Invitify Template Creator & Layout Builder'}
-                        </DialogTitle>
-                    </DialogHeader>
+                    
+                    {templateMode === 'select' ? (
+                        <div className="flex-1 flex flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-950 p-6 relative">
+                            <Button 
+                                onClick={() => setIsOpen(false)} 
+                                variant="ghost" 
+                                className="absolute top-6 right-6 text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+                            >
+                                Cancel
+                            </Button>
+                            
+                            <h2 className="text-3xl font-bold mb-3 text-neutral-900 dark:text-neutral-100">Create New Template</h2>
+                            <p className="text-neutral-500 mb-12 text-center max-w-lg">Choose the format of your invitation template. This will determine the editor tools available to you.</p>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
+                                <button 
+                                    onClick={() => { setData('type', 'image'); setTemplateMode('editor'); }}
+                                    className="group flex flex-col items-center p-10 bg-white dark:bg-neutral-900 border-2 border-neutral-200 dark:border-neutral-800 rounded-[2rem] hover:border-indigo-500 hover:shadow-xl transition-all duration-300"
+                                >
+                                    <div className="size-24 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                                        <ImageIcon className="size-12" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-4 text-neutral-900 dark:text-neutral-100">Image Template</h3>
+                                    <p className="text-neutral-500 text-center text-sm leading-relaxed">
+                                        Create a static digital invitation with drag-and-drop text fields, custom fonts, and static background images.
+                                    </p>
+                                </button>
+                                
+                                <button 
+                                    onClick={() => { setData('type', 'video'); setTemplateMode('editor'); }}
+                                    className="group flex flex-col items-center p-10 bg-white dark:bg-neutral-900 border-2 border-neutral-200 dark:border-neutral-800 rounded-[2rem] hover:border-rose-500 hover:shadow-xl transition-all duration-300"
+                                >
+                                    <div className="size-24 bg-rose-50 dark:bg-rose-900/20 text-rose-600 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                                        <PlayCircle className="size-12" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-4 text-neutral-900 dark:text-neutral-100">Video Template</h3>
+                                    <p className="text-neutral-500 text-center text-sm leading-relaxed">
+                                        Create an animated video invitation with a timeline, text animations, and background video sequences.
+                                    </p>
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <DialogHeader className="px-6 pt-5 pb-3 shrink-0 border-b flex flex-row items-center justify-between bg-white dark:bg-neutral-900">
+                                <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                                    <Sparkles className="size-5.5 text-indigo-600 animate-pulse" />
+                                    {editingTemplate ? `Edit Template: ${data.name}` : `Invitify ${data.type === 'video' ? 'Video' : 'Image'} Template Creator`}
+                                </DialogTitle>
+                            </DialogHeader>
 
-                    <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                            <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
 
                         {/* Meta controls panel row */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 pb-3 border-b bg-neutral-50 dark:bg-neutral-950/20 shrink-0">
+                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-5 pb-3 border-b bg-neutral-50 dark:bg-neutral-950/20 shrink-0">
                             <div className="grid gap-1">
                                 <Label htmlFor="name" className="text-xs font-semibold">Template Name</Label>
                                 <Input
@@ -600,6 +667,19 @@ export default function TemplatesIndex({ templates }: PageProps) {
                             </div>
 
                             <div className="grid gap-1">
+                                <Label htmlFor="type" className="text-xs font-semibold flex items-center gap-1 text-indigo-600">Template Type <Sparkles className="size-3" /></Label>
+                                <select
+                                    id="type"
+                                    value={data.type}
+                                    onChange={(e) => setData('type', e.target.value as 'image' | 'video')}
+                                    className="flex h-8.5 w-full rounded-lg border border-indigo-200 bg-indigo-50/50 px-3 py-1 text-xs font-semibold shadow-2xs transition-colors dark:border-indigo-900/50 dark:bg-indigo-950/20 dark:text-indigo-300 focus:ring-1 focus:ring-indigo-500"
+                                >
+                                    <option value="image">Image Template (Static)</option>
+                                    <option value="video">Video Template (Animated)</option>
+                                </select>
+                            </div>
+
+                            <div className="grid gap-1">
                                 <Label htmlFor="category" className="text-xs font-semibold">Category</Label>
                                 <select
                                     id="category"
@@ -607,11 +687,9 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                     onChange={(e) => setData('category', e.target.value)}
                                     className="flex h-8.5 w-full rounded-lg border border-neutral-200 bg-white px-3 py-1 text-xs shadow-2xs transition-colors dark:border-neutral-800 dark:bg-neutral-950 focus:ring-1 focus:ring-indigo-500"
                                 >
-                                    <option value="wedding">Wedding</option>
-                                    <option value="birthday">Birthday</option>
-                                    <option value="party">Party</option>
-                                    <option value="anniversary">Anniversary</option>
-                                    <option value="baby_shower">Baby Shower</option>
+                                    {categories.map((cat) => (
+                                        <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                                    ))}
                                 </select>
                             </div>
 
@@ -654,8 +732,12 @@ export default function TemplatesIndex({ templates }: PageProps) {
                             </div>
                         </div>
 
-                        {/* Split panel workspace */}
-                        <div className="flex-1 grid lg:grid-cols-[1fr_1.1fr] overflow-hidden min-h-0">
+                        {/* Workspace logic based on type */}
+                        {data.type === 'video' ? (
+                            <VideoTemplateBuilder data={data} setData={setData} />
+                        ) : (
+                            /* Split panel workspace for Image Templates */
+                            <div className="flex-1 grid lg:grid-cols-[1fr_1.1fr] overflow-hidden min-h-0">
 
                             {/* Left Panel: Controls Form */}
                             <div className="flex flex-col border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden h-full">
@@ -1639,7 +1721,8 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                     </span>
                                 </div>
                             </div>
-                        </div>
+                            </div>
+                        )}
 
                         {/* Save Actions Footer */}
                         <DialogFooter className="px-6 py-4 border-t gap-2 bg-neutral-50 dark:bg-neutral-950/20 shrink-0">
@@ -1650,7 +1733,9 @@ export default function TemplatesIndex({ templates }: PageProps) {
                                 {editingTemplate ? 'Save Layout Modifications' : 'Publish Design Template'}
                             </Button>
                         </DialogFooter>
-                    </form>
+                            </form>
+                        </>
+                    )}
                 </DialogContent>
             </Dialog>
         </AppLayout>

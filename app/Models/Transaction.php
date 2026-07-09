@@ -14,6 +14,7 @@ class Transaction extends Model
         'mini_website_id',
         'business_website_template_id',
         'business_website_id',
+        'business_card_id',
         'amount',
         'payment_id',
         'order_id',
@@ -24,25 +25,16 @@ class Transaction extends Model
         'commission_amount',
     ];
 
-    /**
-     * Get the user that made the transaction.
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the purchased template design.
-     */
     public function template()
     {
         return $this->belongsTo(Template::class);
     }
 
-    /**
-     * Get the customer user-customized template.
-     */
     public function userTemplate()
     {
         return $this->belongsTo(UserTemplate::class);
@@ -66,6 +58,11 @@ class Transaction extends Model
     public function businessWebsite()
     {
         return $this->belongsTo(BusinessWebsite::class, 'business_website_id');
+    }
+
+    public function businessCard()
+    {
+        return $this->belongsTo(BusinessCard::class, 'business_card_id');
     }
 
     public function referralCode()

@@ -31,7 +31,11 @@ interface Transaction {
     payment_method: string;
     created_at: string;
     user: User;
-    template: Template;
+    template?: Template;
+    businessCard?: any;
+    miniWebsite?: any;
+    businessWebsite?: any;
+    userTemplate?: any;
 }
 
 interface PageProps {
@@ -82,9 +86,7 @@ export default function TransactionsIndex({ transactions = [] }: PageProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head>
-                <title>Transactions History</title>
-            </Head>
+            <Head title="Transactions History" />
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
                 <div className="flex flex-col gap-2">
                     <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
@@ -193,8 +195,42 @@ export default function TransactionsIndex({ transactions = [] }: PageProps) {
                                                         <Layers className="size-4.5" />
                                                     </div>
                                                     <div>
-                                                        <div className="font-semibold text-neutral-900 dark:text-neutral-100">{tx.template?.name || 'Deleted Template'}</div>
-                                                        <div className="text-xs text-neutral-400 capitalize">{tx.template?.category ? tx.template.category.replace('_', ' ') : 'N/A'}</div>
+                                                        <div className="font-semibold text-neutral-900 dark:text-neutral-100">
+                                                            {tx.businessCard?.company_name || 
+                                                             tx.miniWebsite?.title || 
+                                                             tx.businessWebsite?.company_name || 
+                                                             tx.template?.name || 
+                                                             'Deleted Template'}
+                                                        </div>
+                                                        <div className="text-xs text-neutral-400 capitalize">
+                                                            {tx.businessCard ? 'Business Card' : 
+                                                             tx.miniWebsite ? 'Mini Website' : 
+                                                             tx.businessWebsite ? 'Business Website' : 
+                                                             tx.template?.category ? tx.template.category.replace('_', ' ') : 'N/A'}
+                                                        </div>
+                                                        
+                                                        <div className="mt-1 flex flex-col gap-1">
+                                                            {tx.businessCard && (
+                                                                <a href={`/card/${tx.businessCard.slug}`} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline flex items-center gap-1">
+                                                                    View Card ↗
+                                                                </a>
+                                                            )}
+                                                            {tx.miniWebsite && (
+                                                                <a href={`/mini-website/${tx.miniWebsite.slug}`} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline flex items-center gap-1">
+                                                                    View Mini Site ↗
+                                                                </a>
+                                                            )}
+                                                            {tx.businessWebsite && (
+                                                                <a href={`/business/${tx.businessWebsite.slug}`} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline flex items-center gap-1">
+                                                                    View Business Site ↗
+                                                                </a>
+                                                            )}
+                                                            {tx.userTemplate && (
+                                                                <a href={`/invitations/view/${tx.userTemplate.id}`} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline flex items-center gap-1">
+                                                                    View Invitation ↗
+                                                                </a>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>

@@ -18,6 +18,7 @@ class TemplateController extends Controller
 
         return Inertia::render('super-admin/templates/index', [
             'templates' => $templates,
+            'categories' => \App\Models\Category::orderBy('name')->get(),
         ]);
     }
 
@@ -28,7 +29,8 @@ class TemplateController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'category' => 'required|string|in:wedding,birthday,party,anniversary,baby_shower',
+            'type' => 'required|string|in:image,video',
+            'category' => 'required|string|exists:categories,slug',
             'price' => 'required|numeric|min:0',
             'bg_gradient' => 'required|string',
             'default_config' => 'required|array',
@@ -46,7 +48,8 @@ class TemplateController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'category' => 'required|string|in:wedding,birthday,party,anniversary,baby_shower',
+            'type' => 'required|string|in:image,video',
+            'category' => 'required|string|exists:categories,slug',
             'price' => 'required|numeric|min:0',
             'bg_gradient' => 'required|string',
             'default_config' => 'required|array',

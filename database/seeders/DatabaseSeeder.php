@@ -13,11 +13,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Categories
+        \App\Models\Category::create(['name' => 'Wedding', 'slug' => 'wedding']);
+        \App\Models\Category::create(['name' => 'Birthday', 'slug' => 'birthday']);
+        \App\Models\Category::create(['name' => 'Party', 'slug' => 'party']);
+        \App\Models\Category::create(['name' => 'Anniversary', 'slug' => 'anniversary']);
+        \App\Models\Category::create(['name' => 'Baby Shower', 'slug' => 'baby_shower']);
+
+        // Custom Blocks
+        \App\Models\CustomBlock::create([
+            'name' => 'Dynamic Offer Banner',
+            'type' => 'dynamic_offer_banner',
+            'description' => 'Showcases a custom promotional banner.',
+            'fields' => [
+                ['name' => 'title', 'label' => 'Banner Title', 'type' => 'text', 'default' => 'Exclusive Wedding Deals!'],
+                ['name' => 'description', 'label' => 'Subtitle / Description', 'type' => 'textarea', 'default' => 'Get up to 20% off when you RSVP before this weekend.'],
+                ['name' => 'bg_color', 'label' => 'Background Color', 'type' => 'color', 'default' => '#be123c'],
+                ['name' => 'text_color', 'label' => 'Text Color', 'type' => 'color', 'default' => '#ffffff']
+            ],
+            'template_html' => '<div class="p-8 text-center rounded-2xl shadow-sm my-4 transition-all hover:scale-[1.01]" style="background-color: {{bg_color}}; color: {{text_color}}"><h3 class="text-xl font-bold mb-2">{{title}}</h3><p class="text-sm opacity-90 leading-relaxed">{{description}}</p></div>'
+        ]);
         // Super Admin
         User::factory()->create([
             'name' => 'Super Admin',
             'email' => 'admin@example.com',
-            'password' => bcrypt('  '),
+            'password' => bcrypt('password'),
             'role' => 'super_admin',
             'is_approved' => true,
         ]);

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { SharedEditor } from '@/components/design-editor/SharedEditor';
 import type { Block } from '@/components/design-editor/types';
+import { getCsrfHeaders } from '@/lib/utils';
 
 interface PageProps {
     auth: {
@@ -26,9 +27,10 @@ interface PageProps {
         };
     };
     website: any;
+    customBlocks?: any[];
 }
 
-export default function MiniWebsiteEdit({ auth, website }: PageProps) {
+export default function MiniWebsiteEdit({ auth, website, customBlocks = [] }: PageProps) {
     const { data, setData, put, processing } = useForm({
         title: website.title,
         theme: website.theme,
@@ -161,7 +163,7 @@ export default function MiniWebsiteEdit({ auth, website }: PageProps) {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    ...getCsrfHeaders()
                 },
                 body: JSON.stringify({
                     days: days,
@@ -327,6 +329,7 @@ export default function MiniWebsiteEdit({ auth, website }: PageProps) {
                     title={data.title}
                     slug={website.slug}
                     isCustomerMode={true}
+                    customBlocks={customBlocks}
                 />
             </div>
 

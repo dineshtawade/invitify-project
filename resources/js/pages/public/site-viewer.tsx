@@ -20,6 +20,7 @@ interface ViewerMiniWebsite {
 interface PageProps {
     website: ViewerMiniWebsite;
     previewMode?: 'draft' | 'expired' | null;
+    customBlocks?: any[];
 }
 
 const themePresets = {
@@ -136,7 +137,7 @@ const CountdownTimer = ({ targetDate }: { targetDate?: string }) => {
     );
 };
 
-export default function PublicSiteViewer({ website, previewMode = null }: PageProps) {
+export default function PublicSiteViewer({ website, previewMode = null, customBlocks = [] }: PageProps) {
     const activeTheme = themePresets[website.theme] || themePresets.royal;
     const blocks = Array.isArray(website.config) ? website.config : [];
 
@@ -233,8 +234,7 @@ export default function PublicSiteViewer({ website, previewMode = null }: PagePr
 
     return (
         <>
-            <Head>
-                <title>{website.title}</title>
+            <Head title={website.title}>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 {/* 10 Google fonts dynamic link integration */}
@@ -290,9 +290,162 @@ export default function PublicSiteViewer({ website, previewMode = null }: PagePr
                         blocks.map((block) => {
                             if (block.is_hidden) return null;
 
+                            const customBlock = customBlocks.find(cb => cb.type === block.type);
+                            if (customBlock) {
+                                let html = customBlock.template_html;
+                                if (customBlock.fields && Array.isArray(customBlock.fields)) {
+                                    customBlock.fields.forEach((field: any) => {
+                                        const value = block[field.name] !== undefined ? block[field.name] : field.default;
+                                        html = html.replaceAll(`{{${field.name}}}`, value);
+                                    });
+                                }
+                                return (
+                                    <div 
+                                        key={block.id} 
+                                        id={block.id} 
+                                        style={getBlockStyle(block)} 
+                                        className={`scroll-mt-20 ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
+                                        dangerouslySetInnerHTML={{ __html: html }}
+                                    />
+                                );
+                            }
+
                             return (
                                 <div key={block.id} id={block.id} className="scroll-mt-20">
                                     
+                                    {/* Advanced customizable section block */}
+                                    {block.type === 'advanced_section' && (() => {
+                                        const bgGradientClass = block.bg_type === 'gradient' ? block.bg_gradient : '';
+                                        const responsiveClass = [
+                                            block.visibility_desktop !== false ? '' : 'lg:hidden',
+                                            block.visibility_tablet !== false ? '' : 'md:hidden sm:max-md:hidden',
+                                            block.visibility_mobile !== false ? '' : 'max-sm:hidden',
+                                        ].filter(Boolean).join(' ');
+
+                                        const containerClasses = [
+                                            block.padding_top || 'py-12',
+                                            block.padding_bottom || '',
+                                            block.padding_left || 'px-6',
+                                            block.padding_right || '',
+                                            block.margin_top || 'my-4',
+                                            block.margin_bottom || '',
+                                            block.border_width || 'border-0',
+                                            block.border_style || 'solid',
+                                            block.border_radius || 'rounded-2xl',
+                                            block.box_shadow || 'shadow-md',
+                                            block.positioning || 'relative',
+                                            block.z_index || 'z-0',
+                                            block.custom_class || '',
+                                            responsiveClass
+                                        ].filter(Boolean).join(' ');
+
+                                        const getBgStyle = () => {
+                                            const style: React.CSSProperties = {};
+                                            if (block.bg_type === 'color' && block.bg_color) {
+                                                style.backgroundColor = block.bg_color;
+                                            } else if (block.bg_type === 'image' && block.bg_image) {
+                                                style.backgroundImage = `url(${block.bg_image})`;
+                                                style.backgroundSize = 'cover';
+                                                style.backgroundPosition = 'center';
+                                            }
+                                            if (block.border_color) style.borderColor = block.border_color;
+                                            return style;
+                                        };
+
+                                        return (
+                                            <div 
+                                                id={block.custom_id}
+                                                style={getBgStyle()}
+                                                className={`w-full relative overflow-hidden transition-all ${containerClasses} ${bgGradientClass} ${block.animation_type && block.animation_type !== 'none' ? `animate-${block.animation_type}` : ''}`}
+                                            >
+                                                {block.bg_type === 'image' && block.bg_overlay_color && (
+                                                    <div 
+                                                        className="absolute inset-0 z-0 pointer-events-none" 
+                                                        style={{ 
+                                                            backgroundColor: block.bg_overlay_color, 
+                                                            opacity: parseFloat(block.bg_overlay_opacity || '0.4') 
+                                                        }} 
+                                                    />
+                                                )}
+
+                                                {block.custom_css && (
+                                                    <style dangerouslySetInnerHTML={{ __html: block.custom_css }} />
+                                                )}
+
+                                                <div className={`relative z-10 mx-auto w-full ${block.section_width || 'max-w-4xl'} flex ${block.content_align || 'flex-col items-center'} gap-6`}>
+                                                    
+                                                    {block.header_text && (() => {
+                                                        const Tag = block.header_tag || 'h2';
+                                                        const headerStyle: React.CSSProperties = {};
+                                                        if (block.header_color) headerStyle.color = block.header_color;
+                                                        if (block.header_font_family) headerStyle.fontFamily = block.header_font_family;
+                                                        const className = `${block.header_font_size || 'text-3xl'} ${block.header_font_weight || 'font-bold'} text-${block.header_align || 'center'} w-full tracking-tight`;
+                                                        
+                                                        if (Tag === 'h1') return <h1 style={headerStyle} className={className}>{block.header_text}</h1>;
+                                                        if (Tag === 'h2') return <h2 style={headerStyle} className={className}>{block.header_text}</h2>;
+                                                        if (Tag === 'h3') return <h3 style={headerStyle} className={className}>{block.header_text}</h3>;
+                                                        if (Tag === 'h4') return <h4 style={headerStyle} className={className}>{block.header_text}</h4>;
+                                                        if (Tag === 'h5') return <h5 style={headerStyle} className={className}>{block.header_text}</h5>;
+                                                        if (Tag === 'h6') return <h6 style={headerStyle} className={className}>{block.header_text}</h6>;
+                                                        return <h2 style={headerStyle} className={className}>{block.header_text}</h2>;
+                                                    })()}
+
+                                                    {block.image_url && (
+                                                        <div className="flex justify-center w-full">
+                                                            <img 
+                                                                src={block.image_url} 
+                                                                alt={block.image_alt || 'illustration'} 
+                                                                className={`object-cover ${
+                                                                    block.image_size === 'small' ? 'max-w-[150px]' : 
+                                                                    block.image_size === 'large' ? 'max-w-[500px]' : 
+                                                                    block.image_size === 'full' ? 'w-full' : 'max-w-[320px]'
+                                                                } ${block.image_radius || 'rounded-xl'} shadow-xs`}
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    {block.desc_text && (
+                                                        <p 
+                                                            style={{ 
+                                                                color: block.desc_color || '#4b5563', 
+                                                                fontFamily: block.desc_font_family || 'Inter' 
+                                                            }} 
+                                                            className={`${block.desc_font_size || 'text-sm'} ${block.desc_font_weight || 'font-normal'} ${block.desc_line_height || 'leading-relaxed'} text-${block.desc_align || 'center'} w-full whitespace-pre-wrap`}
+                                                        >
+                                                            {block.desc_text}
+                                                        </p>
+                                                    )}
+
+                                                    {block.btn_text && (
+                                                        <div className="flex justify-center w-full mt-2">
+                                                            <a 
+                                                                href={block.btn_url || '#'} 
+                                                                style={{ 
+                                                                    backgroundColor: block.btn_bg_color || '#2563eb', 
+                                                                    color: block.btn_text_color || '#ffffff' 
+                                                                }} 
+                                                                className={`inline-flex items-center justify-center gap-2 ${block.btn_padding_x || 'px-6'} ${block.btn_padding_y || 'py-2.5'} ${block.btn_font_size || 'text-xs'} font-bold ${block.btn_border_radius || 'rounded-full'} transition-all duration-300 ${
+                                                                    block.btn_hover_effect === 'scale' ? 'hover:scale-105 active:scale-95' : 
+                                                                    block.btn_hover_effect === 'opacity' ? 'hover:opacity-90 active:opacity-100' : ''
+                                                                } shadow-md`}
+                                                            >
+                                                                <span>{block.btn_text}</span>
+                                                                {block.btn_icon && block.btn_icon !== 'none' && (() => {
+                                                                    if (block.btn_icon === 'arrow-right') return <span>→</span>;
+                                                                    if (block.btn_icon === 'download') return <span>↓</span>;
+                                                                    if (block.btn_icon === 'external-link') return <span>↗</span>;
+                                                                    if (block.btn_icon === 'mail') return <span>✉</span>;
+                                                                    return null;
+                                                                })()}
+                                                            </a>
+                                                        </div>
+                                                    )}
+
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
                                     {/* 1. Hero Block */}
                                     {block.type === 'hero' && (
                                         <div 

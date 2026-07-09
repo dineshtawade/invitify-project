@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Users, Layers, Mail, Globe, CreditCard, Receipt, Briefcase, Share2, Wallet, ShoppingBag, History } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, Users, Layers, Mail, Globe, CreditCard, Receipt, Briefcase, Share2, Wallet, ShoppingBag, History, Settings } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -58,13 +58,18 @@ export function AppSidebar() {
                 icon: Globe,
             },
             {
+                title: 'Subscription Plans',
+                href: '/super-admin/business-card-plans',
+                icon: Layers,
+            },
+            {
                 title: 'Business Templates',
                 href: '/super-admin/business-website-templates',
                 icon: Briefcase,
             },
             {
                 title: 'Payment Settings',
-                href: '/super-admin/settings',
+                href: '/super-admin/payment-settings',
                 icon: CreditCard,
             },
             {
@@ -86,6 +91,11 @@ export function AppSidebar() {
                 title: 'Manage Resellers',
                 href: '/super-admin/resellers',
                 icon: Users,
+            },
+            {
+                title: 'Settings',
+                href: '/super-admin/settings',
+                icon: Settings,
             }
         );
     } else if (userRole === 'reseller') {
@@ -99,6 +109,11 @@ export function AppSidebar() {
                 title: 'Reseller Shop',
                 href: '/reseller/shop',
                 icon: ShoppingBag,
+            },
+            {
+                title: 'My Invitations',
+                href: '/reseller/my-invitations',
+                icon: Mail,
             },
             {
                 title: 'My Hosted Websites',

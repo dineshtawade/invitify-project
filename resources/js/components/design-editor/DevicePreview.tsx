@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Rnd } from 'react-rnd';
+import * as LucideIcons from 'lucide-react';
 import { Play, MapPin, Sparkles, HelpCircle, Star, Compass } from 'lucide-react';
 import type { Block } from './types';
 
@@ -10,6 +12,7 @@ interface DevicePreviewProps {
     slug?: string;
     pagesNav?: { slug: string; title: string; active: boolean }[];
     isInvitation?: boolean;
+    customBlocks?: any[];
 }
 
 const CountdownTimer = ({ targetDate }: { targetDate?: string }) => {
@@ -57,7 +60,7 @@ const CountdownTimer = ({ targetDate }: { targetDate?: string }) => {
     );
 };
 
-export function DevicePreview({ blocks, activeSectionId, deviceType, title, slug, pagesNav, isInvitation = false }: DevicePreviewProps) {
+export function DevicePreview({ blocks, activeSectionId, deviceType, title, slug, pagesNav, isInvitation = false, customBlocks = [] }: DevicePreviewProps) {
     
     const getBlockStyle = (block: Block) => {
         const style: React.CSSProperties = {};
@@ -104,8 +107,164 @@ export function DevicePreview({ blocks, activeSectionId, deviceType, title, slug
         const spacingClass = getSpacingClass(block);
         const textStyleClass = getTextStyleClass(block);
 
+        const customBlock = customBlocks.find(cb => cb.type === block.type);
+        if (customBlock) {
+            let html = customBlock.template_html;
+            if (customBlock.fields && Array.isArray(customBlock.fields)) {
+                customBlock.fields.forEach((field: any) => {
+                    const value = block[field.name] !== undefined ? block[field.name] : field.default;
+                    html = html.replaceAll(`{{${field.name}}}`, value);
+                });
+            }
+            return (
+                <div 
+                    style={blockStyle} 
+                    className={`${spacingClass} ${textStyleClass}`}
+                    dangerouslySetInnerHTML={{ __html: html }}
+                />
+            );
+        }
+
         return (
             <div style={blockStyle} className={`${spacingClass} ${textStyleClass}`}>
+                {block.type === 'advanced_section' && (() => {
+                    const bgGradientClass = block.bg_type === 'gradient' ? block.bg_gradient : '';
+                    const responsiveClass = [
+                        block.visibility_desktop !== false ? '' : 'lg:hidden',
+                        block.visibility_tablet !== false ? '' : 'md:hidden sm:max-md:hidden',
+                        block.visibility_mobile !== false ? '' : 'max-sm:hidden',
+                    ].filter(Boolean).join(' ');
+
+                    const containerClasses = [
+                        block.padding_top || 'py-12',
+                        block.padding_bottom || '',
+                        block.padding_left || 'px-6',
+                        block.padding_right || '',
+                        block.margin_top || 'my-4',
+                        block.margin_bottom || '',
+                        block.border_width || 'border-0',
+                        block.border_style || 'solid',
+                        block.border_radius || 'rounded-2xl',
+                        block.box_shadow || 'shadow-md',
+                        block.positioning || 'relative',
+                        block.z_index || 'z-0',
+                        block.custom_class || '',
+                        responsiveClass
+                    ].filter(Boolean).join(' ');
+
+                    const getBgStyle = () => {
+                        const style: React.CSSProperties = {};
+                        if (block.bg_type === 'color' && block.bg_color) {
+                            style.backgroundColor = block.bg_color;
+                        } else if (block.bg_type === 'image' && block.bg_image) {
+                            style.backgroundImage = `url(${block.bg_image})`;
+                            style.backgroundSize = 'cover';
+                            style.backgroundPosition = 'center';
+                        }
+                        if (block.border_color) style.borderColor = block.border_color;
+                        return style;
+                    };
+
+                    return (
+                        <div 
+                            id={block.custom_id}
+                            style={getBgStyle()}
+                            className={`w-full relative overflow-hidden transition-all ${containerClasses} ${bgGradientClass} ${block.animation_type && block.animation_type !== 'none' ? `animate-${block.animation_type}` : ''}`}
+                        >
+                            {/* Background Overlay */}
+                            {block.bg_type === 'image' && block.bg_overlay_color && (
+                                <div 
+                                    className="absolute inset-0 z-0 pointer-events-none" 
+                                    style={{ 
+                                        backgroundColor: block.bg_overlay_color, 
+                                        opacity: parseFloat(block.bg_overlay_opacity || '0.4') 
+                                    }} 
+                                />
+                            )}
+
+                            {/* Scoped Custom CSS */}
+                            {block.custom_css && (
+                                <style dangerouslySetInnerHTML={{ __html: block.custom_css }} />
+                            )}
+
+                            {/* Content Container */}
+                            <div className={`relative z-10 mx-auto w-full ${block.section_width || 'max-w-4xl'} flex ${block.content_align || 'flex-col items-center'} gap-6`}>
+                                
+                                {/* Header */}
+                                {block.header_text && (() => {
+                                    const Tag = block.header_tag || 'h2';
+                                    const headerStyle: React.CSSProperties = {};
+                                    if (block.header_color) headerStyle.color = block.header_color;
+                                    if (block.header_font_family) headerStyle.fontFamily = block.header_font_family;
+                                    const className = `${block.header_font_size || 'text-3xl'} ${block.header_font_weight || 'font-bold'} text-${block.header_align || 'center'} w-full tracking-tight`;
+                                    
+                                    if (Tag === 'h1') return <h1 style={headerStyle} className={className}>{block.header_text}</h1>;
+                                    if (Tag === 'h2') return <h2 style={headerStyle} className={className}>{block.header_text}</h2>;
+                                    if (Tag === 'h3') return <h3 style={headerStyle} className={className}>{block.header_text}</h3>;
+                                    if (Tag === 'h4') return <h4 style={headerStyle} className={className}>{block.header_text}</h4>;
+                                    if (Tag === 'h5') return <h5 style={headerStyle} className={className}>{block.header_text}</h5>;
+                                    if (Tag === 'h6') return <h6 style={headerStyle} className={className}>{block.header_text}</h6>;
+                                    return <h2 style={headerStyle} className={className}>{block.header_text}</h2>;
+                                })()}
+
+                                {/* Image */}
+                                {block.image_url && (
+                                    <div className="flex justify-center w-full">
+                                        <img 
+                                            src={block.image_url} 
+                                            alt={block.image_alt || 'illustration'} 
+                                            className={`object-cover ${
+                                                block.image_size === 'small' ? 'max-w-[150px]' : 
+                                                block.image_size === 'large' ? 'max-w-[500px]' : 
+                                                block.image_size === 'full' ? 'w-full' : 'max-w-[320px]'
+                                            } ${block.image_radius || 'rounded-xl'} shadow-xs`}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Description */}
+                                {block.desc_text && (
+                                    <p 
+                                        style={{ 
+                                            color: block.desc_color || '#4b5563', 
+                                            fontFamily: block.desc_font_family || 'Inter' 
+                                        }} 
+                                        className={`${block.desc_font_size || 'text-sm'} ${block.desc_font_weight || 'font-normal'} ${block.desc_line_height || 'leading-relaxed'} text-${block.desc_align || 'center'} w-full whitespace-pre-wrap`}
+                                    >
+                                        {block.desc_text}
+                                    </p>
+                                )}
+
+                                {/* CTA Button */}
+                                {block.btn_text && (
+                                    <div className="flex justify-center w-full mt-2">
+                                        <a 
+                                            href={block.btn_url || '#'} 
+                                            style={{ 
+                                                backgroundColor: block.btn_bg_color || '#2563eb', 
+                                                color: block.btn_text_color || '#ffffff' 
+                                            }} 
+                                            className={`inline-flex items-center justify-center gap-2 ${block.btn_padding_x || 'px-6'} ${block.btn_padding_y || 'py-2.5'} ${block.btn_font_size || 'text-xs'} font-bold ${block.btn_border_radius || 'rounded-full'} transition-all duration-300 ${
+                                                block.btn_hover_effect === 'scale' ? 'hover:scale-105 active:scale-95' : 
+                                                block.btn_hover_effect === 'opacity' ? 'hover:opacity-90 active:opacity-100' : ''
+                                            } shadow-md`}
+                                        >
+                                            <span>{block.btn_text}</span>
+                                            {block.btn_icon && block.btn_icon !== 'none' && (() => {
+                                                if (block.btn_icon === 'arrow-right') return <span>→</span>;
+                                                if (block.btn_icon === 'download') return <span>↓</span>;
+                                                if (block.btn_icon === 'external-link') return <span>↗</span>;
+                                                if (block.btn_icon === 'mail') return <span>✉</span>;
+                                                return null;
+                                            })()}
+                                        </a>
+                                    </div>
+                                )}
+
+                            </div>
+                        </div>
+                    );
+                })()}
                 {block.type === 'hero' && (
                     <div className={`p-8 text-center bg-gradient-to-tr ${getBgClass(block, 'from-indigo-650 to-purple-600')} flex flex-col gap-3.5 items-center justify-center min-h-[200px]`}>
                         <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight leading-snug drop-shadow-xs">{block.title || 'Welcome'}</h2>
@@ -242,6 +401,136 @@ export function DevicePreview({ blocks, activeSectionId, deviceType, title, slug
                                 <MapPin className="size-3" /> Open Maps Location
                             </a>
                         )}
+                    </div>
+                )}
+
+                {block.type === 'gallery' && (
+                    <div className="py-8 px-4 bg-white">
+                        {block.title && <h3 className="text-xl font-bold text-neutral-900 text-center mb-6">{block.title}</h3>}
+                        <div className={block.layout === 'masonry' ? 'columns-2 gap-4 space-y-4' : 'grid grid-cols-2 gap-4'}>
+                            {block.images?.map((img: string, i: number) => (
+                                <div key={i} className={`overflow-hidden rounded-xl ${block.layout === 'masonry' ? 'break-inside-avoid' : 'aspect-square'}`}>
+                                    <img src={img} className="w-full h-full object-cover" alt="Gallery" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {block.type === 'pricing' && (
+                    <div className="py-10 px-4 bg-neutral-50 flex flex-col gap-6">
+                        {block.title && <h3 className="text-2xl font-bold text-center text-neutral-900">{block.title}</h3>}
+                        <div className="flex flex-col gap-6 w-full max-w-sm mx-auto">
+                            {block.plans?.map((plan: any, i: number) => (
+                                <div key={i} className="bg-white border rounded-2xl p-6 shadow-xl flex flex-col gap-4 text-center">
+                                    <h4 className="text-lg font-bold text-neutral-800">{plan.name}</h4>
+                                    <div className="text-3xl font-black text-pink-600">{plan.price}</div>
+                                    <ul className="flex flex-col gap-2 my-2 text-sm text-neutral-600 text-left">
+                                        {plan.features?.map((f: string, j: number) => (
+                                            <li key={j} className="flex items-center gap-2"><Sparkles className="size-3 text-pink-500" /> {f}</li>
+                                        ))}
+                                    </ul>
+                                    <a href={plan.button_link} className="bg-neutral-900 text-white font-bold py-3 rounded-full hover:bg-neutral-800 transition-colors w-full inline-block">
+                                        {plan.button_text}
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {block.type === 'cta' && (
+                    <div className="py-12 bg-white flex flex-col md:flex-row items-center gap-6 px-6">
+                        {block.image_url && block.align === 'left' && (
+                            <img src={block.image_url} className="w-full md:w-1/2 aspect-video object-cover rounded-2xl shadow-lg" alt="CTA" />
+                        )}
+                        <div className="flex-1 flex flex-col gap-4 text-center md:text-left">
+                            <h3 className="text-3xl font-black text-neutral-900 leading-tight">{block.title}</h3>
+                            <p className="text-neutral-500 leading-relaxed text-sm">{block.content}</p>
+                            <a href={block.cta_link} className="bg-pink-600 text-white font-bold py-3 px-8 rounded-full hover:bg-pink-700 transition-colors self-center md:self-start mt-2 inline-block shadow-lg shadow-pink-500/30">
+                                {block.cta_text}
+                            </a>
+                        </div>
+                        {block.image_url && block.align === 'right' && (
+                            <img src={block.image_url} className="w-full md:w-1/2 aspect-video object-cover rounded-2xl shadow-lg mt-6 md:mt-0" alt="CTA" />
+                        )}
+                    </div>
+                )}
+                {block.type === 'html' && (
+                    <div className="w-full overflow-hidden" dangerouslySetInnerHTML={{ __html: block.html_content || '' }} />
+                )}
+                {block.type === 'profile' && (
+                    <div className="py-10 px-4 bg-white">
+                        {block.title && <h3 className="text-2xl font-bold text-center text-neutral-900 mb-8">{block.title}</h3>}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-lg mx-auto">
+                            {block.profiles?.map((prof: any, i: number) => (
+                                <div key={i} className="flex flex-col items-center text-center gap-3">
+                                    <div className="w-20 h-20 rounded-full overflow-hidden shadow-md">
+                                        <img src={prof.image} className="w-full h-full object-cover" alt={prof.name} />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-neutral-900 text-sm leading-tight">{prof.name}</h4>
+                                        <span className="text-[10px] text-pink-600 font-bold uppercase tracking-wide">{prof.role}</span>
+                                    </div>
+                                    {prof.social && (
+                                        <a href={prof.social} className="text-neutral-400 hover:text-pink-600 transition-colors text-[10px]">Follow</a>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {block.type === 'freeform' && (
+                    <div className="relative w-full h-[600px] bg-white overflow-hidden" style={{ minHeight: '600px' }}>
+                        {block.items?.map((item: any, i: number) => {
+                            const isSelected = activeSectionId === block.id;
+                            
+                            // Render specific item types
+                            let innerContent = null;
+                            if (item.type === 'text') {
+                                innerContent = (
+                                    <div style={{ color: item.color, fontSize: `${item.fontSize}px`, fontWeight: item.fontWeight, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                                        {item.content}
+                                    </div>
+                                );
+                            } else if (item.type === 'image') {
+                                innerContent = (
+                                    <img src={item.url} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: `${item.radius || 0}px` }} alt="Canvas element" draggable="false" />
+                                );
+                            } else if (item.type === 'icon') {
+                                const IconComponent = (LucideIcons as any)[item.icon] || LucideIcons.Star;
+                                innerContent = (
+                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color }}>
+                                        <IconComponent style={{ width: '100%', height: '100%' }} />
+                                    </div>
+                                );
+                            }
+                            
+                            // If in editor mode, wrap with Rnd to make it draggable/resizable
+                            // Note: Since onChange isn't passed down to DevicePreview easily to save positions,
+                            // we just allow visual drag/drop for preview. In a real app, you'd pass an update function.
+                            if (isSelected) {
+                                return (
+                                    <Rnd
+                                        key={i}
+                                        default={{ x: item.x || 0, y: item.y || 0, width: item.w || 100, height: item.h || 100 }}
+                                        bounds="parent"
+                                        className="border border-dashed border-blue-400 hover:border-solid hover:border-blue-500 bg-white/10 group"
+                                    >
+                                        <div className="absolute -top-3 -right-3 size-6 bg-white border rounded-full shadow flex items-center justify-center opacity-0 group-hover:opacity-100 z-10 pointer-events-none">
+                                            <LucideIcons.Move className="size-3 text-neutral-400" />
+                                        </div>
+                                        {innerContent}
+                                    </Rnd>
+                                );
+                            }
+
+                            // Read-only static positioning for preview mode or published site
+                            return (
+                                <div key={i} style={{ position: 'absolute', left: item.x, top: item.y, width: item.w, height: item.h }}>
+                                    {innerContent}
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
                 {block.type === 'timeline' && (

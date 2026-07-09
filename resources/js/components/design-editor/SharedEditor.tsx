@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Eye, Smartphone, Monitor, Tablet, ArrowUp, ArrowDown, Trash, Compass } from 'lucide-react';
+import { Eye, Smartphone, Monitor, Tablet, ArrowUp, ArrowDown, Trash, Compass, Plus, GripVertical, Image, Tag, Code, Users } from 'lucide-react';
 import { BlockSettings } from './BlockSettings';
 import { DevicePreview } from './DevicePreview';
 import { getNewBlockDefaults, type Block } from './types';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 interface SharedEditorProps {
     blocks: Block[];
@@ -12,17 +14,35 @@ interface SharedEditorProps {
     pagesNav?: { slug: string; title: string; active: boolean }[];
     isInvitation?: boolean;
     isCustomerMode?: boolean;
+    customBlocks?: any[];
 }
 
-export function SharedEditor({ blocks, onChange, title, slug, pagesNav, isInvitation = false, isCustomerMode = false }: SharedEditorProps) {
+export function SharedEditor({ blocks, onChange, title, slug, pagesNav, isInvitation = false, isCustomerMode = false, customBlocks = [] }: SharedEditorProps) {
     const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
     const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
     const handleAddBlock = (type: string) => {
         if (!type) return;
-        const newBlock = getNewBlockDefaults(type, isInvitation);
-        onChange([...blocks, newBlock]);
-        setActiveSectionId(newBlock.id);
+        const customBlock = customBlocks.find(cb => cb.type === type);
+        if (customBlock) {
+            const defaults: Record<string, any> = {};
+            if (customBlock.fields && Array.isArray(customBlock.fields)) {
+                customBlock.fields.forEach((f: any) => {
+                    defaults[f.name] = f.default || '';
+                });
+            }
+            const newBlock = {
+                id: `block_${type}_${Math.random().toString(36).substring(2, 9)}`,
+                type,
+                ...defaults
+            } as Block;
+            onChange([...blocks, newBlock]);
+            setActiveSectionId(newBlock.id);
+        } else {
+            const newBlock = getNewBlockDefaults(type, isInvitation);
+            onChange([...blocks, newBlock]);
+            setActiveSectionId(newBlock.id);
+        }
     };
 
     const handleUpdateBlock = (id: string, updates: Partial<Block>) => {
@@ -51,24 +71,89 @@ export function SharedEditor({ blocks, onChange, title, slug, pagesNav, isInvita
                     <div className="flex items-center justify-between gap-4">
                         <h4 className="text-xs uppercase tracking-widest font-black text-neutral-400">Layout Blocks</h4>
                         {!isCustomerMode && (
-                            <select 
-                                onChange={(e) => { handleAddBlock(e.target.value); e.target.value = ''; }} 
-                                className="h-8 rounded-md border border-neutral-200 bg-white text-xs px-2 shadow-xs dark:bg-neutral-900 dark:border-neutral-800"
-                            >
-                                <option value="">+ Add Block</option>
-                                <option value="hero">Hero Section</option>
-                                <option value="text">Text Section</option>
-                                <option value="swiper">Photo Slider</option>
-                                <option value="video">Video Embed</option>
-                                <option value="links">Button Links</option>
-                                <option value="icons_grid">Features Grid</option>
-                                <option value="form">{isInvitation ? 'RSVP Form' : 'Contact Form'}</option>
-                                <option value="countdown">Countdown Timer</option>
-                                <option value="map">Google Map</option>
-                                <option value="timeline">Timeline Schedule</option>
-                                {!isInvitation && <option value="faq">FAQ Accordion</option>}
-                                {!isInvitation && <option value="testimonials">Testimonials</option>}
-                            </select>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button size="sm" className="h-8 bg-pink-600 hover:bg-pink-700 text-white rounded-full shadow-md shadow-pink-500/20 px-4 transition-all hover:scale-105 active:scale-95 cursor-pointer">
+                                        <Plus className="size-4 mr-1.5" /> Add Block
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border border-pink-100 dark:border-neutral-800 shadow-2xl">
+                                    <DropdownMenuLabel className="text-[10px] font-extrabold tracking-widest uppercase text-pink-500/80 px-2">Standard Blocks</DropdownMenuLabel>
+                                    <DropdownMenuSeparator className="bg-pink-50/50 dark:bg-neutral-800" />
+                                    <DropdownMenuGroup className="grid grid-cols-1 gap-1 max-h-[300px] overflow-y-auto pr-1">
+                                        <DropdownMenuItem onClick={() => handleAddBlock('advanced_section')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-pink-50 hover:text-pink-700">
+                                            <span className="bg-pink-100 text-pink-600 rounded mr-2 p-1"><Compass className="size-3" /></span> Advanced Section
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('hero')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            <span className="bg-neutral-100 rounded mr-2 p-1"><Eye className="size-3" /></span> Hero Section
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('cta')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            <span className="bg-neutral-100 rounded mr-2 p-1"><Smartphone className="size-3" /></span> Call to Action
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('gallery')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            <span className="bg-neutral-100 rounded mr-2 p-1"><Image className="size-3" /></span> Photo Gallery
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('pricing')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            <span className="bg-neutral-100 rounded mr-2 p-1"><Tag className="size-3" /></span> Pricing Table
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('profile')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            <span className="bg-neutral-100 rounded mr-2 p-1"><Users className="size-3" /></span> Team Profiles
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('html')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50 dark:hover:bg-neutral-800">
+                                            <span className="bg-neutral-100 dark:bg-neutral-800 rounded mr-2 p-1"><Code className="size-3" /></span> Custom HTML
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('freeform')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50 dark:hover:bg-neutral-800">
+                                            <span className="bg-pink-100 text-pink-600 rounded mr-2 p-1"><Compass className="size-3" /></span> Freeform Canvas
+                                        </DropdownMenuItem>
+                                        
+                                        <DropdownMenuSeparator className="my-1" />
+                                        
+                                        <DropdownMenuItem onClick={() => handleAddBlock('text')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            Text Section
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('swiper')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            Photo Slider
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('video')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            Video Embed
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('links')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            Button Links
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('icons_grid')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            Features Grid
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('form')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            {isInvitation ? 'RSVP Form' : 'Contact Form'}
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('countdown')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            Countdown Timer
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('map')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            Google Map
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('timeline')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            Timeline Schedule
+                                        </DropdownMenuItem>
+                                        {!isInvitation && <DropdownMenuItem onClick={() => handleAddBlock('faq')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">FAQ Accordion</DropdownMenuItem>}
+                                        {!isInvitation && <DropdownMenuItem onClick={() => handleAddBlock('testimonials')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">Testimonials</DropdownMenuItem>}
+                                    </DropdownMenuGroup>
+                                    
+                                    {customBlocks.length > 0 && (
+                                        <>
+                                            <DropdownMenuSeparator className="my-1 bg-pink-50/50" />
+                                            <DropdownMenuLabel className="text-[10px] font-extrabold tracking-widest uppercase text-pink-500/80 px-2 pt-2">Custom Blocks</DropdownMenuLabel>
+                                            <DropdownMenuGroup className="grid grid-cols-1 gap-1">
+                                                {customBlocks.map(cb => (
+                                                    <DropdownMenuItem key={cb.id} onClick={() => handleAddBlock(cb.type)} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-pink-50">
+                                                        {cb.name}
+                                                    </DropdownMenuItem>
+                                                ))}
+                                            </DropdownMenuGroup>
+                                        </>
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         )}
                     </div>
 
@@ -97,13 +182,14 @@ export function SharedEditor({ blocks, onChange, title, slug, pagesNav, isInvita
                                         updatedBlocks.splice(idx, 0, draggedItem);
                                         onChange(updatedBlocks);
                                     }}
-                                    className={`rounded-xl border transition-all duration-200 bg-white dark:bg-neutral-900 shadow-xs ${isActive ? 'border-blue-500 ring-1 ring-blue-500/20' : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300'} ${!isCustomerMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                                    className={`rounded-2xl border transition-all duration-300 backdrop-blur-md shadow-sm dark:bg-neutral-900/80 ${isActive ? 'bg-white dark:bg-neutral-900 border-pink-500 ring-4 ring-pink-500/20 shadow-lg scale-[1.01]' : 'bg-white/70 border-white dark:border-neutral-800 hover:border-pink-300 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-neutral-900'} ${!isCustomerMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
                                 >
-                                    <div onClick={() => setActiveSectionId(isActive ? null : block.id)} className="p-4 flex items-center justify-between cursor-pointer select-none">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="rounded-lg bg-neutral-50 dark:bg-neutral-800 p-2 text-neutral-500 font-bold text-[9px] uppercase">{block.type}</div>
-                                            <span className="font-semibold text-sm text-neutral-850 dark:text-neutral-100 capitalize">{block.title || `${block.type} section`}</span>
-                                            {block.is_hidden && <span className="text-[8px] bg-red-105 text-red-700 dark:bg-red-950/40 dark:text-red-400 px-1.5 py-0.5 rounded font-bold uppercase">Hidden</span>}
+                                    <div onClick={() => setActiveSectionId(isActive ? null : block.id)} className="p-3.5 flex items-center justify-between cursor-pointer select-none">
+                                        <div className="flex items-center gap-3">
+                                            {!isCustomerMode && <GripVertical className="size-4 text-neutral-300 dark:text-neutral-600" />}
+                                            <div className="rounded-lg bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 px-2.5 py-1.5 font-bold text-[10px] uppercase tracking-wider">{block.type}</div>
+                                            <span className="font-bold text-sm text-neutral-700 dark:text-neutral-200 capitalize">{block.title || `${block.type} section`}</span>
+                                            {block.is_hidden && <span className="text-[9px] bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-0.5 rounded font-black uppercase tracking-wider shadow-sm">Hidden</span>}
                                         </div>
                                         {!isCustomerMode && (
                                             <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
@@ -113,7 +199,7 @@ export function SharedEditor({ blocks, onChange, title, slug, pagesNav, isInvita
                                             </div>
                                         )}
                                     </div>
-                                    {isActive && <BlockSettings block={block} onUpdate={handleUpdateBlock} isCustomerMode={isCustomerMode} />}
+                                    {isActive && <BlockSettings block={block} onUpdate={handleUpdateBlock} isCustomerMode={isCustomerMode} customBlocks={customBlocks} />}
                                 </div>
                             );
                         })}
@@ -154,6 +240,7 @@ export function SharedEditor({ blocks, onChange, title, slug, pagesNav, isInvita
                         slug={slug}
                         pagesNav={pagesNav}
                         isInvitation={isInvitation}
+                        customBlocks={customBlocks}
                     />
                 </div>
             </div>

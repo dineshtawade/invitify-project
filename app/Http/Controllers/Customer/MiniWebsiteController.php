@@ -79,6 +79,7 @@ class MiniWebsiteController extends Controller
 
         return Inertia::render('customer/mini-websites/edit', [
             'website' => $mini_website,
+            'customBlocks' => \App\Models\CustomBlock::orderBy('name')->get(),
         ]);
     }
 

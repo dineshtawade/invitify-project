@@ -39,18 +39,31 @@ interface BusinessTemplate {
     preview_image: string | null;
 }
 
+interface Category {
+    id: number;
+    name: string;
+    slug: string;
+}
+
 interface PageProps {
     templates: Template[];
     miniTemplates?: MiniTemplate[];
     businessTemplates?: BusinessTemplate[];
+    categories: Category[];
 }
 
-export default function TemplatesBrowse({ templates, miniTemplates = [], businessTemplates = [] }: PageProps) {
+export default function TemplatesBrowse({ templates, miniTemplates = [], businessTemplates = [], categories = [] }: PageProps) {
     const [activeTab, setActiveTab] = useState<'invitations' | 'mini-websites' | 'business-websites'>('invitations');
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [selectedWebsiteCategory, setSelectedWebsiteCategory] = useState<'all' | 'invitation' | 'business'>('all');
 
-    const categories = ['all', 'wedding', 'birthday', 'party', 'anniversary', 'baby_shower'];
+    const categoriesList = ['all', ...categories.map(c => c.slug)];
+
+    const getCategoryName = (slug: string) => {
+        if (slug === 'all') return 'All Cards';
+        const found = categories.find(c => c.slug === slug);
+        return found ? found.name : slug.replace('_', ' ');
+    };
 
     const filteredTemplates = selectedCategory === 'all'
         ? templates
@@ -120,7 +133,7 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                     <>
                         {/* Categories Tabs Selector */}
                         <div className="flex border-b border-neutral-200 dark:border-neutral-800 overflow-x-auto scrollbar-none">
-                            {categories.map((cat) => (
+                            {categoriesList.map((cat) => (
                                 <button
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
@@ -130,7 +143,7 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                                             : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
                                     }`}
                                 >
-                                    {cat === 'all' ? 'All Cards' : cat.replace('_', ' ')}
+                                    {getCategoryName(cat)}
                                 </button>
                             ))}
                         </div>

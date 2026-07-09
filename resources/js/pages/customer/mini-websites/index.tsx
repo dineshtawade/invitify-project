@@ -16,6 +16,7 @@ import {
     Plus, Globe, ExternalLink, MessageSquare, Trash, Pencil, 
     ShieldAlert, Download, Package, Loader2, CreditCard, Ticket, Check, AlertCircle 
 } from 'lucide-react';
+import { getCsrfHeaders } from '@/lib/utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -264,7 +265,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    ...getCsrfHeaders()
                 },
                 body: JSON.stringify({
                     days: days,

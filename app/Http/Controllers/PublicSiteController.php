@@ -55,6 +55,7 @@ class PublicSiteController extends Controller
         if (is_array($website->config) && !empty($website->config) && isset($website->config[0]['type'])) {
             return Inertia::render('public/site-viewer', [
                 'website' => $website,
+                'customBlocks' => \App\Models\CustomBlock::all(),
             ]);
         }
 

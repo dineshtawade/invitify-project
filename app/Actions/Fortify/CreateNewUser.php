@@ -22,7 +22,8 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
-            'role' => ['required', 'string', 'in:customer,reseller,referral_partner'],
+            'mobile' => ['required', 'string', 'max:20'],
+            'role' => ['nullable', 'string', 'in:customer,reseller,referral_partner'],
             // Reseller details validations
             'reseller_business_name' => ['required_if:role,reseller', 'nullable', 'string', 'max:255'],
             'reseller_mobile_number' => ['required_if:role,reseller', 'nullable', 'string', 'max:20'],
@@ -39,7 +40,7 @@ class CreateNewUser implements CreatesNewUsers
             'referral_social_media.*.followers' => ['required_with:referral_social_media', 'integer', 'min:0'],
         ])->validate();
 
-        $role = $input['role'];
+        $role = $input['role'] ?? 'customer';
         $isApproved = !in_array($role, ['reseller', 'referral_partner']);
 
         $resellerDetails = null;
@@ -78,6 +79,7 @@ class CreateNewUser implements CreatesNewUsers
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
+            'mobile' => $input['mobile'],
             'password' => $input['password'],
             'role' => $role,
             'is_approved' => $isApproved,

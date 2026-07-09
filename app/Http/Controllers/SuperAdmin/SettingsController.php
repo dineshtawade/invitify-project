@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\BusinessCardPlan;
 use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,20 +15,9 @@ class SettingsController extends Controller
      */
     public function index()
     {
-        $keyId = SystemSetting::get('razorpay_key_id', '');
-        $hasSecret = !is_null(SystemSetting::get('razorpay_key_secret'));
-
         return Inertia::render('super-admin/settings/index', [
-            'settings' => [
-                'razorpay_key_id' => $keyId,
-                'has_razorpay_key_secret' => $hasSecret,
-                'reseller_bank_name' => SystemSetting::get('reseller_bank_name', ''),
-                'reseller_account_holder' => SystemSetting::get('reseller_account_holder', ''),
-                'reseller_account_number' => SystemSetting::get('reseller_account_number', ''),
-                'reseller_ifsc_code' => SystemSetting::get('reseller_ifsc_code', ''),
-                'reseller_upi_id' => SystemSetting::get('reseller_upi_id', ''),
-                'reseller_default_bonus_percentage' => SystemSetting::get('reseller_default_bonus_percentage', '0'),
-            ],
+            'categories'        => \App\Models\Category::orderBy('name')->get(),
+            'customBlocks'      => \App\Models\CustomBlock::orderBy('name')->get(),
         ]);
     }
 
@@ -36,45 +26,10 @@ class SettingsController extends Controller
      */
     public function update(Request $request)
     {
-        $validated = $request->validate([
-            'razorpay_key_id' => 'nullable|string|max:255',
-            'razorpay_key_secret' => 'nullable|string|max:255',
-            'reseller_bank_name' => 'nullable|string|max:255',
-            'reseller_account_holder' => 'nullable|string|max:255',
-            'reseller_account_number' => 'nullable|string|max:255',
-            'reseller_ifsc_code' => 'nullable|string|max:255',
-            'reseller_upi_id' => 'nullable|string|max:255',
-            'reseller_default_bonus_percentage' => 'nullable|numeric|min:0|max:100',
-        ]);
-
-        if (array_key_exists('razorpay_key_id', $validated)) {
-            SystemSetting::set('razorpay_key_id', $validated['razorpay_key_id']);
-        }
-
-        // Only update secret if a new one is provided (non-empty)
-        if (!empty($validated['razorpay_key_secret'])) {
-            SystemSetting::set('razorpay_key_secret', $validated['razorpay_key_secret'], true);
-        }
-
-        // Reseller manual banking details
-        if (array_key_exists('reseller_bank_name', $validated)) {
-            SystemSetting::set('reseller_bank_name', $validated['reseller_bank_name']);
-        }
-        if (array_key_exists('reseller_account_holder', $validated)) {
-            SystemSetting::set('reseller_account_holder', $validated['reseller_account_holder']);
-        }
-        if (array_key_exists('reseller_account_number', $validated)) {
-            SystemSetting::set('reseller_account_number', $validated['reseller_account_number']);
-        }
-        if (array_key_exists('reseller_ifsc_code', $validated)) {
-            SystemSetting::set('reseller_ifsc_code', $validated['reseller_ifsc_code']);
-        }
-        if (array_key_exists('reseller_upi_id', $validated)) {
-            SystemSetting::set('reseller_upi_id', $validated['reseller_upi_id']);
-        }
-        if (array_key_exists('reseller_default_bonus_percentage', $validated)) {
-            SystemSetting::set('reseller_default_bonus_percentage', $validated['reseller_default_bonus_percentage']);
-        }
+        // Settings are now only for Category and Blocks if needed, but the current 
+        // SettingsController was primarily for system settings. If categories/blocks 
+        // have their own CRUD, this update method might not be used for them directly.
+        // We'll leave it empty or handle generic config if any.
 
         return redirect()->back()->with('status', 'Settings updated successfully.');
     }
@@ -84,14 +39,6 @@ class SettingsController extends Controller
      */
     public function destroy($key)
     {
-        if (in_array($key, ['razorpay_key_id', 'razorpay_key_secret'])) {
-            $setting = SystemSetting::where('key', $key)->first();
-            if ($setting) {
-                $setting->delete();
-            }
-            return redirect()->back()->with('status', "Setting '$key' deleted successfully.");
-        }
-
         abort(400, 'Invalid setting key.');
     }
 }

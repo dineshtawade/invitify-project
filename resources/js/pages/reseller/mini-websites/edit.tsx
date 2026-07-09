@@ -28,9 +28,10 @@ interface PageProps {
         is_expired: boolean;
         config: Block[];
     };
+    customBlocks?: any[];
 }
 
-export default function ResellerMiniWebsiteEdit({ wallet, website }: PageProps) {
+export default function ResellerMiniWebsiteEdit({ wallet, website, customBlocks = [] }: PageProps) {
     const { data, setData, put, processing } = useForm({
         title: website.title,
         theme: website.theme,
@@ -230,6 +231,7 @@ export default function ResellerMiniWebsiteEdit({ wallet, website }: PageProps) 
                     title={data.title}
                     slug={website.slug}
                     isCustomerMode={true}
+                    customBlocks={customBlocks}
                 />
             </div>
 

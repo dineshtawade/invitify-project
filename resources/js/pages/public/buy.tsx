@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { getCsrfHeaders } from '@/lib/utils';
 
 interface PageProps {
     website: {
@@ -134,7 +135,7 @@ export default function BuyHosting({ website, reason, auth }: PageProps) {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    ...getCsrfHeaders()
                 },
                 body: JSON.stringify({
                     days: days,

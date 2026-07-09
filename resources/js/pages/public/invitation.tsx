@@ -220,8 +220,7 @@ export default function PublicInvitationSite({ website, flash, previewMode = nul
 
     return (
         <>
-            <Head>
-                <title>{`${couple_name} - Invitation`}</title>
+            <Head title={`${couple_name} - Invitation`}>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&display=swap" rel="stylesheet" />

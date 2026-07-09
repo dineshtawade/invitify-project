@@ -23,6 +23,8 @@ class ShopController extends Controller
             'price' => floatval($t->price),
             'reseller_price' => $t->getResellerPrice(),
             'bg_gradient' => $t->bg_gradient,
+            'thumbnail' => $t->thumbnail,
+            'default_config' => $t->default_config,
         ]);
 
         // Catalog of Mini Website templates
