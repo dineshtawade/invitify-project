@@ -15,6 +15,12 @@ export interface Block {
     features?: { title: string; desc: string; icon: string }[];
     items?: any[];
     form_type?: string;
+    
+    // --- New Layout Blocks ---
+    html_content?: string;
+    plans?: { name: string; price: string; features: string[]; button_text: string; button_link: string }[];
+    layout?: string; // e.g. "grid", "masonry"
+    profiles?: { name: string; role: string; image: string; social: string }[];
 
     // --- Advanced Features ---
     font_family?: string;
@@ -106,6 +112,41 @@ export const getNewBlockDefaults = (type: string, isInvitation = false): Block =
             { time: '10:00 AM', title: 'Welcoming Guests', desc: 'Guests arrive and receive refreshers.' },
             { time: '11:30 AM', title: 'Main Ceremony', desc: 'The holy rituals and vows.' },
             { time: '01:00 PM', title: 'Grand Lunch Feast', desc: 'Delicious food served at the main hall.' }
+        ];
+    } else if (type === 'gallery') {
+        newBlock.title = 'Photo Gallery';
+        newBlock.layout = 'masonry';
+        newBlock.images = [
+            'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=400&q=80'
+        ];
+    } else if (type === 'pricing') {
+        newBlock.title = 'Select Your Plan';
+        newBlock.plans = [
+            { name: 'Basic', price: '₹999', features: ['1 Mini Website', 'Basic Templates', 'Email Support'], button_text: 'Get Basic', button_link: '#' },
+            { name: 'Premium', price: '₹1999', features: ['5 Mini Websites', 'Premium Templates', 'Priority Support', 'Custom Domain'], button_text: 'Get Premium', button_link: '#' },
+        ];
+    } else if (type === 'cta') {
+        newBlock.title = 'Ready to elevate your event?';
+        newBlock.content = 'Join thousands of happy customers who have successfully crafted their perfect invitation.';
+        newBlock.cta_text = 'Start Now';
+        newBlock.cta_link = '#';
+        newBlock.image_url = 'https://images.unsplash.com/photo-1507290439931-a861b5a38200?auto=format&fit=crop&w=800&q=80';
+        newBlock.align = 'left';
+    } else if (type === 'html') {
+        newBlock.title = 'Custom Code Block';
+        newBlock.html_content = '<div class="p-4 bg-gray-100 rounded-lg text-center">\n  <h3 class="font-bold">Custom HTML</h3>\n  <p>Write your own markup here.</p>\n</div>';
+    } else if (type === 'freeform') {
+        newBlock.title = 'Freeform Canvas';
+        newBlock.items = [
+            { type: 'text', content: 'Double click to edit', x: 20, y: 20, w: 200, h: 50, color: '#333333', fontSize: 24, fontWeight: 'bold' }
+        ];
+    } else if (type === 'profile') {
+        newBlock.title = 'Meet The Team';
+        newBlock.profiles = [
+            { name: 'Alice Walker', role: 'Event Coordinator', image: 'https://i.pravatar.cc/150?img=1', social: '#' },
+            { name: 'Bob Smith', role: 'Lead Designer', image: 'https://i.pravatar.cc/150?img=3', social: '#' }
         ];
     } else if (type === 'advanced_section') {
         newBlock.bg_type = 'color';

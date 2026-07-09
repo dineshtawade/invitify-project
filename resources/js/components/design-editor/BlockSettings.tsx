@@ -3,6 +3,7 @@ import { Label } from '@/components/ui/label';
 import { HelpCircle, Star, Sliders, Type, LayoutGrid } from 'lucide-react';
 import { FileUpload } from '@/components/ui/file-upload';
 import type { Block } from './types';
+import { IconPicker } from './IconPicker';
 
 interface BlockSettingsProps {
     block: Block;
@@ -965,6 +966,206 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     </div>
                 </div>
             )}
+
+            
+            {block.type === 'freeform' && (
+                <div className="flex flex-col gap-3">
+                    <div className="grid gap-1 border-b pb-2">
+                        <Label className="text-[10px] text-pink-600 uppercase font-bold">Freeform Canvas Elements</Label>
+                        <p className="text-[9px] text-neutral-500 leading-tight">Drag and resize elements directly in the Live Simulator. Add new elements below.</p>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2 mb-2">
+                        <button type="button" onClick={() => handleAddListItem('items', { type: 'text', content: 'New Text', x: 20, y: 20, w: 200, h: 50, color: '#000000', fontSize: 16, fontWeight: 'normal' })} className="px-2 py-1 bg-white border rounded text-[10px] hover:bg-neutral-50 shadow-sm">+ Add Text</button>
+                        <button type="button" onClick={() => handleAddListItem('items', { type: 'image', url: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=200&q=80', x: 50, y: 50, w: 150, h: 150, radius: 0 })} className="px-2 py-1 bg-white border rounded text-[10px] hover:bg-neutral-50 shadow-sm">+ Add Image</button>
+                        <button type="button" onClick={() => handleAddListItem('items', { type: 'icon', icon: 'Star', x: 100, y: 100, w: 50, h: 50, color: '#ec4899' })} className="px-2 py-1 bg-white border rounded text-[10px] hover:bg-neutral-50 shadow-sm">+ Add Icon</button>
+                    </div>
+                    
+                    {block.items?.map((item: any, idx: number) => (
+                        <div key={idx} className="flex flex-col gap-2 p-3 bg-white dark:bg-neutral-800 border rounded-lg shadow-xs">
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="font-bold text-xs capitalize">{item.type} Element</span>
+                                <button type="button" onClick={() => handleRemoveListItem('items', idx)} className="text-red-500 text-[10px] font-bold">Remove</button>
+                            </div>
+                            
+                            {item.type === 'text' && (
+                                <>
+                                    <Input value={item.content} onChange={(e) => { const it = [...block.items!]; it[idx].content = e.target.value; handleUpdate({ items: it }); }} placeholder="Text Content" className="h-7 text-xs" />
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <Input type="color" value={item.color} onChange={(e) => { const it = [...block.items!]; it[idx].color = e.target.value; handleUpdate({ items: it }); }} className="h-7 w-full p-0 cursor-pointer" />
+                                        <Input type="number" value={item.fontSize} onChange={(e) => { const it = [...block.items!]; it[idx].fontSize = parseInt(e.target.value); handleUpdate({ items: it }); }} placeholder="Size (px)" className="h-7 text-xs" />
+                                    </div>
+                                </>
+                            )}
+                            
+                            {item.type === 'image' && (
+                                <FileUpload value={item.url} onChange={(newUrl) => { const it = [...block.items!]; it[idx].url = newUrl; handleUpdate({ items: it }); }} placeholder="Image URL..." className="h-7 text-xs" />
+                            )}
+                            
+                            {item.type === 'icon' && (
+                                <>
+                                    <IconPicker value={item.icon} onChange={(newIcon) => { const it = [...block.items!]; it[idx].icon = newIcon; handleUpdate({ items: it }); }} />
+                                    <Input type="color" value={item.color} onChange={(e) => { const it = [...block.items!]; it[idx].color = e.target.value; handleUpdate({ items: it }); }} className="h-7 w-full p-0 cursor-pointer" />
+                                </>
+                            )}
+                            <div className="text-[8px] text-neutral-400 mt-1 uppercase text-right">Size: {item.w}x{item.h}</div>
+                        </div>
+                    ))}
+                </div>
+            )}
+{block.type === 'gallery' && (
+                <div className="flex flex-col gap-3">
+                    <div className="grid gap-1">
+                        <Label className="text-[10px] text-neutral-500 uppercase font-bold">Gallery Title</Label>
+                        <Input value={block.title || ''} onChange={(e) => handleUpdate({ title: e.target.value })} className="h-8 font-medium" />
+                    </div>
+                    <div className="grid gap-1">
+                        <Label className="text-[10px] text-neutral-500 uppercase font-bold">Layout Style</Label>
+                        <select value={block.layout || 'grid'} onChange={(e) => handleUpdate({ layout: e.target.value })} className="h-8 rounded-md border border-neutral-200 bg-transparent text-xs px-2 dark:border-neutral-800 dark:bg-neutral-900">
+                            <option value="grid">Standard Grid</option>
+                            <option value="masonry">Masonry</option>
+                        </select>
+                    </div>
+                    <div className="flex items-center justify-between border-t pt-2 mt-1">
+                        <span className="font-bold text-[10px] uppercase text-neutral-400">Photos</span>
+                        <button type="button" onClick={() => handleAddListItem('images', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80')} className="text-[10px] text-blue-600 font-bold hover:underline">+ Add Photo</button>
+                    </div>
+                    {block.images?.map((url: string, idx: number) => (
+                        <div key={idx} className="flex gap-2 items-center bg-white dark:bg-neutral-900 p-2 border rounded-lg shadow-sm">
+                            <FileUpload
+                                value={url}
+                                onChange={(newUrl) => { const imgs = [...block.images!]; imgs[idx] = newUrl; handleUpdate({ images: imgs }); }}
+                                className="flex-1"
+                                placeholder="Image URL..."
+                            />
+                            <button type="button" onClick={() => handleRemoveListItem('images', idx)} className="text-red-500 hover:text-red-700 p-1 bg-red-50 rounded">✕</button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {block.type === 'pricing' && (
+                <div className="flex flex-col gap-3">
+                    <div className="grid gap-1">
+                        <Label className="text-[10px] text-neutral-500 uppercase font-bold">Pricing Title</Label>
+                        <Input value={block.title || ''} onChange={(e) => handleUpdate({ title: e.target.value })} className="h-8 font-medium" />
+                    </div>
+                    <div className="flex items-center justify-between border-t pt-2 mt-1">
+                        <span className="font-bold text-[10px] uppercase text-neutral-400">Pricing Plans</span>
+                        <button type="button" onClick={() => handleAddListItem('plans', { name: 'New Plan', price: '0', features: ['Feature 1'], button_text: 'Buy', button_link: '#' })} className="text-[10px] text-blue-600 font-bold hover:underline">+ Add Plan</button>
+                    </div>
+                    {block.plans?.map((plan: any, idx: number) => (
+                        <div key={idx} className="flex flex-col gap-2 p-3 bg-white dark:bg-neutral-800 border rounded-lg shadow-xs">
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="font-bold text-xs">Plan #{idx + 1}</span>
+                                <button type="button" onClick={() => handleRemoveListItem('plans', idx)} className="text-red-500 text-[10px] font-bold">Remove</button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <Input value={plan.name} onChange={(e) => { const p = [...block.plans!]; p[idx].name = e.target.value; handleUpdate({ plans: p }); }} placeholder="Plan Name" className="h-7 text-xs" />
+                                <Input value={plan.price} onChange={(e) => { const p = [...block.plans!]; p[idx].price = e.target.value; handleUpdate({ plans: p }); }} placeholder="Price (e.g. $99)" className="h-7 text-xs" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <Input value={plan.button_text} onChange={(e) => { const p = [...block.plans!]; p[idx].button_text = e.target.value; handleUpdate({ plans: p }); }} placeholder="Button Text" className="h-7 text-xs" />
+                                <Input value={plan.button_link} onChange={(e) => { const p = [...block.plans!]; p[idx].button_link = e.target.value; handleUpdate({ plans: p }); }} placeholder="Button Link" className="h-7 text-xs" />
+                            </div>
+                            <div className="grid gap-1 mt-1">
+                                <Label className="text-[9px] text-neutral-500">Features (Comma separated)</Label>
+                                <Input value={plan.features.join(', ')} onChange={(e) => { const p = [...block.plans!]; p[idx].features = e.target.value.split(',').map(s=>s.trim()); handleUpdate({ plans: p }); }} placeholder="Feature 1, Feature 2" className="h-7 text-xs" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {block.type === 'cta' && (
+                <div className="flex flex-col gap-3">
+                    <div className="grid gap-1">
+                        <Label className="text-[10px] text-neutral-500 uppercase font-bold">Headline</Label>
+                        <Input value={block.title || ''} onChange={(e) => handleUpdate({ title: e.target.value })} className="h-8 font-medium" />
+                    </div>
+                    <div className="grid gap-1">
+                        <Label className="text-[10px] text-neutral-500 uppercase font-bold">Description text</Label>
+                        <textarea value={block.content || ''} onChange={(e) => handleUpdate({ content: e.target.value })} className="flex min-h-[60px] w-full rounded-md border border-neutral-200 bg-transparent px-3 py-2 text-sm focus-visible:outline-none dark:border-neutral-800" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="grid gap-1">
+                            <Label className="text-[10px] text-neutral-500 uppercase font-bold">Button Text</Label>
+                            <Input value={block.cta_text || ''} onChange={(e) => handleUpdate({ cta_text: e.target.value })} className="h-8" />
+                        </div>
+                        <div className="grid gap-1">
+                            <Label className="text-[10px] text-neutral-500 uppercase font-bold">Button Link</Label>
+                            <Input value={block.cta_link || ''} onChange={(e) => handleUpdate({ cta_link: e.target.value })} className="h-8" />
+                        </div>
+                    </div>
+                    <div className="grid gap-1 border-t pt-3 mt-1">
+                        <Label className="text-[10px] text-neutral-500 uppercase font-bold flex justify-between">
+                            Side Image
+                        </Label>
+                        <FileUpload value={block.image_url || ''} onChange={(newUrl) => handleUpdate({ image_url: newUrl })} placeholder="Image URL..." />
+                    </div>
+                    <div className="grid gap-1">
+                        <Label className="text-[10px] text-neutral-500 uppercase font-bold">Image Alignment</Label>
+                        <select value={block.align || 'left'} onChange={(e) => handleUpdate({ align: e.target.value })} className="h-8 rounded-md border border-neutral-200 bg-transparent text-xs px-2">
+                            <option value="left">Image on Left</option>
+                            <option value="right">Image on Right</option>
+                        </select>
+                    </div>
+                </div>
+            )}
+
+            {block.type === 'html' && (
+                <div className="flex flex-col gap-3">
+                    <div className="grid gap-1">
+                        <Label className="text-[10px] text-neutral-500 uppercase font-bold">Block Title (For Editor Only)</Label>
+                        <Input value={block.title || ''} onChange={(e) => handleUpdate({ title: e.target.value })} className="h-8" />
+                    </div>
+                    <div className="grid gap-1">
+                        <Label className="text-[10px] text-pink-600 uppercase font-bold">Raw HTML / Scripts</Label>
+                        <textarea 
+                            value={block.html_content || ''} 
+                            onChange={(e) => handleUpdate({ html_content: e.target.value })} 
+                            className="flex min-h-[250px] w-full font-mono text-[11px] rounded-md border border-neutral-300 bg-neutral-900 text-green-400 p-3 focus-visible:outline-none" 
+                            placeholder="<div>...</div>"
+                        />
+                        <p className="text-[9px] text-neutral-500 mt-1">Warning: Scripts will run on the published site. Use carefully.</p>
+                    </div>
+                </div>
+            )}
+
+            {block.type === 'profile' && (
+                <div className="flex flex-col gap-3">
+                    <div className="grid gap-1">
+                        <Label className="text-[10px] text-neutral-500 uppercase font-bold">Section Title</Label>
+                        <Input value={block.title || ''} onChange={(e) => handleUpdate({ title: e.target.value })} className="h-8 font-medium" />
+                    </div>
+                    <div className="flex items-center justify-between border-t pt-2 mt-1">
+                        <span className="font-bold text-[10px] uppercase text-neutral-400">Profiles</span>
+                        <button type="button" onClick={() => handleAddListItem('profiles', { name: 'New Person', role: 'Role', image: 'https://i.pravatar.cc/150', social: '#' })} className="text-[10px] text-blue-600 font-bold hover:underline">+ Add Profile</button>
+                    </div>
+                    {block.profiles?.map((prof: any, idx: number) => (
+                        <div key={idx} className="flex flex-col gap-2 p-3 bg-white dark:bg-neutral-800 border rounded-lg shadow-xs">
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="font-bold text-xs">Profile #{idx + 1}</span>
+                                <button type="button" onClick={() => handleRemoveListItem('profiles', idx)} className="text-red-500 text-[10px] font-bold">Remove</button>
+                            </div>
+                            <div className="flex gap-3">
+                                <div className="w-16 h-16 shrink-0 rounded-full overflow-hidden border">
+                                    {prof.image ? <img src={prof.image} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-neutral-100" />}
+                                </div>
+                                <div className="flex-1 flex flex-col gap-1.5">
+                                    <Input value={prof.name} onChange={(e) => { const p = [...block.profiles!]; p[idx].name = e.target.value; handleUpdate({ profiles: p }); }} placeholder="Name" className="h-7 text-xs" />
+                                    <Input value={prof.role} onChange={(e) => { const p = [...block.profiles!]; p[idx].role = e.target.value; handleUpdate({ profiles: p }); }} placeholder="Role" className="h-7 text-xs" />
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <FileUpload value={prof.image} onChange={(newUrl) => { const p = [...block.profiles!]; p[idx].image = newUrl; handleUpdate({ profiles: p }); }} placeholder="Image URL..." className="flex-1 h-7 text-xs" />
+                                <Input value={prof.social} onChange={(e) => { const p = [...block.profiles!]; p[idx].social = e.target.value; handleUpdate({ profiles: p }); }} placeholder="Social Link" className="flex-1 h-7 text-xs" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
         </div>
     );
 }

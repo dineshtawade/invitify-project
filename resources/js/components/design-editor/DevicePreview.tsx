@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Rnd } from 'react-rnd';
+import * as LucideIcons from 'lucide-react';
 import { Play, MapPin, Sparkles, HelpCircle, Star, Compass } from 'lucide-react';
 import type { Block } from './types';
 
@@ -399,6 +401,136 @@ export function DevicePreview({ blocks, activeSectionId, deviceType, title, slug
                                 <MapPin className="size-3" /> Open Maps Location
                             </a>
                         )}
+                    </div>
+                )}
+
+                {block.type === 'gallery' && (
+                    <div className="py-8 px-4 bg-white">
+                        {block.title && <h3 className="text-xl font-bold text-neutral-900 text-center mb-6">{block.title}</h3>}
+                        <div className={block.layout === 'masonry' ? 'columns-2 gap-4 space-y-4' : 'grid grid-cols-2 gap-4'}>
+                            {block.images?.map((img: string, i: number) => (
+                                <div key={i} className={`overflow-hidden rounded-xl ${block.layout === 'masonry' ? 'break-inside-avoid' : 'aspect-square'}`}>
+                                    <img src={img} className="w-full h-full object-cover" alt="Gallery" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {block.type === 'pricing' && (
+                    <div className="py-10 px-4 bg-neutral-50 flex flex-col gap-6">
+                        {block.title && <h3 className="text-2xl font-bold text-center text-neutral-900">{block.title}</h3>}
+                        <div className="flex flex-col gap-6 w-full max-w-sm mx-auto">
+                            {block.plans?.map((plan: any, i: number) => (
+                                <div key={i} className="bg-white border rounded-2xl p-6 shadow-xl flex flex-col gap-4 text-center">
+                                    <h4 className="text-lg font-bold text-neutral-800">{plan.name}</h4>
+                                    <div className="text-3xl font-black text-pink-600">{plan.price}</div>
+                                    <ul className="flex flex-col gap-2 my-2 text-sm text-neutral-600 text-left">
+                                        {plan.features?.map((f: string, j: number) => (
+                                            <li key={j} className="flex items-center gap-2"><Sparkles className="size-3 text-pink-500" /> {f}</li>
+                                        ))}
+                                    </ul>
+                                    <a href={plan.button_link} className="bg-neutral-900 text-white font-bold py-3 rounded-full hover:bg-neutral-800 transition-colors w-full inline-block">
+                                        {plan.button_text}
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {block.type === 'cta' && (
+                    <div className="py-12 bg-white flex flex-col md:flex-row items-center gap-6 px-6">
+                        {block.image_url && block.align === 'left' && (
+                            <img src={block.image_url} className="w-full md:w-1/2 aspect-video object-cover rounded-2xl shadow-lg" alt="CTA" />
+                        )}
+                        <div className="flex-1 flex flex-col gap-4 text-center md:text-left">
+                            <h3 className="text-3xl font-black text-neutral-900 leading-tight">{block.title}</h3>
+                            <p className="text-neutral-500 leading-relaxed text-sm">{block.content}</p>
+                            <a href={block.cta_link} className="bg-pink-600 text-white font-bold py-3 px-8 rounded-full hover:bg-pink-700 transition-colors self-center md:self-start mt-2 inline-block shadow-lg shadow-pink-500/30">
+                                {block.cta_text}
+                            </a>
+                        </div>
+                        {block.image_url && block.align === 'right' && (
+                            <img src={block.image_url} className="w-full md:w-1/2 aspect-video object-cover rounded-2xl shadow-lg mt-6 md:mt-0" alt="CTA" />
+                        )}
+                    </div>
+                )}
+                {block.type === 'html' && (
+                    <div className="w-full overflow-hidden" dangerouslySetInnerHTML={{ __html: block.html_content || '' }} />
+                )}
+                {block.type === 'profile' && (
+                    <div className="py-10 px-4 bg-white">
+                        {block.title && <h3 className="text-2xl font-bold text-center text-neutral-900 mb-8">{block.title}</h3>}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-lg mx-auto">
+                            {block.profiles?.map((prof: any, i: number) => (
+                                <div key={i} className="flex flex-col items-center text-center gap-3">
+                                    <div className="w-20 h-20 rounded-full overflow-hidden shadow-md">
+                                        <img src={prof.image} className="w-full h-full object-cover" alt={prof.name} />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-neutral-900 text-sm leading-tight">{prof.name}</h4>
+                                        <span className="text-[10px] text-pink-600 font-bold uppercase tracking-wide">{prof.role}</span>
+                                    </div>
+                                    {prof.social && (
+                                        <a href={prof.social} className="text-neutral-400 hover:text-pink-600 transition-colors text-[10px]">Follow</a>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {block.type === 'freeform' && (
+                    <div className="relative w-full h-[600px] bg-white overflow-hidden" style={{ minHeight: '600px' }}>
+                        {block.items?.map((item: any, i: number) => {
+                            const isSelected = activeSectionId === block.id;
+                            
+                            // Render specific item types
+                            let innerContent = null;
+                            if (item.type === 'text') {
+                                innerContent = (
+                                    <div style={{ color: item.color, fontSize: `${item.fontSize}px`, fontWeight: item.fontWeight, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                                        {item.content}
+                                    </div>
+                                );
+                            } else if (item.type === 'image') {
+                                innerContent = (
+                                    <img src={item.url} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: `${item.radius || 0}px` }} alt="Canvas element" draggable="false" />
+                                );
+                            } else if (item.type === 'icon') {
+                                const IconComponent = (LucideIcons as any)[item.icon] || LucideIcons.Star;
+                                innerContent = (
+                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color }}>
+                                        <IconComponent style={{ width: '100%', height: '100%' }} />
+                                    </div>
+                                );
+                            }
+                            
+                            // If in editor mode, wrap with Rnd to make it draggable/resizable
+                            // Note: Since onChange isn't passed down to DevicePreview easily to save positions,
+                            // we just allow visual drag/drop for preview. In a real app, you'd pass an update function.
+                            if (isSelected) {
+                                return (
+                                    <Rnd
+                                        key={i}
+                                        default={{ x: item.x || 0, y: item.y || 0, width: item.w || 100, height: item.h || 100 }}
+                                        bounds="parent"
+                                        className="border border-dashed border-blue-400 hover:border-solid hover:border-blue-500 bg-white/10 group"
+                                    >
+                                        <div className="absolute -top-3 -right-3 size-6 bg-white border rounded-full shadow flex items-center justify-center opacity-0 group-hover:opacity-100 z-10 pointer-events-none">
+                                            <LucideIcons.Move className="size-3 text-neutral-400" />
+                                        </div>
+                                        {innerContent}
+                                    </Rnd>
+                                );
+                            }
+
+                            // Read-only static positioning for preview mode or published site
+                            return (
+                                <div key={i} style={{ position: 'absolute', left: item.x, top: item.y, width: item.w, height: item.h }}>
+                                    {innerContent}
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
                 {block.type === 'timeline' && (
