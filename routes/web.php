@@ -289,6 +289,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('customer.user-templates.save-draft');
         Route::post('customer/user-templates/{userTemplate}/purchase', [\App\Http\Controllers\Customer\TemplateController::class, 'purchase'])
             ->name('customer.user-templates.purchase');
+        Route::post('customer/user-templates/{userTemplate}/upload-video', [\App\Http\Controllers\Customer\TemplateController::class, 'uploadVideo'])
+            ->name('customer.user-templates.upload-video');
         
         // Razorpay Payment Endpoints
         Route::post('customer/user-templates/{userTemplate}/create-order', [\App\Http\Controllers\Customer\TemplateController::class, 'createRazorpayOrder'])
@@ -338,7 +340,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             $templates = [];
             for ($i = 1; $i <= 100; $i++) {
                 $thumbnail = "/images/business-cards/template{$i}.png";
-                if ($i >= 37 && $i <= 100) {
+                if ($i >= 36 && $i <= 100) {
                     $thumbnail = "/images/business-cards/pre{$i}.webp";
                 }
                 $templates[] = [

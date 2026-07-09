@@ -264,11 +264,16 @@ export default function PrivacyPolicy() {
 
     return (
         <>
-            <Head title="Privacy Policy - Invitify">
+            <Head>
+                <title>Privacy Policy | Invitify</title>
+                <meta name="description" content="Read the Privacy Policy of Invitify. Learn how we securely collect, use, and protect your personal data when you create invitations and mini websites with us." />
+                <meta property="og:title" content="Privacy Policy | Invitify" />
+                <meta property="og:description" content="Learn how we securely collect, use, and protect your personal data at Invitify." />
+            </Head>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
-            </Head>
+
 
             <div className="min-h-screen bg-neutral-50 text-neutral-900 font-sans dark:bg-neutral-950 dark:text-neutral-50 transition-colors">
                 

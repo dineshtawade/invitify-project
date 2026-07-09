@@ -2,10 +2,8 @@ import { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import {
-    Sparkles, Search, Eye, CheckCircle2, X, FileText,
-    Smartphone, Tablet, Laptop, CreditCard, Calendar, ShieldCheck, Loader2, ArrowRight, ArrowLeft
-} from 'lucide-react';
+import { FileText, Loader2, Sparkles, Wand2, Paintbrush, ChevronRight, Zap, CheckCircle2, Crown, Gem, Check, Info, Search, Eye, X, Smartphone, Tablet, Laptop, CreditCard, Calendar, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
+import axios from 'axios';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -93,20 +91,13 @@ export default function StaticTemplatesBrowse({ templates = [], plans = [], razo
         setPayError('');
 
         try {
-            const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
-
-            const res = await fetch('/customer/business-cards/draft-create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                body: JSON.stringify({
-                    template_id: purchaseTemplate.id,
-                    plan_id: selectedPlan.id,
-                    company_name: companyName,
-                    slug: slug,
-                }),
+            const res = await axios.post('/customer/business-cards/draft-create', {
+                template_id: purchaseTemplate.id,
+                plan_id: selectedPlan.id,
+                company_name: companyName,
+                slug: slug,
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Failed to create card draft.');
+            const data = res.data;
 
             closePurchaseModal();
             window.location.href = data.redirect;

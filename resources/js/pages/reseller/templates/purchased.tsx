@@ -486,6 +486,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                         setIsVideoOpen(false);
                         setSelectedVideoTemplate(null);
                     }}
+                    uploadEndpoint={`/reseller/user-templates/${selectedVideoTemplate.id}/upload-video`}
                     onComplete={(url) => {
                         window.location.reload(); // Reload to show the video URL and buttons
                     }}

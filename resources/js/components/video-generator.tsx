@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import type { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
-import { toJpeg } from 'html-to-image';
+import { toJpeg, toPng } from 'html-to-image';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, Video, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -13,6 +13,7 @@ interface VideoGeneratorProps {
     isOpen: boolean;
     onClose: () => void;
     onComplete: (videoUrl: string) => void;
+    uploadEndpoint: string;
 }
 
 const fontStyles: Record<string, string> = {
@@ -22,7 +23,7 @@ const fontStyles: Record<string, string> = {
     cinzel: "'Cinzel', serif",
 };
 
-export default function VideoGenerator({ userTemplate, isOpen, onClose, onComplete }: VideoGeneratorProps) {
+export default function VideoGenerator({ userTemplate, isOpen, onClose, onComplete, uploadEndpoint }: VideoGeneratorProps) {
     const [status, setStatus] = useState<string>('idle');
     const [progress, setProgress] = useState<number>(0);
     const [ffmpeg, setFFmpeg] = useState<FFmpeg | null>(null);
@@ -30,9 +31,10 @@ export default function VideoGenerator({ userTemplate, isOpen, onClose, onComple
     
     const [errorMsg, setErrorMsg] = useState<string>('');
     
-    const DURATION_SECONDS = 5; // Generate a 5 second video
+    const isVideoTemplate = userTemplate.template?.type === 'video';
+    const DURATION_SECONDS = isVideoTemplate ? (userTemplate.custom_config.duration || 5) : 5;
     const FPS = 15; // 15 FPS for faster generation
-    const TOTAL_FRAMES = DURATION_SECONDS * FPS;
+    const TOTAL_FRAMES = Math.floor(DURATION_SECONDS * FPS);
 
     // Animation states
     const [currentTimeMs, setCurrentTimeMs] = useState(DURATION_SECONDS * 1000);
@@ -94,17 +96,30 @@ export default function VideoGenerator({ userTemplate, isOpen, onClose, onComple
                 // Allow browser to paint
                 await new Promise(resolve => setTimeout(resolve, 50));
 
-                const dataUrl = await toJpeg(containerRef.current, {
-                    quality: 0.8,
-                    pixelRatio: 1.5,
-                    cacheBust: true,
-                    style: {
-                        transform: 'scale(1)',
-                        transformOrigin: 'top left',
-                    }
-                });
-
-                ffmpeg.writeFile(`frame_${frame.toString().padStart(4, '0')}.jpg`, await fetchFile(dataUrl));
+                let dataUrl;
+                if (isVideoTemplate) {
+                    dataUrl = await toPng(containerRef.current, {
+                        pixelRatio: 1.5,
+                        cacheBust: true,
+                        backgroundColor: 'transparent',
+                        style: {
+                            transform: 'scale(1)',
+                            transformOrigin: 'top left',
+                        }
+                    });
+                    ffmpeg.writeFile(`frame_${frame.toString().padStart(4, '0')}.png`, await fetchFile(dataUrl));
+                } else {
+                    dataUrl = await toJpeg(containerRef.current, {
+                        quality: 0.8,
+                        pixelRatio: 1.5,
+                        cacheBust: true,
+                        style: {
+                            transform: 'scale(1)',
+                            transformOrigin: 'top left',
+                        }
+                    });
+                    ffmpeg.writeFile(`frame_${frame.toString().padStart(4, '0')}.jpg`, await fetchFile(dataUrl));
+                }
                 
                 setProgress(Math.round((frame / TOTAL_FRAMES) * 100));
             }
@@ -112,14 +127,32 @@ export default function VideoGenerator({ userTemplate, isOpen, onClose, onComple
             setStatus('encoding');
             setProgress(0);
 
-            await ffmpeg.exec([
-                '-framerate', `${FPS}`,
-                '-i', 'frame_%04d.jpg',
-                '-preset', 'ultrafast',
-                '-c:v', 'libx264',
-                '-pix_fmt', 'yuv420p',
-                'output.mp4'
-            ]);
+            if (isVideoTemplate && userTemplate.custom_config.video_url) {
+                setStatus('downloading background video...');
+                await ffmpeg.writeFile('bg.mp4', await fetchFile(userTemplate.custom_config.video_url));
+
+                setStatus('encoding');
+                await ffmpeg.exec([
+                    '-i', 'bg.mp4',
+                    '-framerate', `${FPS}`,
+                    '-i', 'frame_%04d.png',
+                    '-filter_complex', '[1:v][0:v]scale2ref=w=iw:h=ih[ovl][bg];[bg][ovl]overlay=0:0',
+                    '-c:a', 'copy',
+                    '-preset', 'ultrafast',
+                    '-c:v', 'libx264',
+                    '-pix_fmt', 'yuv420p',
+                    'output.mp4'
+                ]);
+            } else {
+                await ffmpeg.exec([
+                    '-framerate', `${FPS}`,
+                    '-i', 'frame_%04d.jpg',
+                    '-preset', 'ultrafast',
+                    '-c:v', 'libx264',
+                    '-pix_fmt', 'yuv420p',
+                    'output.mp4'
+                ]);
+            }
 
             const fileData = await ffmpeg.readFile('output.mp4');
             const blob = new Blob([fileData as any], { type: 'video/mp4' });
@@ -139,8 +172,9 @@ export default function VideoGenerator({ userTemplate, isOpen, onClose, onComple
 
             // Cleanup frames
             for (let frame = 0; frame < TOTAL_FRAMES; frame++) {
-                ffmpeg.deleteFile(`frame_${frame.toString().padStart(4, '0')}.jpg`);
+                ffmpeg.deleteFile(`frame_${frame.toString().padStart(4, '0')}.${isVideoTemplate ? 'png' : 'jpg'}`);
             }
+            if (isVideoTemplate) ffmpeg.deleteFile('bg.mp4');
             ffmpeg.deleteFile('output.mp4');
 
         } catch (error: any) {
@@ -160,8 +194,8 @@ export default function VideoGenerator({ userTemplate, isOpen, onClose, onComple
 
         try {
             const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            
-            const response = await fetch(`/reseller/user-templates/${userTemplate.id}/upload-video`, {
+
+            const response = await fetch(uploadEndpoint, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -189,6 +223,70 @@ export default function VideoGenerator({ userTemplate, isOpen, onClose, onComple
     };
 
     const renderTemplate = () => {
+        if (isVideoTemplate) {
+            const elements = userTemplate.custom_config.elements || [];
+            const currentTime = currentTimeMs / 1000;
+
+            return (
+                <div 
+                    ref={containerRef}
+                    className="relative w-[450px] h-[800px] bg-transparent overflow-hidden"
+                    style={{ transform: 'scale(0.8)', transformOrigin: 'top center', marginBottom: '-160px' }}
+                >
+                    {elements.map((el: any) => {
+                        const isVisible = currentTime >= el.startTime && currentTime <= el.endTime;
+                        const isEntering = currentTime >= el.startTime && currentTime < el.startTime + 0.5;
+                        const isExiting = currentTime <= el.endTime && currentTime > el.endTime - 0.5;
+
+                        let opacity = 1;
+                        let transform = 'translateY(0) scale(1)';
+
+                        if (el.animationIn === 'fade' && isEntering) opacity = (currentTime - el.startTime) / 0.5;
+                        else if (el.animationOut === 'fade' && isExiting) opacity = (el.endTime - currentTime) / 0.5;
+                        else if (el.animationIn === 'slide' && isEntering) transform = `translateY(${(0.5 - (currentTime - el.startTime)) * 100}px)`;
+                        else if (el.animationOut === 'slide' && isExiting) transform = `translateY(${-(0.5 - (el.endTime - currentTime)) * 100}px)`;
+                        else if (el.animationIn === 'zoom' && isEntering) transform = `scale(${0.5 + (currentTime - el.startTime)})`;
+                        else if (el.animationOut === 'zoom' && isExiting) transform = `scale(${0.5 + (el.endTime - currentTime)})`;
+
+                        if (!isVisible) return null;
+
+                        return (
+                            <div
+                                key={el.id}
+                                className="absolute flex items-center justify-center"
+                                style={{
+                                    left: `${el.x}%`,
+                                    top: `${el.y}%`,
+                                    width: `${el.w}%`,
+                                    height: `${el.h}%`,
+                                    opacity,
+                                    transform,
+                                }}
+                            >
+                                {el.type === 'text' ? (
+                                    <div
+                                        style={{
+                                            fontFamily: el.fontFamily || 'Playfair Display',
+                                            fontSize: el.fontSize || '24px',
+                                            color: el.color || '#ffffff',
+                                            fontWeight: el.fontWeight || 'normal',
+                                        }}
+                                        className="text-center w-full break-words"
+                                    >
+                                        {el.content}
+                                    </div>
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        {el.src && <img src={el.src} className="max-w-full max-h-full object-contain" />}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
+
         const cfg = normalizeConfig(userTemplate.custom_config, userTemplate.template.bg_gradient);
         const page = cfg.pages[0];
 

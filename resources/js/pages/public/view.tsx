@@ -13,6 +13,7 @@ interface PageProps {
         custom_config: any;
         template: {
             name: string;
+            type: string;
             bg_gradient: string;
         };
     };
@@ -31,7 +32,25 @@ const fontStyles: Record<string, string> = {
     pinyon: "'Pinyon Script', cursive",
 };
 
+import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
+
 export default function PublicSharedView({ userTemplate }: PageProps) {
+    const isVideo = userTemplate.template.type === 'video';
+    
+    if (isVideo) {
+        return (
+            <>
+                <Head title={`${userTemplate.template.name} - Invitation`} />
+                <div className="w-full h-screen bg-black">
+                    <VideoTemplateBuilder 
+                        data={{ default_config: userTemplate.custom_config }} 
+                        isPreviewOnly={true} 
+                    />
+                </div>
+            </>
+        );
+    }
+
     const config = normalizeConfig(userTemplate.custom_config, userTemplate.template.bg_gradient);
     const [currentPageIndex, setCurrentPageIndex] = useState(0);
     const cardRef = useRef<HTMLDivElement>(null);

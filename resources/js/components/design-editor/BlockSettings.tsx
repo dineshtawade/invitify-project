@@ -37,7 +37,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
             {!isCustomerMode && (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pb-4 border-b border-neutral-200 dark:border-neutral-800">
                     <div className="grid gap-1">
-                        <Label className="text-[10px] text-neutral-500 uppercase font-bold flex items-center gap-1"><Type className="size-3"/> Font</Label>
+                        <Label className="text-[10px] text-neutral-500 uppercase font-bold flex items-center gap-1"><Type className="size-3" /> Font</Label>
                         <select value={block.font_family || ''} onChange={(e) => handleUpdate({ font_family: e.target.value })} className="h-7 rounded border border-neutral-200 bg-white text-[10px] px-1 dark:bg-neutral-900 dark:border-neutral-800">
                             <option value="">Default (Inherit)</option>
                             <option value="'Inter', sans-serif">Inter</option>
@@ -119,7 +119,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     </div>
                     {(block.type === 'icons_grid' || block.type === 'links' || block.type === 'faq') && (
                         <div className="grid gap-1">
-                            <Label className="text-[10px] text-neutral-500 uppercase font-bold flex items-center gap-1"><LayoutGrid className="size-3"/> Grid</Label>
+                            <Label className="text-[10px] text-neutral-500 uppercase font-bold flex items-center gap-1"><LayoutGrid className="size-3" /> Grid</Label>
                             <select value={block.grid_columns || ''} onChange={(e) => handleUpdate({ grid_columns: e.target.value })} className="h-7 rounded border border-neutral-200 bg-white text-[10px] px-1 dark:bg-neutral-900 dark:border-neutral-800">
                                 <option value="">Auto/Default</option>
                                 <option value="1">1 Column</option>
@@ -132,7 +132,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     {(block.type === 'swiper' || block.type === 'video') && (
                         <>
                             <div className="grid gap-1">
-                                <Label className="text-[10px] text-neutral-500 uppercase font-bold flex items-center gap-1"><Sliders className="size-3"/> Media Width</Label>
+                                <Label className="text-[10px] text-neutral-500 uppercase font-bold flex items-center gap-1"><Sliders className="size-3" /> Media Width</Label>
                                 <select value={block.media_width || ''} onChange={(e) => handleUpdate({ media_width: e.target.value })} className="h-7 rounded border border-neutral-200 bg-white text-[10px] px-1 dark:bg-neutral-900 dark:border-neutral-800">
                                     <option value="">Default/Full</option>
                                     <option value="max-w-md">Small</option>
@@ -142,7 +142,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                                 </select>
                             </div>
                             <div className="grid gap-1">
-                                <Label className="text-[10px] text-neutral-500 uppercase font-bold flex items-center gap-1"><Sliders className="size-3"/> Media Height</Label>
+                                <Label className="text-[10px] text-neutral-500 uppercase font-bold flex items-center gap-1"><Sliders className="size-3" /> Media Height</Label>
                                 <select value={block.media_height || ''} onChange={(e) => handleUpdate({ media_height: e.target.value })} className="h-7 rounded border border-neutral-200 bg-white text-[10px] px-1 dark:bg-neutral-900 dark:border-neutral-800">
                                     <option value="">Default</option>
                                     <option value="aspect-square">Square (1:1)</option>
@@ -165,7 +165,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     </div>
                     {customBlock.fields && Array.isArray(customBlock.fields) && customBlock.fields.map((field: any) => {
                         const value = block[field.name] !== undefined ? block[field.name] : field.default;
-                        
+
                         return (
                             <div key={field.name} className="grid gap-1">
                                 <Label className="text-[10px] text-neutral-500 uppercase font-bold">{field.label}</Label>
@@ -250,10 +250,10 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     </div>
                     <div className="grid gap-1">
                         <Label className="text-[10px] text-neutral-500 uppercase font-bold">Text Content</Label>
-                        <textarea 
-                            value={block.content || ''} 
-                            onChange={(e) => handleUpdate({ content: e.target.value })} 
-                            className="flex min-h-[100px] w-full rounded-md border border-neutral-200 bg-transparent px-3 py-2 text-sm focus-visible:outline-hidden dark:border-neutral-800" 
+                        <textarea
+                            value={block.content || ''}
+                            onChange={(e) => handleUpdate({ content: e.target.value })}
+                            className="flex min-h-[100px] w-full rounded-md border border-neutral-200 bg-transparent px-3 py-2 text-sm focus-visible:outline-hidden dark:border-neutral-800"
                         />
                     </div>
                     {!isCustomerMode && (
@@ -287,11 +287,11 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     </div>
                     {block.images?.map((url: string, idx: number) => (
                         <div key={idx} className="flex gap-2 items-center bg-white dark:bg-neutral-900 p-2 border rounded-lg">
-                            <FileUpload 
-                                value={url} 
-                                onChange={(newUrl) => { const imgs = [...block.images!]; imgs[idx] = newUrl; handleUpdate({ images: imgs }); }} 
-                                className="flex-1" 
-                                placeholder="Image URL or Upload..." 
+                            <FileUpload
+                                value={url}
+                                onChange={(newUrl) => { const imgs = [...block.images!]; imgs[idx] = newUrl; handleUpdate({ images: imgs }); }}
+                                className="flex-1"
+                                placeholder="Image URL or Upload..."
                             />
                             <button type="button" onClick={() => handleRemoveListItem('images', idx)} className="text-red-500 hover:text-red-700 p-1 bg-red-50 rounded">✕</button>
                         </div>
@@ -307,10 +307,10 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     </div>
                     <div className="grid gap-1">
                         <Label className="text-[10px] text-neutral-500 uppercase font-bold">Video Embed URL or Upload</Label>
-                        <FileUpload 
-                            value={block.video_url || ''} 
-                            onChange={(url) => handleUpdate({ video_url: url })} 
-                            placeholder="https://youtube... or Upload Video" 
+                        <FileUpload
+                            value={block.video_url || ''}
+                            onChange={(url) => handleUpdate({ video_url: url })}
+                            placeholder="https://youtube... or Upload Video"
                             accept="video/*"
                         />
                     </div>
@@ -444,7 +444,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                                 <div className="grid gap-0.5">
                                     <span className="text-[9px] text-neutral-400 uppercase font-bold">Rating (1-5)</span>
                                     <select value={item.rating || 5} onChange={(e) => handleUpdateListItem('items', idx, 'rating', e.target.value)} className="h-7 rounded-md border border-neutral-200 bg-transparent text-xs px-1">
-                                        {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} Stars</option>)}
+                                        {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars</option>)}
                                     </select>
                                 </div>
                             </div>
@@ -530,12 +530,12 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
             {block.type === 'advanced_section' && (
                 <div className="flex flex-col gap-5">
                     {/* Background Settings */}
-                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                    <div className="border border-neutral-150 rounded-xl p-3  flex flex-col gap-2.5">
                         <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">1. Section Background</h4>
                         <div className="grid grid-cols-2 gap-2">
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Bg Type</Label>
-                                <select value={block.bg_type || 'color'} onChange={(e) => handleUpdate({ bg_type: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.bg_type || 'color'} onChange={(e) => handleUpdate({ bg_type: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="color">Solid Color</option>
                                     <option value="gradient">Gradient</option>
                                     <option value="image">Image Background</option>
@@ -578,12 +578,12 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     </div>
 
                     {/* Layout Settings */}
-                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                    <div className="border border-neutral-150 rounded-xl p-3  flex flex-col gap-2.5">
                         <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">2. Layout Controls</h4>
                         <div className="grid grid-cols-2 gap-2">
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Max Width</Label>
-                                <select value={block.section_width || 'max-w-4xl'} onChange={(e) => handleUpdate({ section_width: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.section_width || 'max-w-4xl'} onChange={(e) => handleUpdate({ section_width: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="max-w-md">Small (Mobile)</option>
                                     <option value="max-w-xl">Medium</option>
                                     <option value="max-w-4xl">Large (Default)</option>
@@ -593,7 +593,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Section Height</Label>
-                                <select value={block.section_height || 'auto'} onChange={(e) => handleUpdate({ section_height: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.section_height || 'auto'} onChange={(e) => handleUpdate({ section_height: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="auto">Auto</option>
                                     <option value="h-64">256px</option>
                                     <option value="h-96">384px</option>
@@ -602,7 +602,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Padding Vertical</Label>
-                                <select value={block.padding_top || 'py-12'} onChange={(e) => handleUpdate({ padding_top: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.padding_top || 'py-12'} onChange={(e) => handleUpdate({ padding_top: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="py-0">None (0)</option>
                                     <option value="py-4">Small (16px)</option>
                                     <option value="py-8">Medium (32px)</option>
@@ -612,7 +612,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Padding Horizontal</Label>
-                                <select value={block.padding_left || 'px-6'} onChange={(e) => handleUpdate({ padding_left: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.padding_left || 'px-6'} onChange={(e) => handleUpdate({ padding_left: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="px-0">None (0)</option>
                                     <option value="px-2">Small (8px)</option>
                                     <option value="px-6">Medium (24px)</option>
@@ -621,7 +621,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Margin Vertical</Label>
-                                <select value={block.margin_top || 'my-4'} onChange={(e) => handleUpdate({ margin_top: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.margin_top || 'my-4'} onChange={(e) => handleUpdate({ margin_top: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="my-0">None</option>
                                     <option value="my-2">my-2 (Small)</option>
                                     <option value="my-4">my-4 (Medium)</option>
@@ -631,7 +631,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Border Width</Label>
-                                <select value={block.border_width || 'border-0'} onChange={(e) => handleUpdate({ border_width: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.border_width || 'border-0'} onChange={(e) => handleUpdate({ border_width: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="border-0">No Border</option>
                                     <option value="border">Border Thin</option>
                                     <option value="border-2">Border 2px</option>
@@ -644,7 +644,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Border Style</Label>
-                                <select value={block.border_style || 'solid'} onChange={(e) => handleUpdate({ border_style: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.border_style || 'solid'} onChange={(e) => handleUpdate({ border_style: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="solid">Solid</option>
                                     <option value="dashed">Dashed</option>
                                     <option value="dotted">Dotted</option>
@@ -652,7 +652,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Border Radius</Label>
-                                <select value={block.border_radius || 'rounded-2xl'} onChange={(e) => handleUpdate({ border_radius: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.border_radius || 'rounded-2xl'} onChange={(e) => handleUpdate({ border_radius: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="rounded-none">None</option>
                                     <option value="rounded-md">Medium</option>
                                     <option value="rounded-lg">Large</option>
@@ -663,7 +663,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Box Shadow</Label>
-                                <select value={block.box_shadow || 'shadow-md'} onChange={(e) => handleUpdate({ box_shadow: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.box_shadow || 'shadow-md'} onChange={(e) => handleUpdate({ box_shadow: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="shadow-none">None</option>
                                     <option value="shadow-sm">Small</option>
                                     <option value="shadow-md">Medium</option>
@@ -676,7 +676,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     </div>
 
                     {/* Header Settings */}
-                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                    <div className="border border-neutral-150 rounded-xl p-3  flex flex-col gap-2.5">
                         <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">3. Header Settings</h4>
                         <div className="grid gap-1.5">
                             <Label className="text-[9px] text-neutral-500 font-bold uppercase">Header Text</Label>
@@ -685,7 +685,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                         <div className="grid grid-cols-2 gap-2">
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Heading Tag</Label>
-                                <select value={block.header_tag || 'h2'} onChange={(e) => handleUpdate({ header_tag: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.header_tag || 'h2'} onChange={(e) => handleUpdate({ header_tag: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="h1">H1</option>
                                     <option value="h2">H2</option>
                                     <option value="h3">H3</option>
@@ -696,7 +696,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Font Family</Label>
-                                <select value={block.header_font_family || 'Outfit'} onChange={(e) => handleUpdate({ header_font_family: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.header_font_family || 'Outfit'} onChange={(e) => handleUpdate({ header_font_family: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="Inter">Inter (Sans)</option>
                                     <option value="Outfit">Outfit (Display)</option>
                                     <option value="Playfair Display">Playfair (Serif)</option>
@@ -706,7 +706,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Font Size</Label>
-                                <select value={block.header_font_size || 'text-3xl'} onChange={(e) => handleUpdate({ header_font_size: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.header_font_size || 'text-3xl'} onChange={(e) => handleUpdate({ header_font_size: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="text-sm">Small</option>
                                     <option value="text-base">Base</option>
                                     <option value="text-xl">Large</option>
@@ -718,7 +718,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Font Weight</Label>
-                                <select value={block.header_font_weight || 'font-bold'} onChange={(e) => handleUpdate({ header_font_weight: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.header_font_weight || 'font-bold'} onChange={(e) => handleUpdate({ header_font_weight: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="font-light">Light</option>
                                     <option value="font-normal">Normal</option>
                                     <option value="font-semibold">Semibold</option>
@@ -732,7 +732,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Alignment</Label>
-                                <select value={block.header_align || 'center'} onChange={(e) => handleUpdate({ header_align: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.header_align || 'center'} onChange={(e) => handleUpdate({ header_align: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="left">Left</option>
                                     <option value="center">Center</option>
                                     <option value="right">Right</option>
@@ -742,16 +742,16 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     </div>
 
                     {/* Description Settings */}
-                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                    <div className="border border-neutral-150 rounded-xl p-3  flex flex-col gap-2.5">
                         <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">4. Description Settings</h4>
                         <div className="grid gap-1.5">
                             <Label className="text-[9px] text-neutral-500 font-bold uppercase">Description Text</Label>
-                            <textarea value={block.desc_text || ''} onChange={(e) => handleUpdate({ desc_text: e.target.value })} rows={3} className="flex w-full rounded border border-neutral-200 bg-white px-2 py-1 text-xs" />
+                            <textarea value={block.desc_text || ''} onChange={(e) => handleUpdate({ desc_text: e.target.value })} rows={3} className="flex w-full rounded border border-neutral-200 px-2 py-1 text-xs" />
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Font Family</Label>
-                                <select value={block.desc_font_family || 'Inter'} onChange={(e) => handleUpdate({ desc_font_family: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.desc_font_family || 'Inter'} onChange={(e) => handleUpdate({ desc_font_family: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="Inter">Inter</option>
                                     <option value="Outfit">Outfit</option>
                                     <option value="Playfair Display">Playfair</option>
@@ -760,7 +760,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Font Size</Label>
-                                <select value={block.desc_font_size || 'text-sm'} onChange={(e) => handleUpdate({ desc_font_size: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.desc_font_size || 'text-sm'} onChange={(e) => handleUpdate({ desc_font_size: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="text-xs">Extra Small</option>
                                     <option value="text-sm">Small</option>
                                     <option value="text-base">Regular</option>
@@ -769,7 +769,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Line Height</Label>
-                                <select value={block.desc_line_height || 'leading-relaxed'} onChange={(e) => handleUpdate({ desc_line_height: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.desc_line_height || 'leading-relaxed'} onChange={(e) => handleUpdate({ desc_line_height: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="leading-none">None</option>
                                     <option value="leading-tight">Tight</option>
                                     <option value="leading-normal">Normal</option>
@@ -783,7 +783,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1 col-span-2">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Alignment</Label>
-                                <select value={block.desc_align || 'center'} onChange={(e) => handleUpdate({ desc_align: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.desc_align || 'center'} onChange={(e) => handleUpdate({ desc_align: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="left">Left</option>
                                     <option value="center">Center</option>
                                     <option value="right">Right</option>
@@ -794,7 +794,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     </div>
 
                     {/* Button Settings */}
-                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                    <div className="border border-neutral-150 rounded-xl p-3  flex flex-col gap-2.5">
                         <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">5. CTA Button Controls</h4>
                         <div className="grid grid-cols-2 gap-2">
                             <div className="grid gap-1">
@@ -815,7 +815,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Border Radius</Label>
-                                <select value={block.btn_border_radius || 'rounded-full'} onChange={(e) => handleUpdate({ btn_border_radius: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.btn_border_radius || 'rounded-full'} onChange={(e) => handleUpdate({ btn_border_radius: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="rounded-none">Square</option>
                                     <option value="rounded-md">Medium</option>
                                     <option value="rounded-lg">Large</option>
@@ -824,7 +824,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Hover Effect</Label>
-                                <select value={block.btn_hover_effect || 'scale'} onChange={(e) => handleUpdate({ btn_hover_effect: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.btn_hover_effect || 'scale'} onChange={(e) => handleUpdate({ btn_hover_effect: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="none">None</option>
                                     <option value="scale">Zoom (Scale)</option>
                                     <option value="opacity">Opacity Glow</option>
@@ -832,7 +832,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Icon</Label>
-                                <select value={block.btn_icon || 'none'} onChange={(e) => handleUpdate({ btn_icon: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.btn_icon || 'none'} onChange={(e) => handleUpdate({ btn_icon: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="none">No Icon</option>
                                     <option value="arrow-right">Arrow Right</option>
                                     <option value="download">Download</option>
@@ -842,7 +842,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Padding</Label>
-                                <select value={block.btn_padding_x || 'px-6'} onChange={(e) => handleUpdate({ btn_padding_x: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.btn_padding_x || 'px-6'} onChange={(e) => handleUpdate({ btn_padding_x: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="px-4">px-4 (Normal)</option>
                                     <option value="px-6">px-6 (Wide)</option>
                                     <option value="px-8">px-8 (Extra Wide)</option>
@@ -852,7 +852,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     </div>
 
                     {/* Image Settings */}
-                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                    <div className="border border-neutral-150 rounded-xl p-3  flex flex-col gap-2.5">
                         <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">6. Image Settings</h4>
                         <div className="grid gap-1">
                             <Label className="text-[9px] text-neutral-500 font-bold uppercase">Image URL</Label>
@@ -865,7 +865,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Display Size</Label>
-                                <select value={block.image_size || 'medium'} onChange={(e) => handleUpdate({ image_size: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.image_size || 'medium'} onChange={(e) => handleUpdate({ image_size: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="small">Small</option>
                                     <option value="medium">Medium</option>
                                     <option value="large">Large</option>
@@ -874,7 +874,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1 col-span-2">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Border Radius</Label>
-                                <select value={block.image_radius || 'rounded-xl'} onChange={(e) => handleUpdate({ image_radius: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.image_radius || 'rounded-xl'} onChange={(e) => handleUpdate({ image_radius: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="rounded-none">Square</option>
                                     <option value="rounded-md">Medium</option>
                                     <option value="rounded-xl">Rounded XL</option>
@@ -885,12 +885,12 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     </div>
 
                     {/* Structure Alignment & Animations */}
-                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                    <div className="border border-neutral-150 rounded-xl p-3  flex flex-col gap-2.5">
                         <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">7. Alignment & Animation</h4>
                         <div className="grid grid-cols-2 gap-2">
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Content Align</Label>
-                                <select value={block.content_align || 'flex-col items-center'} onChange={(e) => handleUpdate({ content_align: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.content_align || 'flex-col items-center'} onChange={(e) => handleUpdate({ content_align: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="flex-col items-start">Stack Left</option>
                                     <option value="flex-col items-center">Stack Center</option>
                                     <option value="flex-col items-end">Stack Right</option>
@@ -898,7 +898,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Intro Animation</Label>
-                                <select value={block.animation_type || 'slide-up'} onChange={(e) => handleUpdate({ animation_type: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.animation_type || 'slide-up'} onChange={(e) => handleUpdate({ animation_type: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="none">None</option>
                                     <option value="fade-in">Fade In</option>
                                     <option value="slide-up">Slide Up</option>
@@ -910,7 +910,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     </div>
 
                     {/* Responsive Settings */}
-                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                    <div className="border border-neutral-150 rounded-xl p-3  flex flex-col gap-2.5">
                         <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">8. Responsive Settings</h4>
                         <div className="grid grid-cols-3 gap-2 py-1">
                             <label className="flex items-center gap-1.5 text-[9px] font-bold uppercase cursor-pointer">
@@ -929,7 +929,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                     </div>
 
                     {/* Advanced Options */}
-                    <div className="border border-neutral-150 rounded-xl p-3 bg-neutral-50/50 flex flex-col gap-2.5">
+                    <div className="border border-neutral-150 rounded-xl p-3  flex flex-col gap-2.5">
                         <h4 className="font-bold text-[10px] text-neutral-400 uppercase tracking-wider pb-1.5 border-b">9. Advanced CSS Specs</h4>
                         <div className="grid grid-cols-2 gap-2">
                             <div className="grid gap-1">
@@ -942,7 +942,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Positioning</Label>
-                                <select value={block.positioning || 'relative'} onChange={(e) => handleUpdate({ positioning: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.positioning || 'relative'} onChange={(e) => handleUpdate({ positioning: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="static">Static</option>
                                     <option value="relative">Relative</option>
                                     <option value="absolute">Absolute</option>
@@ -950,7 +950,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Z-Index</Label>
-                                <select value={block.z_index || 'z-0'} onChange={(e) => handleUpdate({ z_index: e.target.value })} className="h-7 text-xs bg-white border rounded">
+                                <select value={block.z_index || 'z-0'} onChange={(e) => handleUpdate({ z_index: e.target.value })} className="h-7 text-xs  border rounded">
                                     <option value="z-0">z-0</option>
                                     <option value="z-10">z-10</option>
                                     <option value="z-20">z-20</option>
@@ -959,7 +959,7 @@ export function BlockSettings({ block, onUpdate, isCustomerMode = false, customB
                             </div>
                             <div className="grid gap-1 col-span-2">
                                 <Label className="text-[9px] text-neutral-500 font-bold uppercase">Custom Raw CSS</Label>
-                                <textarea value={block.custom_css || ''} onChange={(e) => handleUpdate({ custom_css: e.target.value })} rows={3} placeholder={`#${block.custom_id || 'sec-id'} { \n  transform: rotate(1deg);\n}`} className="flex w-full rounded border border-neutral-200 bg-white px-2 py-1 text-[10px] font-mono" />
+                                <textarea value={block.custom_css || ''} onChange={(e) => handleUpdate({ custom_css: e.target.value })} rows={3} placeholder={`#${block.custom_id || 'sec-id'} { \n  transform: rotate(1deg);\n}`} className="flex w-full rounded border border-neutral-200 px-2 py-1 text-[10px] font-mono" />
                             </div>
                         </div>
                     </div>

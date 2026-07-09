@@ -170,11 +170,16 @@ export default function Disclaimer() {
 
     return (
         <>
-            <Head title="Disclaimer - Invitify">
+            <Head>
+                <title>Disclaimer | Invitify</title>
+                <meta name="description" content="General disclaimer for Invitify. Information regarding the use of our digital invitation templates, mini website builder, and business card services." />
+                <meta property="og:title" content="Disclaimer | Invitify" />
+                <meta property="og:description" content="General disclaimer and liability limitations for the use of Invitify services." />
+            </Head>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
-            </Head>
+
 
             <div className="min-h-screen bg-neutral-50 text-neutral-900 font-sans dark:bg-neutral-950 dark:text-neutral-50 transition-colors">
                 

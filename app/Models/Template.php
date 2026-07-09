@@ -11,6 +11,7 @@ class Template extends Model
 
     protected $fillable = [
         'name',
+        'type',
         'category',
         'price',
         'reseller_price',

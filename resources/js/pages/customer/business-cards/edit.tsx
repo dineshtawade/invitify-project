@@ -3,8 +3,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import axios from 'axios';
-import { 
-    ChevronLeft, ChevronRight, Save, Upload, Trash2, Plus, 
+import {
+    ChevronLeft, ChevronRight, Save, Upload, Trash2, Plus,
     Smartphone, Tablet, Laptop, Check, AlertCircle, FileText,
     Layers, User, Share2, CreditCard, ShoppingBag, ShoppingCart, Image as ImageIcon, Eye, ExternalLink, Download
 } from 'lucide-react';
@@ -211,7 +211,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
         try {
             // First save any unsaved changes
             await axios.put(`/customer/business-cards/${cardState.id}`, cardState);
-            
+
             // 1. Create order
             const orderRes = await fetch(`/customer/business-cards/${cardState.id}/create-order`, {
                 method: 'POST',
@@ -318,12 +318,12 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (path: string) => void) => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
-        
+
         let fileToUpload = files[0];
 
         try {
             setIsSaving(true);
-            
+
             // Compress the image before uploading
             if (fileToUpload.type.startsWith('image/')) {
                 fileToUpload = await compressImage(fileToUpload);
@@ -610,7 +610,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
 
-            
+
             <div className="flex h-[calc(100vh-80px)] overflow-hidden bg-slate-50">
                 {/* Left Side Editing Wizard */}
                 <div className={`${currentStep === 8 ? 'w-1/2' : 'w-full'} flex flex-col justify-between border-r border-slate-200 bg-white h-full transition-all duration-500 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10`}>
@@ -619,14 +619,14 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                         <div>
                             <h2 className="text-2xl font-black text-slate-800 tracking-tight">{cardState.company_name || 'New Design'}</h2>
                             <p className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">
-                                <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md text-xs font-bold">Step {currentStep} of {steps.length}</span> 
-                                {steps[currentStep-1].label}
+                                <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md text-xs font-bold">Step {currentStep} of {steps.length}</span>
+                                {steps[currentStep - 1].label}
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
                             {isSaving && <span className="text-xs font-medium text-slate-400 animate-pulse flex items-center gap-1"><div className="size-1.5 bg-slate-400 rounded-full animate-bounce"></div> Saving...</span>}
                             {saveMessage && <span className="text-xs text-emerald-500 font-bold bg-emerald-50 px-2 py-1 rounded-md">{saveMessage}</span>}
-                            
+
                             {cardState.payment_status === 'Pending' && (
                                 <button
                                     onClick={handlePayment}
@@ -648,8 +648,8 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                     </div>
 
                     {/* Progress Selector */}
-                    <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+                    <div className="px-6 py-4 border-b border-slate-100 bg-white sticky top-0 z-20">
+                        <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             {steps.map((st) => {
                                 const IconComponent = st.icon;
                                 const isActive = currentStep === st.id;
@@ -658,13 +658,12 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                     <button
                                         key={st.id}
                                         onClick={() => saveDraft(st.id)}
-                                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm whitespace-nowrap transition-all duration-300 ${
-                                            isActive
-                                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 font-bold scale-[1.02]'
-                                                : isCompleted
-                                                    ? 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 font-semibold shadow-sm'
-                                                    : 'bg-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 font-medium'
-                                        }`}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm whitespace-nowrap transition-all duration-200 border ${isActive
+                                            ? 'bg-slate-900 border-slate-900 text-white shadow-md font-semibold'
+                                            : isCompleted
+                                                ? 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 font-medium'
+                                                : 'bg-transparent border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100 font-medium'
+                                            }`}
                                     >
                                         <IconComponent className={`size-4 ${isActive ? 'text-white' : isCompleted ? 'text-blue-500' : 'text-slate-400'}`} />
                                         {st.label}
@@ -683,39 +682,42 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                 <div>
                                     <div className="mb-6">
                                         <h3 className="text-lg font-bold text-slate-800">Choose a Theme</h3>
-                                        <p className="text-sm text-slate-500">Select a design template for your business card. You can preview it on the right.</p>
+                                        <p className="text-sm">Select a design template for your business card. You can preview it on the right.</p>
                                     </div>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 mt-3">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-5 mt-4">
                                         {templates.map((temp) => {
                                             const isSelected = cardState.theme_css === temp.css_file;
                                             return (
                                                 <button
                                                     key={temp.id}
                                                     onClick={() => setCardState(prev => ({ ...prev, theme_css: temp.css_file }))}
-                                                    className={`group flex flex-col items-center rounded-[24px] text-center p-3 transition-all duration-300 relative ${
-                                                        isSelected
-                                                            ? 'bg-blue-50/50 shadow-[0_8px_30px_rgb(0,0,0,0.08)] ring-2 ring-blue-500 ring-offset-2 scale-[1.02]'
-                                                            : 'bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 hover:shadow-lg hover:-translate-y-1'
-                                                    }`}
+                                                    className={`group flex flex-col items-center rounded-2xl text-center p-2.5 transition-all duration-300 relative ${isSelected
+                                                        ? 'bg-slate-50 shadow-[0_4px_20px_rgb(0,0,0,0.06)] ring-2 ring-slate-800 ring-offset-2 scale-[1.02]'
+                                                        : 'bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5'
+                                                        }`}
                                                 >
                                                     {isSelected && (
-                                                        <div className="absolute -top-3 -right-3 bg-blue-500 text-white p-1.5 rounded-full shadow-md z-20">
+                                                        <div className="absolute -top-3 -right-3 bg-slate-900 text-white p-1.5 rounded-full shadow-md z-20">
                                                             <Check className="size-4" />
                                                         </div>
                                                     )}
                                                     {/* Mini Phone mockup wrapper */}
-                                                    <div className={`relative w-full aspect-[9/18.5] bg-slate-100 rounded-[18px] overflow-hidden border-[4px] shadow-inner flex flex-col mb-4 transition-colors duration-300 ${isSelected ? 'border-blue-100' : 'border-slate-100 group-hover:border-slate-200'}`}>
-                                                        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-3 bg-slate-800/20 backdrop-blur-sm rounded-full z-10 border border-white/10"></div>
-                                                        <img
-                                                            src={temp.thumbnail}
-                                                            alt={temp.name}
-                                                            className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
-                                                            onError={(e) => {
-                                                                (e.target as HTMLImageElement).src = '/images/business-cards/template1.png';
-                                                            }}
-                                                        />
+                                                    <div className="w-full px-2 sm:px-4 py-1">
+                                                        <div className={`relative w-full mx-auto aspect-[9/18.5] bg-black rounded-[20px] overflow-hidden border-[5px] shadow-md flex flex-col mb-2 transition-all duration-300 ${isSelected ? 'border-black ring-4 ring-blue-500/30' : 'border-neutral-900 group-hover:border-black group-hover:shadow-lg group-hover:-translate-y-1'}`}>
+                                                            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[35%] h-3 bg-black rounded-b-xl z-10 flex justify-center items-center">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-neutral-800/80 shadow-[inset_0_0_2px_rgba(255,255,255,0.2)]"></div>
+                                                            </div>
+                                                            <img
+                                                                src={temp.thumbnail}
+                                                                alt={temp.name}
+                                                                className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                                                                onError={(e) => {
+                                                                    (e.target as HTMLImageElement).src = '/images/business-cards/template1.png';
+                                                                }}
+                                                            />
+                                                        </div>
                                                     </div>
-                                                    <span className={`text-xs font-bold truncate w-full transition-colors duration-300 ${isSelected ? 'text-blue-700' : 'text-slate-700 group-hover:text-slate-900'}`}>{temp.name}</span>
+                                                    <span className={`text-[13px] font-bold truncate w-full transition-colors duration-300 ${isSelected ? 'text-slate-900' : 'text-slate-600 group-hover:text-slate-900'}`}>{temp.name}</span>
                                                 </button>
                                             );
                                         })}
@@ -728,7 +730,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                         {currentStep === 2 && (
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-neutral-500">Company / Business Name *</label>
+                                    <label className="block text-xs font-bold text-neutral-1000">Company / Business Name *</label>
                                     <input
                                         type="text"
                                         required
@@ -761,7 +763,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">First Name</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">First Name</label>
                                         <input
                                             type="text"
                                             value={cardState.personal_details?.first_name || ''}
@@ -770,7 +772,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Last Name</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Last Name</label>
                                         <input
                                             type="text"
                                             value={cardState.personal_details?.last_name || ''}
@@ -782,7 +784,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Designation / Position</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Designation / Position</label>
                                         <input
                                             type="text"
                                             value={cardState.personal_details?.designation || ''}
@@ -792,7 +794,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Est. Start Date</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Est. Start Date</label>
                                         <input
                                             type="text"
                                             value={cardState.personal_details?.est_date || ''}
@@ -805,7 +807,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Primary Phone</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Primary Phone</label>
                                         <input
                                             type="text"
                                             value={cardState.personal_details?.phone_1 || ''}
@@ -814,7 +816,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">WhatsApp No</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">WhatsApp No</label>
                                         <input
                                             type="text"
                                             value={cardState.personal_details?.whatsapp || ''}
@@ -826,7 +828,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Alternate Phone</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Alternate Phone</label>
                                         <input
                                             type="text"
                                             value={cardState.personal_details?.phone_2 || ''}
@@ -835,7 +837,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Email Address</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Email Address</label>
                                         <input
                                             type="email"
                                             value={cardState.personal_details?.email || ''}
@@ -846,7 +848,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-neutral-500">Website Address</label>
+                                    <label className="block text-xs font-bold text-neutral-1000">Website Address</label>
                                     <input
                                         type="text"
                                         value={cardState.personal_details?.website || ''}
@@ -857,7 +859,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-neutral-500">Google Map Link / Location</label>
+                                    <label className="block text-xs font-bold text-neutral-1000">Google Map Link / Location</label>
                                     <input
                                         type="text"
                                         value={cardState.personal_details?.location_map || ''}
@@ -868,7 +870,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-neutral-500">Full Address</label>
+                                    <label className="block text-xs font-bold text-neutral-1000">Full Address</label>
                                     <textarea
                                         value={cardState.personal_details?.address || ''}
                                         onChange={(e) => updatePersonalDetails('address', e.target.value)}
@@ -878,7 +880,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-neutral-500">About Us / Description</label>
+                                    <label className="block text-xs font-bold text-neutral-1000">About Us / Description</label>
                                     <textarea
                                         value={cardState.personal_details?.about_us || ''}
                                         onChange={(e) => updatePersonalDetails('about_us', e.target.value)}
@@ -895,7 +897,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                 <h3 className="text-sm font-bold text-neutral-700 ">Social Profile Links</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Facebook Link</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Facebook Link</label>
                                         <input
                                             type="text"
                                             value={cardState.social_links?.facebook || ''}
@@ -904,7 +906,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Instagram Link</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Instagram Link</label>
                                         <input
                                             type="text"
                                             value={cardState.social_links?.instagram || ''}
@@ -916,7 +918,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">LinkedIn Link</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">LinkedIn Link</label>
                                         <input
                                             type="text"
                                             value={cardState.social_links?.linkedin || ''}
@@ -925,7 +927,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Pinterest Link</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Pinterest Link</label>
                                         <input
                                             type="text"
                                             value={cardState.social_links?.pinterest || ''}
@@ -937,7 +939,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Twitter Link</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Twitter Link</label>
                                         <input
                                             type="text"
                                             value={cardState.social_links?.twitter || ''}
@@ -946,7 +948,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Google Map Review Link</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Google Map Review Link</label>
                                         <input
                                             type="text"
                                             value={cardState.social_links?.map_review || ''}
@@ -964,7 +966,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                 <h3 className="text-sm font-bold text-neutral-700 ">UPI Numbers</h3>
                                 <div className="grid grid-cols-3 gap-3">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Paytm No</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Paytm No</label>
                                         <input
                                             type="text"
                                             value={cardState.payment_details?.paytm_number || ''}
@@ -973,7 +975,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Google Pay No</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Google Pay No</label>
                                         <input
                                             type="text"
                                             value={cardState.payment_details?.gpay_number || ''}
@@ -982,7 +984,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">PhonePe No</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">PhonePe No</label>
                                         <input
                                             type="text"
                                             value={cardState.payment_details?.phonepe_number || ''}
@@ -995,7 +997,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                 <h3 className="text-sm font-bold text-neutral-700  pt-3 border-t border-neutral-100 ">Bank Details</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Bank Name</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Bank Name</label>
                                         <input
                                             type="text"
                                             value={cardState.payment_details?.bank_name || ''}
@@ -1005,7 +1007,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Account Holder Name</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Account Holder Name</label>
                                         <input
                                             type="text"
                                             value={cardState.payment_details?.holder_name || ''}
@@ -1017,7 +1019,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Account Number</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Account Number</label>
                                         <input
                                             type="text"
                                             value={cardState.payment_details?.account_number || ''}
@@ -1026,7 +1028,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Bank IFSC Code</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Bank IFSC Code</label>
                                         <input
                                             type="text"
                                             value={cardState.payment_details?.ifsc || ''}
@@ -1037,7 +1039,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-neutral-500">GST / Account Type</label>
+                                    <label className="block text-xs font-bold text-neutral-1000">GST / Account Type</label>
                                     <input
                                         type="text"
                                         value={cardState.payment_details?.gst || ''}
@@ -1050,7 +1052,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                 <h3 className="text-sm font-bold text-neutral-700  pt-3 border-t border-neutral-100 ">QR Code Image Uploads</h3>
                                 <div className="grid grid-cols-3 gap-3">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">Paytm QR</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Paytm QR</label>
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -1062,7 +1064,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">GPay QR</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">GPay QR</label>
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -1074,7 +1076,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-500">PhonePe QR</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">PhonePe QR</label>
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -1113,10 +1115,10 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                             >
                                                 <Trash2 className="size-4" />
                                             </button>
-                                            
+
                                             <div className="grid grid-cols-2 gap-3 items-center">
                                                 <div>
-                                                    <label className="block text-xs font-bold text-neutral-500">Service Name</label>
+                                                    <label className="block text-xs font-bold text-neutral-1000">Service Name</label>
                                                     <input
                                                         type="text"
                                                         value={service.name || ''}
@@ -1125,7 +1127,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-bold text-neutral-500">Image</label>
+                                                    <label className="block text-xs font-bold text-neutral-1000">Image</label>
                                                     <input
                                                         type="file"
                                                         accept="image/*"
@@ -1167,7 +1169,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
-                                                    <label className="block text-xs font-bold text-neutral-500">Product Name</label>
+                                                    <label className="block text-xs font-bold text-neutral-1000">Product Name</label>
                                                     <input
                                                         type="text"
                                                         value={prod.name || ''}
@@ -1176,7 +1178,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-bold text-neutral-500">Image</label>
+                                                    <label className="block text-xs font-bold text-neutral-1000">Image</label>
                                                     <input
                                                         type="file"
                                                         accept="image/*"
@@ -1188,7 +1190,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
-                                                    <label className="block text-xs font-bold text-neutral-500">MRP (Original Price)</label>
+                                                    <label className="block text-xs font-bold text-neutral-1000">MRP (Original Price)</label>
                                                     <input
                                                         type="number"
                                                         value={prod.mrp || ''}
@@ -1197,7 +1199,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-bold text-neutral-500">Selling Price</label>
+                                                    <label className="block text-xs font-bold text-neutral-1000">Selling Price</label>
                                                     <input
                                                         type="number"
                                                         value={prod.price || ''}
@@ -1246,7 +1248,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                 <h3 className="text-sm font-bold text-neutral-700  pt-5 border-t border-neutral-100 ">YouTube Video Links (Up to 5)</h3>
                                 {[0, 1, 2, 3, 4].map((idx) => (
                                     <div key={idx}>
-                                        <label className="block text-xs font-bold text-neutral-500">Video Link {idx + 1}</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Video Link {idx + 1}</label>
                                         <input
                                             type="text"
                                             value={cardState.youtube_videos?.[idx] || ''}
@@ -1276,16 +1278,16 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                                 <div className="max-w-md mx-auto border border-neutral-200  rounded-2xl p-6 bg-neutral-50  space-y-4">
                                     <div className="flex flex-col items-center justify-center">
-                                        <img 
+                                        <img
                                             src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/card/' + cardState.slug)}`}
-                                            alt="Scan QR Code" 
+                                            alt="Scan QR Code"
                                             className="size-36 border border-neutral-200  rounded-xl bg-white p-2"
                                         />
                                         <p className="text-[10px] text-neutral-450 mt-2">Scan with phone camera to view</p>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="block text-xs font-bold text-neutral-500 text-left">Live vCard URL Link</label>
+                                        <label className="block text-xs font-bold text-neutral-1000 text-left">Live vCard URL Link</label>
                                         <div className="flex items-center gap-2">
                                             <input
                                                 type="text"
@@ -1390,13 +1392,12 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                     {/* Frame Mockup Container */}
                     <div className="flex-1 w-full flex items-center justify-center overflow-hidden">
                         <div
-                            className={`h-full border border-neutral-900 bg-neutral-900 shadow-2xl flex flex-col transition-all duration-300 relative ${
-                                previewMode === 'mobile' 
-                                    ? 'w-[390px] max-h-[800px] rounded-[40px] p-3' 
-                                    : previewMode === 'tablet' 
-                                        ? 'w-[768px] rounded-2xl' 
-                                        : 'w-full rounded-xl'
-                            }`}
+                            className={`h-full border border-neutral-900 bg-neutral-900 shadow-2xl flex flex-col transition-all duration-300 relative ${previewMode === 'mobile'
+                                ? 'w-[390px] max-h-[800px] rounded-[40px] p-3'
+                                : previewMode === 'tablet'
+                                    ? 'w-[768px] rounded-2xl'
+                                    : 'w-full rounded-xl'
+                                }`}
                         >
                             {previewMode === 'mobile' && (
                                 <div className="absolute top-5 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-full z-20 flex items-center justify-center">

@@ -112,11 +112,19 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
 
     return (
         <>
-            <Head title="Invitify - Custom Digital Invitations">
+            <Head>
+                <title>Create Digital Invitations & Mini Websites | Invitify India</title>
+                <meta name="description" content="Design stunning wedding invitations, digital business cards, and mini websites in minutes. India's best online invitation maker and digital template builder." />
+                <meta name="keywords" content="digital invitation maker, wedding invitation templates india, mini website builder, digital business cards, online e-invites, create wedding card online" />
+                <meta property="og:title" content="Create Digital Invitations & Mini Websites | Invitify India" />
+                <meta property="og:description" content="Design stunning wedding invitations, digital business cards, and mini websites in minutes. India's best online invitation maker and digital template builder." />
+                <meta property="og:url" content="https://theinvitify.com/" />
+                <meta property="og:type" content="website" />
+            </Head>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
-            </Head>
+
 
             <div className="relative min-h-screen bg-[#fdfbf7] text-[#4a4238] font-sans selection:bg-[#3d5644] selection:text-white transition-colors overflow-hidden">
 
@@ -406,14 +414,30 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                                 {filteredTemplates.map((t) => (
                                     <div key={t.id} className="group relative flex flex-col items-center hover:-translate-y-1 transition-transform duration-300">
-                                        <div className={`relative w-full aspect-[4/5] p-6 bg-gradient-to-tr ${t.bg_gradient} rounded-t-xl rounded-b shadow-md overflow-hidden flex flex-col items-center justify-center`}>
+                                        <div className={`relative w-full aspect-[4/5] p-6 ${t.type !== 'video' ? `bg-gradient-to-tr ${t.bg_gradient}` : 'bg-neutral-900'} rounded-t-xl rounded-b shadow-md overflow-hidden flex flex-col items-center justify-center`}>
+                                            {t.type === 'video' && t.default_config?.video_url && (
+                                                <video 
+                                                    src={t.default_config.video_url} 
+                                                    autoPlay 
+                                                    loop 
+                                                    muted 
+                                                    playsInline 
+                                                    className="absolute inset-0 w-full h-full object-cover opacity-80"
+                                                />
+                                            )}
                                             <div className="absolute inset-0 bg-[#3e3832]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                            <div className="text-center pointer-events-none scale-90 opacity-90 transition-transform duration-300 group-hover:scale-95">
-                                                <p className="text-[10px] tracking-widest uppercase font-serif font-bold text-neutral-800">{t.default_config.title}</p>
-                                                <p className="font-serif text-2xl font-black my-2 truncate text-neutral-900 max-w-[170px]">{t.default_config.guest_of_honor}</p>
-                                                <p className="text-[8px] opacity-80 uppercase tracking-wider">{t.default_config.date}</p>
+                                            <div className="text-center pointer-events-none scale-90 opacity-90 transition-transform duration-300 group-hover:scale-95 relative z-10">
+                                                {t.type === 'video' ? (
+                                                    <PlayCircle className="size-12 text-white/80 mx-auto" />
+                                                ) : (
+                                                    <>
+                                                        <p className="text-[10px] tracking-widest uppercase font-serif font-bold text-neutral-800">{t.default_config.title}</p>
+                                                        <p className="font-serif text-2xl font-black my-2 truncate text-neutral-900 max-w-[170px]">{t.default_config.guest_of_honor}</p>
+                                                        <p className="text-[8px] opacity-80 uppercase tracking-wider">{t.default_config.date}</p>
+                                                    </>
+                                                )}
                                             </div>
-                                            <Link href={`/templates/${t.id}/customize`} className="absolute inset-0 z-10" />
+                                            <Link href={`/templates/${t.id}/customize`} className="absolute inset-0 z-20" />
                                         </div>
                                         <div className="w-[90%] -mt-6 z-20 bg-[#fdfbf7] border border-[#ebd9c1] rounded p-3 text-center shadow-sm relative pointer-events-none group-hover:border-[#d3c0a3] transition-colors">
                                             <h3 className="text-sm font-serif font-bold text-[#3e3832] truncate">{t.name}</h3>
