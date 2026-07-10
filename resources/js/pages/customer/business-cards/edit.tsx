@@ -611,9 +611,9 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
         <AppLayout breadcrumbs={breadcrumbs}>
 
 
-            <div className="flex h-[calc(100vh-80px)] overflow-hidden bg-slate-50">
+            <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)] overflow-y-auto lg:overflow-hidden bg-slate-50">
                 {/* Left Side Editing Wizard */}
-                <div className={`${currentStep === 8 ? 'w-1/2' : 'w-full'} flex flex-col justify-between border-r border-slate-200 bg-white h-full transition-all duration-500 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10`}>
+                <div className={`${currentStep === 8 ? 'w-full lg:w-1/2' : 'w-full'} flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200 bg-white h-auto lg:h-full min-h-[80vh] transition-all duration-500 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10`}>
                     {/* Header */}
                     <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-20">
                         <div>
@@ -1361,7 +1361,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                 </div>
 
                 {/* Right Side Responsive Live Preview Device Mockup */}
-                <div className={`${currentStep === 8 ? 'w-1/2 flex' : 'hidden'} bg-neutral-950 flex-col items-center justify-between p-6 relative transition-all duration-300`}>
+                <div className={`${currentStep === 8 ? 'w-full lg:w-1/2 flex' : 'hidden'} bg-neutral-950 flex-col items-center justify-between p-6 relative transition-all duration-300 min-h-[100vh] lg:min-h-0`}>
                     <div className="w-full flex items-center justify-between border-b border-neutral-900 pb-3 text-neutral-400 mb-6">
                         <span className="text-xs font-bold tracking-wider">Live Preview Viewport</span>
                         <div className="flex gap-1.5 border border-neutral-800 rounded-lg p-0.5">

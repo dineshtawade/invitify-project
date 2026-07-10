@@ -96,8 +96,8 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
     ];
 
     // Normalize initial state with fallback for old layouts
-    const initialConfig = template.type === 'video' 
-        ? (userTemplate.custom_config || template.default_config || { video_url: null, elements: [] }) 
+    const initialConfig = template.type === 'video'
+        ? (userTemplate.custom_config || template.default_config || { video_url: null, elements: [] })
         : normalizeConfig(userTemplate.custom_config, template.bg_gradient);
 
     const { data, setData, put, processing } = useForm({
@@ -407,7 +407,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                         </Button>
                         <Button
                             onClick={handleBuyClick}
-                            className="bg-indigo-650 hover:bg-indigo-700 text-white flex items-center gap-1.5 shadow-sm rounded-xl text-xs font-bold px-5"
+                            className="bg-indigo-650 hover:bg-indigo-700  flex items-center gap-1.5 shadow-sm rounded-xl text-xs font-bold px-5"
                         >
                             <CreditCard className="size-4" /> Purchase Design Card
                         </Button>
@@ -461,9 +461,9 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                         if (element.type === 'text') {
                                             return (
                                                 <div key={element.id} className="grid gap-1.5 bg-neutral-50/50 dark:bg-neutral-950/20 p-3.5 rounded-xl border">
-                                                    <Label htmlFor={element.id} className="text-xs font-bold text-neutral-805 dark:text-neutral-200 flex items-center justify-between">
-                                                        <span>{element.editableLabel || 'Text Field'}</span>
-                                                        <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-400">Page {pageIndex + 1}</span>
+                                                    <Label htmlFor={element.id} className="text-xs font-bold text-white dark:text-neutral-200 flex items-center justify-between">
+                                                        <span className='dark:text-neutral-100'>{element.editableLabel || 'Text Field'}</span>
+                                                        <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-800">Page {pageIndex + 1}</span>
                                                     </Label>
                                                     {element.multiline ? (
                                                         <textarea
@@ -488,7 +488,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                         if (element.type === 'image') {
                                             return (
                                                 <div key={element.id} className="grid gap-2 bg-neutral-50/50 dark:bg-neutral-950/20 p-3.5 rounded-xl border">
-                                                    <Label className="text-xs font-bold text-neutral-805 dark:text-neutral-200 flex items-center justify-between">
+                                                    <Label className="text-xs font-bold text-neutral-805 dark:text-neutral-200 dark:text-neutral-100 flex items-center justify-between">
                                                         <span>{element.editableLabel || 'Upload Image'}</span>
                                                         <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-400">Page {pageIndex + 1}</span>
                                                     </Label>

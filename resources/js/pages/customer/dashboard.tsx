@@ -64,7 +64,7 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [] }:
                     <p className="text-[#706557]">Welcome to Invitify! Create invitations, customize your design templates, and track RSVP responses.</p>
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-3">
+                <div className="grid gap-6 md:grid-cols-2">
                     <div className="rounded-xl border border-[#ebd9c1] bg-[#fdfbf7] p-6 shadow-sm">
                         <div className="flex items-center justify-between gap-4">
                             <div>
@@ -77,7 +77,7 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [] }:
                         </div>
                     </div>
 
-                    <div className="rounded-xl border border-[#ebd9c1] bg-[#fdfbf7] p-6 shadow-sm">
+                    {/* <div className="rounded-xl border border-[#ebd9c1] bg-[#fdfbf7] p-6 shadow-sm">
                         <div className="flex items-center justify-between gap-4">
                             <div>
                                 <p className="text-sm font-medium text-[#706557] font-serif">Total RSVPs</p>
@@ -87,7 +87,7 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [] }:
                                 <Star className="size-6" />
                             </div>
                         </div>
-                    </div>
+                    </div> */}
 
                     <div className="rounded-xl border border-[#ebd9c1] bg-[#fdfbf7] p-6 shadow-sm">
                         <div className="flex items-center justify-between gap-4">
@@ -139,13 +139,13 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [] }:
                                         {t.default_config.layout_style === 'photo-bg' && t.default_config.image_url && (
                                             <div className="absolute inset-0 bg-black/45" />
                                         )}
-                                        
+
                                         {/* Split style indicator line */}
                                         {t.default_config.layout_style === 'split-hero' && (
                                             <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-[#fdfbf7]/90 border-l border-[#ebd9c1] flex items-center justify-center text-[8px] font-bold text-[#706557] select-none">IMAGE</div>
                                         )}
 
-                                        <div 
+                                        <div
                                             className="text-center pointer-events-none scale-90 opacity-90 transition-transform duration-300 group-hover:scale-95 relative z-10"
                                             style={{ color: t.default_config.layout_style === 'photo-bg' && t.default_config.image_url ? '#ffffff' : '#3e3832' }}
                                         >
@@ -170,7 +170,7 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [] }:
                                             {t.category.replace('_', ' ')}
                                         </p>
                                     </div>
-                                    
+
                                     <Link
                                         href={`/templates/${t.id}/customize`}
                                         className="absolute inset-0 z-30"
@@ -227,11 +227,10 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [] }:
                                                 </td>
                                                 <td className="px-5 py-3 capitalize">{w.type}</td>
                                                 <td className="px-5 py-3">
-                                                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
-                                                        w.is_published
-                                                            ? 'bg-[#3d5644] text-[#fdfbf7]'
-                                                            : 'bg-[#ebd9c1] text-[#4a4238]'
-                                                    }`}>
+                                                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${w.is_published
+                                                        ? 'bg-[#3d5644] text-[#fdfbf7]'
+                                                        : 'bg-[#ebd9c1] text-[#4a4238]'
+                                                        }`}>
                                                         {w.is_published ? 'Live' : 'Draft'}
                                                     </span>
                                                 </td>

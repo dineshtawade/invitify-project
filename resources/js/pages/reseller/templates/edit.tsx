@@ -400,7 +400,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                     if (element.type === 'text') {
                                         return (
                                             <div key={element.id} className="grid gap-1.5 bg-neutral-50/50 dark:bg-neutral-950/20 p-3.5 rounded-xl border">
-                                                <Label htmlFor={element.id} className="text-xs font-bold text-neutral-805 dark:text-neutral-200 flex items-center justify-between">
+                                                <Label htmlFor={element.id} className="text-xs font-bold text-neutral-900 dark:text-neutral-200 flex items-center justify-between">
                                                     <span>{element.editableLabel || 'Text Field'}</span>
                                                     <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-400">Page {pageIndex + 1}</span>
                                                 </Label>
