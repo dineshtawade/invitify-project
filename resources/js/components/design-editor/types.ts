@@ -21,6 +21,16 @@ export interface Block {
     plans?: { name: string; price: string; features: string[]; button_text: string; button_link: string }[];
     layout?: string; // e.g. "grid", "masonry"
     profiles?: { name: string; role: string; image: string; social: string }[];
+    
+    // --- Dynamic Block Properties ---
+    bg_image?: string;
+    icon?: string;
+    text_lines?: { text: string; size: string; weight: string; color: string }[];
+    custom_image_url?: string;
+    title_color?: string;
+    subtitle_color?: string;
+    hero_text_lines?: { text: string; size: string; weight: string; color: string }[];
+    hero_elements?: any[];
 
     // --- Advanced Features ---
     font_family?: string;
@@ -56,6 +66,42 @@ export const getNewBlockDefaults = (type: string, isInvitation = false): Block =
         newBlock.bg_color = 'from-amber-100 via-orange-50 to-amber-200';
         newBlock.cta_text = 'Learn More';
         newBlock.cta_link = '#';
+        newBlock.title_color = '#1f2937';
+        newBlock.subtitle_color = '#4b5563';
+        newBlock.hero_text_lines = [];
+        newBlock.hero_elements = [
+            {
+                id: `el_${Math.random().toString(36).substr(2, 9)}`,
+                type: 'text',
+                content: 'You are Invited!',
+                font_family: '',
+                font_size_px: 36,
+                font_weight: '800',
+                color: '#1f2937',
+                align: 'center'
+            },
+            {
+                id: `el_${Math.random().toString(36).substr(2, 9)}`,
+                type: 'text',
+                content: 'Join us for a special celebration.',
+                font_family: '',
+                font_size_px: 14,
+                font_weight: '400',
+                color: '#4b5563',
+                align: 'center'
+            },
+            {
+                id: `el_${Math.random().toString(36).substr(2, 9)}`,
+                type: 'button',
+                btn_text: 'RSVP Now',
+                btn_url: '#rsvp',
+                btn_bg_color: '#ffffff',
+                btn_text_color: '#1f2937',
+                btn_radius: 'rounded-full',
+                btn_size: 'medium',
+                align: 'center'
+            }
+        ];
     } else if (type === 'text') {
         newBlock.title = 'Section Heading';
         newBlock.content = 'Write your description here.';
@@ -216,6 +262,53 @@ export const getNewBlockDefaults = (type: string, isInvitation = false): Block =
         newBlock.custom_css = '';
         newBlock.z_index = 'z-0';
         newBlock.positioning = 'relative';
+    } else if (type === 'dynamic_layout') {
+        newBlock.title = 'Dynamic Layout Block';
+        newBlock.bg_color = '#ffffff';
+        newBlock.bg_image = '';
+        newBlock.icon = 'Sparkles';
+        newBlock.custom_image_url = '';
+        newBlock.text_lines = [
+            { text: 'Dynamic line one (Edit this text)', size: 'text-base', weight: 'bold', color: '#1f2937' },
+            { text: 'Dynamic line two (Try adding more lines)', size: 'text-sm', weight: 'normal', color: '#4b5563' }
+        ];
+    } else if (type === 'flexible_layout') {
+        newBlock.title = 'Flexible Section';
+        newBlock.bg_color = '#ffffff';
+        newBlock.bg_image = '';
+        newBlock.items = [
+            {
+                id: `item_${Math.random().toString(36).substr(2, 9)}`,
+                type: 'text',
+                text: 'Welcome to our custom layout!',
+                font_family: '',
+                font_size: 'text-2xl',
+                color: '#1f2937',
+                align: 'center',
+                weight: 'bold'
+            },
+            {
+                id: `item_${Math.random().toString(36).substr(2, 9)}`,
+                type: 'text',
+                text: 'You can fully customize every text element, add images/videos, and buttons here.',
+                font_family: '',
+                font_size: 'text-sm',
+                color: '#4b5563',
+                align: 'center',
+                weight: 'normal'
+            },
+            {
+                id: `item_${Math.random().toString(36).substr(2, 9)}`,
+                type: 'button',
+                btn_text: 'Get Started',
+                btn_url: '#',
+                btn_bg_color: '#2563eb',
+                btn_text_color: '#ffffff',
+                btn_radius: 'rounded-full',
+                btn_size: 'medium',
+                align: 'center'
+            }
+        ];
     }
 
     return newBlock;

@@ -682,7 +682,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
 
             {/* Right Side - Live Preview */}
             <div className="flex-1 flex items-center justify-center bg-black relative p-4 lg:p-8 overflow-hidden">
-                <div ref={containerRef} className="relative rounded-2xl overflow-hidden shadow-2xl border border-neutral-800 aspect-[9/16] h-full bg-neutral-900 max-h-full">
+                <div ref={containerRef} className="video-template-preview-container relative rounded-2xl overflow-hidden shadow-2xl border border-neutral-800 aspect-[9/16] h-full bg-neutral-900 max-h-full">
                     <video
                         ref={videoRef}
                         src={videoUrl}

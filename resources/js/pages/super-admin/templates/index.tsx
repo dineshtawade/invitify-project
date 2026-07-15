@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
+import html2canvas from 'html2canvas';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -40,6 +41,7 @@ interface Template {
     type: 'image' | 'video';
     price: string | number;
     bg_gradient: string;
+    thumbnail: string | null;
     default_config: any;
 }
 
@@ -116,6 +118,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
         category: categories[0]?.slug || 'wedding',
         price: '9.99',
         bg_gradient: 'from-stone-100 to-rose-50 text-neutral-800',
+        thumbnail: '' as string | null,
         default_config: normalizeConfig(null),
     });
 
@@ -191,6 +194,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
             category: categories[0]?.slug || 'wedding',
             price: '9.99',
             bg_gradient: 'from-stone-100 to-rose-50 text-neutral-800',
+            thumbnail: '',
             default_config: normalizeConfig(null),
         });
         setBgType('preset');
@@ -215,6 +219,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
             category: template.category,
             price: String(template.price),
             bg_gradient: template.bg_gradient,
+            thumbnail: template.thumbnail || '',
             default_config: normConfig,
         });
 
@@ -241,17 +246,75 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
         setIsOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const dataURLtoFile = (dataurl: string, filename: string) => {
+        let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)![1],
+            bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+        while(n--){
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([u8arr], filename, {type:mime});
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        let thumbnailUrl = data.thumbnail;
+        
+        // Temporarily deselect any elements to get a clean thumbnail without outlines/move handles
+        setSelectedElementId(null);
+        
+        // Wait briefly for React rendering cycle to hide handles
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const elementToCapture = data.type === 'video' 
+            ? document.querySelector('.video-template-preview-container') || cardRef.current
+            : cardRef.current;
+            
+        if (elementToCapture) {
+            try {
+                const canvas = await html2canvas(elementToCapture as HTMLElement, {
+                    useCORS: true,
+                    scale: 1.5, // slightly better quality for preview thumbs
+                    backgroundColor: null,
+                });
+                
+                const dataUrl = canvas.toDataURL('image/png');
+                const file = dataURLtoFile(dataUrl, `template-thumb-${Date.now()}.png`);
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const response = await fetch('/media/upload', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                    },
+                    body: formData,
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    thumbnailUrl = result.url;
+                }
+            } catch (err) {
+                console.error("Failed to generate or upload template thumbnail:", err);
+            }
+        }
+        
+        const payload = {
+            ...data,
+            thumbnail: thumbnailUrl
+        };
+        
         if (editingTemplate) {
-            put(`/super-admin/templates/${editingTemplate.id}`, {
+            router.put(`/super-admin/templates/${editingTemplate.id}`, payload, {
                 onSuccess: () => {
                     setIsOpen(false);
                     reset();
                 },
             });
         } else {
-            post('/super-admin/templates', {
+            router.post('/super-admin/templates', payload, {
                 onSuccess: () => {
                     setIsOpen(false);
                     reset();
@@ -379,21 +442,16 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
     };
 
     const handleUpdateElement = (elementId: string, updates: Partial<ElementConfig>) => {
-        setData(prev => {
-            const updatedPages = [...prev.default_config.pages];
-            updatedPages[activePageIndex] = {
-                ...updatedPages[activePageIndex],
-                elements: updatedPages[activePageIndex].elements.map(e =>
-                    e.id === elementId ? { ...e, ...updates } : e
-                )
-            };
-            return {
-                ...prev,
-                default_config: {
-                    ...prev.default_config,
-                    pages: updatedPages
-                }
-            };
+        const updatedPages = [...data.default_config.pages];
+        updatedPages[activePageIndex] = {
+            ...updatedPages[activePageIndex],
+            elements: updatedPages[activePageIndex].elements.map(e =>
+                e.id === elementId ? { ...e, ...updates } : e
+            )
+        };
+        setData('default_config', {
+            ...data.default_config,
+            pages: updatedPages
         });
     };
 
@@ -452,6 +510,17 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
 
         const elem = activePage.elements.find(el => el.id === elementId);
         if (!elem) return;
+
+        // Auto-switch active tab to show matching properties inspector
+        if (elem.type === 'text') {
+            setActiveTab('text');
+        } else if (elem.type === 'image') {
+            setActiveTab('image');
+        } else if (elem.type === 'icon' || elem.type === 'divider') {
+            setActiveTab('icon');
+        } else if (elem.type === 'link') {
+            setActiveTab('link');
+        }
 
         const startX = e.clientX;
         const startY = e.clientY;
@@ -549,21 +618,27 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                     ₹{parseFloat(String(t.price)).toFixed(2)}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {t.type === 'video' ? (
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="w-16 h-8 bg-neutral-900 rounded border border-neutral-700 flex items-center justify-center">
-                                                                <Play className="size-3 text-indigo-400" />
+                                                    <div className="flex items-center gap-3">
+                                                        {t.thumbnail ? (
+                                                            <img 
+                                                                src={t.thumbnail} 
+                                                                alt={t.name} 
+                                                                className="w-10 h-14 object-cover rounded-lg border shadow-xs bg-white dark:bg-neutral-905" 
+                                                            />
+                                                        ) : (
+                                                            <div className="w-10 h-14 rounded-lg border border-dashed bg-neutral-50 dark:bg-neutral-950 flex flex-col items-center justify-center text-[8px] text-neutral-400 font-bold uppercase select-none shrink-0">
+                                                                No Img
                                                             </div>
-                                                            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Video</span>
+                                                        )}
+                                                        <div className="flex flex-col gap-0.5">
+                                                            {t.type === 'video' ? (
+                                                                <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200">Video Template</span>
+                                                            ) : (
+                                                                <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200">Image Template</span>
+                                                            )}
+                                                            <span className="text-[10px] text-neutral-400 capitalize">{t.category.replace('_', ' ')}</span>
                                                         </div>
-                                                    ) : isCustomBg ? (
-                                                        <span
-                                                            className="inline-block w-24 h-6 rounded border border-neutral-300 dark:border-neutral-700"
-                                                            style={{ background: t.bg_gradient }}
-                                                        />
-                                                    ) : (
-                                                        <span className={`inline-block w-24 h-6 rounded border border-neutral-300 dark:border-neutral-700 bg-gradient-to-tr ${t.bg_gradient.split(' ').slice(0, 2).join(' ')}`} />
-                                                    )}
+                                                    </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <div className="flex justify-end gap-2">
@@ -1647,6 +1722,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                     key={elem.id}
                                                     style={style}
                                                     onMouseDown={(e) => handleCanvasMouseDown(elem.id, e, false)}
+                                                    onClick={(e) => e.stopPropagation()}
                                                     className={`transition-all duration-75 relative group border p-0.5 leading-tight select-none break-words overflow-hidden ${isSelected
                                                         ? 'border-indigo-650 bg-indigo-500/10 shadow-xs z-30'
                                                         : 'border-transparent hover:border-dashed hover:border-neutral-400 hover:z-20 cursor-move'

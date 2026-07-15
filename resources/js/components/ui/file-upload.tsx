@@ -95,7 +95,7 @@ export function FileUpload({ value, onChange, placeholder = "Enter URL or upload
                 onChange={handleFileChange}
             />
             
-            {value && value.startsWith('http') && (
+            {value && (
                 <div className="mt-1 flex items-center gap-2 p-1 border rounded-md bg-neutral-50 max-w-[200px]">
                     <div className="w-8 h-8 rounded shrink-0 overflow-hidden bg-neutral-200 flex items-center justify-center">
                         {value.match(/\.(mp4|webm)$/i) ? (
