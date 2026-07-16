@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import {
     Store, ShoppingBag, Globe, LayoutGrid, Sparkles, ShieldAlert,
-    ChevronLeft, Search, Wallet, X, ArrowRight, CheckCircle2
+    ChevronLeft, Search, Wallet, X, ArrowRight, CheckCircle2, PlayCircle
 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -19,6 +19,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface Template {
     id: number;
     name: string;
+    type: string;
     category: string;
     price: number;
     reseller_price: number;
@@ -55,7 +56,7 @@ interface ShopPageProps {
 }
 
 export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
-    const [activeTab, setActiveTab] = useState<'invitations' | 'mini-websites' | 'business-websites'>('invitations');
+    const [activeTab, setActiveTab] = useState<'invitations' | 'video-invitations' | 'mini-websites' | 'business-websites'>('invitations');
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState('All Cards');
 
@@ -106,17 +107,20 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
 
     const hasSufficientBalance = selectedTemplate ? wallet.balance >= selectedTemplate.reseller_price : true;
 
-    // Category tabs from invitation templates
-    const invCategories = ['All Cards', ...Array.from(new Set(catalog.templates.map(t => t.category || 'Other')))];
+    // Category tabs from invitation templates (separate for static / video)
+    const currentTemplates = catalog.templates.filter(t => activeTab === 'invitations' ? t.type !== 'video' : t.type === 'video');
+    const invCategories = ['All Cards', ...Array.from(new Set(currentTemplates.map(t => t.category || 'Other')))];
 
     const filteredTemplates = catalog.templates.filter(t => {
+        const matchType = activeTab === 'invitations' ? t.type !== 'video' : t.type === 'video';
         const matchSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase());
         const matchCat = activeCategory === 'All Cards' || t.category === activeCategory;
-        return matchSearch && matchCat;
+        return matchType && matchSearch && matchCat;
     });
 
     const tabs = [
-        { key: 'invitations', label: 'Invitation Cards', count: catalog.templates.length, icon: LayoutGrid },
+        { key: 'invitations', label: 'Static Cards', count: catalog.templates.filter(t => t.type !== 'video').length, icon: LayoutGrid },
+        { key: 'video-invitations', label: 'Video Cards', count: catalog.templates.filter(t => t.type === 'video').length, icon: PlayCircle },
         { key: 'mini-websites', label: 'Mini Websites', count: catalog.miniTemplates.length, icon: Store },
         { key: 'business-websites', label: 'Business Websites', count: catalog.businessTemplates.length, icon: Globe },
     ] as const;
@@ -172,7 +176,7 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                 </div>
 
                 {/* ===== INVITATION CARDS ===== */}
-                {activeTab === 'invitations' && (
+                {(activeTab === 'invitations' || activeTab === 'video-invitations') && (
                     <div className="flex flex-col gap-5">
                         {/* Search + Category Filter */}
                         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
@@ -209,38 +213,48 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                     key={tpl.id}
                                     className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xs transition-all hover:shadow-md dark:border-neutral-850 dark:bg-neutral-900"
                                 >
-                                    {/* Card Graphic Preview */}
-                                    <div
-                                        className={`relative flex aspect-video flex-col items-center justify-center p-6 bg-gradient-to-tr ${tpl.bg_gradient || 'from-neutral-100 to-neutral-200'} border-b border-neutral-100 dark:border-neutral-850 overflow-hidden`}
-                                        style={{
-                                            fontFamily: tpl.default_config?.font_style === 'vibes' ? "'Great Vibes', cursive" : tpl.default_config?.font_style === 'cinzel' ? "'Cinzel', serif" : tpl.default_config?.font_style === 'montserrat' ? "'Montserrat', sans-serif" : "'Playfair Display', serif",
-                                            backgroundImage: tpl.default_config?.layout_style === 'photo-bg' && tpl.default_config?.image_url ? `url(${tpl.default_config.image_url})` : undefined,
-                                            backgroundSize: 'cover',
-                                            backgroundPosition: 'center',
-                                        }}
-                                    >
-                                        {tpl.default_config?.layout_style === 'photo-bg' && tpl.default_config?.image_url && (
-                                            <div className="absolute inset-0 bg-black/45" />
-                                        )}
+                                    {/* Card Graphic Preview (Unified Thumbnail & Fallback) */}
+                                    <div className="relative aspect-video w-full overflow-hidden border-b border-neutral-150 dark:border-neutral-850/60 bg-neutral-100 dark:bg-neutral-950 flex items-center justify-center">
+                                        {tpl.thumbnail ? (
+                                            <img
+                                                src={tpl.thumbnail}
+                                                alt={tpl.name}
+                                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                            />
+                                        ) : (
+                                            <div
+                                                className={`w-full h-full relative flex flex-col items-center justify-center p-6 bg-gradient-to-tr ${tpl.bg_gradient || 'from-neutral-100 to-neutral-200'} overflow-hidden`}
+                                                style={{
+                                                    fontFamily: tpl.default_config?.font_style === 'vibes' ? "'Great Vibes', cursive" : tpl.default_config?.font_style === 'cinzel' ? "'Cinzel', serif" : tpl.default_config?.font_style === 'montserrat' ? "'Montserrat', sans-serif" : "'Playfair Display', serif",
+                                                    backgroundImage: tpl.default_config?.layout_style === 'photo-bg' && tpl.default_config?.image_url ? `url(${tpl.default_config.image_url})` : undefined,
+                                                    backgroundSize: 'cover',
+                                                    backgroundPosition: 'center',
+                                                }}
+                                            >
+                                                {tpl.default_config?.layout_style === 'photo-bg' && tpl.default_config?.image_url && (
+                                                    <div className="absolute inset-0 bg-black/45" />
+                                                )}
 
-                                        {tpl.default_config?.layout_style === 'split-hero' && (
-                                            <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-neutral-200/90 dark:bg-neutral-800/90 border-l border-neutral-200 flex items-center justify-center text-[8px] font-bold text-neutral-400 select-none">IMAGE</div>
-                                        )}
+                                                {tpl.default_config?.layout_style === 'split-hero' && (
+                                                    <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-neutral-200/90 dark:bg-neutral-800/90 border-l border-neutral-200 flex items-center justify-center text-[8px] font-bold text-neutral-400 select-none">IMAGE</div>
+                                                )}
 
-                                        <div 
-                                            className="text-center pointer-events-none scale-85 opacity-90 z-10 relative"
-                                            style={{ color: tpl.default_config?.layout_style === 'photo-bg' && tpl.default_config?.image_url ? '#ffffff' : undefined }}
-                                        >
-                                            <p className="text-[10px] tracking-wider uppercase font-semibold opacity-70">
-                                                {tpl.default_config?.title}
-                                            </p>
-                                            <p className="text-lg font-bold my-1 truncate max-w-[180px]">
-                                                {tpl.default_config?.guest_of_honor}
-                                            </p>
-                                            <p className="text-[8px] opacity-70">
-                                                {tpl.default_config?.date}
-                                            </p>
-                                        </div>
+                                                <div 
+                                                    className="text-center pointer-events-none scale-85 opacity-90 z-10 relative"
+                                                    style={{ color: tpl.default_config?.layout_style === 'photo-bg' && tpl.default_config?.image_url ? '#ffffff' : undefined }}
+                                                >
+                                                    <p className="text-[10px] tracking-wider uppercase font-semibold opacity-70">
+                                                        {tpl.default_config?.title}
+                                                    </p>
+                                                    <p className="text-lg font-bold my-1 truncate max-w-[180px]">
+                                                        {tpl.default_config?.guest_of_honor}
+                                                    </p>
+                                                    <p className="text-[8px] opacity-70">
+                                                        {tpl.default_config?.date}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
                                         <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs z-20">
                                             ₹{parseFloat(String(tpl.reseller_price)).toFixed(2)}
                                         </span>

@@ -181,7 +181,10 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                 {/* Primary Stats Grid */}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {/* Total Users */}
-                    <div className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
+                    <Link 
+                        href="/super-admin/users"
+                        className="group relative block overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 transition-all duration-300 hover:shadow-md hover:scale-[1.01] cursor-pointer"
+                    >
                         <div className="flex items-center justify-between gap-4">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wider text-neutral-450 dark:text-neutral-500">Total Registered Users</p>
@@ -192,10 +195,13 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                             </div>
                         </div>
                         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
-                    </div>
+                    </Link>
 
                     {/* Pending Approvals */}
-                    <div className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
+                    <Link 
+                        href="/super-admin/users"
+                        className="group relative block overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 transition-all duration-300 hover:shadow-md hover:scale-[1.01] cursor-pointer"
+                    >
                         <div className="flex items-center justify-between gap-4">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wider text-neutral-450 dark:text-neutral-500">Pending Approvals</p>
@@ -212,10 +218,13 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                             </div>
                         </div>
                         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500"></div>
-                    </div>
+                    </Link>
 
                     {/* Platform Revenue */}
-                    <div className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
+                    <Link 
+                        href="/super-admin/transactions"
+                        className="group relative block overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 transition-all duration-300 hover:shadow-md hover:scale-[1.01] cursor-pointer"
+                    >
                         <div className="flex items-center justify-between gap-4">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wider text-neutral-450 dark:text-neutral-500">Total Revenue</p>
@@ -226,10 +235,13 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                             </div>
                         </div>
                         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
-                    </div>
+                    </Link>
 
                     {/* Active Sessions */}
-                    <div className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 transition-all duration-300 hover:shadow-md hover:scale-[1.01]">
+                    <Link 
+                        href="/super-admin/users"
+                        className="group relative block overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 transition-all duration-300 hover:shadow-md hover:scale-[1.01] cursor-pointer"
+                    >
                         <div className="flex items-center justify-between gap-4">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wider text-neutral-450 dark:text-neutral-500">Active Sessions</p>
@@ -240,7 +252,7 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                             </div>
                         </div>
                         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
-                    </div>
+                    </Link>
                 </div>
 
                 {/* Analytical Charts Grid */}

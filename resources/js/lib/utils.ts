@@ -24,6 +24,7 @@ export function getCsrfHeaders(): Record<string, string> {
     const xsrfToken = getCookie('XSRF-TOKEN');
     if (xsrfToken) {
         headers['X-XSRF-TOKEN'] = xsrfToken;
+        return headers;
     }
     if (typeof document !== 'undefined') {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');

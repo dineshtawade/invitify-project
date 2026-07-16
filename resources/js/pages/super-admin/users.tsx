@@ -194,7 +194,7 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                         />
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button type="submit" size="sm" className="h-10 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl px-5">
+                        <Button type="submit" size="sm" className="h-10  rounded-xl px-5">
                             Filter
                         </Button>
                         {filters.search && (

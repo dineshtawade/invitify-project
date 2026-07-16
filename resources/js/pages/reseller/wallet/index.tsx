@@ -11,6 +11,7 @@ import {
     ArrowRight, CheckCircle2, Copy, TrendingUp, ShieldCheck,
     ChevronLeft, AlertCircle, Sparkles
 } from 'lucide-react';
+import { getCsrfHeaders } from '@/lib/utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Reseller Dashboard', href: '/reseller/dashboard' },
@@ -70,9 +71,6 @@ export default function ResellerWallet({ wallet, pendingDeposits = [], bankDetai
     const { props } = usePage<any>();
     const flashStatus = props.flash?.status || (props as any).status;
 
-    const getCsrf = () =>
-        (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
-
     const onlineForm = useForm({ amount: '' });
     const manualForm = useForm({ amount: '', utr: '', screenshot: null as File | null });
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -93,18 +91,13 @@ export default function ResellerWallet({ wallet, pendingDeposits = [], bankDetai
         if (isCheckingOut) return;
         setIsCheckingOut(true);
         try {
-            const csrfToken = getCsrf();
-            if (!csrfToken) {
-                throw new Error('Security token missing. Please refresh the page and try again.');
-            }
-
             const response = await fetch('/reseller/recharge/razorpay', {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
+                    ...getCsrfHeaders(),
                 },
                 body: JSON.stringify({ amount: onlineForm.data.amount }),
             });

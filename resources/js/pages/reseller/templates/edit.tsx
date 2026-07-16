@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 import { getCsrfHeaders } from '@/lib/utils';
+import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
 
 interface Template {
     id: number;
@@ -95,13 +96,15 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
     ];
 
     // Normalize initial state with fallback for old layouts
-    const initialConfig = normalizeConfig(userTemplate.custom_config, template.bg_gradient);
+    const initialConfig = template.type === 'video'
+        ? (userTemplate.custom_config || template.default_config || { video_url: null, elements: [] })
+        : normalizeConfig(userTemplate.custom_config, template.bg_gradient);
 
     const { data, setData, put, processing } = useForm({
         custom_config: initialConfig,
     });
 
-    const activePage = data.custom_config.pages[activePageIndex] || data.custom_config.pages[0];
+    const activePage = data.custom_config.pages?.[activePageIndex] || data.custom_config.pages?.[0];
     const ratioData = ASPECT_RATIOS[data.custom_config.aspectRatio] || ASPECT_RATIOS.standard;
 
     // Track card dimensions dynamically for font scaling
@@ -277,7 +280,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                 const response = await fetch('/media/upload', {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                        ...getCsrfHeaders()
                     },
                     body: formData,
                 });
@@ -339,12 +342,12 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
 
                 {/* Actions Header bar */}
                 <div className="flex items-center justify-between gap-4 border-b pb-4">
-                    <a
+                    {/* <a
                         href="/customer/templates"
                         className="flex items-center gap-1 text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:text-neutral-450 dark:hover:text-neutral-50"
                     >
                         <ChevronLeft className="size-4" /> Back to Templates
-                    </a>
+                    </a> */}
 
                     <div className="flex items-center gap-3.5">
                         <Button
@@ -357,7 +360,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                         </Button>
                         <Button
                             onClick={handleBuyClick}
-                            className="bg-indigo-650 hover:bg-indigo-700 text-white flex items-center gap-1.5 shadow-sm rounded-xl text-xs font-bold px-5"
+                            className="flex items-center gap-1.5 shadow-sm rounded-xl text-xs font-bold px-5"
                         >
                             <CreditCard className="size-4" /> Purchase Design Card
                         </Button>
@@ -365,7 +368,18 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                 </div>
 
                 {/* Editor Split Personalized Panel */}
-                <div className="grid gap-6 lg:grid-cols-[1fr_1fr] flex-1">
+                {template.type === 'video' ? (
+                    <div className="flex-1 overflow-hidden h-[800px] border border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col">
+                        <VideoTemplateBuilder
+                            data={{ default_config: data.custom_config }}
+                            setData={(field, value) => {
+                                setData('custom_config', value);
+                            }}
+                            isCustomerMode={true}
+                        />
+                    </div>
+                ) : (
+                    <div className="grid gap-6 lg:grid-cols-[1fr_1fr] flex-1">
 
                     {/* Left side Personalization form ONLY (All layouts and styling locked) */}
                     <div className="rounded-2xl border border-neutral-200 bg-white shadow-2xs dark:border-neutral-800 dark:bg-neutral-900 flex flex-col min-h-[500px] overflow-hidden">
@@ -650,7 +664,8 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
+        </div>
 
             {/* Checkout Confirmation Dialog */}
             <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>

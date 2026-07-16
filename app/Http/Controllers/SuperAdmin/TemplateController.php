@@ -33,6 +33,7 @@ class TemplateController extends Controller
             'category' => 'required|string|exists:categories,slug',
             'price' => 'required|numeric|min:0',
             'bg_gradient' => 'required|string',
+            'thumbnail' => 'nullable|string',
             'default_config' => 'required|array',
         ]);
 
@@ -52,6 +53,7 @@ class TemplateController extends Controller
             'category' => 'required|string|exists:categories,slug',
             'price' => 'required|numeric|min:0',
             'bg_gradient' => 'required|string',
+            'thumbnail' => 'nullable|string',
             'default_config' => 'required|array',
         ]);
 

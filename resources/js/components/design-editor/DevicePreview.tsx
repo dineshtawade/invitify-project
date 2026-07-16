@@ -73,6 +73,12 @@ export function DevicePreview({ blocks, activeSectionId, deviceType, title, slug
                 style.background = bg;
             }
         }
+        if (block.bg_image) {
+            style.backgroundImage = `url(${block.bg_image})`;
+            style.backgroundSize = 'cover';
+            style.backgroundPosition = 'center';
+            style.backgroundRepeat = 'no-repeat';
+        }
         return style;
     };
 
@@ -265,13 +271,197 @@ export function DevicePreview({ blocks, activeSectionId, deviceType, title, slug
                         </div>
                     );
                 })()}
-                {block.type === 'hero' && (
-                    <div className={`p-8 text-center bg-gradient-to-tr ${getBgClass(block, 'from-indigo-650 to-purple-600')} flex flex-col gap-3.5 items-center justify-center min-h-[200px]`}>
-                        <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight leading-snug drop-shadow-xs">{block.title || 'Welcome'}</h2>
-                        <p className="text-xs opacity-85 max-w-sm">{block.subtitle}</p>
-                        {block.cta_text && <button type="button" className="rounded-full px-4 py-2 bg-white text-neutral-900 font-bold text-[10px] mt-1 shadow-xs">{block.cta_text}</button>}
+                {block.type === 'dynamic_layout' && (
+                    <div 
+                        className={`p-8 flex flex-col gap-4 items-center justify-center min-h-[180px] relative ${getSpacingClass(block)}`}
+                        style={getBlockStyle(block)}
+                    >
+                        {block.bg_image && (
+                            <div className="absolute inset-0 bg-black/10 pointer-events-none rounded-lg"></div>
+                        )}
+                        <div className="relative z-10 flex flex-col gap-3 items-center w-full">
+                            {block.icon && block.icon !== 'none' && (() => {
+                                const IconComponent = (LucideIcons as any)[block.icon];
+                                if (IconComponent) {
+                                    return <IconComponent className="size-8 text-pink-650 drop-shadow-xs" />;
+                                }
+                                return null;
+                            })()}
+                            {block.title && (
+                                <h3 className="text-base sm:text-lg font-bold tracking-tight text-center drop-shadow-xs">
+                                    {block.title}
+                                </h3>
+                            )}
+                            {block.custom_image_url && (
+                                <div className="w-full max-w-[200px] my-1 rounded-lg overflow-hidden border shadow-sm">
+                                    <img src={block.custom_image_url} alt="Custom" className="w-full h-auto object-cover" />
+                                </div>
+                            )}
+                            {block.text_lines?.map((line: any, idx: number) => (
+                                <p
+                                    key={idx}
+                                    style={{ color: line.color }}
+                                    className={`text-center max-w-md break-words ${line.size || 'text-xs'} ${line.weight === 'bold' ? 'font-bold' : line.weight === 'light' ? 'font-light' : 'font-normal'}`}
+                                >
+                                    {line.text}
+                                </p>
+                            ))}
+                        </div>
                     </div>
                 )}
+                {block.type === 'flexible_layout' && (
+                    <div 
+                        className={`p-8 flex flex-col gap-4 items-center justify-center min-h-[120px] relative ${getSpacingClass(block)}`}
+                        style={getBlockStyle(block)}
+                    >
+                        {block.bg_image && (
+                            <div className="absolute inset-0 bg-black/10 pointer-events-none rounded-lg"></div>
+                        )}
+                        <div className="relative z-10 flex flex-col gap-4 items-center w-full animate-none">
+                            {block.items?.map((item: any, idx: number) => {
+                                if (item.type === 'text') {
+                                    return (
+                                        <p
+                                            key={item.id || idx}
+                                            style={{ color: item.color, fontFamily: item.font_family || undefined }}
+                                            className={`max-w-md break-words ${item.font_size || 'text-sm'} ${item.weight === 'bold' ? 'font-bold' : item.weight === 'light' ? 'font-light' : 'font-normal'} text-${item.align || 'center'} w-full whitespace-pre-wrap`}
+                                        >
+                                            {item.text}
+                                        </p>
+                                    );
+                                }
+                                if (item.type === 'image') {
+                                    return (
+                                        <div 
+                                            key={item.id || idx}
+                                            className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
+                                        >
+                                            <div className={`overflow-hidden border shadow-sm ${
+                                                item.image_size === 'small' ? 'max-w-[150px]' :
+                                                item.image_size === 'medium' ? 'max-w-[320px]' :
+                                                item.image_size === 'large' ? 'max-w-[500px]' : 'w-full'
+                                            } ${item.radius || 'rounded-xl'}`}>
+                                                <img src={item.url} alt="Uploaded block element" className="w-full h-auto object-cover" />
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                if (item.type === 'video') {
+                                    return (
+                                        <div 
+                                            key={item.id || idx}
+                                            className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
+                                        >
+                                            <div className={`overflow-hidden border shadow-sm ${
+                                                item.video_size === 'small' ? 'max-w-[150px]' :
+                                                item.video_size === 'medium' ? 'max-w-[320px]' :
+                                                item.video_size === 'large' ? 'max-w-[500px]' : 'w-full'
+                                            } rounded-xl`}>
+                                                <video 
+                                                    src={item.video_url} 
+                                                    controls 
+                                                    autoPlay={item.autoplay} 
+                                                    muted={item.autoplay} 
+                                                    loop
+                                                    className="w-full h-auto"
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                if (item.type === 'button') {
+                                    return (
+                                        <div 
+                                            key={item.id || idx} 
+                                            className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
+                                        >
+                                            <a
+                                                href={item.btn_url || '#'}
+                                                style={{
+                                                    backgroundColor: item.btn_bg_color || '#2563eb',
+                                                    color: item.btn_text_color || '#ffffff'
+                                                }}
+                                                className={`inline-flex items-center justify-center font-bold transition-all duration-300 hover:scale-105 active:scale-95 shadow-md ${
+                                                    item.btn_size === 'small' ? 'px-4 py-2 text-xs' :
+                                                    item.btn_size === 'large' ? 'px-8 py-3.5 text-base' : 'px-6 py-2.5 text-sm'
+                                                } ${item.btn_radius || 'rounded-full'}`}
+                                            >
+                                                {item.btn_text}
+                                            </a>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })}
+                        </div>
+                    </div>
+                )}
+                {block.type === 'hero' && (() => {
+                    const elements = block.hero_elements && block.hero_elements.length > 0 ? block.hero_elements : null;
+                    const imgSizeMap: any = { small: 'max-w-[120px]', medium: 'max-w-[200px]', large: 'max-w-[300px]', full: 'w-full' };
+                    const btnSizeMap: any = { small: 'px-3 py-1 text-[9px]', medium: 'px-4 py-2 text-[10px]', large: 'px-6 py-2.5 text-xs' };
+
+                    return (
+                        <div className={`p-8 text-center bg-gradient-to-tr ${getBgClass(block, 'from-indigo-650 to-purple-600')} flex flex-col gap-3.5 items-center justify-center min-h-[200px]`}
+                            style={block.bg_image ? { backgroundImage: `url(${block.bg_image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+                        >
+                            {elements ? elements.map((el: any, idx: number) => {
+                                const alignCls = el.align === 'left' ? 'self-start text-left' : el.align === 'right' ? 'self-end text-right' : 'self-center text-center';
+                                if (el.type === 'text') {
+                                    return (
+                                        <p key={el.id || idx} style={{ color: el.color, fontSize: `${el.font_size_px || 16}px`, fontWeight: el.font_weight || '400', fontFamily: el.font_family || undefined, textAlign: (el.align || 'center') as any }} className={`max-w-sm break-words leading-snug ${alignCls} w-full`}>
+                                            {el.content}
+                                        </p>
+                                    );
+                                } else if (el.type === 'image' && el.url) {
+                                    return (
+                                        <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
+                                            <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${el.width_px ? '' : (imgSizeMap[el.image_size] || 'max-w-[200px]')} ${el.radius || 'rounded-xl'}`}
+                                                 style={{ 
+                                                     width: el.width_px ? `${el.width_px}px` : undefined,
+                                                     height: el.height_px ? `${el.height_px}px` : undefined
+                                                 }}
+                                            >
+                                                <img src={el.url} alt="" className={`w-full object-cover ${el.height_px ? 'h-full' : 'h-auto'}`} />
+                                            </div>
+                                        </div>
+                                    );
+                                } else if (el.type === 'video' && el.video_url) {
+                                    return (
+                                        <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
+                                            <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${el.width_px ? '' : (imgSizeMap[el.video_size] || 'max-w-[200px]')} rounded-xl`}
+                                                 style={{ 
+                                                     width: el.width_px ? `${el.width_px}px` : undefined,
+                                                     height: el.height_px ? `${el.height_px}px` : undefined
+                                                 }}
+                                            >
+                                                <video src={el.video_url} controls={!el.autoplay} autoPlay={el.autoplay} muted={el.autoplay} loop={el.autoplay} className={`w-full object-cover ${el.height_px ? 'h-full' : 'h-auto'}`} />
+                                            </div>
+                                        </div>
+                                    );
+                                } else if (el.type === 'button') {
+                                    return (
+                                        <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
+                                            <button type="button" className={`${el.btn_radius || 'rounded-full'} ${btnSizeMap[el.btn_size] || btnSizeMap.medium} font-bold shadow-xs mt-1`} style={{ backgroundColor: el.btn_bg_color || '#fff', color: el.btn_text_color || '#1f2937' }}>
+                                                {el.btn_text || 'Button'}
+                                            </button>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            }) : (
+                                <>
+                                    <h2 style={{ color: block.title_color }} className="text-xl sm:text-2xl font-extrabold tracking-tight leading-snug drop-shadow-xs">{block.title || 'Welcome'}</h2>
+                                    <p style={{ color: block.subtitle_color }} className="text-xs opacity-85 max-w-sm">{block.subtitle}</p>
+                                    {block.hero_text_lines?.map((line: any, i: number) => (
+                                        <p key={i} style={{ color: line.color }} className={`text-center max-w-xs break-words ${line.size || 'text-xs'} ${line.weight === 'bold' ? 'font-bold' : line.weight === 'light' ? 'font-light' : 'font-normal'}`}>{line.text}</p>
+                                    ))}
+                                    {block.cta_text && <button type="button" className="rounded-full px-4 py-2 bg-white text-neutral-900 font-bold text-[10px] mt-1 shadow-xs">{block.cta_text}</button>}
+                                </>
+                            )}
+                        </div>
+                    );
+                })()}
                 {block.type === 'text' && (
                     <div className={`p-6 text-neutral-800 ${getBgClass(block, 'bg-white')} flex flex-col gap-2`} style={{ textAlign: (block.align || 'center') as any }}>
                         {block.title && <h3 className="text-sm font-bold text-neutral-900">{block.title}</h3>}

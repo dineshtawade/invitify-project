@@ -16,6 +16,7 @@ class Template extends Model
         'price',
         'reseller_price',
         'bg_gradient',
+        'thumbnail',
         'default_config',
     ];
 

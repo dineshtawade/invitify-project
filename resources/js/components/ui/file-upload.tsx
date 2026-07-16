@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { UploadCloud, Loader2, X, Image as ImageIcon } from 'lucide-react';
 import { Input } from './input';
+import { getCsrfHeaders } from '@/lib/utils';
 
 interface FileUploadProps {
     value?: string;
@@ -29,18 +30,22 @@ export function FileUpload({ value, onChange, placeholder = "Enter URL or upload
         formData.append('file', file);
 
         try {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             const response = await fetch('/media/upload', {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    ...getCsrfHeaders(),
                 },
                 body: formData,
             });
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
-                throw new Error(errorData?.message || 'Upload failed');
+                let errorMessage = errorData?.message || 'Upload failed';
+                if (errorData?.errors?.file?.[0]) {
+                    errorMessage = errorData.errors.file[0];
+                }
+                throw new Error(errorMessage);
             }
 
             const data = await response.json();
@@ -95,7 +100,7 @@ export function FileUpload({ value, onChange, placeholder = "Enter URL or upload
                 onChange={handleFileChange}
             />
             
-            {value && value.startsWith('http') && (
+            {value && (
                 <div className="mt-1 flex items-center gap-2 p-1 border rounded-md bg-neutral-50 max-w-[200px]">
                     <div className="w-8 h-8 rounded shrink-0 overflow-hidden bg-neutral-200 flex items-center justify-center">
                         {value.match(/\.(mp4|webm)$/i) ? (

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -15,6 +15,22 @@ import { Store, Users } from 'lucide-react';
 
 export default function Register() {
     const [roleType, setRoleType] = useState<'customer' | 'reseller' | 'referral_partner'>('customer');
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const role = params.get('role');
+        if (role === 'reseller' || role === 'referral_partner' || role === 'customer') {
+            setRoleType(role as any);
+        }
+    }, []);
+
+    const handleRoleChange = (newRole: 'customer' | 'reseller' | 'referral_partner') => {
+        setRoleType(newRole);
+        const url = new URL(window.location.href);
+        url.searchParams.set('role', newRole);
+        window.history.pushState({}, '', url.toString());
+    };
+
     const [socialAccounts, setSocialAccounts] = useState<Array<{ id: number; platform: string; username: string; followers: string }>>([
         { id: Date.now(), platform: 'Instagram', username: '', followers: '' }
     ]);
@@ -122,44 +138,7 @@ export default function Register() {
                                 />
                             </div>
 
-                            {/* Custom Premium Role Selector Option */}
-                            <div className="grid gap-3">
-                                <Label className="text-[10px] font-extrabold text-[#4a4238] uppercase tracking-wider pl-1">Optional Registration Type</Label>
-                                <div className="flex flex-col gap-4 mt-2">
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox 
-                                            id="role_reseller" 
-                                            checked={roleType === 'reseller'}
-                                            onCheckedChange={(checked) => setRoleType(checked ? 'reseller' : 'customer')}
-                                        />
-                                        <label
-                                            htmlFor="role_reseller"
-                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2 cursor-pointer"
-                                        >
-                                            <Store className="size-4 text-neutral-500" />
-                                            <span>Register as a Reseller</span>
-                                        </label>
-                                    </div>
-                                    
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox 
-                                            id="role_referral" 
-                                            checked={roleType === 'referral_partner'}
-                                            onCheckedChange={(checked) => setRoleType(checked ? 'referral_partner' : 'customer')}
-                                        />
-                                        <label
-                                            htmlFor="role_referral"
-                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2 cursor-pointer"
-                                        >
-                                            <Users className="size-4 text-neutral-500" />
-                                            <span>Register as a Referral Partner</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <p className="text-[10px] text-neutral-400 dark:text-neutral-500 italic">
-                                    By default, you will register as a standard <strong>End User</strong> if no option above is active.
-                                </p>
-                            </div>
+
 
                             {/* Conditional Reseller Fields */}
                             {roleType === 'reseller' && (
@@ -308,20 +287,18 @@ export default function Register() {
                                                     <div className="grid gap-1">
                                                         <Label className="text-[10px] uppercase font-bold text-neutral-450">Username / ID</Label>
                                                         <Input
-                                    className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
                                                             type="text"
                                                             placeholder="@username"
                                                             name={`referral_social_media[${index}][username]`}
                                                             value={acc.username}
                                                             onChange={(e) => handleSocialChange(acc.id, 'username', e.target.value)}
                                                             required={roleType === 'referral_partner'}
-                                                            className="h-9 text-xs"
+                                                            className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80 h-9 text-xs"
                                                         />
                                                     </div>
                                                     <div className="grid gap-1">
                                                         <Label className="text-[10px] uppercase font-bold text-neutral-450">Followers</Label>
                                                         <Input
-                                    className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
                                                             type="number"
                                                             placeholder="1000"
                                                             name={`referral_social_media[${index}][followers]`}
@@ -329,7 +306,7 @@ export default function Register() {
                                                             onChange={(e) => handleSocialChange(acc.id, 'followers', e.target.value)}
                                                             required={roleType === 'referral_partner'}
                                                             min="0"
-                                                            className="h-9 text-xs"
+                                                            className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80 h-9 text-xs"
                                                         />
                                                     </div>
                                                     {socialAccounts.length > 1 && (
@@ -375,6 +352,8 @@ export default function Register() {
                                 Log in
                             </TextLink>
                         </div>
+
+
                     </>
                 )}
             </Form>
