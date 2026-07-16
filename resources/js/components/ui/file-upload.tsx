@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { UploadCloud, Loader2, X, Image as ImageIcon } from 'lucide-react';
 import { Input } from './input';
+import { getCsrfHeaders } from '@/lib/utils';
 
 interface FileUploadProps {
     value?: string;
@@ -29,18 +30,22 @@ export function FileUpload({ value, onChange, placeholder = "Enter URL or upload
         formData.append('file', file);
 
         try {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             const response = await fetch('/media/upload', {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    ...getCsrfHeaders(),
                 },
                 body: formData,
             });
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
-                throw new Error(errorData?.message || 'Upload failed');
+                let errorMessage = errorData?.message || 'Upload failed';
+                if (errorData?.errors?.file?.[0]) {
+                    errorMessage = errorData.errors.file[0];
+                }
+                throw new Error(errorMessage);
             }
 
             const data = await response.json();

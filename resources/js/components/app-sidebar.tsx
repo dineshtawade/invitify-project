@@ -62,11 +62,11 @@ export function AppSidebar() {
                 href: '/super-admin/business-card-plans',
                 icon: Layers,
             },
-            {
-                title: 'Business Templates',
-                href: '/super-admin/business-website-templates',
-                icon: Briefcase,
-            },
+            // {
+            //     title: 'Business Templates',
+            //     href: '/super-admin/business-website-templates',
+            //     icon: Briefcase,
+            // },
             {
                 title: 'Payment Settings',
                 href: '/super-admin/payment-settings',

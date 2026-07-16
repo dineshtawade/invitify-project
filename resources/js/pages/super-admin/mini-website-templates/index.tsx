@@ -103,7 +103,7 @@ export default function MiniWebsiteTemplatesIndex({ templates = [], customBlocks
                 </div>
 
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                    <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] flex flex-col p-0">
+                    <DialogContent aria-describedby={undefined} className="max-w-[95vw] w-[95vw] h-[90vh] flex flex-col p-0">
                         <DialogHeader className="p-6 border-b flex-row justify-between">
                             <DialogTitle className="text-xl font-bold">
                                 {editingTemplate ? `Edit: ${editingTemplate.name}` : 'New Mini Template'}

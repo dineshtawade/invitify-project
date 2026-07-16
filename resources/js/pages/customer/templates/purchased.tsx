@@ -252,12 +252,12 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                         {isVideo ? (
                                             <>
                                                 {t.custom_config?.video_url ? (
-                                                    <video 
-                                                        src={t.custom_config.video_url} 
+                                                    <video
+                                                        src={t.custom_config.video_url}
                                                         className="w-full h-full object-cover opacity-70"
-                                                        muted 
-                                                        playsInline 
-                                                        loop 
+                                                        muted
+                                                        playsInline
+                                                        loop
                                                         autoPlay
                                                     />
                                                 ) : (
@@ -333,7 +333,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                 </Link>
                                             )}
                                         </div>
-                                        <div className={`grid gap-2 mt-2 ${!isVideo ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                        <div className={`grid gap-2 mt-2 ${isVideo ? 'grid-cols-2' : 'grid-cols-1'}`}>
                                             <Button
                                                 onClick={() => handleOpenShare(t)}
                                                 className="bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-1 text-[10px] px-1 font-semibold"
@@ -342,18 +342,18 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                 <Share2 className="size-3" /> Share
                                             </Button>
 
-                                            {!isVideo && (
+                                            {isVideo && (
                                                 t.video_url ? (
                                                     <div className="grid grid-cols-2 gap-1">
-                                                        <a 
-                                                            href={t.video_url} 
-                                                            target="_blank" 
+                                                        <a
+                                                            href={t.video_url}
+                                                            target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:hover:bg-indigo-800/40 dark:text-indigo-300 flex items-center justify-center gap-1 text-[10px] px-1 py-1.5 rounded-lg font-semibold transition-colors"
                                                         >
                                                             <PlayCircle className="size-3" /> Play
                                                         </a>
-                                                        <a 
+                                                        <a
                                                             href={t.video_url}
                                                             download
                                                             className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:hover:bg-indigo-800/40 dark:text-indigo-300 flex items-center justify-center gap-1 text-[10px] px-1 py-1.5 rounded-lg font-semibold transition-colors"
@@ -364,9 +364,9 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                 ) : (
                                                     <Button
                                                         onClick={() => { setSelectedVideoTemplate(t); setIsVideoOpen(true); }}
-                                                        className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-1 text-[10px] px-1 font-semibold"
+                                                        className="flex items-center justify-center gap-1 text-[10px] px-1 font-semibold"
                                                     >
-                                                        <Download className="size-3" /> Download Video
+                                                        <Video className="size-3" /> Generate MP4
                                                     </Button>
                                                 )
                                             )}
@@ -400,7 +400,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                     {/* Mobile Mockup */}
                                     <div className="relative w-24 h-[135px] bg-white dark:bg-neutral-900 rounded-2xl shadow-md border-[4px] border-neutral-800 dark:border-neutral-700 overflow-hidden shrink-0 flex flex-col items-center justify-center transform group-hover:scale-105 transition-transform duration-300">
                                         <div className="absolute top-1 left-1/2 -translate-x-1/2 w-6 h-1 rounded-full bg-neutral-800 dark:bg-neutral-700 z-10"></div>
-                                        
+
                                         {/* Card content mock */}
                                         <div className="w-full h-full flex flex-col items-center p-2 pt-4 bg-gradient-to-br from-indigo-500 to-blue-600">
                                             <div className="w-8 h-8 rounded-full bg-white/20 mb-2 shadow-sm flex items-center justify-center">

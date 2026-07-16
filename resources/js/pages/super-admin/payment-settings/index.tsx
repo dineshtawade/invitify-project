@@ -71,7 +71,7 @@ export default function PaymentSettings({ settings }: PaymentSettingsProps) {
                 </div>
 
                 <form onSubmit={handleSaveConfig} className="flex flex-col gap-6 max-w-4xl">
-                    
+
                     {/* Razorpay Credentials */}
                     <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 flex flex-col gap-6">
                         <div className="flex items-center gap-2.5 pb-4 border-b border-neutral-150 dark:border-neutral-800">
@@ -96,7 +96,7 @@ export default function PaymentSettings({ settings }: PaymentSettingsProps) {
                             </div>
                             <div className="flex flex-col gap-2">
                                 <Label htmlFor="razorpay_key_secret">
-                                    Razorpay Key Secret 
+                                    Razorpay Key Secret
                                     {settings.has_razorpay_key_secret && <span className="ml-2 text-xs text-emerald-600">(Stored securely)</span>}
                                 </Label>
                                 <Input
@@ -189,7 +189,7 @@ export default function PaymentSettings({ settings }: PaymentSettingsProps) {
                     )}
 
                     <div className="flex justify-end pt-2">
-                        <Button type="submit" disabled={configProcessing} className="bg-blue-650 hover:bg-blue-700 text-white font-semibold shadow-md">
+                        <Button type="submit" disabled={configProcessing} className="font-semibold shadow-md">
                             <Save className="size-4 mr-2" /> Save settings
                         </Button>
                     </div>

@@ -34,6 +34,7 @@ export interface InvitationConfig {
     width?: number;
     height?: number;
     pages: PageConfig[];
+    video_url?: string;
 }
 
 export const defaultPositions = {
@@ -86,7 +87,8 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
                     editableLabel: e.editableLabel,
                     multiline: e.multiline,
                 }))
-            }))
+            })),
+            video_url: config.video_url || undefined,
         };
     }
 
@@ -232,7 +234,8 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
                 borderWidth: 1,
                 elements
             }
-        ]
+        ],
+        video_url: config.video_url || undefined
     };
 }
 

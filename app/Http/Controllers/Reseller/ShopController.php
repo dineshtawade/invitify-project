@@ -19,6 +19,7 @@ class ShopController extends Controller
         $templates = Template::all()->map(fn($t) => [
             'id' => $t->id,
             'name' => $t->name,
+            'type' => $t->type,
             'category' => $t->category,
             'price' => floatval($t->price),
             'reseller_price' => $t->getResellerPrice(),

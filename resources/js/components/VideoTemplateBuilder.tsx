@@ -38,8 +38,12 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                 setIsUploading(true);
                 const formData = new FormData();
                 formData.append('file', file);
+                const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
                 const response = await axios.post('/media/upload', formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
+                    headers: { 
+                        'Content-Type': 'multipart/form-data',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
                 });
                 const url = response.data.url;
                 setVideoUrl(url);
@@ -185,7 +189,14 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
                                             {el.src ? (
-                                                <img src={el.src} alt="" className="max-w-full max-h-full object-contain" />
+                                                <img 
+                                                    src={el.src} 
+                                                    alt="" 
+                                                    className="max-w-full max-h-full object-contain" 
+                                                    onError={(e) => {
+                                                        e.currentTarget.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                                                    }}
+                                                />
                                             ) : (
                                                 <ImageIcon className="size-10 text-neutral-600/50" />
                                             )}
@@ -267,9 +278,13 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                             try {
                                                 const formData = new FormData();
                                                 formData.append('file', file);
-                                                const response = await axios.post('/media/upload', formData, {
-                                                    headers: { 'Content-Type': 'multipart/form-data' }
-                                                });
+                                                 const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
+                                                 const response = await axios.post('/media/upload', formData, {
+                                                     headers: { 
+                                                         'Content-Type': 'multipart/form-data',
+                                                         'X-CSRF-TOKEN': csrfToken
+                                                     }
+                                                 });
                                                 
                                                 const newId = `image_${Date.now()}`;
                                                 const newElement = {
@@ -325,9 +340,13 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                 try {
                                                                     const formData = new FormData();
                                                                     formData.append('file', file);
-                                                                    const response = await axios.post('/media/upload', formData, {
-                                                                        headers: { 'Content-Type': 'multipart/form-data' }
-                                                                    });
+                                                                     const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
+                                                                     const response = await axios.post('/media/upload', formData, {
+                                                                         headers: { 
+                                                                             'Content-Type': 'multipart/form-data',
+                                                                             'X-CSRF-TOKEN': csrfToken
+                                                                         }
+                                                                     });
                                                                     const newEls = elements.map((x: any) => x.id === el.id ? { ...x, src: response.data.url } : x);
                                                                     updateConfig(newEls);
                                                                 } catch (error) {

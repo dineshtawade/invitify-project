@@ -677,13 +677,31 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                             <p className="text-[10px]">© {new Date().getFullYear()} Invitify. Created with React & Laravel. All rights reserved.</p>
                             <p className="text-[10px]">Avinya Digitech Pvt Ltd. Beside Besa-Pimpla Road, Nagpur – 440034</p>
                         </div>
-                        <div className="flex justify-center gap-4 text-[#706557] font-serif font-semibold flex-wrap">
-                            <Link href="/" className="hover:text-[#3d5644] transition-colors">Home</Link>
-                            <Link href="/privacy-policy" className="hover:text-[#3d5644] transition-colors">Privacy Policy</Link>
-                            <Link href="/terms-and-conditions" className="hover:text-[#3d5644] transition-colors">Terms & Conditions</Link>
-                            <Link href="/refund-policy" className="hover:text-[#3d5644] transition-colors">Refund Policy</Link>
-                            <Link href="/disclaimer" className="hover:text-[#3d5644] transition-colors">Disclaimer</Link>
-                            <Link href="/cookie-policy" className="hover:text-[#3d5644] transition-colors">Cookie Policy</Link>
+                        <div className="flex flex-col items-center md:items-end gap-3">
+                            {/* Partnership Highlight Section */}
+                            <div className="flex flex-wrap gap-2.5 justify-center md:justify-end">
+                                <Link 
+                                    href="/register?role=reseller" 
+                                    className="px-3.5 py-1.5 rounded-full bg-[#3d5644] hover:bg-[#2a3c30] text-white text-[10px] uppercase tracking-wider font-sans font-extrabold transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                                >
+                                    Register as a Reseller
+                                </Link>
+                                <Link 
+                                    href="/register?role=referral_partner" 
+                                    className="px-3.5 py-1.5 rounded-full bg-[#ebd9c1] hover:bg-[#e0ccb2] text-[#4a4238] border border-[#d3c0a3] text-[10px] uppercase tracking-wider font-sans font-extrabold transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                                >
+                                    Register as a Referral Partner
+                                </Link>
+                            </div>
+                            {/* General Nav Links */}
+                            <div className="flex justify-center md:justify-end gap-4 text-[#706557] font-serif font-semibold flex-wrap">
+                                <Link href="/" className="hover:text-[#3d5644] transition-colors">Home</Link>
+                                <Link href="/privacy-policy" className="hover:text-[#3d5644] transition-colors">Privacy Policy</Link>
+                                <Link href="/terms-and-conditions" className="hover:text-[#3d5644] transition-colors">Terms & Conditions</Link>
+                                <Link href="/refund-policy" className="hover:text-[#3d5644] transition-colors">Refund Policy</Link>
+                                <Link href="/disclaimer" className="hover:text-[#3d5644] transition-colors">Disclaimer</Link>
+                                <Link href="/cookie-policy" className="hover:text-[#3d5644] transition-colors">Cookie Policy</Link>
+                            </div>
                         </div>
                     </div>
 
