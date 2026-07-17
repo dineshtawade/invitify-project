@@ -282,8 +282,8 @@ export default function CookiePolicy() {
                             <Link href="/disclaimer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Disclaimer</Link>
                             <Link href="/cookie-policy" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Cookie Policy</Link>
                         </div>
-                        <p>© {new Date().getFullYear()} Invitify. Created with React & Laravel. All rights reserved.</p>
-                        <p className="text-[10px] text-neutral-500">Avinya Digitech Pvt Ltd. Beside Besa-Pimpla Road, Nagpur – 440034</p>
+                        <p>© {new Date().getFullYear()} Invitify. Created by Avinya Digitech Pvt Ltd. All rights reserved.</p>
+                        <p className="text-[10px] text-neutral-500">Beside Besa-Pimpla Road, Nagpur – 440034</p>
                     </div>
                 </footer>
             </div>
