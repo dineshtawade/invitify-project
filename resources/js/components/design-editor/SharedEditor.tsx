@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, Smartphone, Monitor, Tablet, ArrowUp, ArrowDown, Trash, Compass, Plus, GripVertical, Image, Tag, Code, Users } from 'lucide-react';
+import { Eye, Smartphone, Monitor, Tablet, ArrowUp, ArrowDown, Trash, Compass, Plus, GripVertical, Image, Tag, Code, Users, Type } from 'lucide-react';
 import { BlockSettings } from './BlockSettings';
 import { DevicePreview } from './DevicePreview';
 import { getNewBlockDefaults, type Block } from './types';
@@ -83,6 +83,12 @@ export function SharedEditor({ blocks, onChange, title, slug, pagesNav, isInvita
                                     <DropdownMenuGroup className="grid grid-cols-1 gap-1 max-h-[300px] overflow-y-auto pr-1">
                                         <DropdownMenuItem onClick={() => handleAddBlock('advanced_section')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-pink-50 hover:text-pink-700">
                                             <span className="bg-pink-100 text-pink-600 rounded mr-2 p-1"><Compass className="size-3" /></span> Advanced Section
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('dynamic_layout')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
+                                            <span className="bg-neutral-100 rounded mr-2 p-1"><Type className="size-3" /></span> Dynamic Layout
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddBlock('flexible_layout')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50 hover:text-pink-600">
+                                            <span className="bg-pink-100 text-pink-600 rounded mr-2 p-1"><Compass className="size-3" /></span> Flexible Section
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleAddBlock('hero')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
                                             <span className="bg-neutral-100 rounded mr-2 p-1"><Eye className="size-3" /></span> Hero Section

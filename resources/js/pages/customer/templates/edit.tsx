@@ -327,7 +327,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                 const response = await fetch('/media/upload', {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                        ...getCsrfHeaders()
                     },
                     body: formData,
                 });
@@ -407,7 +407,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                         </Button>
                         <Button
                             onClick={handleBuyClick}
-                            className="bg-indigo-650 hover:bg-indigo-700  flex items-center gap-1.5 shadow-sm rounded-xl text-xs font-bold px-5"
+                            className="flex items-center gap-1.5 shadow-sm rounded-xl text-xs font-bold px-5"
                         >
                             <CreditCard className="size-4" /> Purchase Design Card
                         </Button>
@@ -534,7 +534,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                         type="button"
                                         onClick={() => setActivePageIndex(idx)}
                                         className={`px-3.5 py-1 text-xs font-bold rounded-full border transition-all ${activePageIndex === idx
-                                            ? 'bg-indigo-650 text-white border-indigo-650'
+                                            ? 'bg-indigo-700 text-white border-indigo-700'
                                             : 'bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-600 dark:bg-neutral-900 dark:border-neutral-850 dark:text-neutral-400'
                                             }`}
                                     >
@@ -750,7 +750,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                             type="button"
                             onClick={handleConfirmPurchase}
                             disabled={isCheckingOut}
-                            className="bg-indigo-650 hover:bg-indigo-700 text-white font-bold rounded-xl px-5"
+                            className="font-bold rounded-xl px-5"
                         >
                             {isCheckingOut ? 'Processing...' : 'Confirm Checkout'}
                         </Button>

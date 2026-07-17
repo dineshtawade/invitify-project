@@ -21,6 +21,7 @@ interface Template {
     category: string;
     price: string | number;
     bg_gradient: string;
+    thumbnail: string | null;
     default_config: any;
 }
 
@@ -160,38 +161,48 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                                         key={t.id}
                                         className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xs transition-all hover:shadow-md dark:border-neutral-850 dark:bg-neutral-900"
                                     >
-                                        {/* Card Graphic Preview */}
-                                        <div
-                                            className={`relative flex aspect-video flex-col items-center justify-center p-6 bg-gradient-to-tr ${t.bg_gradient} border-b border-neutral-100 dark:border-neutral-850 overflow-hidden`}
-                                            style={{
-                                                fontFamily: t.default_config.font_style === 'vibes' ? "'Great Vibes', cursive" : t.default_config.font_style === 'cinzel' ? "'Cinzel', serif" : t.default_config.font_style === 'montserrat' ? "'Montserrat', sans-serif" : "'Playfair Display', serif",
-                                                backgroundImage: t.default_config.layout_style === 'photo-bg' && t.default_config.image_url ? `url(${t.default_config.image_url})` : undefined,
-                                                backgroundSize: 'cover',
-                                                backgroundPosition: 'center',
-                                            }}
-                                        >
-                                            {t.default_config.layout_style === 'photo-bg' && t.default_config.image_url && (
-                                                <div className="absolute inset-0 bg-black/45" />
-                                            )}
+                                        {/* Card Graphic Preview (Unified Thumbnail & Fallback) */}
+                                        <div className="relative aspect-video w-full overflow-hidden border-b border-neutral-150 dark:border-neutral-850/60 bg-neutral-100 dark:bg-neutral-950 flex items-center justify-center">
+                                            {t.thumbnail ? (
+                                                <img
+                                                    src={t.thumbnail}
+                                                    alt={t.name}
+                                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                />
+                                            ) : (
+                                                <div
+                                                    className={`w-full h-full relative flex flex-col items-center justify-center p-6 bg-gradient-to-tr ${t.bg_gradient} overflow-hidden`}
+                                                    style={{
+                                                        fontFamily: t.default_config.font_style === 'vibes' ? "'Great Vibes', cursive" : t.default_config.font_style === 'cinzel' ? "'Cinzel', serif" : t.default_config.font_style === 'montserrat' ? "'Montserrat', sans-serif" : "'Playfair Display', serif",
+                                                        backgroundImage: t.default_config.layout_style === 'photo-bg' && t.default_config.image_url ? `url(${t.default_config.image_url})` : undefined,
+                                                        backgroundSize: 'cover',
+                                                        backgroundPosition: 'center',
+                                                    }}
+                                                >
+                                                    {t.default_config.layout_style === 'photo-bg' && t.default_config.image_url && (
+                                                        <div className="absolute inset-0 bg-black/45" />
+                                                    )}
 
-                                            {t.default_config.layout_style === 'split-hero' && (
-                                                <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-neutral-200/90 dark:bg-neutral-800/90 border-l border-neutral-200 flex items-center justify-center text-[8px] font-bold text-neutral-400 select-none">IMAGE</div>
-                                            )}
+                                                    {t.default_config.layout_style === 'split-hero' && (
+                                                        <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-neutral-200/90 dark:bg-neutral-800/90 border-l border-neutral-200 flex items-center justify-center text-[8px] font-bold text-neutral-400 select-none">IMAGE</div>
+                                                    )}
 
-                                            <div 
-                                                className="text-center pointer-events-none scale-85 opacity-90 z-10 relative"
-                                                style={{ color: t.default_config.layout_style === 'photo-bg' && t.default_config.image_url ? '#ffffff' : undefined }}
-                                            >
-                                                <p className="text-[10px] tracking-wider uppercase font-semibold opacity-70">
-                                                    {t.default_config.title}
-                                                </p>
-                                                <p className="text-lg font-bold my-1 truncate max-w-[180px]">
-                                                    {t.default_config.guest_of_honor}
-                                                </p>
-                                                <p className="text-[8px] opacity-70">
-                                                    {t.default_config.date}
-                                                </p>
-                                            </div>
+                                                    <div 
+                                                        className="text-center pointer-events-none scale-85 opacity-90 z-10 relative"
+                                                        style={{ color: t.default_config.layout_style === 'photo-bg' && t.default_config.image_url ? '#ffffff' : undefined }}
+                                                    >
+                                                        <p className="text-[10px] tracking-wider uppercase font-semibold opacity-70">
+                                                            {t.default_config.title}
+                                                        </p>
+                                                        <p className="text-lg font-bold my-1 truncate max-w-[180px]">
+                                                            {t.default_config.guest_of_honor}
+                                                        </p>
+                                                        <p className="text-[8px] opacity-70">
+                                                            {t.default_config.date}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
                                             <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs z-20">
                                                 ₹{parseFloat(String(t.price)).toFixed(2)}
                                             </span>

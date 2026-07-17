@@ -181,6 +181,7 @@ class BusinessCardController extends Controller
         $ch = curl_init('https://api.razorpay.com/v1/orders');
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => json_encode($data),
             CURLOPT_USERPWD        => $keyId . ':' . $keySecret,
@@ -189,10 +190,11 @@ class BusinessCardController extends Controller
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
 
         if ($httpCode !== 200) {
-            Log::error('Razorpay order creation failed for card: ' . $response);
+            Log::error('Razorpay order creation failed for card. HTTP Code: ' . $httpCode . ' Response: ' . $response . ' cURL Error: ' . $curlError);
             
             $errorMsg = 'Failed to create payment order.';
             if (str_contains($response, 'Authentication failed')) {

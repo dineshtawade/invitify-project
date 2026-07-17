@@ -289,6 +289,7 @@ class TemplateController extends Controller
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_USERPWD, $keyId . ':' . $keySecret);
@@ -298,10 +299,11 @@ class TemplateController extends Controller
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
 
         if ($httpCode !== 200) {
-            \Illuminate\Support\Facades\Log::error('Razorpay Order API Failed: ' . $response);
+            \Illuminate\Support\Facades\Log::error('Razorpay Order API Failed. HTTP Code: ' . $httpCode . ' Response: ' . $response . ' cURL Error: ' . $curlError);
             return response()->json(['error' => 'Failed to create payment order. Please check credentials.'], 500);
         }
 

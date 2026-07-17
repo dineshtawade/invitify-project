@@ -77,6 +77,7 @@ class WalletController extends Controller
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_USERPWD, $keyId . ':' . $keySecret);
@@ -86,10 +87,11 @@ class WalletController extends Controller
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
 
         if ($httpCode !== 200) {
-            Log::error('Razorpay Recharge Order API Failed: ' . $response);
+            Log::error('Razorpay Recharge Order API Failed. HTTP Code: ' . $httpCode . ' Response: ' . $response . ' cURL Error: ' . $curlError);
             return response()->json(['error' => 'Failed to initiate payment. Please check gateway configuration.'], 500);
         }
 

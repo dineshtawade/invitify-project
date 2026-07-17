@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
+import * as LucideIcons from 'lucide-react';
 import { 
     Mail, Sparkles, MapPin, Compass, Play, 
     ChevronLeft, ChevronRight, Globe, CheckCircle, AlertCircle, 
@@ -206,6 +207,12 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
             if (bg.startsWith('linear-gradient') || bg.startsWith('#') || bg.startsWith('rgb')) {
                 style.background = bg;
             }
+        }
+        if (block.bg_image) {
+            style.backgroundImage = `url(${block.bg_image})`;
+            style.backgroundSize = 'cover';
+            style.backgroundPosition = 'center';
+            style.backgroundRepeat = 'no-repeat';
         }
         return style;
     };
@@ -446,29 +453,219 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                         );
                                     })()}
 
-                                    {/* 1. Hero Block */}
-                                    {block.type === 'hero' && (
+                                    {/* Dynamic Layout Block */}
+                                    {block.type === 'dynamic_layout' && (
                                         <div 
-                                            className={`rounded-3xl p-10 sm:p-14 text-center bg-gradient-to-tr ${getBgClass(block, 'from-indigo-650 to-purple-600')} text-white shadow-xl flex flex-col gap-6 items-center justify-center min-h-[360px] ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
+                                            className={`rounded-3xl p-10 sm:p-14 flex flex-col gap-6 items-center justify-center min-h-[220px] relative ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                             style={getBlockStyle(block)}
                                         >
-                                            <Sparkles className="size-10 text-white/40 animate-pulse" />
-                                            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight drop-shadow-md font-serif">
-                                                {block.title || 'Welcome'}
-                                            </h1>
-                                            <p className="text-sm sm:text-base opacity-90 max-w-lg leading-relaxed">
-                                                {block.subtitle}
-                                            </p>
-                                            {block.cta_text && (
-                                                <a 
-                                                    href={block.cta_link || '#'}
-                                                    className="rounded-full px-8 py-3 bg-white text-neutral-900 font-extrabold text-xs tracking-wider uppercase hover:scale-105 hover:shadow-lg transition-all active:scale-95 duration-200 mt-2"
-                                                >
-                                                    {block.cta_text}
-                                                </a>
+                                            {block.bg_image && (
+                                                <div className="absolute inset-0 bg-black/10 pointer-events-none rounded-3xl"></div>
                                             )}
+                                            <div className="relative z-10 flex flex-col gap-4 items-center w-full">
+                                                {block.icon && block.icon !== 'none' && (() => {
+                                                    const IconComponent = (LucideIcons as any)[block.icon];
+                                                    if (IconComponent) {
+                                                        return <IconComponent className="size-10 text-pink-650 drop-shadow-md animate-pulse" />;
+                                                    }
+                                                    return null;
+                                                })()}
+                                                {block.title && (
+                                                    <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-center drop-shadow-md font-serif">
+                                                        {block.title}
+                                                    </h2>
+                                                )}
+                                                {block.custom_image_url && (
+                                                    <div className="w-full max-w-[280px] my-2 rounded-2xl overflow-hidden border-2 border-white/20 shadow-lg">
+                                                        <img src={block.custom_image_url} alt="Custom Content" className="w-full h-auto object-cover" />
+                                                    </div>
+                                                )}
+                                                {block.text_lines?.map((line: any, idx: number) => (
+                                                    <p
+                                                        key={idx}
+                                                        style={{ color: line.color }}
+                                                        className={`text-center max-w-lg break-words leading-relaxed ${line.size || 'text-sm'} ${line.weight === 'bold' ? 'font-bold' : line.weight === 'light' ? 'font-light' : 'font-normal'}`}
+                                                    >
+                                                        {line.text}
+                                                    </p>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
+
+                                    {/* Flexible Layout Block */}
+                                    {block.type === 'flexible_layout' && (
+                                        <div 
+                                            className={`rounded-3xl p-10 sm:p-14 flex flex-col gap-6 items-center justify-center min-h-[120px] relative ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
+                                            style={getBlockStyle(block)}
+                                        >
+                                            {block.bg_image && (
+                                                <div className="absolute inset-0 bg-black/10 pointer-events-none rounded-3xl"></div>
+                                            )}
+                                            <div className="relative z-10 flex flex-col gap-5 items-center w-full">
+                                                {block.items?.map((item: any, idx: number) => {
+                                                    if (item.type === 'text') {
+                                                        return (
+                                                            <p
+                                                                key={item.id || idx}
+                                                                style={{ color: item.color, fontFamily: item.font_family || undefined }}
+                                                                className={`max-w-xl break-words leading-relaxed ${item.font_size || 'text-sm'} ${item.weight === 'bold' ? 'font-bold' : item.weight === 'light' ? 'font-light' : 'font-normal'} text-${item.align || 'center'} w-full whitespace-pre-wrap`}
+                                                            >
+                                                                {item.text}
+                                                            </p>
+                                                        );
+                                                    }
+                                                    if (item.type === 'image') {
+                                                        return (
+                                                            <div 
+                                                                key={item.id || idx}
+                                                                className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
+                                                            >
+                                                                <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${
+                                                                    item.image_size === 'small' ? 'max-w-[150px]' :
+                                                                    item.image_size === 'medium' ? 'max-w-[320px]' :
+                                                                    item.image_size === 'large' ? 'max-w-[500px]' : 'w-full'
+                                                                } ${item.radius || 'rounded-2xl'}`}>
+                                                                    <img src={item.url} alt="Foreground" className="w-full h-auto object-cover" />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    if (item.type === 'video') {
+                                                        return (
+                                                            <div 
+                                                                key={item.id || idx}
+                                                                className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
+                                                            >
+                                                                <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${
+                                                                    item.video_size === 'small' ? 'max-w-[150px]' :
+                                                                    item.video_size === 'medium' ? 'max-w-[320px]' :
+                                                                    item.video_size === 'large' ? 'max-w-[500px]' : 'w-full'
+                                                                } rounded-2xl`}>
+                                                                    <video 
+                                                                        src={item.video_url} 
+                                                                        controls 
+                                                                        autoPlay={item.autoplay} 
+                                                                        muted={item.autoplay} 
+                                                                        loop
+                                                                        className="w-full h-auto"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    if (item.type === 'button') {
+                                                        return (
+                                                            <div 
+                                                                key={item.id || idx} 
+                                                                className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
+                                                            >
+                                                                <a
+                                                                    href={item.btn_url || '#'}
+                                                                    style={{
+                                                                        backgroundColor: item.btn_bg_color || '#2563eb',
+                                                                        color: item.btn_text_color || '#ffffff'
+                                                                    }}
+                                                                    className={`inline-flex items-center justify-center font-bold tracking-wider uppercase transition-all duration-300 hover:scale-105 active:scale-95 shadow-md ${
+                                                                        item.btn_size === 'small' ? 'px-5 py-2 text-xs' :
+                                                                        item.btn_size === 'large' ? 'px-10 py-4 text-base' : 'px-8 py-3 text-sm'
+                                                                    } ${item.btn_radius || 'rounded-full'}`}
+                                                                >
+                                                                    {item.btn_text}
+                                                                </a>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* 1. Hero Block */}
+                                    {block.type === 'hero' && (() => {
+                                        const elements = block.hero_elements && block.hero_elements.length > 0 ? block.hero_elements : null;
+                                        const imgSizeMap: any = { small: 'max-w-[150px]', medium: 'max-w-[320px]', large: 'max-w-[500px]', full: 'w-full' };
+                                        const btnSizeMap: any = { small: 'px-5 py-2 text-xs', medium: 'px-8 py-3 text-xs', large: 'px-10 py-4 text-sm' };
+
+                                        return (
+                                            <div 
+                                                className={`rounded-3xl p-10 sm:p-14 text-center bg-gradient-to-tr ${getBgClass(block, 'from-indigo-650 to-purple-600')} text-white shadow-xl flex flex-col gap-6 items-center justify-center min-h-[360px] ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
+                                                style={{
+                                                    ...getBlockStyle(block),
+                                                    ...(block.bg_image ? { backgroundImage: `url(${block.bg_image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {})
+                                                }}
+                                            >
+                                                {elements ? elements.map((el: any, idx: number) => {
+                                                    const alignCls = el.align === 'left' ? 'self-start text-left' : el.align === 'right' ? 'self-end text-right' : 'self-center text-center';
+                                                    if (el.type === 'text') {
+                                                        return (
+                                                            <p key={el.id || idx} style={{ color: el.color, fontSize: `${el.font_size_px || 16}px`, fontWeight: el.font_weight || '400', fontFamily: el.font_family || undefined, textAlign: (el.align || 'center') as any }} className={`max-w-lg break-words leading-relaxed ${alignCls} w-full`}>
+                                                                {el.content}
+                                                            </p>
+                                                        );
+                                                    } else if (el.type === 'image' && el.url) {
+                                                        return (
+                                                            <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
+                                                                <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${el.width_px ? '' : (imgSizeMap[el.image_size] || 'max-w-[320px]')} ${el.radius || 'rounded-2xl'}`}
+                                                                     style={{ 
+                                                                         width: el.width_px ? `${el.width_px}px` : undefined,
+                                                                         height: el.height_px ? `${el.height_px}px` : undefined
+                                                                     }}
+                                                                >
+                                                                    <img src={el.url} alt="" className={`w-full object-cover ${el.height_px ? 'h-full' : 'h-auto'}`} />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    } else if (el.type === 'video' && el.video_url) {
+                                                        return (
+                                                            <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
+                                                                <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${el.width_px ? '' : (imgSizeMap[el.video_size] || 'max-w-[320px]')} rounded-2xl`}
+                                                                     style={{ 
+                                                                         width: el.width_px ? `${el.width_px}px` : undefined,
+                                                                         height: el.height_px ? `${el.height_px}px` : undefined
+                                                                     }}
+                                                                >
+                                                                    <video src={el.video_url} controls={!el.autoplay} autoPlay={el.autoplay} muted={el.autoplay} loop={el.autoplay} className={`w-full object-cover ${el.height_px ? 'h-full' : 'h-auto'}`} />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    } else if (el.type === 'button') {
+                                                        return (
+                                                            <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
+                                                                <a
+                                                                    href={el.btn_url || '#'}
+                                                                    style={{ backgroundColor: el.btn_bg_color || '#ffffff', color: el.btn_text_color || '#1f2937' }}
+                                                                    className={`inline-flex items-center justify-center font-extrabold tracking-wider uppercase transition-all duration-300 hover:scale-105 active:scale-95 shadow-md ${btnSizeMap[el.btn_size] || btnSizeMap.medium} ${el.btn_radius || 'rounded-full'} mt-2`}
+                                                                >
+                                                                    {el.btn_text || 'Button'}
+                                                                </a>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                }) : (
+                                                    <>
+                                                        <Sparkles className="size-10 text-white/40 animate-pulse" />
+                                                        <h1 style={{ color: block.title_color }} className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight drop-shadow-md font-serif">
+                                                            {block.title || 'Welcome'}
+                                                        </h1>
+                                                        <p style={{ color: block.subtitle_color }} className="text-sm sm:text-base opacity-90 max-w-lg leading-relaxed">
+                                                            {block.subtitle}
+                                                        </p>
+                                                        {block.hero_text_lines?.map((line: any, i: number) => (
+                                                            <p key={i} style={{ color: line.color }} className={`text-center max-w-lg break-words leading-relaxed ${line.size || 'text-sm'} ${line.weight === 'bold' ? 'font-bold' : line.weight === 'light' ? 'font-light' : 'font-normal'}`}>{line.text}</p>
+                                                        ))}
+                                                        {block.cta_text && (
+                                                            <a href={block.cta_link || '#'} className="rounded-full px-8 py-3 bg-white text-neutral-900 font-extrabold text-xs tracking-wider uppercase hover:scale-105 hover:shadow-lg transition-all active:scale-95 duration-200 mt-2">
+                                                                {block.cta_text}
+                                                            </a>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
 
                                     {/* 2. Text Block */}
                                     {block.type === 'text' && (

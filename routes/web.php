@@ -56,6 +56,18 @@ Route::get('card/{slug}', [\App\Http\Controllers\PublicCardController::class, 's
 Route::post('card/{slug}/feedback', [\App\Http\Controllers\PublicCardController::class, 'submitFeedback'])->name('public.card.feedback');
 Route::get('card/{slug}/vcard', [\App\Http\Controllers\PublicCardController::class, 'downloadVcard'])->name('public.card.vcard');
 
+// Serve storage files directly as a fallback for Windows/XAMPP symlink issues
+Route::get('/storage/media/{filename}', function ($filename) {
+    $path = storage_path('app/public/media/' . $filename);
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    return response()->file($path, [
+        'Content-Type' => mime_content_type($path),
+        'Access-Control-Allow-Origin' => '*',
+    ]);
+});
+
 Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::class])->group(function () {
     // Media Upload
     Route::post('/media/upload', [\App\Http\Controllers\MediaUploadController::class, 'upload'])->name('media.upload');

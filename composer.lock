@@ -796,6 +796,7 @@
         },
         {
             "name": "guzzlehttp/guzzle",
+<<<<<<< HEAD
             "version": "7.14.2",
             "source": {
                 "type": "git",
@@ -806,6 +807,18 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/guzzle/guzzle/zipball/fa88c57803501ad0770f5cddb1e60525d49da9a1",
                 "reference": "fa88c57803501ad0770f5cddb1e60525d49da9a1",
+=======
+            "version": "7.14.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/guzzle/guzzle.git",
+                "reference": "6b1d2429a2c312474c523aa9017fba0c07b5f4a0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/6b1d2429a2c312474c523aa9017fba0c07b5f4a0",
+                "reference": "6b1d2429a2c312474c523aa9017fba0c07b5f4a0",
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
                 "shasum": ""
             },
             "require": {
@@ -904,7 +917,11 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/guzzle/issues",
+<<<<<<< HEAD
                 "source": "https://github.com/guzzle/guzzle/tree/7.14.2"
+=======
+                "source": "https://github.com/guzzle/guzzle/tree/7.14.1"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
             },
             "funding": [
                 {
@@ -920,7 +937,11 @@
                     "type": "tidelift"
                 }
             ],
+<<<<<<< HEAD
             "time": "2026-07-14T18:15:01+00:00"
+=======
+            "time": "2026-07-13T01:32:54+00:00"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
         },
         {
             "name": "guzzlehttp/promises",
@@ -1008,6 +1029,7 @@
         },
         {
             "name": "guzzlehttp/psr7",
+<<<<<<< HEAD
             "version": "2.13.0",
             "source": {
                 "type": "git",
@@ -1018,6 +1040,18 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/guzzle/psr7/zipball/dad89620b7a6edb60c15858442eb2e408b45d8f4",
                 "reference": "dad89620b7a6edb60c15858442eb2e408b45d8f4",
+=======
+            "version": "2.12.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/guzzle/psr7.git",
+                "reference": "9365d578a9fd1552ad6ca9c3cb530708526feb09"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/9365d578a9fd1552ad6ca9c3cb530708526feb09",
+                "reference": "9365d578a9fd1552ad6ca9c3cb530708526feb09",
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
                 "shasum": ""
             },
             "require": {
@@ -1107,7 +1141,11 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
+<<<<<<< HEAD
                 "source": "https://github.com/guzzle/psr7/tree/2.13.0"
+=======
+                "source": "https://github.com/guzzle/psr7/tree/2.12.5"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
             },
             "funding": [
                 {
@@ -1123,7 +1161,11 @@
                     "type": "tidelift"
                 }
             ],
+<<<<<<< HEAD
             "time": "2026-07-16T22:23:49+00:00"
+=======
+            "time": "2026-07-13T01:27:20+00:00"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
         },
         {
             "name": "guzzlehttp/uri-template",
@@ -1350,6 +1392,7 @@
         },
         {
             "name": "laravel/framework",
+<<<<<<< HEAD
             "version": "v12.64.0",
             "source": {
                 "type": "git",
@@ -1360,6 +1403,18 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/laravel/framework/zipball/727a8ea2949c23ca8b5316b86a00984b6017b7a0",
                 "reference": "727a8ea2949c23ca8b5316b86a00984b6017b7a0",
+=======
+            "version": "v12.63.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/framework.git",
+                "reference": "7adfddbf4738f2e6cae5419b0e6bc46d4cccfbcf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/7adfddbf4738f2e6cae5419b0e6bc46d4cccfbcf",
+                "reference": "7adfddbf4738f2e6cae5419b0e6bc46d4cccfbcf",
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
                 "shasum": ""
             },
             "require": {
@@ -1568,7 +1623,11 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
+<<<<<<< HEAD
             "time": "2026-07-14T14:25:37+00:00"
+=======
+            "time": "2026-07-07T14:16:35+00:00"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
         },
         {
             "name": "laravel/passkeys",
@@ -4066,6 +4125,7 @@
         },
         {
             "name": "spomky-labs/cbor-php",
+<<<<<<< HEAD
             "version": "3.3.0",
             "source": {
                 "type": "git",
@@ -4080,6 +4140,22 @@
             },
             "require": {
                 "brick/math": "^0.9|^0.10|^0.11|^0.12|^0.13|^0.14|^0.15|^0.16|^0.17|^0.18",
+=======
+            "version": "3.2.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Spomky-Labs/cbor-php.git",
+                "reference": "dd6eb84e6d92f7b8bd0da56b4b4dd7235aed0c32"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Spomky-Labs/cbor-php/zipball/dd6eb84e6d92f7b8bd0da56b4b4dd7235aed0c32",
+                "reference": "dd6eb84e6d92f7b8bd0da56b4b4dd7235aed0c32",
+                "shasum": ""
+            },
+            "require": {
+                "brick/math": "^0.9|^0.10|^0.11|^0.12|^0.13|^0.14|^0.15|^0.16|^0.17",
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
                 "ext-mbstring": "*",
                 "php": ">=8.0"
             },
@@ -4121,7 +4197,11 @@
             ],
             "support": {
                 "issues": "https://github.com/Spomky-Labs/cbor-php/issues",
+<<<<<<< HEAD
                 "source": "https://github.com/Spomky-Labs/cbor-php/tree/3.3.0"
+=======
+                "source": "https://github.com/Spomky-Labs/cbor-php/tree/3.2.3"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
             },
             "funding": [
                 {
@@ -4133,6 +4213,7 @@
                     "type": "patreon"
                 }
             ],
+<<<<<<< HEAD
             "time": "2026-07-15T18:56:27+00:00"
         },
         {
@@ -4153,24 +4234,59 @@
                 "brick/math": "^0.10|^0.11|^0.12|^0.13|^0.14|^0.15|^0.16|^0.17|^0.18",
                 "ext-mbstring": "*",
                 "php": ">=8.1"
+=======
+            "time": "2026-04-01T12:15:20+00:00"
+        },
+        {
+            "name": "spomky-labs/pki-framework",
+            "version": "1.4.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Spomky-Labs/pki-framework.git",
+                "reference": "aa576cbd07128075bef97ac2f8af9854e67513d8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Spomky-Labs/pki-framework/zipball/aa576cbd07128075bef97ac2f8af9854e67513d8",
+                "reference": "aa576cbd07128075bef97ac2f8af9854e67513d8",
+                "shasum": ""
+            },
+            "require": {
+                "brick/math": "^0.10|^0.11|^0.12|^0.13|^0.14|^0.15|^0.16|^0.17",
+                "ext-mbstring": "*",
+                "php": ">=8.1",
+                "psr/clock": "^1.0"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
             },
             "require-dev": {
                 "ekino/phpstan-banned-code": "^1.0|^2.0|^3.0",
                 "ext-gmp": "*",
                 "ext-openssl": "*",
+<<<<<<< HEAD
                 "infection/infection": "^0.28|^0.29|^0.31",
+=======
+                "infection/infection": "^0.28|^0.29|^0.31|^0.32",
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
                 "php-parallel-lint/php-parallel-lint": "^1.3",
                 "phpstan/extension-installer": "^1.3|^2.0",
                 "phpstan/phpstan": "^1.8|^2.0",
                 "phpstan/phpstan-deprecation-rules": "^1.0|^2.0",
                 "phpstan/phpstan-phpunit": "^1.1|^2.0",
                 "phpstan/phpstan-strict-rules": "^1.3|^2.0",
+<<<<<<< HEAD
                 "phpunit/phpunit": "^10.1|^11.0|^12.0",
+=======
+                "phpunit/phpunit": "^10.1|^11.0|^12.0|^13.0",
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
                 "rector/rector": "^1.0|^2.0",
                 "roave/security-advisories": "dev-latest",
                 "symfony/string": "^6.4|^7.0|^8.0",
                 "symfony/var-dumper": "^6.4|^7.0|^8.0",
+<<<<<<< HEAD
                 "symplify/easy-coding-standard": "^12.0 || ^13.0"
+=======
+                "symplify/easy-coding-standard": "^12.0|^13.0"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
             },
             "suggest": {
                 "ext-bcmath": "For better performance (or GMP)",
@@ -4230,7 +4346,11 @@
             ],
             "support": {
                 "issues": "https://github.com/Spomky-Labs/pki-framework/issues",
+<<<<<<< HEAD
                 "source": "https://github.com/Spomky-Labs/pki-framework/tree/1.5.0"
+=======
+                "source": "https://github.com/Spomky-Labs/pki-framework/tree/1.4.2"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
             },
             "funding": [
                 {
@@ -4242,7 +4362,11 @@
                     "type": "patreon"
                 }
             ],
+<<<<<<< HEAD
             "time": "2026-07-16T10:28:45+00:00"
+=======
+            "time": "2026-03-23T22:56:56+00:00"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
         },
         {
             "name": "symfony/clock",
@@ -7308,6 +7432,7 @@
         },
         {
             "name": "web-auth/cose-lib",
+<<<<<<< HEAD
             "version": "4.6.0",
             "source": {
                 "type": "git",
@@ -7322,6 +7447,22 @@
             },
             "require": {
                 "brick/math": "^0.9|^0.10|^0.11|^0.12|^0.13|^0.14|^0.15|^0.16|^0.17|^0.18",
+=======
+            "version": "4.5.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/web-auth/cose-lib.git",
+                "reference": "5b38660f90070a8e45f3dbc9528ade3b608dd77d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/web-auth/cose-lib/zipball/5b38660f90070a8e45f3dbc9528ade3b608dd77d",
+                "reference": "5b38660f90070a8e45f3dbc9528ade3b608dd77d",
+                "shasum": ""
+            },
+            "require": {
+                "brick/math": "^0.9|^0.10|^0.11|^0.12|^0.13|^0.14|^0.15|^0.16|^0.17",
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
                 "ext-json": "*",
                 "ext-openssl": "*",
                 "php": ">=8.1",
@@ -7363,7 +7504,11 @@
             ],
             "support": {
                 "issues": "https://github.com/web-auth/cose-lib/issues",
+<<<<<<< HEAD
                 "source": "https://github.com/web-auth/cose-lib/tree/4.6.0"
+=======
+                "source": "https://github.com/web-auth/cose-lib/tree/4.5.2"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
             },
             "funding": [
                 {
@@ -7375,7 +7520,11 @@
                     "type": "patreon"
                 }
             ],
+<<<<<<< HEAD
             "time": "2026-07-16T10:19:49+00:00"
+=======
+            "time": "2026-05-03T09:49:50+00:00"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
         },
         {
             "name": "web-auth/webauthn-lib",
@@ -8072,6 +8221,7 @@
         },
         {
             "name": "nunomaduro/collision",
+<<<<<<< HEAD
             "version": "v8.9.5",
             "source": {
                 "type": "git",
@@ -8082,13 +8232,29 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/nunomaduro/collision/zipball/fb53eacd509a1d303858e2d20cfebf2d630254ec",
                 "reference": "fb53eacd509a1d303858e2d20cfebf2d630254ec",
+=======
+            "version": "v8.9.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nunomaduro/collision.git",
+                "reference": "716af8f95a470e9094cfca09ed897b023be191a5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nunomaduro/collision/zipball/716af8f95a470e9094cfca09ed897b023be191a5",
+                "reference": "716af8f95a470e9094cfca09ed897b023be191a5",
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
                 "shasum": ""
             },
             "require": {
                 "filp/whoops": "^2.18.4",
                 "nunomaduro/termwind": "^2.4.0",
                 "php": "^8.2.0",
+<<<<<<< HEAD
                 "symfony/console": "^7.4.14 || ^8.1.1"
+=======
+                "symfony/console": "^7.4.8 || ^8.0.8"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
             },
             "conflict": {
                 "laravel/framework": "<11.48.0 || >=14.0.0",
@@ -8096,12 +8262,21 @@
             },
             "require-dev": {
                 "brianium/paratest": "^7.8.5",
+<<<<<<< HEAD
                 "larastan/larastan": "^3.10.0",
                 "laravel/framework": "^11.48.0 || ^12.56.0 || ^13.20.0",
                 "laravel/pint": "^1.29.3",
                 "orchestra/testbench-core": "^9.12.0 || ^10.12.1 || ^11.3.5",
                 "pestphp/pest": "^3.8.5 || ^4.7.5 || ^5.0.0",
                 "sebastian/environment": "^7.2.1 || ^8.1.2 || ^9.3.2"
+=======
+                "larastan/larastan": "^3.9.6",
+                "laravel/framework": "^11.48.0 || ^12.56.0 || ^13.5.0",
+                "laravel/pint": "^1.29.1",
+                "orchestra/testbench-core": "^9.12.0 || ^10.12.1 || ^11.2.1",
+                "pestphp/pest": "^3.8.5 || ^4.4.3 || ^5.0.0",
+                "sebastian/environment": "^7.2.1 || ^8.0.4 || ^9.3.0"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
             },
             "type": "library",
             "extra": {
@@ -8164,7 +8339,11 @@
                     "type": "patreon"
                 }
             ],
+<<<<<<< HEAD
             "time": "2026-07-15T19:09:14+00:00"
+=======
+            "time": "2026-04-21T14:04:20+00:00"
+>>>>>>> 12949bad944b7e81abe6138b26d4a48bb66d97ea
         },
         {
             "name": "phar-io/manifest",
