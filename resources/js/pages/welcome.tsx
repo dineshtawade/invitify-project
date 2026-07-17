@@ -298,7 +298,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                         <div className="lg:col-span-7 flex flex-col gap-5 text-center items-center lg:text-left lg:items-start relative">
                             <h1 className="text-5xl sm:text-7xl font-serif text-[#3e3832] leading-[1.1]">
                                 <span className="italic font-light tracking-wide block mb-2">Create Stunning</span>
-                                <span className="font-bold">Digital Invitations</span>
+                                <span className="font-bold">Digital Invitations Website</span>
                             </h1>
 
                             <p className="max-w-md mx-auto lg:mx-0 text-[#706557] font-serif text-lg sm:text-xl leading-relaxed mt-2 border-b border-[#ebd9c1] pb-6">
@@ -389,6 +389,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                 </div>
                             </div>
                         </div>
+                        <div className="text-black text-center text-xl font-semibold"> Digital Visiting Card with Mini Website</div>
                     </div>
                 </section>
 
