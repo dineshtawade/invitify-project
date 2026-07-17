@@ -1,21 +1,21 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { 
-    FileText, 
-    ArrowLeft, 
-    Mail, 
-    Phone, 
-    MapPin, 
-    Shield, 
-    Lock, 
-    HelpCircle, 
-    Settings, 
-    CreditCard, 
-    Wallet, 
-    AlertTriangle, 
-    UserCheck, 
-    Briefcase, 
-    Scale, 
-    RefreshCw 
+import {
+    FileText,
+    ArrowLeft,
+    Mail,
+    Phone,
+    MapPin,
+    Shield,
+    Lock,
+    HelpCircle,
+    Settings,
+    CreditCard,
+    Wallet,
+    AlertTriangle,
+    UserCheck,
+    Briefcase,
+    Scale,
+    RefreshCw
 } from 'lucide-react';
 import { dashboard, login } from '@/routes';
 
@@ -119,7 +119,7 @@ export default function TermsAndConditions() {
                             <strong className="text-neutral-800 dark:text-neutral-250">Digital Asset Delivery:</strong> Since our services are purely digital and accessed instantly, delivered card designs or active website hosting plans are non-refundable once unlocked.
                         </p>
                         <p>
-                            <strong className="text-red-650 dark:text-red-400">Reseller Wallet Deposits:</strong> Recharges or manual deposits made into Reseller Wallets are strictly non-refundable, non-transferable, and non-withdrawable.
+                            <strong className="text-red-700 dark:text-red-400">Reseller Wallet Deposits:</strong> Recharges or manual deposits made into Reseller Wallets are strictly non-refundable, non-transferable, and non-withdrawable.
                         </p>
                     </div>
                 </div>
@@ -295,13 +295,13 @@ export default function TermsAndConditions() {
                 <meta property="og:title" content="Terms & Conditions | Invitify" />
                 <meta property="og:description" content="Review the guidelines and rules for using Invitify's digital templates and services." />
             </Head>
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+            <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
 
 
             <div className="min-h-screen bg-neutral-50 text-neutral-900 font-sans dark:bg-neutral-950 dark:text-neutral-50 transition-colors">
-                
+
                 {/* Header Navbar */}
                 <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 border-b border-neutral-200/50 dark:bg-neutral-950/70 dark:border-neutral-900/50">
                     <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -353,7 +353,7 @@ export default function TermsAndConditions() {
                 {/* Content Layout */}
                 <div className="max-w-5xl mx-auto px-6 py-12 sm:py-16">
                     <div className="grid gap-10 lg:grid-cols-12 items-start">
-                        
+
                         {/* Sticky Left Sidebar Navigation */}
                         <div className="lg:col-span-4 lg:sticky lg:top-24 hidden lg:block space-y-4">
                             <div className="p-5 rounded-2xl border border-neutral-200/60 dark:border-neutral-900 bg-white dark:bg-neutral-900/60 backdrop-blur-xs">
@@ -378,9 +378,9 @@ export default function TermsAndConditions() {
                         {/* Right Content Area */}
                         <div className="lg:col-span-8 space-y-10">
                             {sections.map((section) => (
-                                <section 
-                                    key={section.id} 
-                                    id={section.id} 
+                                <section
+                                    key={section.id}
+                                    id={section.id}
                                     className="p-6 sm:p-8 rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-900 dark:bg-neutral-900/40 hover:shadow-md transition-shadow"
                                 >
                                     <div className="flex items-center gap-3 border-b border-neutral-100 dark:border-neutral-800/80 pb-4 mb-5">
@@ -411,8 +411,8 @@ export default function TermsAndConditions() {
                             <Link href="/disclaimer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Disclaimer</Link>
                             <Link href="/cookie-policy" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Cookie Policy</Link>
                         </div>
-                        <p>© {new Date().getFullYear()} Invitify. Created with React & Laravel. All rights reserved.</p>
-                        <p className="text-[10px] text-neutral-500">Avinya Digitech Private Limited. Beside Besa-Pimpla Road, Nagpur – 440034</p>
+                        <p>© {new Date().getFullYear()} Invitify. Created by Avinya Digitech Pvt Ltd. All rights reserved.</p>
+                        <p className="text-[10px] text-neutral-500">Beside Besa-Pimpla Road, Nagpur – 440034</p>
                     </div>
                 </footer>
             </div>

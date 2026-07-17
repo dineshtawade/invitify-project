@@ -831,7 +831,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                         type="button"
                                                         onClick={() => setActiveTab(tab.id as any)}
                                                         className={`flex-1 py-3 text-[11px] font-bold border-b-2 text-center transition-all ${activeTab === tab.id
-                                                            ? 'border-indigo-650 text-indigo-650 dark:border-indigo-400 dark:text-indigo-400 bg-white dark:bg-neutral-900'
+                                                            ? 'border-indigo-700 text-indigo-700 dark:border-indigo-400 dark:text-indigo-400 bg-white dark:bg-neutral-900'
                                                             : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300'
                                                             }`}
                                                     >
@@ -854,7 +854,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                                         type="button"
                                                                         onClick={() => handleRatioChange(ratio)}
                                                                         className={`py-1.5 px-3 text-xs border font-bold rounded-lg text-center transition-all ${data.default_config.aspectRatio === ratio
-                                                                            ? 'border-indigo-650 bg-indigo-50/25 text-indigo-650 dark:border-indigo-400 dark:text-indigo-400 dark:bg-indigo-950/20'
+                                                                            ? 'border-indigo-700 bg-indigo-50/25 text-indigo-700 dark:border-indigo-400 dark:text-indigo-400 dark:bg-indigo-950/20'
                                                                             : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
                                                                             }`}
                                                                     >
@@ -1011,7 +1011,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                                     type="button"
                                                                     onClick={handleAddPage}
                                                                     size="sm"
-                                                                    className="bg-indigo-650 hover:bg-indigo-700 text-white text-xs flex items-center gap-1 py-1 rounded-lg"
+                                                                    className="bg-indigo-700 hover:bg-indigo-700 text-white text-xs flex items-center gap-1 py-1 rounded-lg"
                                                                 >
                                                                     <Plus className="size-3.5" /> Add New Page
                                                                 </Button>
@@ -1023,7 +1023,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                                         key={p.id}
                                                                         onClick={() => { setActivePageIndex(idx); setSelectedElementId(null); }}
                                                                         className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${activePageIndex === idx
-                                                                            ? 'border-indigo-650 bg-indigo-50/15 dark:border-indigo-400'
+                                                                            ? 'border-indigo-700 bg-indigo-50/15 dark:border-indigo-400'
                                                                             : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-850'
                                                                             }`}
                                                                     >
@@ -1052,7 +1052,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                                 type="button"
                                                                 onClick={() => handleAddElement('text')}
                                                                 size="sm"
-                                                                className="bg-indigo-650 hover:bg-indigo-700 text-white text-xs flex items-center gap-1.5 rounded-lg"
+                                                                className="bg-indigo-700 hover:bg-indigo-700 text-white text-xs flex items-center gap-1.5 rounded-lg"
                                                             >
                                                                 <Plus className="size-3.5" /> Add Text Layer
                                                             </Button>
@@ -1150,7 +1150,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                                 </div>
 
                                                                 <div className="border-t pt-3 flex flex-col gap-2.5">
-                                                                    <label className="flex items-center gap-1.5 text-xs font-bold cursor-pointer text-indigo-650 dark:text-indigo-400">
+                                                                    <label className="flex items-center gap-1.5 text-xs font-bold cursor-pointer text-indigo-700 dark:text-indigo-400">
                                                                         <input
                                                                             type="checkbox"
                                                                             checked={!!selectedElement.isEditable}
@@ -1232,7 +1232,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                                 type="button"
                                                                 onClick={() => handleAddElement('image')}
                                                                 size="sm"
-                                                                className="bg-indigo-650 hover:bg-indigo-700 text-white text-xs flex items-center gap-1.5 rounded-lg"
+                                                                className="bg-indigo-700 hover:bg-indigo-700 text-white text-xs flex items-center gap-1.5 rounded-lg"
                                                             >
                                                                 <Plus className="size-3.5" /> Add Image Box
                                                             </Button>
@@ -1264,7 +1264,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                                 </div>
 
                                                                 <div className="border-t pt-3 mt-1 flex flex-col gap-2.5">
-                                                                    <label className="flex items-center gap-1.5 text-xs font-bold cursor-pointer text-indigo-650 dark:text-indigo-400">
+                                                                    <label className="flex items-center gap-1.5 text-xs font-bold cursor-pointer text-indigo-700 dark:text-indigo-400">
                                                                         <input
                                                                             type="checkbox"
                                                                             checked={!!selectedElement.isEditable}
@@ -1335,7 +1335,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                                     type="button"
                                                                     onClick={() => handleAddElement('icon')}
                                                                     size="sm"
-                                                                    className="bg-indigo-650 hover:bg-indigo-700 text-white text-xs flex items-center gap-1 rounded-lg py-1 px-3"
+                                                                    className="bg-indigo-700 hover:bg-indigo-700 text-white text-xs flex items-center gap-1 rounded-lg py-1 px-3"
                                                                 >
                                                                     <Plus className="size-3.5" /> Add Icon
                                                                 </Button>
@@ -1343,7 +1343,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                                     type="button"
                                                                     onClick={() => handleAddElement('divider')}
                                                                     size="sm"
-                                                                    className="bg-indigo-650 hover:bg-indigo-700 text-white text-xs flex items-center gap-1 rounded-lg py-1 px-3"
+                                                                    className="bg-indigo-700 hover:bg-indigo-700 text-white text-xs flex items-center gap-1 rounded-lg py-1 px-3"
                                                                 >
                                                                     <Plus className="size-3.5" /> Add Line
                                                                 </Button>
@@ -1444,7 +1444,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                                 type="button"
                                                                 onClick={() => handleAddElement('link')}
                                                                 size="sm"
-                                                                className="bg-indigo-650 hover:bg-indigo-700 text-white text-xs flex items-center gap-1.5 rounded-lg"
+                                                                className="bg-indigo-700 hover:bg-indigo-700 text-white text-xs flex items-center gap-1.5 rounded-lg"
                                                             >
                                                                 <Plus className="size-3.5" /> Add Location Link
                                                             </Button>
@@ -1725,7 +1725,7 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                                 onMouseDown={(e) => handleCanvasMouseDown(elem.id, e, false)}
                                                                 onClick={(e) => e.stopPropagation()}
                                                                 className={`transition-all duration-75 relative group border p-0.5 leading-tight select-none break-words overflow-hidden ${isSelected
-                                                                    ? 'border-indigo-650 bg-indigo-500/10 shadow-xs z-30'
+                                                                    ? 'border-indigo-700 bg-indigo-500/10 shadow-xs z-30'
                                                                     : 'border-transparent hover:border-dashed hover:border-neutral-400 hover:z-20 cursor-move'
                                                                     }`}
                                                             >
@@ -1777,13 +1777,13 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
 
                                                                 {isSelected && (
                                                                     <>
-                                                                        <div className="absolute top-0.5 left-0.5 bg-indigo-650 rounded-full text-white p-0.5 shadow-xs z-40 pointer-events-none opacity-80">
+                                                                        <div className="absolute top-0.5 left-0.5 bg-indigo-700 rounded-full text-white p-0.5 shadow-xs z-40 pointer-events-none opacity-80">
                                                                             <Move className="size-2.5" />
                                                                         </div>
                                                                         <div
                                                                             onMouseDown={(e) => handleCanvasMouseDown(elem.id, e, true)}
                                                                             onClick={(e) => e.stopPropagation()}
-                                                                            className="absolute bottom-0 right-0 size-3 bg-indigo-650 cursor-se-resize flex items-center justify-center text-[7px] text-white font-bold leading-none select-none rounded-tl-xs z-45"
+                                                                            className="absolute bottom-0 right-0 size-3 bg-indigo-700 cursor-se-resize flex items-center justify-center text-[7px] text-white font-bold leading-none select-none rounded-tl-xs z-45"
                                                                         >
                                                                             ⇲
                                                                         </div>

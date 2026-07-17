@@ -674,20 +674,20 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                 <AppLogoIcon className="size-6 fill-current text-[#3d5644]" />
                                 <span className="font-serif font-bold text-base text-[#3e3832]">Invitify</span>
                             </div>
-                            <p className="text-[10px]">© {new Date().getFullYear()} Invitify. Created with React & Laravel. All rights reserved.</p>
-                            <p className="text-[10px]">Avinya Digitech Pvt Ltd. Beside Besa-Pimpla Road, Nagpur – 440034</p>
+                            <p className="text-[10px]">© {new Date().getFullYear()} Invitify. Created by Avinya Digitech Pvt Ltd. All rights reserved.</p>
+                            <p className="text-[10px]">Beside Besa-Pimpla Road, Nagpur – 440034</p>
                         </div>
                         <div className="flex flex-col items-center md:items-end gap-3">
                             {/* Partnership Highlight Section */}
                             <div className="flex flex-wrap gap-2.5 justify-center md:justify-end">
-                                <Link 
-                                    href="/register?role=reseller" 
+                                <Link
+                                    href="/register?role=reseller"
                                     className="px-3.5 py-1.5 rounded-full bg-[#3d5644] hover:bg-[#2a3c30] text-white text-[10px] uppercase tracking-wider font-sans font-extrabold transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5"
                                 >
                                     Register as a Reseller
                                 </Link>
-                                <Link 
-                                    href="/register?role=referral_partner" 
+                                <Link
+                                    href="/register?role=referral_partner"
                                     className="px-3.5 py-1.5 rounded-full bg-[#ebd9c1] hover:bg-[#e0ccb2] text-[#4a4238] border border-[#d3c0a3] text-[10px] uppercase tracking-wider font-sans font-extrabold transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5"
                                 >
                                     Register as a Referral Partner
@@ -708,9 +708,9 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                     <div className="max-w-6xl mx-auto px-6 mt-10 pt-6 border-t border-[#ebd9c1]/50 text-center">
                         <p className="text-sm">
                             Developed and Designed by{' '}
-                            <a 
-                                href="https://globalinfotechindia.com/" 
-                                target="_blank" 
+                            <a
+                                href="https://globalinfotechindia.com/"
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="font-bold text-[#3d5644] hover:underline transition-colors"
                             >
