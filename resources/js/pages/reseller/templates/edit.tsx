@@ -385,7 +385,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                         <div className="rounded-2xl border border-neutral-200 bg-white shadow-2xs dark:border-neutral-800 dark:bg-neutral-900 flex flex-col min-h-[500px] overflow-hidden">
                             <div className="p-5 border-b bg-neutral-50 dark:bg-neutral-950/20">
                                 <h2 className="text-md font-bold flex items-center gap-2 text-neutral-900 dark:text-neutral-50">
-                                    <Sparkles className="size-5 text-indigo-650 dark:text-indigo-400" />
+                                    <Sparkles className="size-5 text-indigo-700 dark:text-indigo-400" />
                                     Personalize Invitation Content
                                 </h2>
                                 <p className="text-[11px] text-neutral-450 mt-1">Replace placeholder contents inside editable text and photo frames. Overall card structures, themes, borders, and layouts are secured.</p>
@@ -487,7 +487,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                         type="button"
                                         onClick={() => setActivePageIndex(idx)}
                                         className={`px-3.5 py-1 text-xs font-bold rounded-full border transition-all ${activePageIndex === idx
-                                            ? 'bg-indigo-650 text-white border-indigo-650'
+                                            ? 'bg-indigo-700 text-white border-indigo-700'
                                             : 'bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-600 dark:bg-neutral-900 dark:border-neutral-850 dark:text-neutral-400'
                                             }`}
                                     >
@@ -743,7 +743,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                         <Button
                             type="button"
                             onClick={() => handleGuestRedirect('/register')}
-                            className="w-full sm:w-auto bg-indigo-650 hover:bg-indigo-700 text-white font-bold rounded-xl px-5"
+                            className="w-full sm:w-auto bg-indigo-700 hover:bg-indigo-700 text-white font-bold rounded-xl px-5"
                         >
                             Register
                         </Button>

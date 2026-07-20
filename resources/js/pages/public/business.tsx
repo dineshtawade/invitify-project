@@ -60,7 +60,7 @@ const themePresets = {
         bg: 'bg-cyan-50/30 text-cyan-950 dark:bg-neutral-950 dark:text-neutral-50',
         nav: 'bg-white/90 border-teal-200/50 backdrop-blur-md shadow-xs dark:bg-neutral-900/90 dark:border-neutral-800',
         hero: 'from-cyan-750 to-teal-600 bg-clip-text text-transparent dark:from-cyan-400 dark:to-teal-400',
-        accent: 'bg-teal-650 hover:bg-teal-700 text-white shadow-teal-500/10',
+        accent: 'bg-teal-700 hover:bg-teal-700 text-white shadow-teal-500/10',
         secondary: 'bg-white border-teal-200 text-teal-950 hover:bg-teal-50/50 dark:bg-neutral-900 dark:border-neutral-800 dark:text-teal-400',
         card: 'bg-white border-teal-100 dark:bg-neutral-900 dark:border-teal-800',
         footer: 'bg-slate-900 text-slate-400 dark:bg-neutral-950',
@@ -69,7 +69,7 @@ const themePresets = {
     clean: {
         bg: 'bg-zinc-50 text-zinc-900 dark:bg-neutral-950 dark:text-neutral-50',
         nav: 'bg-white/90 border-zinc-200 backdrop-blur-md shadow-xs dark:bg-neutral-900/90 dark:border-neutral-800',
-        hero: 'from-zinc-900 to-zinc-650 bg-clip-text text-transparent dark:from-white dark:to-zinc-400',
+        hero: 'from-zinc-900 to-zinc-700 bg-clip-text text-transparent dark:from-white dark:to-zinc-400',
         accent: 'bg-zinc-900 hover:bg-zinc-850 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-neutral-100',
         secondary: 'bg-white border-zinc-200 text-zinc-800 hover:bg-zinc-50/50 dark:bg-neutral-900 dark:border-neutral-800 dark:text-zinc-300',
         card: 'bg-white border-zinc-200 dark:bg-neutral-900 dark:border-neutral-800',
@@ -106,16 +106,16 @@ export default function PublicBusinessSite({ website, currentPage }: PageProps) 
     return (
         <>
             <Head title={`${website.title} - ${currentPage.toUpperCase()}`} />
-            
+
             <div className={`min-h-screen flex flex-col font-sans selection:bg-neutral-950 selection:text-white transition-colors ${activeTheme.bg}`}>
-                
+
                 {/* Navbar Header */}
                 <header className={`sticky top-0 z-50 border-b ${activeTheme.nav}`}>
                     <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
                         <Link href={`/business/${website.slug}`} className="flex items-center gap-2 font-serif font-black tracking-tight text-lg">
                             <Building className="size-5 shrink-0" /> {website.title}
                         </Link>
-                        
+
                         <nav className="flex gap-1.5 sm:gap-4">
                             {(['home', 'about', 'services', 'contact'] as const).map((tab) => {
                                 const isHome = tab === 'home';
@@ -124,11 +124,10 @@ export default function PublicBusinessSite({ website, currentPage }: PageProps) 
                                     <Link
                                         key={tab}
                                         href={linkUrl}
-                                        className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold capitalize transition-all ${
-                                            currentPage === tab
+                                        className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold capitalize transition-all ${currentPage === tab
                                                 ? 'bg-neutral-950/5 text-neutral-950 dark:bg-white/5 dark:text-white'
                                                 : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-450 dark:hover:text-neutral-200'
-                                        }`}
+                                            }`}
                                     >
                                         {tab}
                                     </Link>
@@ -140,7 +139,7 @@ export default function PublicBusinessSite({ website, currentPage }: PageProps) 
 
                 {/* Main Content Sections */}
                 <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-12 sm:py-20">
-                    
+
                     {/* HOME PAGE */}
                     {currentPage === 'home' && (
                         <div className="flex flex-col items-center justify-center text-center gap-6 max-w-3xl mx-auto py-10">
@@ -217,7 +216,7 @@ export default function PublicBusinessSite({ website, currentPage }: PageProps) 
                     {/* CONTACT PAGE */}
                     {currentPage === 'contact' && (
                         <div className="grid gap-12 lg:grid-cols-12 items-start py-6">
-                            
+
                             {/* Left Contact Info */}
                             <div className="lg:col-span-5 flex flex-col gap-6">
                                 <div className="flex flex-col gap-2">

@@ -151,7 +151,7 @@ export default function ResellerMiniWebsiteEdit({ wallet, website, customBlocks 
                 {/* Header Navbar */}
                 <div className="border-b px-6 py-4 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-3">
-                        <Globe className="size-6 text-indigo-650" />
+                        <Globe className="size-6 text-indigo-700" />
                         <div>
                             <h1 className="text-xl font-bold">{website.title}</h1>
                             <a href={`/mini-website/${website.slug}`} target="_blank" rel="noreferrer" className="text-xs text-indigo-600 hover:underline flex items-center gap-1">
@@ -169,7 +169,7 @@ export default function ResellerMiniWebsiteEdit({ wallet, website, customBlocks 
                                 checked={data.is_published}
                                 disabled={!website.is_purchased}
                                 onChange={(e) => setData('is_published', e.target.checked)}
-                                className="size-4 rounded border-neutral-300 text-indigo-650 focus:ring-indigo-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="size-4 rounded border-neutral-300 text-indigo-700 focus:ring-indigo-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                         </div>
 
@@ -248,16 +248,16 @@ export default function ResellerMiniWebsiteEdit({ wallet, website, customBlocks 
                 <DialogContent className="w-[95%] sm:max-w-md max-h-[90vh] overflow-y-auto bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold flex items-center gap-2 text-neutral-900 dark:text-neutral-100">
-                            <CreditCard className="size-5 text-indigo-650" />
+                            <CreditCard className="size-5 text-indigo-700" />
                             Hosting Subscription Checkout
                         </DialogTitle>
                     </DialogHeader>
 
-                    <form 
+                    <form
                         onSubmit={(e) => {
                             e.preventDefault();
                             setIsConfirmOpen(true);
-                        }} 
+                        }}
                         className="flex flex-col gap-5 py-3 text-sm"
                     >
                         <div className="rounded-xl bg-neutral-50 dark:bg-neutral-950 p-4 border border-neutral-150 dark:border-neutral-850 flex flex-col gap-1">
@@ -348,7 +348,7 @@ export default function ResellerMiniWebsiteEdit({ wallet, website, customBlocks 
                                                     const val = e.target.value;
                                                     if (val !== 'manual') setCustomDays(Number(val));
                                                 }}
-                                                className="flex-1 h-9 rounded-md border border-neutral-200 bg-white text-xs px-3 focus:ring-1 focus:ring-indigo-650"
+                                                className="flex-1 h-9 rounded-md border border-neutral-200 bg-white text-xs px-3 focus:ring-1 focus:ring-indigo-700"
                                             >
                                                 {Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
                                                     <option key={d} value={d}>{d} Days</option>
@@ -377,7 +377,7 @@ export default function ResellerMiniWebsiteEdit({ wallet, website, customBlocks 
                                                     const val = e.target.value;
                                                     if (val !== 'manual') setCustomWeeks(Number(val));
                                                 }}
-                                                className="flex-1 h-9 rounded-md border border-neutral-200 bg-white text-xs px-3 focus:ring-1 focus:ring-indigo-650"
+                                                className="flex-1 h-9 rounded-md border border-neutral-200 bg-white text-xs px-3 focus:ring-1 focus:ring-indigo-700"
                                             >
                                                 {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
                                                     <option key={w} value={w}>{w} Weeks</option>
@@ -476,7 +476,7 @@ export default function ResellerMiniWebsiteEdit({ wallet, website, customBlocks 
                         </p>
                         <div className="rounded-lg bg-neutral-50 p-3 border text-xs flex justify-between">
                             <span>Current Balance: ₹{wallet.balance.toFixed(2)}</span>
-                            <span className="font-semibold text-indigo-650">Remaining Balance: ₹{(wallet.balance - cost).toFixed(2)}</span>
+                            <span className="font-semibold text-indigo-700">Remaining Balance: ₹{(wallet.balance - cost).toFixed(2)}</span>
                         </div>
                     </div>
                     <div className="flex justify-end gap-3 border-t pt-4">

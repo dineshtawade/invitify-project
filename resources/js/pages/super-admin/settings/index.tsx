@@ -95,7 +95,7 @@ export default function SettingsIndex({ categories = [], customBlocks = [] }: Pa
         bgColor: 'bg-white',
         customBgColor: '',
         gradientFrom: 'from-blue-500',
-        gradientTo: 'to-purple-650',
+        gradientTo: 'to-purple-700',
         bgImage: '',
         overlayOpacity: 'opacity-50',
         width: 'w-full',
@@ -242,7 +242,7 @@ export default function SettingsIndex({ categories = [], customBlocks = [] }: Pa
                 html += `    <${tag} class="${combinedClasses}"${styleAttr}>${comp.settings.text}</${tag}>\n`;
             } else if (comp.type === 'text') {
                 const size = comp.settings.customSize ? '' : (comp.settings.size || 'text-sm');
-                const color = comp.settings.customColor ? '' : (comp.settings.color || 'text-neutral-650');
+                const color = comp.settings.customColor ? '' : (comp.settings.color || 'text-neutral-700');
                 const weight = comp.settings.customWeight ? '' : (comp.settings.weight || 'font-normal');
 
                 const { styleAttr, classes } = getElementStyleAndClass(comp);
@@ -296,7 +296,7 @@ export default function SettingsIndex({ categories = [], customBlocks = [] }: Pa
 
                 html += `    <div class="flex ${alignClass} w-full"${styleAttr}><video src="${comp.settings.url || 'https://www.w3schools.com/html/mov_bbb.mp4'}" ${controls} ${autoplay} ${loop} ${muted} class="${sizeClass} ${radius} object-cover"></video></div>\n`;
             } else if (comp.type === 'button') {
-                let bgClass = comp.settings.bg || 'bg-blue-650';
+                let bgClass = comp.settings.bg || 'bg-blue-700';
                 let bgStyleInline = '';
 
                 // If custom background color is set, use inline style
@@ -359,13 +359,13 @@ export default function SettingsIndex({ categories = [], customBlocks = [] }: Pa
         if (type === 'heading') {
             newComp.settings = { text: 'Heading Text', tag: 'h2', size: 'text-2xl', weight: 'font-bold', color: 'text-neutral-900', align: 'center', customSize: '', customColor: '', italic: false, underline: false, uppercase: false, customWeight: '', marginTop: '0', marginBottom: '16' };
         } else if (type === 'text') {
-            newComp.settings = { content: 'Paragraph content goes here...', size: 'text-sm', color: 'text-neutral-650', align: 'center', customSize: '', customColor: '', italic: false, underline: false, uppercase: false, customWeight: '', marginTop: '0', marginBottom: '16' };
+            newComp.settings = { content: 'Paragraph content goes here...', size: 'text-sm', color: 'text-neutral-700', align: 'center', customSize: '', customColor: '', italic: false, underline: false, uppercase: false, customWeight: '', marginTop: '0', marginBottom: '16' };
         } else if (type === 'image') {
             newComp.settings = { url: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205', alt: 'image illustration', size: 'medium', radius: 'rounded-xl', align: 'center', marginTop: '0', marginBottom: '16', customWidth: '', customHeight: '' };
         } else if (type === 'video') {
             newComp.settings = { url: '', poster: '', controls: true, autoplay: false, loop: false, muted: false, size: 'medium', radius: 'rounded-xl', align: 'center', marginTop: '0', marginBottom: '16', customWidth: '', customHeight: '' };
         } else if (type === 'button') {
-            newComp.settings = { text: 'Click Here', url: '#', bg: 'bg-blue-650', textColor: 'text-white', radius: 'rounded-full', align: 'center', marginTop: '0', marginBottom: '16', paddingX: 'px-6', paddingY: 'py-2.5', fontSize: 'text-xs', customBgColor: '', customTextColor: '' };
+            newComp.settings = { text: 'Click Here', url: '#', bg: 'bg-blue-700', textColor: 'text-white', radius: 'rounded-full', align: 'center', marginTop: '0', marginBottom: '16', paddingX: 'px-6', paddingY: 'py-2.5', fontSize: 'text-xs', customBgColor: '', customTextColor: '' };
         } else if (type === 'spacer') {
             newComp.settings = { height: 'h-4' };
         }
@@ -502,7 +502,7 @@ export default function SettingsIndex({ categories = [], customBlocks = [] }: Pa
             bgColor: 'bg-white',
             customBgColor: '',
             gradientFrom: 'from-blue-500',
-            gradientTo: 'to-purple-650',
+            gradientTo: 'to-purple-700',
             bgImage: '',
             overlayOpacity: 'opacity-50',
             width: 'w-full',
@@ -549,7 +549,7 @@ export default function SettingsIndex({ categories = [], customBlocks = [] }: Pa
             bgColor: 'bg-white',
             customBgColor: '',
             gradientFrom: 'from-blue-500',
-            gradientTo: 'to-purple-650',
+            gradientTo: 'to-purple-700',
             bgImage: '',
             overlayOpacity: 'opacity-50',
             width: 'w-full',
@@ -1587,7 +1587,7 @@ export default function SettingsIndex({ categories = [], customBlocks = [] }: Pa
                                                                                     className="h-7 rounded border border-[#333333] bg-[#1e1e1e] text-[10px] px-1 text-white flex-1"
                                                                                     disabled={!!activeComp.settings.customBgColor}
                                                                                 >
-                                                                                    <option value="bg-blue-650">Blue</option>
+                                                                                    <option value="bg-blue-700">Blue</option>
                                                                                     <option value="bg-neutral-900">Dark</option>
                                                                                     <option value="bg-emerald-600">Green</option>
                                                                                     <option value="bg-rose-600">Rose</option>
@@ -1817,7 +1817,7 @@ export default function SettingsIndex({ categories = [], customBlocks = [] }: Pa
                                                                     onChange={e => handleUpdateSectionSetting('gradientTo', e.target.value)}
                                                                     className="h-7 rounded border border-[#333333] bg-[#1e1e1e] text-[10px] px-1.5 text-neutral-100"
                                                                 >
-                                                                    <option value="to-purple-650">Purple</option>
+                                                                    <option value="to-purple-700">Purple</option>
                                                                     <option value="to-rose-600">Rose</option>
                                                                     <option value="to-teal-500">Teal</option>
                                                                     <option value="to-pink-500">Pink</option>
@@ -1891,7 +1891,7 @@ export default function SettingsIndex({ categories = [], customBlocks = [] }: Pa
                                                                 <option value="min-h-[200px]">200px</option>
                                                                 <option value="min-h-[350px]">350px</option>
                                                                 <option value="min-h-[500px]">500px</option>
-                                                                <option value="min-h-[650px]">650px</option>
+                                                                <option value="min-h-[700px]">700px</option>
                                                                 <option value="min-h-[800px]">800px</option>
                                                             </select>
                                                         </div>
