@@ -11,10 +11,12 @@ class Template extends Model
 
     protected $fillable = [
         'name',
+        'type',
         'category',
         'price',
         'reseller_price',
         'bg_gradient',
+        'thumbnail',
         'default_config',
     ];
 

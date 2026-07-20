@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { 
-    Menu, X, MapPin, Sparkles, Play, Globe, 
-    HelpCircle, Star, Quote, ChevronDown, Check, ArrowRight 
+import * as LucideIcons from 'lucide-react';
+import {
+    Menu, X, MapPin, Sparkles, Play, Globe,
+    HelpCircle, Star, Quote, ChevronDown, Check, ArrowRight
 } from 'lucide-react';
 
 interface Block {
@@ -21,7 +22,7 @@ interface Block {
     features?: { title: string; desc: string; icon: string }[];
     items?: any[];
     form_type?: string;
-    
+
     // --- Advanced Features ---
     font_family?: string;
     grid_columns?: string;
@@ -88,8 +89,8 @@ function FaqItem({ item, theme }: { item: any, theme: any }) {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <div className={`rounded-2xl border transition-all duration-300 ${isOpen ? theme.card + ' shadow-md' : 'bg-transparent border-neutral-200 dark:border-neutral-800'}`}>
-            <button 
-                onClick={() => setIsOpen(!isOpen)} 
+            <button
+                onClick={() => setIsOpen(!isOpen)}
                 className="w-full flex items-center justify-between p-5 text-left focus:outline-hidden"
             >
                 <span className="font-bold text-lg">{item.question}</span>
@@ -133,8 +134,8 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                             if (!navPage) return null;
                             const isActive = slug === currentPageSlug;
                             return (
-                                <Link 
-                                    key={slug} 
+                                <Link
+                                    key={slug}
                                     href={`/business/${website.slug}/${slug}`}
                                     className={`text-sm font-bold uppercase tracking-wider transition-all hover:opacity-100 ${isActive ? 'opacity-100 text-blue-600 dark:text-blue-400' : 'opacity-60'}`}
                                 >
@@ -157,8 +158,8 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                             if (!navPage) return null;
                             const isActive = slug === currentPageSlug;
                             return (
-                                <Link 
-                                    key={slug} 
+                                <Link
+                                    key={slug}
                                     href={`/business/${website.slug}/${slug}`}
                                     onClick={() => setIsMenuOpen(false)}
                                     className={`p-3 rounded-xl text-center font-bold tracking-widest uppercase text-sm ${isActive ? theme.accent : 'bg-neutral-50 dark:bg-neutral-800'}`}
@@ -175,30 +176,260 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
             <main className="pt-16 pb-24">
                 {pageData.blocks?.map((block: Block, index: number) => {
                     const isFirst = index === 0;
-                    const blockStyle = block.font_family ? { fontFamily: block.font_family } : {};
-                    const gridColsClass = block.grid_columns 
-                        ? `sm:grid-cols-${block.grid_columns}` 
+                    const blockStyle: React.CSSProperties = block.font_family ? { fontFamily: block.font_family } : {};
+                    if (block.bg_color) {
+                        const bg = block.bg_color.trim();
+                        if (bg.startsWith('linear-gradient') || bg.startsWith('#') || bg.startsWith('rgb')) {
+                            blockStyle.background = bg;
+                        }
+                    }
+                    if (block.bg_image) {
+                        blockStyle.backgroundImage = `url(${block.bg_image})`;
+                        blockStyle.backgroundSize = 'cover';
+                        blockStyle.backgroundPosition = 'center';
+                        blockStyle.backgroundRepeat = 'no-repeat';
+                    }
+                    const gridColsClass = block.grid_columns
+                        ? `sm:grid-cols-${block.grid_columns}`
                         : 'sm:grid-cols-2 lg:grid-cols-4';
-                    
+
+                    const getBgClass = (b: Block) => {
+                        if (!b.bg_color) return '';
+                        const bg = b.bg_color.trim();
+                        if (bg.startsWith('linear-gradient') || bg.startsWith('#') || bg.startsWith('rgb')) {
+                            return '';
+                        }
+                        return bg.includes('from-') ? `bg-gradient-to-tr ${bg}` : bg;
+                    };
+
                     return (
                         <section key={block.id} className={`${isFirst ? 'pt-16 pb-24' : 'py-20'} relative`} style={blockStyle}>
                             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                                
-                                {/* 1. Hero Block */}
-                                {block.type === 'hero' && (
-                                    <div className={`rounded-3xl p-8 sm:p-16 lg:p-24 text-center text-white bg-gradient-to-br ${block.bg_color || 'from-indigo-600 to-purple-700'} shadow-2xl relative overflow-hidden`}>
-                                        <div className="absolute inset-0 bg-black/10"></div>
-                                        <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center gap-6">
-                                            {block.title && <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-tight">{block.title}</h1>}
-                                            {block.subtitle && <p className="text-lg sm:text-xl opacity-90 max-w-2xl">{block.subtitle}</p>}
-                                            {block.cta_text && (
-                                                <a href={block.cta_link || '#'} className="mt-6 px-8 py-4 bg-white text-neutral-900 rounded-full font-black tracking-wider uppercase text-sm hover:scale-105 transition-transform shadow-xl">
-                                                    {block.cta_text}
-                                                </a>
+
+                                {/* Dynamic Layout Block */}
+                                {block.type === 'dynamic_layout' && (
+                                    <div
+                                        className={`rounded-3xl p-8 sm:p-16 lg:p-24 flex flex-col gap-8 items-center justify-center min-h-[260px] relative overflow-hidden shadow-xl ${getBgClass(block)}`}
+                                        style={blockStyle}
+                                    >
+                                        {block.bg_image && (
+                                            <div className="absolute inset-0 bg-black/15 pointer-events-none rounded-3xl"></div>
+                                        )}
+                                        <div className="relative z-10 flex flex-col gap-6 items-center w-full max-w-4xl mx-auto">
+                                            {block.icon && block.icon !== 'none' && (() => {
+                                                const IconComponent = (LucideIcons as any)[block.icon];
+                                                if (IconComponent) {
+                                                    return <IconComponent className="size-12 text-indigo-700 drop-shadow-md animate-pulse" />;
+                                                }
+                                                return null;
+                                            })()}
+                                            {block.title && (
+                                                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-center leading-tight">
+                                                    {block.title}
+                                                </h1>
                                             )}
+                                            {block.custom_image_url && (
+                                                <div className="w-full max-w-[400px] my-3 rounded-2xl overflow-hidden border-4 border-white/20 shadow-2xl">
+                                                    <img src={block.custom_image_url} alt="Custom Content" className="w-full h-auto object-cover" />
+                                                </div>
+                                            )}
+                                            <div className="flex flex-col gap-4 items-center w-full">
+                                                {block.text_lines?.map((line: any, idx: number) => (
+                                                    <p
+                                                        key={idx}
+                                                        style={{ color: line.color }}
+                                                        className={`text-center max-w-2xl break-words leading-relaxed ${line.size === 'text-xs' ? 'text-sm' :
+                                                                line.size === 'text-sm' ? 'text-base' :
+                                                                    line.size === 'text-base' ? 'text-lg' :
+                                                                        line.size === 'text-lg' ? 'text-xl' :
+                                                                            line.size === 'text-xl' ? 'text-2xl' :
+                                                                                line.size === 'text-2xl' ? 'text-3xl lg:text-4xl' : 'text-base'
+                                                            } ${line.weight === 'bold' ? 'font-bold' : line.weight === 'light' ? 'font-light' : 'font-normal'}`}
+                                                    >
+                                                        {line.text}
+                                                    </p>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
+
+                                {/* Flexible Layout Block */}
+                                {block.type === 'flexible_layout' && (
+                                    <div
+                                        className={`rounded-3xl p-8 sm:p-16 lg:p-24 flex flex-col gap-8 items-center justify-center min-h-[120px] relative overflow-hidden shadow-xl ${getBgClass(block)}`}
+                                        style={blockStyle}
+                                    >
+                                        {block.bg_image && (
+                                            <div className="absolute inset-0 bg-black/15 pointer-events-none rounded-3xl"></div>
+                                        )}
+                                        <div className="relative z-10 flex flex-col gap-6 items-center w-full max-w-4xl mx-auto">
+                                            {block.items?.map((item: any, idx: number) => {
+                                                if (item.type === 'text') {
+                                                    return (
+                                                        <p
+                                                            key={item.id || idx}
+                                                            style={{ color: item.color, fontFamily: item.font_family || undefined }}
+                                                            className={`max-w-3xl break-words leading-relaxed ${item.font_size === 'text-xs' ? 'text-sm' :
+                                                                    item.font_size === 'text-sm' ? 'text-base' :
+                                                                        item.font_size === 'text-base' ? 'text-lg' :
+                                                                            item.font_size === 'text-lg' ? 'text-xl' :
+                                                                                item.font_size === 'text-xl' ? 'text-2xl' :
+                                                                                    item.font_size === 'text-2xl' ? 'text-3xl lg:text-4xl' :
+                                                                                        item.font_size === 'text-3xl' ? 'text-4xl lg:text-5xl' :
+                                                                                            item.font_size === 'text-4xl' ? 'text-5xl lg:text-6xl' :
+                                                                                                item.font_size === 'text-5xl' ? 'text-6xl lg:text-7xl' :
+                                                                                                    item.font_size === 'text-6xl' ? 'text-7xl lg:text-8xl' : 'text-lg'
+                                                                } ${item.weight === 'bold' ? 'font-bold' : item.weight === 'light' ? 'font-light' : 'font-normal'} text-${item.align || 'center'} w-full whitespace-pre-wrap`}
+                                                        >
+                                                            {item.text}
+                                                        </p>
+                                                    );
+                                                }
+                                                if (item.type === 'image') {
+                                                    return (
+                                                        <div
+                                                            key={item.id || idx}
+                                                            className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
+                                                        >
+                                                            <div className={`overflow-hidden border-4 border-white/20 shadow-2xl ${item.image_size === 'small' ? 'max-w-[200px]' :
+                                                                    item.image_size === 'medium' ? 'max-w-[450px]' :
+                                                                        item.image_size === 'large' ? 'max-w-[700px]' : 'w-full'
+                                                                } ${item.radius || 'rounded-2xl'}`}>
+                                                                <img src={item.url} alt="Foreground content" className="w-full h-auto object-cover" />
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                                if (item.type === 'video') {
+                                                    return (
+                                                        <div
+                                                            key={item.id || idx}
+                                                            className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
+                                                        >
+                                                            <div className={`overflow-hidden border-4 border-white/20 shadow-2xl ${item.video_size === 'small' ? 'max-w-[200px]' :
+                                                                    item.video_size === 'medium' ? 'max-w-[450px]' :
+                                                                        item.video_size === 'large' ? 'max-w-[700px]' : 'w-full'
+                                                                } rounded-2xl`}>
+                                                                <video
+                                                                    src={item.video_url}
+                                                                    controls
+                                                                    autoPlay={item.autoplay}
+                                                                    muted={item.autoplay}
+                                                                    loop
+                                                                    className="w-full h-auto"
+                                                                    playsInline
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                                if (item.type === 'button') {
+                                                    return (
+                                                        <div
+                                                            key={item.id || idx}
+                                                            className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
+                                                        >
+                                                            <a
+                                                                href={item.btn_url || '#'}
+                                                                style={{
+                                                                    backgroundColor: item.btn_bg_color || '#2563eb',
+                                                                    color: item.btn_text_color || '#ffffff'
+                                                                }}
+                                                                className={`inline-flex items-center justify-center font-black tracking-wider uppercase transition-transform hover:scale-105 shadow-2xl ${item.btn_size === 'small' ? 'px-6 py-3 text-xs' :
+                                                                        item.btn_size === 'large' ? 'px-12 py-5 text-base' : 'px-9 py-4 text-sm'
+                                                                    } ${item.btn_radius || 'rounded-full'}`}
+                                                            >
+                                                                {item.btn_text}
+                                                            </a>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 1. Hero Block */}
+                                {block.type === 'hero' && (() => {
+                                    const elements = block.hero_elements && block.hero_elements.length > 0 ? block.hero_elements : null;
+                                    const imgSizeMap: any = { small: 'max-w-[150px]', medium: 'max-w-[400px]', large: 'max-w-[600px]', full: 'w-full' };
+                                    const btnSizeMap: any = { small: 'px-6 py-2.5 text-xs', medium: 'px-8 py-4 text-sm', large: 'px-12 py-5 text-base' };
+
+                                    return (
+                                        <div
+                                            className={`rounded-3xl p-8 sm:p-16 lg:p-24 text-center text-white bg-gradient-to-br ${block.bg_color || 'from-indigo-600 to-purple-700'} shadow-2xl relative overflow-hidden`}
+                                            style={block.bg_image ? { backgroundImage: `url(${block.bg_image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+                                        >
+                                            <div className="absolute inset-0 bg-black/10"></div>
+                                            <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center gap-6">
+                                                {elements ? elements.map((el: any, idx: number) => {
+                                                    const alignCls = el.align === 'left' ? 'self-start text-left' : el.align === 'right' ? 'self-end text-right' : 'self-center text-center';
+                                                    if (el.type === 'text') {
+                                                        return (
+                                                            <p key={el.id || idx} style={{ color: el.color, fontSize: `${el.font_size_px || 16}px`, fontWeight: el.font_weight || '400', fontFamily: el.font_family || undefined, textAlign: (el.align || 'center') as any }} className={`max-w-2xl break-words leading-relaxed ${alignCls} w-full`}>
+                                                                {el.content}
+                                                            </p>
+                                                        );
+                                                    } else if (el.type === 'image' && el.url) {
+                                                        return (
+                                                            <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
+                                                                <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${el.width_px ? '' : (imgSizeMap[el.image_size] || 'max-w-[400px]')} ${el.radius || 'rounded-2xl'}`}
+                                                                    style={{
+                                                                        width: el.width_px ? `${el.width_px}px` : undefined,
+                                                                        height: el.height_px ? `${el.height_px}px` : undefined
+                                                                    }}
+                                                                >
+                                                                    <img src={el.url} alt="" className={`w-full object-cover ${el.height_px ? 'h-full' : 'h-auto'}`} />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    } else if (el.type === 'video' && el.video_url) {
+                                                        return (
+                                                            <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
+                                                                <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${el.width_px ? '' : (imgSizeMap[el.video_size] || 'max-w-[400px]')} rounded-2xl`}
+                                                                    style={{
+                                                                        width: el.width_px ? `${el.width_px}px` : undefined,
+                                                                        height: el.height_px ? `${el.height_px}px` : undefined
+                                                                    }}
+                                                                >
+                                                                    <video src={el.video_url} controls={!el.autoplay} autoPlay={el.autoplay} muted={el.autoplay} loop={el.autoplay} className={`w-full object-cover ${el.height_px ? 'h-full' : 'h-auto'}`} />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    } else if (el.type === 'button') {
+                                                        return (
+                                                            <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
+                                                                <a
+                                                                    href={el.btn_url || '#'}
+                                                                    style={{ backgroundColor: el.btn_bg_color || '#ffffff', color: el.btn_text_color || '#1f2937' }}
+                                                                    className={`inline-flex items-center justify-center font-black tracking-wider uppercase transition-transform hover:scale-105 shadow-xl ${btnSizeMap[el.btn_size] || btnSizeMap.medium} ${el.btn_radius || 'rounded-full'} mt-6`}
+                                                                >
+                                                                    {el.btn_text || 'Button'}
+                                                                </a>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                }) : (
+                                                    <>
+                                                        {block.title && <h1 style={{ color: block.title_color }} className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-tight">{block.title}</h1>}
+                                                        {block.subtitle && <p style={{ color: block.subtitle_color }} className="text-lg sm:text-xl opacity-90 max-w-2xl">{block.subtitle}</p>}
+                                                        {block.hero_text_lines?.map((line: any, i: number) => (
+                                                            <p key={i} style={{ color: line.color }} className={`text-center max-w-2xl break-words leading-relaxed ${line.size || 'text-base'} ${line.weight === 'bold' ? 'font-bold' : line.weight === 'light' ? 'font-light' : 'font-normal'}`}>{line.text}</p>
+                                                        ))}
+                                                        {block.cta_text && (
+                                                            <a href={block.cta_link || '#'} className="mt-6 px-8 py-4 bg-white text-neutral-900 rounded-full font-black tracking-wider uppercase text-sm hover:scale-105 transition-transform shadow-xl">
+                                                                {block.cta_text}
+                                                            </a>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
 
                                 {/* 2. Text Block */}
                                 {block.type === 'text' && (
@@ -331,7 +562,7 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                                         </div>
                                     </div>
                                 )}
-                                
+
                             </div>
                         </section>
                     );
@@ -347,14 +578,14 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                         </Link>
                         <p className="text-sm">© {new Date().getFullYear()} All rights reserved.</p>
                     </div>
-                    
+
                     <div className="flex flex-wrap justify-center gap-6">
                         {navigation.map(slug => {
                             const navPage = website.pages[slug];
                             if (!navPage) return null;
                             return (
-                                <Link 
-                                    key={slug} 
+                                <Link
+                                    key={slug}
                                     href={`/business/${website.slug}/${slug}`}
                                     className="text-sm font-bold uppercase tracking-wider hover:text-white transition-colors"
                                 >

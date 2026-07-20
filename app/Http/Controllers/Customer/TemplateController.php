@@ -103,6 +103,40 @@ class TemplateController extends Controller
     }
 
     /**
+     * Upload a generated video for the purchased template.
+     */
+    public function uploadVideo(Request $request, UserTemplate $userTemplate)
+    {
+        if ($userTemplate->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $request->validate([
+            'video' => 'required|file|mimetypes:video/mp4',
+        ]);
+
+        $file = $request->file('video');
+        $filename = 'invitation_' . $userTemplate->id . '_' . time() . '.mp4';
+        
+        $path = $file->storeAs('videos', $filename, 'public');
+
+        // Delete old video if exists
+        if ($userTemplate->video_path) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($userTemplate->video_path);
+        }
+
+        $userTemplate->update([
+            'video_path' => $path,
+            'edit_count' => $userTemplate->edit_count + 1,
+        ]);
+
+        return response()->json([
+            'message' => 'Video generated successfully.',
+            'video_url' => asset('storage/' . $path),
+        ]);
+    }
+
+    /**
      * Finalize purchasing a template.
      */
     public function purchase(Request $request, UserTemplate $userTemplate)
@@ -149,10 +183,38 @@ class TemplateController extends Controller
             ->where('user_id', auth()->id())
             ->where('is_purchased', true)
             ->orderBy('updated_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($ut) {
+                return [
+                    'id' => $ut->id,
+                    'template_id' => $ut->template_id,
+                    'template' => $ut->template,
+                    'custom_config' => $ut->custom_config,
+                    'is_purchased' => $ut->is_purchased,
+                    'created_at' => $ut->created_at->format('M d, Y'),
+                    'video_path' => $ut->video_path,
+                    'video_url' => $ut->video_path ? asset('storage/' . $ut->video_path) : null,
+                    'edit_count' => $ut->edit_count,
+                ];
+            });
+
+        $businessCards = \App\Models\BusinessCard::where('user_id', auth()->id())
+            ->where('payment_status', 'Success')
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->map(function ($card) {
+                return [
+                    'id' => $card->id,
+                    'company_name' => $card->company_name,
+                    'slug' => $card->slug,
+                    'theme_css' => $card->theme_css,
+                    'created_at' => $card->created_at->format('M d, Y'),
+                ];
+            });
 
         return Inertia::render('customer/templates/purchased', [
             'purchasedTemplates' => $purchasedTemplates,
+            'businessCards' => $businessCards,
         ]);
     }
 
@@ -227,6 +289,7 @@ class TemplateController extends Controller
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_USERPWD, $keyId . ':' . $keySecret);
@@ -236,10 +299,11 @@ class TemplateController extends Controller
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
 
         if ($httpCode !== 200) {
-            \Illuminate\Support\Facades\Log::error('Razorpay Order API Failed: ' . $response);
+            \Illuminate\Support\Facades\Log::error('Razorpay Order API Failed. HTTP Code: ' . $httpCode . ' Response: ' . $response . ' cURL Error: ' . $curlError);
             return response()->json(['error' => 'Failed to create payment order. Please check credentials.'], 500);
         }
 

@@ -29,9 +29,11 @@ class TemplateController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'type' => 'required|string|in:image,video',
             'category' => 'required|string|exists:categories,slug',
             'price' => 'required|numeric|min:0',
             'bg_gradient' => 'required|string',
+            'thumbnail' => 'nullable|string',
             'default_config' => 'required|array',
         ]);
 
@@ -47,9 +49,11 @@ class TemplateController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'type' => 'required|string|in:image,video',
             'category' => 'required|string|exists:categories,slug',
             'price' => 'required|numeric|min:0',
             'bg_gradient' => 'required|string',
+            'thumbnail' => 'nullable|string',
             'default_config' => 'required|array',
         ]);
 

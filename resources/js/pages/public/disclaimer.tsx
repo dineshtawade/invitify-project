@@ -1,18 +1,18 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { 
-    AlertTriangle, 
-    ArrowLeft, 
-    Mail, 
-    Phone, 
-    MapPin, 
-    FileText, 
-    HelpCircle, 
-    ServerOff, 
-    UserCheck, 
-    ShieldAlert, 
-    ExternalLink, 
-    DollarSign, 
-    Scale 
+import {
+    AlertTriangle,
+    ArrowLeft,
+    Mail,
+    Phone,
+    MapPin,
+    FileText,
+    HelpCircle,
+    ServerOff,
+    UserCheck,
+    ShieldAlert,
+    ExternalLink,
+    DollarSign,
+    Scale
 } from 'lucide-react';
 import { dashboard, login } from '@/routes';
 
@@ -170,14 +170,19 @@ export default function Disclaimer() {
 
     return (
         <>
-            <Head title="Disclaimer - Invitify">
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+            <Head>
+                <title>Disclaimer | Invitify</title>
+                <meta name="description" content="General disclaimer for Invitify. Information regarding the use of our digital invitation templates, mini website builder, and business card services." />
+                <meta property="og:title" content="Disclaimer | Invitify" />
+                <meta property="og:description" content="General disclaimer and liability limitations for the use of Invitify services." />
             </Head>
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+            <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+
 
             <div className="min-h-screen bg-neutral-50 text-neutral-900 font-sans dark:bg-neutral-950 dark:text-neutral-50 transition-colors">
-                
+
                 {/* Header Navbar */}
                 <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 border-b border-neutral-200/50 dark:bg-neutral-950/70 dark:border-neutral-900/50">
                     <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -232,7 +237,7 @@ export default function Disclaimer() {
                 {/* Content Layout */}
                 <div className="max-w-5xl mx-auto px-6 py-12 sm:py-16">
                     <div className="grid gap-10 lg:grid-cols-12 items-start">
-                        
+
                         {/* Sticky Left Sidebar Navigation */}
                         <div className="lg:col-span-4 lg:sticky lg:top-24 hidden lg:block space-y-4">
                             <div className="p-5 rounded-2xl border border-neutral-200/60 dark:border-neutral-900 bg-white dark:bg-neutral-900/60 backdrop-blur-xs">
@@ -257,9 +262,9 @@ export default function Disclaimer() {
                         {/* Right Content Area */}
                         <div className="lg:col-span-8 space-y-10">
                             {sections.map((section) => (
-                                <section 
-                                    key={section.id} 
-                                    id={section.id} 
+                                <section
+                                    key={section.id}
+                                    id={section.id}
                                     className="p-6 sm:p-8 rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-900 dark:bg-neutral-900/40 hover:shadow-md transition-shadow"
                                 >
                                     <div className="flex items-center gap-3 border-b border-neutral-100 dark:border-neutral-800/80 pb-4 mb-5">
@@ -290,8 +295,8 @@ export default function Disclaimer() {
                             <Link href="/disclaimer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Disclaimer</Link>
                             <Link href="/cookie-policy" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Cookie Policy</Link>
                         </div>
-                        <p>© {new Date().getFullYear()} Invitify. Created with React & Laravel. All rights reserved.</p>
-                        <p className="text-[10px] text-neutral-500">Avinya Digitech Pvt Ltd. Beside Besa-Pimpla Road, Nagpur – 440034</p>
+                        <p>© {new Date().getFullYear()} Invitify. Created by Avinya Digitech Pvt Ltd. All rights reserved.</p>
+                        <p className="text-[10px] text-neutral-500">Beside Besa-Pimpla Road, Nagpur – 440034</p>
                     </div>
                 </footer>
             </div>

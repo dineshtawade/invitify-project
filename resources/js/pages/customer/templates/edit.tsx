@@ -14,12 +14,13 @@ import {
 } from '@/components/ui/dialog';
 import {
     Sparkles, Save, CreditCard, ChevronLeft, Heart,
-    Cake, Baby, Award, Link, MapPin, ChevronRight, 
-    ImageIcon, Star, Compass, Gift, Calendar, Clock, 
+    Cake, Baby, Award, Link, MapPin, ChevronRight,
+    ImageIcon, Star, Compass, Gift, Calendar, Clock,
     Music, Wine, Bell, XCircle, Smile
 } from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 import { getCsrfHeaders } from '@/lib/utils';
+import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
 
 interface Template {
     id: number;
@@ -95,7 +96,9 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
     ];
 
     // Normalize initial state with fallback for old layouts
-    const initialConfig = normalizeConfig(userTemplate.custom_config, template.bg_gradient);
+    const initialConfig = template.type === 'video'
+        ? (userTemplate.custom_config || template.default_config || { video_url: null, elements: [] })
+        : normalizeConfig(userTemplate.custom_config, template.bg_gradient);
 
     const { data, setData, put, processing } = useForm({
         custom_config: initialConfig,
@@ -113,15 +116,15 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
             }
         });
         observer.observe(cardRef.current);
-        
+
         // Initial measurement
         setCardWidth(cardRef.current.clientWidth);
-        
+
         return () => observer.disconnect();
     }, [activePageIndex]);
 
-    const targetWidth = data.custom_config.aspectRatio === 'custom' 
-        ? (data.custom_config.width || 350) 
+    const targetWidth = data.custom_config.aspectRatio === 'custom'
+        ? (data.custom_config.width || 350)
         : (ratioData.targetWidth || 350);
 
     const scaleRatio = cardWidth / targetWidth;
@@ -324,7 +327,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                 const response = await fetch('/media/upload', {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                        ...getCsrfHeaders()
                     },
                     body: formData,
                 });
@@ -404,7 +407,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                         </Button>
                         <Button
                             onClick={handleBuyClick}
-                            className="bg-indigo-650 hover:bg-indigo-700 text-white flex items-center gap-1.5 shadow-sm rounded-xl text-xs font-bold px-5"
+                            className="flex items-center gap-1.5 shadow-sm rounded-xl text-xs font-bold px-5"
                         >
                             <CreditCard className="size-4" /> Purchase Design Card
                         </Button>
@@ -412,292 +415,303 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                 </div>
 
                 {/* Editor Split Personalized Panel */}
-                <div className="grid gap-6 lg:grid-cols-[1fr_1fr] flex-1">
+                {template.type === 'video' ? (
+                    <div className="flex-1 overflow-hidden h-[800px] border border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col">
+                        <VideoTemplateBuilder
+                            data={{ default_config: data.custom_config }}
+                            setData={(field, value) => {
+                                setData('custom_config', value);
+                            }}
+                            isCustomerMode={true}
+                        />
+                    </div>
+                ) : (
+                    <div className="grid gap-6 lg:grid-cols-[1fr_1fr] flex-1">
 
-                    {/* Left side Personalization form ONLY (All layouts and styling locked) */}
-                    <div className="rounded-2xl border border-neutral-200 bg-white shadow-2xs dark:border-neutral-800 dark:bg-neutral-900 flex flex-col min-h-[500px] overflow-hidden">
-                        <div className="p-5 border-b bg-neutral-50 dark:bg-neutral-950/20">
-                            <h2 className="text-md font-bold flex items-center gap-2 text-neutral-900 dark:text-neutral-50">
-                                <Sparkles className="size-5 text-indigo-650 dark:text-indigo-400" /> 
-                                Personalize Invitation Content
-                            </h2>
-                            <p className="text-[11px] text-neutral-450 mt-1">Replace placeholder contents inside editable text and photo frames. Overall card structures, themes, borders, and layouts are secured.</p>
+                        {/* Left side Personalization form ONLY (All layouts and styling locked) */}
+                        <div className="rounded-2xl border border-neutral-200 bg-white shadow-2xs dark:border-neutral-800 dark:bg-neutral-900 flex flex-col min-h-[500px] overflow-hidden">
+                            <div className="p-5 border-b bg-neutral-50 dark:bg-neutral-950/20">
+                                <h2 className="text-md font-bold flex items-center gap-2 text-neutral-900 dark:text-neutral-50">
+                                    <Sparkles className="size-5 text-indigo-700 dark:text-indigo-400" />
+                                    Personalize Invitation Content
+                                </h2>
+                                <p className="text-[11px] text-neutral-450 mt-1">Replace placeholder contents inside editable text and photo frames. Overall card structures, themes, borders, and layouts are secured.</p>
+                            </div>
+
+                            <div className="p-5 flex-1 overflow-y-auto flex flex-col gap-5">
+                                {(() => {
+                                    const editableElements: { pageIndex: number; element: ElementConfig }[] = [];
+                                    data.custom_config.pages.forEach((page: PageConfig, pageIdx: number) => {
+                                        page.elements.forEach((elem: ElementConfig) => {
+                                            if (elem.isEditable && (elem.type === 'text' || elem.type === 'image')) {
+                                                editableElements.push({ pageIndex: pageIdx, element: elem });
+                                            }
+                                        });
+                                    });
+
+                                    if (editableElements.length === 0) {
+                                        return (
+                                            <p className="text-xs text-neutral-450 italic text-center py-12">
+                                                This card design template has no personalized text/image fields configured by the admin.
+                                            </p>
+                                        );
+                                    }
+
+                                    return editableElements.map(({ pageIndex, element }) => {
+                                        if (element.type === 'text') {
+                                            return (
+                                                <div key={element.id} className="grid gap-1.5 bg-neutral-50/50 dark:bg-neutral-950/20 p-3.5 rounded-xl border">
+                                                    <Label htmlFor={element.id} className="text-xs font-bold text-white dark:text-neutral-200 flex items-center justify-between">
+                                                        <span className='dark:text-neutral-100'>{element.editableLabel || 'Text Field'}</span>
+                                                        <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-800">Page {pageIndex + 1}</span>
+                                                    </Label>
+                                                    {element.multiline ? (
+                                                        <textarea
+                                                            id={element.id}
+                                                            value={element.content || ''}
+                                                            onChange={(e) => handlePersonalizeText(pageIndex, element.id, e.target.value)}
+                                                            rows={3}
+                                                            className="w-full rounded-lg border border-neutral-200 px-3 py-1.5 text-xs shadow-2xs focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                                                        />
+                                                    ) : (
+                                                        <Input
+                                                            id={element.id}
+                                                            type="text"
+                                                            value={element.content || ''}
+                                                            onChange={(e) => handlePersonalizeText(pageIndex, element.id, e.target.value)}
+                                                            className="h-9.5 text-xs rounded-lg"
+                                                        />
+                                                    )}
+                                                </div>
+                                            );
+                                        }
+                                        if (element.type === 'image') {
+                                            return (
+                                                <div key={element.id} className="grid gap-2 bg-neutral-50/50 dark:bg-neutral-950/20 p-3.5 rounded-xl border">
+                                                    <Label className="text-xs font-bold text-neutral-805 dark:text-neutral-200 dark:text-neutral-100 flex items-center justify-between">
+                                                        <span>{element.editableLabel || 'Upload Image'}</span>
+                                                        <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-400">Page {pageIndex + 1}</span>
+                                                    </Label>
+                                                    <div className="flex gap-4 items-center mt-1">
+                                                        <div className="size-16 rounded-xl border bg-white overflow-hidden flex items-center justify-center shrink-0">
+                                                            {element.url ? (
+                                                                element.url === 'uploading' ? (
+                                                                    <span className="text-[9px] text-indigo-500 font-extrabold animate-pulse">Uploading</span>
+                                                                ) : (
+                                                                    <img src={element.url} alt="Custom Preview" className="size-full object-cover" />
+                                                                )
+                                                            ) : (
+                                                                <ImageIcon className="size-6 text-neutral-300" />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 flex flex-col gap-1.5">
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                onChange={(e) => handlePersonalizeImage(pageIndex, element.id, e)}
+                                                                className="flex h-9 w-full rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs shadow-2xs file:border-0 file:bg-transparent file:text-xs file:font-semibold text-neutral-500 file:cursor-pointer"
+                                                            />
+                                                            <p className="text-[9px] text-neutral-450 font-medium">PNG, JPG, JPEG formats accepted.</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    });
+                                })()}
+                            </div>
                         </div>
 
-                        <div className="p-5 flex-1 overflow-y-auto flex flex-col gap-5">
-                            {(() => {
-                                const editableElements: { pageIndex: number; element: ElementConfig }[] = [];
-                                data.custom_config.pages.forEach((page: PageConfig, pageIdx: number) => {
-                                    page.elements.forEach((elem: ElementConfig) => {
-                                        if (elem.isEditable && (elem.type === 'text' || elem.type === 'image')) {
-                                            editableElements.push({ pageIndex: pageIdx, element: elem });
-                                        }
-                                    });
-                                });
+                        {/* Right side locked Live Card Preview (Zero Selection Outline or resizing handles) */}
+                        <div className="flex flex-col items-center justify-start p-6 rounded-2xl border border-neutral-200 bg-neutral-100/50 dark:border-neutral-800 dark:bg-neutral-950/20 min-h-[500px]">
 
-                                if (editableElements.length === 0) {
-                                    return (
-                                        <p className="text-xs text-neutral-450 italic text-center py-12">
-                                            This card design template has no personalized text/image fields configured by the admin.
-                                        </p>
-                                    );
-                                }
+                            {/* Page Selector Tabs */}
+                            <div className="flex items-center gap-2.5 mb-5 w-full justify-center">
+                                {data.custom_config.pages.map((_, idx) => (
+                                    <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() => setActivePageIndex(idx)}
+                                        className={`px-3.5 py-1 text-xs font-bold rounded-full border transition-all ${activePageIndex === idx
+                                            ? 'bg-indigo-700 text-white border-indigo-700'
+                                            : 'bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-600 dark:bg-neutral-900 dark:border-neutral-850 dark:text-neutral-400'
+                                            }`}
+                                    >
+                                        Page {idx + 1}
+                                    </button>
+                                ))}
+                            </div>
 
-                                return editableElements.map(({ pageIndex, element }) => {
-                                    if (element.type === 'text') {
+                            {/* Card frame simulator wrapper */}
+                            <div className="w-full max-w-[310px] flex flex-col gap-3.5 relative">
+                                <span className="text-[10px] font-bold text-neutral-450 dark:text-neutral-500 uppercase tracking-widest text-center mb-1 flex items-center justify-center gap-1.5">
+                                    <Star className="size-3.5 text-amber-500" /> Personalized Live view
+                                </span>
+
+                                {/* Canvas body (Securely locked: No element outlines, click selections, or drags) */}
+                                <div
+                                    ref={cardRef}
+                                    style={{
+                                        aspectRatio: data.custom_config.aspectRatio === 'custom'
+                                            ? `${data.custom_config.width || 350}/${data.custom_config.height || 490}`
+                                            : undefined,
+                                        height: data.custom_config.aspectRatio !== 'custom' ? undefined : 'auto',
+                                        background: activePage?.bg_gradient?.startsWith('linear-gradient')
+                                            ? activePage.bg_gradient
+                                            : undefined,
+                                    }}
+                                    className={`w-full ${data.custom_config.aspectRatio !== 'custom' ? ratioData.class : ''} rounded-3xl shadow-xl border border-neutral-300 dark:border-neutral-850 relative select-none cursor-default overflow-hidden transition-all duration-300 ${!activePage?.bg_gradient?.startsWith('linear-gradient') ? `bg-gradient-to-tr ${activePage?.bg_gradient || 'from-stone-100 to-rose-50 text-neutral-800'}` : ''}`}
+                                >
+                                    {/* Decorative border overlays */}
+                                    {activePage?.borderStyle && activePage.borderStyle !== 'none' && (
+                                        <div
+                                            className="absolute pointer-events-none rounded-2xl"
+                                            style={{
+                                                top: '12px',
+                                                left: '12px',
+                                                right: '12px',
+                                                bottom: '12px',
+                                                borderStyle: activePage.borderStyle === 'floral' || activePage.borderStyle === 'classic' ? 'double' : activePage.borderStyle,
+                                                borderColor: activePage.borderColor || '#e4e4e7',
+                                                borderWidth: `${Math.max(1, (activePage.borderWidth || 1) * scaleRatio)}px`,
+                                                zIndex: 10,
+                                            }}
+                                        >
+                                            {(activePage.borderStyle === 'floral' || activePage.borderStyle === 'classic') && (
+                                                <>
+                                                    <div
+                                                        className="absolute size-5 border-t border-l"
+                                                        style={{
+                                                            top: '-1px',
+                                                            left: '-1px',
+                                                            borderColor: activePage.borderColor || '#d4af37',
+                                                            borderTopWidth: `${2 * scaleRatio}px`,
+                                                            borderLeftWidth: `${2 * scaleRatio}px`,
+                                                            borderTopLeftRadius: '4px',
+                                                        }}
+                                                    />
+                                                    <div
+                                                        className="absolute size-5 border-t border-r"
+                                                        style={{
+                                                            top: '-1px',
+                                                            right: '-1px',
+                                                            borderColor: activePage.borderColor || '#d4af37',
+                                                            borderTopWidth: `${2 * scaleRatio}px`,
+                                                            borderRightWidth: `${2 * scaleRatio}px`,
+                                                            borderTopRightRadius: '4px',
+                                                        }}
+                                                    />
+                                                    <div
+                                                        className="absolute size-5 border-b border-l"
+                                                        style={{
+                                                            bottom: '-1px',
+                                                            left: '-1px',
+                                                            borderColor: activePage.borderColor || '#d4af37',
+                                                            borderBottomWidth: `${2 * scaleRatio}px`,
+                                                            borderLeftWidth: `${2 * scaleRatio}px`,
+                                                            borderBottomLeftRadius: '4px',
+                                                        }}
+                                                    />
+                                                    <div
+                                                        className="absolute size-5 border-b border-r"
+                                                        style={{
+                                                            bottom: '-1px',
+                                                            right: '-1px',
+                                                            borderColor: activePage.borderColor || '#d4af37',
+                                                            borderBottomWidth: `${2 * scaleRatio}px`,
+                                                            borderRightWidth: `${2 * scaleRatio}px`,
+                                                            borderBottomRightRadius: '4px',
+                                                        }}
+                                                    />
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Renders elements in canvas (Locked preview) */}
+                                    {activePage?.elements.map((elem) => {
+                                        const style: React.CSSProperties = {
+                                            position: 'absolute',
+                                            left: `${elem.x}%`,
+                                            top: `${elem.y}%`,
+                                            width: `${elem.w}%`,
+                                            height: `${elem.h}%`,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center',
+                                            textAlign: elem.textAlign || 'center',
+                                            fontFamily: fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair,
+                                            color: elem.textColor || '#1f2937',
+                                            fontSize: elem.fontSize ? `${elem.fontSize * scaleRatio}px` : undefined,
+                                            fontWeight: elem.fontWeight || 'normal',
+                                            fontStyle: elem.isItalic ? 'italic' : 'normal',
+                                        };
+
                                         return (
-                                            <div key={element.id} className="grid gap-1.5 bg-neutral-50/50 dark:bg-neutral-950/20 p-3.5 rounded-xl border">
-                                                <Label htmlFor={element.id} className="text-xs font-bold text-neutral-805 dark:text-neutral-200 flex items-center justify-between">
-                                                    <span>{element.editableLabel || 'Text Field'}</span>
-                                                    <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-400">Page {pageIndex + 1}</span>
-                                                </Label>
-                                                {element.multiline ? (
-                                                    <textarea
-                                                        id={element.id}
-                                                        value={element.content || ''}
-                                                        onChange={(e) => handlePersonalizeText(pageIndex, element.id, e.target.value)}
-                                                        rows={3}
-                                                        className="w-full rounded-lg border border-neutral-200 px-3 py-1.5 text-xs shadow-2xs focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
-                                                    />
-                                                ) : (
-                                                    <Input
-                                                        id={element.id}
-                                                        type="text"
-                                                        value={element.content || ''}
-                                                        onChange={(e) => handlePersonalizeText(pageIndex, element.id, e.target.value)}
-                                                        className="h-9.5 text-xs bg-white rounded-lg"
-                                                    />
+                                            <div
+                                                key={elem.id}
+                                                style={style}
+                                                className="transition-all duration-75 relative p-0.5 leading-tight select-none break-words overflow-hidden border border-transparent"
+                                            >
+                                                {elem.type === 'text' && (
+                                                    <span className="w-full pointer-events-none">{elem.content}</span>
+                                                )}
+
+                                                {elem.type === 'image' && (
+                                                    <div className="w-full h-full rounded-md overflow-hidden bg-neutral-255/50 pointer-events-none">
+                                                        {elem.url ? (
+                                                            elem.url === 'uploading' ? (
+                                                                <span className="text-[10px] text-indigo-500 flex items-center justify-center h-full animate-pulse font-extrabold">Uploading...</span>
+                                                            ) : (
+                                                                <img src={elem.url} alt="Graphic Frame" className="w-full h-full object-cover pointer-events-none" />
+                                                            )
+                                                        ) : (
+                                                            <span className="text-[9px] text-neutral-400 flex items-center justify-center h-full">No image uploaded</span>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {elem.type === 'icon' && (
+                                                    <span className="w-full h-full pointer-events-none flex items-center justify-center p-0.5">
+                                                        {renderDecorIcon(elem.iconType || 'ring', elem.color || elem.textColor)}
+                                                    </span>
+                                                )}
+
+                                                {elem.type === 'divider' && (
+                                                    <div className="w-full h-full pointer-events-none flex items-center justify-center px-1">
+                                                        <hr className="w-full border-t" style={{ borderColor: elem.color || '#1f2937', borderWidth: `${scaleRatio * 1.5}px` }} />
+                                                    </div>
+                                                )}
+
+                                                {elem.type === 'link' && (
+                                                    <button
+                                                        type="button"
+                                                        className="px-3 py-1.5 bg-neutral-900/10 border pointer-events-none rounded-full flex items-center justify-center gap-1 shrink-0"
+                                                        style={{
+                                                            borderColor: elem.textColor || '#1f2937',
+                                                            color: elem.textColor || '#1f2937',
+                                                            fontSize: `${Math.max(8, 9 * scaleRatio)}px`,
+                                                            borderWidth: `${Math.max(1, 1 * scaleRatio)}px`
+                                                        }}
+                                                    >
+                                                        <MapPin className="size-3 shrink-0" style={{ width: `${10 * scaleRatio}px`, height: `${10 * scaleRatio}px` }} />
+                                                        <span className="truncate max-w-[80px] font-bold">{elem.content || 'Map Location'}</span>
+                                                    </button>
                                                 )}
                                             </div>
                                         );
-                                    }
-                                    if (element.type === 'image') {
-                                        return (
-                                            <div key={element.id} className="grid gap-2 bg-neutral-50/50 dark:bg-neutral-950/20 p-3.5 rounded-xl border">
-                                                <Label className="text-xs font-bold text-neutral-805 dark:text-neutral-200 flex items-center justify-between">
-                                                    <span>{element.editableLabel || 'Upload Image'}</span>
-                                                    <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-400">Page {pageIndex + 1}</span>
-                                                </Label>
-                                                <div className="flex gap-4 items-center mt-1">
-                                                    <div className="size-16 rounded-xl border bg-white overflow-hidden flex items-center justify-center shrink-0">
-                                                        {element.url ? (
-                                                            element.url === 'uploading' ? (
-                                                                <span className="text-[9px] text-indigo-500 font-extrabold animate-pulse">Uploading</span>
-                                                            ) : (
-                                                                <img src={element.url} alt="Custom Preview" className="size-full object-cover" />
-                                                            )
-                                                        ) : (
-                                                            <ImageIcon className="size-6 text-neutral-300" />
-                                                        )}
-                                                    </div>
-                                                    <div className="flex-1 flex flex-col gap-1.5">
-                                                        <input
-                                                            type="file"
-                                                            accept="image/*"
-                                                            onChange={(e) => handlePersonalizeImage(pageIndex, element.id, e)}
-                                                            className="flex h-9 w-full rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs shadow-2xs file:border-0 file:bg-transparent file:text-xs file:font-semibold text-neutral-500 file:cursor-pointer"
-                                                        />
-                                                        <p className="text-[9px] text-neutral-450 font-medium">PNG, JPG, JPEG formats accepted.</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    }
-                                    return null;
-                                });
-                            })()}
-                        </div>
-                    </div>
+                                    })}
+                                </div>
 
-                    {/* Right side locked Live Card Preview (Zero Selection Outline or resizing handles) */}
-                    <div className="flex flex-col items-center justify-start p-6 rounded-2xl border border-neutral-200 bg-neutral-100/50 dark:border-neutral-800 dark:bg-neutral-950/20 min-h-[500px]">
-
-                        {/* Page Selector Tabs */}
-                        <div className="flex items-center gap-2.5 mb-5 w-full justify-center">
-                            {data.custom_config.pages.map((_, idx) => (
-                                <button
-                                    key={idx}
-                                    type="button"
-                                    onClick={() => setActivePageIndex(idx)}
-                                    className={`px-3.5 py-1 text-xs font-bold rounded-full border transition-all ${
-                                        activePageIndex === idx
-                                            ? 'bg-indigo-650 text-white border-indigo-650'
-                                            : 'bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-600 dark:bg-neutral-900 dark:border-neutral-850 dark:text-neutral-400'
-                                    }`}
-                                >
-                                    Page {idx + 1}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Card frame simulator wrapper */}
-                        <div className="w-full max-w-[310px] flex flex-col gap-3.5 relative">
-                            <span className="text-[10px] font-bold text-neutral-450 dark:text-neutral-500 uppercase tracking-widest text-center mb-1 flex items-center justify-center gap-1.5">
-                                <Star className="size-3.5 text-amber-500" /> Personalized Live view
-                            </span>
-
-                            {/* Canvas body (Securely locked: No element outlines, click selections, or drags) */}
-                            <div
-                                ref={cardRef}
-                                style={{
-                                    aspectRatio: data.custom_config.aspectRatio === 'custom' 
-                                        ? `${data.custom_config.width || 350}/${data.custom_config.height || 490}` 
-                                        : undefined,
-                                    height: data.custom_config.aspectRatio !== 'custom' ? undefined : 'auto',
-                                    background: activePage?.bg_gradient?.startsWith('linear-gradient') 
-                                        ? activePage.bg_gradient 
-                                        : undefined,
-                                }}
-                                className={`w-full ${data.custom_config.aspectRatio !== 'custom' ? ratioData.class : ''} rounded-3xl shadow-xl border border-neutral-300 dark:border-neutral-850 relative select-none cursor-default overflow-hidden transition-all duration-300 ${!activePage?.bg_gradient?.startsWith('linear-gradient') ? `bg-gradient-to-tr ${activePage?.bg_gradient || 'from-stone-100 to-rose-50 text-neutral-800'}` : ''}`}
-                            >
-                                {/* Decorative border overlays */}
-                                {activePage?.borderStyle && activePage.borderStyle !== 'none' && (
-                                    <div 
-                                        className="absolute pointer-events-none rounded-2xl"
-                                        style={{
-                                            top: '12px',
-                                            left: '12px',
-                                            right: '12px',
-                                            bottom: '12px',
-                                            borderStyle: activePage.borderStyle === 'floral' || activePage.borderStyle === 'classic' ? 'double' : activePage.borderStyle,
-                                            borderColor: activePage.borderColor || '#e4e4e7',
-                                            borderWidth: `${Math.max(1, (activePage.borderWidth || 1) * scaleRatio)}px`,
-                                            zIndex: 10,
-                                        }}
-                                    >
-                                        {(activePage.borderStyle === 'floral' || activePage.borderStyle === 'classic') && (
-                                            <>
-                                                <div 
-                                                    className="absolute size-5 border-t border-l"
-                                                    style={{
-                                                        top: '-1px',
-                                                        left: '-1px',
-                                                        borderColor: activePage.borderColor || '#d4af37',
-                                                        borderTopWidth: `${2 * scaleRatio}px`,
-                                                        borderLeftWidth: `${2 * scaleRatio}px`,
-                                                        borderTopLeftRadius: '4px',
-                                                    }}
-                                                />
-                                                <div 
-                                                    className="absolute size-5 border-t border-r"
-                                                    style={{
-                                                        top: '-1px',
-                                                        right: '-1px',
-                                                        borderColor: activePage.borderColor || '#d4af37',
-                                                        borderTopWidth: `${2 * scaleRatio}px`,
-                                                        borderRightWidth: `${2 * scaleRatio}px`,
-                                                        borderTopRightRadius: '4px',
-                                                    }}
-                                                />
-                                                <div 
-                                                    className="absolute size-5 border-b border-l"
-                                                    style={{
-                                                        bottom: '-1px',
-                                                        left: '-1px',
-                                                        borderColor: activePage.borderColor || '#d4af37',
-                                                        borderBottomWidth: `${2 * scaleRatio}px`,
-                                                        borderLeftWidth: `${2 * scaleRatio}px`,
-                                                        borderBottomLeftRadius: '4px',
-                                                    }}
-                                                />
-                                                <div 
-                                                    className="absolute size-5 border-b border-r"
-                                                    style={{
-                                                        bottom: '-1px',
-                                                        right: '-1px',
-                                                        borderColor: activePage.borderColor || '#d4af37',
-                                                        borderBottomWidth: `${2 * scaleRatio}px`,
-                                                        borderRightWidth: `${2 * scaleRatio}px`,
-                                                        borderBottomRightRadius: '4px',
-                                                    }}
-                                                />
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* Renders elements in canvas (Locked preview) */}
-                                {activePage?.elements.map((elem) => {
-                                    const style: React.CSSProperties = {
-                                        position: 'absolute',
-                                        left: `${elem.x}%`,
-                                        top: `${elem.y}%`,
-                                        width: `${elem.w}%`,
-                                        height: `${elem.h}%`,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center',
-                                        textAlign: elem.textAlign || 'center',
-                                        fontFamily: fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair,
-                                        color: elem.textColor || '#1f2937',
-                                        fontSize: elem.fontSize ? `${elem.fontSize * scaleRatio}px` : undefined,
-                                        fontWeight: elem.fontWeight || 'normal',
-                                        fontStyle: elem.isItalic ? 'italic' : 'normal',
-                                    };
-
-                                    return (
-                                        <div
-                                            key={elem.id}
-                                            style={style}
-                                            className="transition-all duration-75 relative p-0.5 leading-tight select-none break-words overflow-hidden border border-transparent"
-                                        >
-                                            {elem.type === 'text' && (
-                                                <span className="w-full pointer-events-none">{elem.content}</span>
-                                            )}
-
-                                            {elem.type === 'image' && (
-                                                <div className="w-full h-full rounded-md overflow-hidden bg-neutral-255/50 pointer-events-none">
-                                                    {elem.url ? (
-                                                        elem.url === 'uploading' ? (
-                                                            <span className="text-[10px] text-indigo-500 flex items-center justify-center h-full animate-pulse font-extrabold">Uploading...</span>
-                                                        ) : (
-                                                            <img src={elem.url} alt="Graphic Frame" className="w-full h-full object-cover pointer-events-none" />
-                                                        )
-                                                    ) : (
-                                                        <span className="text-[9px] text-neutral-400 flex items-center justify-center h-full">No image uploaded</span>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {elem.type === 'icon' && (
-                                                <span className="w-full h-full pointer-events-none flex items-center justify-center p-0.5">
-                                                    {renderDecorIcon(elem.iconType || 'ring', elem.color || elem.textColor)}
-                                                </span>
-                                            )}
-
-                                            {elem.type === 'divider' && (
-                                                <div className="w-full h-full pointer-events-none flex items-center justify-center px-1">
-                                                    <hr className="w-full border-t" style={{ borderColor: elem.color || '#1f2937', borderWidth: `${scaleRatio * 1.5}px` }} />
-                                                </div>
-                                            )}
-
-                                            {elem.type === 'link' && (
-                                                <button 
-                                                    type="button" 
-                                                    className="px-3 py-1.5 bg-neutral-900/10 border pointer-events-none rounded-full flex items-center justify-center gap-1 shrink-0"
-                                                    style={{ 
-                                                        borderColor: elem.textColor || '#1f2937', 
-                                                        color: elem.textColor || '#1f2937',
-                                                        fontSize: `${Math.max(8, 9 * scaleRatio)}px`,
-                                                        borderWidth: `${Math.max(1, 1 * scaleRatio)}px`
-                                                    }}
-                                                >
-                                                    <MapPin className="size-3 shrink-0" style={{ width: `${10 * scaleRatio}px`, height: `${10 * scaleRatio}px` }} />
-                                                    <span className="truncate max-w-[80px] font-bold">{elem.content || 'Map Location'}</span>
-                                                </button>
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                                {/* Help tips */}
+                                <span className="text-[9px] text-center text-neutral-400">
+                                    🔒 Invitation layout and design styling parameters are secured by Invitify.
+                                </span>
                             </div>
-
-                            {/* Help tips */}
-                            <span className="text-[9px] text-center text-neutral-400">
-                                🔒 Invitation layout and design styling parameters are secured by Invitify.
-                            </span>
                         </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* Checkout Confirmation Dialog */}
@@ -736,7 +750,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                             type="button"
                             onClick={handleConfirmPurchase}
                             disabled={isCheckingOut}
-                            className="bg-indigo-650 hover:bg-indigo-700 text-white font-bold rounded-xl px-5"
+                            className="font-bold rounded-xl px-5"
                         >
                             {isCheckingOut ? 'Processing...' : 'Confirm Checkout'}
                         </Button>
@@ -776,7 +790,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                         <Button
                             type="button"
                             onClick={() => handleGuestRedirect('/register')}
-                            className="w-full sm:w-auto bg-indigo-650 hover:bg-indigo-700 text-white font-bold rounded-xl px-5"
+                            className="w-full sm:w-auto bg-indigo-700 hover:bg-indigo-700 text-white font-bold rounded-xl px-5"
                         >
                             Register
                         </Button>

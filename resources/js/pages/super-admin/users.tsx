@@ -194,7 +194,7 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                         />
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button type="submit" size="sm" className="h-10 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl px-5">
+                        <Button type="submit" size="sm" className="h-10  rounded-xl px-5">
                             Filter
                         </Button>
                         {filters.search && (
@@ -230,7 +230,7 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                                         <tr key={u.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/15 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="flex size-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-xs">
+                                                    <div className="flex size-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 font-extrabold text-xs">
                                                         {getInitials(u.name)}
                                                     </div>
                                                     <div>
@@ -339,7 +339,7 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                         {/* Modal Header */}
                         <div className="flex items-start justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4">
                             <div className="flex items-center gap-3.5">
-                                <div className="flex size-12 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-650 dark:text-indigo-400 font-black text-sm">
+                                <div className="flex size-12 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 font-black text-sm">
                                     {getInitials(selectedUser.name)}
                                 </div>
                                 <div>
@@ -481,7 +481,7 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                                                         {selectedUser.referral_details.social_media.map((social, idx) => (
                                                             <tr key={idx} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/15">
                                                                 <td className="px-4 py-2 font-bold text-neutral-900 dark:text-neutral-150">{social.platform}</td>
-                                                                <td className="px-4 py-2 font-semibold text-indigo-650 dark:text-indigo-400 select-all">{social.username}</td>
+                                                                <td className="px-4 py-2 font-semibold text-indigo-700 dark:text-indigo-400 select-all">{social.username}</td>
                                                                 <td className="px-4 py-2 text-right font-bold text-neutral-900 dark:text-neutral-200">
                                                                     {new Intl.NumberFormat('en-IN').format(social.followers)}
                                                                 </td>
@@ -502,17 +502,17 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                                 </h4>
                                 <div className="grid gap-3.5 grid-cols-3 text-center">
                                     <div className="bg-neutral-50/50 dark:bg-neutral-950/20 border border-neutral-100 dark:border-neutral-850 p-3.5 rounded-xl">
-                                        <div className="flex justify-center mb-1 text-indigo-650 dark:text-indigo-400"><Layers className="size-5" /></div>
+                                        <div className="flex justify-center mb-1 text-indigo-700 dark:text-indigo-400"><Layers className="size-5" /></div>
                                         <div className="text-lg font-black text-neutral-900 dark:text-neutral-50">{selectedUser.purchased_templates_count}</div>
                                         <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-450 mt-0.5">Purchased Cards</div>
                                     </div>
                                     <div className="bg-neutral-50/50 dark:bg-neutral-950/20 border border-neutral-100 dark:border-neutral-850 p-3.5 rounded-xl">
-                                        <div className="flex justify-center mb-1 text-indigo-650 dark:text-indigo-400"><Globe className="size-5" /></div>
+                                        <div className="flex justify-center mb-1 text-indigo-700 dark:text-indigo-400"><Globe className="size-5" /></div>
                                         <div className="text-lg font-black text-neutral-900 dark:text-neutral-50">{selectedUser.mini_websites_count}</div>
                                         <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-450 mt-0.5">Mini Sites</div>
                                     </div>
                                     <div className="bg-neutral-50/50 dark:bg-neutral-950/20 border border-neutral-100 dark:border-neutral-850 p-3.5 rounded-xl">
-                                        <div className="flex justify-center mb-1 text-indigo-650 dark:text-indigo-400"><Landmark className="size-5" /></div>
+                                        <div className="flex justify-center mb-1 text-indigo-700 dark:text-indigo-400"><Landmark className="size-5" /></div>
                                         <div className="text-lg font-black text-neutral-900 dark:text-neutral-50">{selectedUser.business_websites_count}</div>
                                         <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-450 mt-0.5">Business Sites</div>
                                     </div>
@@ -560,7 +560,7 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                                             {selectedUser.referral_codes.map((code) => (
                                                 <div key={code.id} className="bg-neutral-50/50 dark:bg-neutral-950/10 p-3 rounded-xl border border-neutral-100 dark:border-neutral-850 text-xs flex justify-between items-center font-bold">
                                                     <div>
-                                                        <span className="font-extrabold text-indigo-650 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2.5 py-1 rounded-md text-[11px] select-all tracking-wider">{code.code}</span>
+                                                        <span className="font-extrabold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2.5 py-1 rounded-md text-[11px] select-all tracking-wider">{code.code}</span>
                                                         <div className="text-[10px] text-neutral-400 mt-2 flex flex-col gap-0.5 font-medium">
                                                             <span>Discount: {code.discount_percentage}%</span>
                                                             <span>Commission: {code.commission_percentage}%</span>

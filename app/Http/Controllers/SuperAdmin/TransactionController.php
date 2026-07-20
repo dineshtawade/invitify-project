@@ -13,7 +13,14 @@ class TransactionController extends Controller
      */
     public function index()
     {
-        $transactions = Transaction::with(['user', 'template'])
+        $transactions = Transaction::with([
+            'user', 
+            'template', 
+            'businessCard', 
+            'miniWebsite', 
+            'businessWebsite', 
+            'userTemplate'
+        ])
             ->orderBy('created_at', 'desc')
             ->get();
 

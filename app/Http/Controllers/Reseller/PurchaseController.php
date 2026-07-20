@@ -151,7 +151,7 @@ class PurchaseController extends Controller
             ]);
         });
 
-        return redirect()->back()->with('status', 'Mini Website template purchased successfully! You can now host/publish this website.');
+        return redirect()->route('reseller.mini-websites.edit', $mini_website)->with('status', 'Mini Website template purchased successfully! You can now host/publish this website.');
     }
 
     public function payBusinessWebsiteTemplate(Request $request, BusinessWebsite $business_website)
@@ -194,6 +194,6 @@ class PurchaseController extends Controller
             ]);
         });
 
-        return redirect()->back()->with('status', 'Business Website template purchased successfully! You can now host/publish this website.');
+        return redirect()->route('reseller.business-websites.edit', $business_website)->with('status', 'Business Website template purchased successfully! You can now host/publish this website.');
     }
 }

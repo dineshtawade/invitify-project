@@ -48,6 +48,8 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
     const [customDays, setCustomDays] = useState(30);
     const [customWeeks, setCustomWeeks] = useState(4);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [isSuccessOpen, setIsSuccessOpen] = useState(false);
 
     // Template Purchase Checkout States
     const [isTemplateCheckoutOpen, setIsTemplateCheckoutOpen] = useState(false);
@@ -116,8 +118,9 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
     const cost = 2.00 * days; // flat reseller hosting rate
     const hasSufficientBalance = wallet.balance >= cost;
 
-    const handleHostSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleHostSubmit = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        setIsConfirmOpen(false);
         setIsCheckingOut(true);
 
         router.post(`/reseller/websites/business/${website.id}/host`, {
@@ -126,6 +129,11 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
             onSuccess: () => {
                 setIsCheckoutOpen(false);
                 setIsCheckingOut(false);
+                setIsSuccessOpen(true);
+                setTimeout(() => {
+                    setIsSuccessOpen(false);
+                    window.location.href = `/business/${website.slug}`;
+                }, 2000);
             },
             onError: () => {
                 setIsCheckingOut(false);
@@ -164,7 +172,7 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
                 {/* Header Navbar */}
                 <div className=" border-b px-6 py-4 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-3">
-                        <Briefcase className="size-6 text-indigo-650" />
+                        <Briefcase className="size-6 text-indigo-700" />
                         <div>
                             <h1 className="text-xl font-bold">{website.title}</h1>
                             <a href={`/business/${website.slug}`} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
@@ -182,7 +190,7 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
                                 checked={data.is_published}
                                 disabled={!website.is_purchased}
                                 onChange={(e) => setData('is_published', e.target.checked)}
-                                className="size-4 rounded border-neutral-300 text-indigo-650 focus:ring-indigo-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="size-4 rounded border-neutral-300 text-indigo-700 focus:ring-indigo-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                         </div>
 
@@ -191,7 +199,7 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
                             <select
                                 value={data.theme}
                                 onChange={(e) => setData('theme', e.target.value)}
-                                className="h-9 rounded-md border border-neutral-200 text-sm px-3 focus:ring-indigo-500"
+                                className="h-9 rounded-md border border-neutral-200 text-sm px-3 text-red-800"
                             >
                                 <option value="royal">Royal Professional</option>
                                 <option value="cozy">Cozy Warm</option>
@@ -208,7 +216,7 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
                             <Button
                                 onClick={handleBuyClick}
                                 disabled={processing || isCheckingOut}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md flex items-center gap-1.5 font-bold"
+                                className="shadow-md flex items-center gap-1.5 font-bold"
                             >
                                 <CreditCard className="size-4" />
                                 {website.is_expired ? 'Purchase Hosting' : 'Renew Hosting'}
@@ -261,7 +269,7 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
                             key={page.slug}
                             onClick={() => setActiveTab(page.slug)}
                             className={`px-4 py-2 rounded-t-lg text-sm font-bold flex items-center gap-2 border-x border-t transition-all ${activeTab === page.slug
-                                ? 'bg-white text-indigo-650 border-neutral-200 border-b-transparent shadow-sm'
+                                ? 'bg-white text-indigo-700 border-neutral-200 border-b-transparent shadow-sm'
                                 : 'bg-neutral-50/50 text-neutral-500 border-transparent hover:bg-neutral-200'
                                 }`}
                         >
@@ -303,12 +311,18 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
                 <DialogContent className="w-[95%] sm:max-w-md max-h-[90vh] overflow-y-auto bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold flex items-center gap-2 text-neutral-900 dark:text-neutral-100">
-                            <CreditCard className="size-5 text-indigo-650" />
+                            <CreditCard className="size-5 text-indigo-700" />
                             Hosting Subscription Checkout
                         </DialogTitle>
                     </DialogHeader>
 
-                    <form onSubmit={handleHostSubmit} className="flex flex-col gap-5 py-3 text-sm">
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            setIsConfirmOpen(true);
+                        }}
+                        className="flex flex-col gap-5 py-3 text-sm"
+                    >
                         <div className="rounded-xl bg-neutral-50 dark:bg-neutral-950 p-4 border border-neutral-150 dark:border-neutral-850 flex flex-col gap-1">
                             <span className="text-xs text-neutral-450 uppercase font-bold">Hosting Website</span>
                             <span className="font-bold text-neutral-850 dark:text-neutral-200">{data.title}</span>
@@ -397,7 +411,7 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
                                                     const val = e.target.value;
                                                     if (val !== 'manual') setCustomDays(Number(val));
                                                 }}
-                                                className="flex-1 h-9 rounded-md border border-neutral-200 bg-white text-xs px-3 focus:ring-1 focus:ring-indigo-650"
+                                                className="flex-1 h-9 rounded-md border border-neutral-200 bg-white text-xs px-3 focus:ring-1 focus:ring-indigo-700"
                                             >
                                                 {Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
                                                     <option key={d} value={d}>{d} Days</option>
@@ -426,7 +440,7 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
                                                     const val = e.target.value;
                                                     if (val !== 'manual') setCustomWeeks(Number(val));
                                                 }}
-                                                className="flex-1 h-9 rounded-md border border-neutral-200 bg-white text-xs px-3 focus:ring-1 focus:ring-indigo-650"
+                                                className="flex-1 h-9 rounded-md border border-neutral-200 bg-white text-xs px-3 focus:ring-1 focus:ring-indigo-700"
                                             >
                                                 {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
                                                     <option key={w} value={w}>{w} Weeks</option>
@@ -510,6 +524,50 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
                 </DialogContent>
             </Dialog>
 
+            {/* Payment Confirmation Dialog */}
+            <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+                <DialogContent className="w-[95%] sm:max-w-md bg-white border border-neutral-200">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-bold flex items-center gap-2 text-amber-600">
+                            <AlertCircle className="size-5" />
+                            Confirm Payment
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4 text-sm text-neutral-600 space-y-4">
+                        <p>
+                            Are you sure you want to deduct <span className="font-bold text-neutral-900">₹{cost.toFixed(2)}</span> from your wallet balance to host <span className="font-bold text-neutral-900">{website.title}</span> for <span className="font-bold text-neutral-900">{days} days</span>?
+                        </p>
+                        <div className="rounded-lg bg-neutral-50 p-3 border text-xs flex justify-between">
+                            <span>Current Balance: ₹{wallet.balance.toFixed(2)}</span>
+                            <span className="font-semibold text-indigo-700">Remaining Balance: ₹{(wallet.balance - cost).toFixed(2)}</span>
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-3 border-t pt-4">
+                        <Button type="button" variant="outline" onClick={() => setIsConfirmOpen(false)}>Cancel</Button>
+                        <Button
+                            type="button"
+                            onClick={() => handleHostSubmit()}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+                        >
+                            Confirm & Pay
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Success Message Dialog */}
+            <Dialog open={isSuccessOpen} onOpenChange={setIsSuccessOpen}>
+                <DialogContent className="w-[95%] sm:max-w-md bg-white border border-neutral-200 flex flex-col items-center justify-center p-8 text-center">
+                    <div className="size-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+                        <Check className="size-8 animate-bounce" />
+                    </div>
+                    <DialogTitle className="text-2xl font-black text-neutral-900">Payment Successful!</DialogTitle>
+                    <p className="mt-2 text-sm text-neutral-500">
+                        Hosting has been activated for <span className="font-bold text-neutral-800">{website.title}</span>. Redirecting you to your hosted invitation...
+                    </p>
+                </DialogContent>
+            </Dialog>
+
             {/* Reseller Template Checkout Dialog */}
             <Dialog open={isTemplateCheckoutOpen} onOpenChange={setIsTemplateCheckoutOpen}>
                 <DialogContent className="w-[95%] sm:max-w-md bg-white border border-neutral-200">
@@ -538,7 +596,7 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
                             </div>
                             <div className="flex justify-between items-center border-t pt-2.5 text-sm font-black text-neutral-900">
                                 <span>Remaining Balance:</span>
-                                <span className={wallet.balance >= website.reseller_price ? 'text-indigo-650' : 'text-red-500'}>
+                                <span className={wallet.balance >= website.reseller_price ? 'text-indigo-700' : 'text-red-500'}>
                                     ₹{(wallet.balance - website.reseller_price).toFixed(2)}
                                 </span>
                             </div>

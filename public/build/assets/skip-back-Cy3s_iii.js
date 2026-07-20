@@ -1,0 +1,1 @@
+import{c as o}from"./createLucideIcon-htQhMfPp.js";const e=[["rect",{x:"14",y:"4",width:"4",height:"16",rx:"1",key:"zuxfzm"}],["rect",{x:"6",y:"4",width:"4",height:"16",rx:"1",key:"1okwgv"}]],i=o("Pause",e);const c=[["polygon",{points:"19 20 9 12 19 4 19 20",key:"o2sva"}],["line",{x1:"5",x2:"5",y1:"19",y2:"5",key:"1ocqjk"}]],s=o("SkipBack",c);export{i as P,s as S};

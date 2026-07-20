@@ -21,6 +21,7 @@ interface Template {
     category: string;
     price: string | number;
     bg_gradient: string;
+    thumbnail: string | null;
     default_config: any;
 }
 
@@ -95,33 +96,30 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                 <div className="flex gap-2 border-b border-neutral-200 dark:border-neutral-800 pb-px overflow-x-auto">
                     <button
                         onClick={() => setActiveTab('invitations')}
-                        className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                            activeTab === 'invitations'
-                                ? 'border-blue-600 text-blue-650 dark:border-blue-400 dark:text-blue-400'
+                        className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'invitations'
+                                ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
                                 : 'border-transparent text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-205'
-                        }`}
+                            }`}
                     >
                         <Layers className="size-4" />
                         Invitation Cards ({templates.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('mini-websites')}
-                        className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                            activeTab === 'mini-websites'
-                                ? 'border-blue-600 text-blue-650 dark:border-blue-400 dark:text-blue-400'
+                        className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'mini-websites'
+                                ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
                                 : 'border-transparent text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-205'
-                        }`}
+                            }`}
                     >
                         <Globe className="size-4" />
                         Mini Websites ({miniTemplates.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('business-websites')}
-                        className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                            activeTab === 'business-websites'
-                                ? 'border-blue-600 text-blue-650 dark:border-blue-400 dark:text-blue-400'
+                        className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'business-websites'
+                                ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
                                 : 'border-transparent text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-205'
-                        }`}
+                            }`}
                     >
                         <Briefcase className="size-4" />
                         Business Websites ({businessTemplates.length})
@@ -137,11 +135,10 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                                 <button
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
-                                    className={`px-4 py-2 text-sm font-semibold capitalize border-b-2 transition-all -mb-px whitespace-nowrap ${
-                                        selectedCategory === cat
-                                            ? 'border-blue-600 text-blue-650 dark:border-blue-400 dark:text-blue-400'
+                                    className={`px-4 py-2 text-sm font-semibold capitalize border-b-2 transition-all -mb-px whitespace-nowrap ${selectedCategory === cat
+                                            ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
                                             : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
-                                    }`}
+                                        }`}
                                 >
                                     {getCategoryName(cat)}
                                 </button>
@@ -160,38 +157,48 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                                         key={t.id}
                                         className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xs transition-all hover:shadow-md dark:border-neutral-850 dark:bg-neutral-900"
                                     >
-                                        {/* Card Graphic Preview */}
-                                        <div
-                                            className={`relative flex aspect-video flex-col items-center justify-center p-6 bg-gradient-to-tr ${t.bg_gradient} border-b border-neutral-100 dark:border-neutral-850 overflow-hidden`}
-                                            style={{
-                                                fontFamily: t.default_config.font_style === 'vibes' ? "'Great Vibes', cursive" : t.default_config.font_style === 'cinzel' ? "'Cinzel', serif" : t.default_config.font_style === 'montserrat' ? "'Montserrat', sans-serif" : "'Playfair Display', serif",
-                                                backgroundImage: t.default_config.layout_style === 'photo-bg' && t.default_config.image_url ? `url(${t.default_config.image_url})` : undefined,
-                                                backgroundSize: 'cover',
-                                                backgroundPosition: 'center',
-                                            }}
-                                        >
-                                            {t.default_config.layout_style === 'photo-bg' && t.default_config.image_url && (
-                                                <div className="absolute inset-0 bg-black/45" />
-                                            )}
+                                        {/* Card Graphic Preview (Unified Thumbnail & Fallback) */}
+                                        <div className="relative aspect-video w-full overflow-hidden border-b border-neutral-150 dark:border-neutral-850/60 bg-neutral-100 dark:bg-neutral-950 flex items-center justify-center">
+                                            {t.thumbnail ? (
+                                                <img
+                                                    src={t.thumbnail}
+                                                    alt={t.name}
+                                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                />
+                                            ) : (
+                                                <div
+                                                    className={`w-full h-full relative flex flex-col items-center justify-center p-6 bg-gradient-to-tr ${t.bg_gradient} overflow-hidden`}
+                                                    style={{
+                                                        fontFamily: t.default_config.font_style === 'vibes' ? "'Great Vibes', cursive" : t.default_config.font_style === 'cinzel' ? "'Cinzel', serif" : t.default_config.font_style === 'montserrat' ? "'Montserrat', sans-serif" : "'Playfair Display', serif",
+                                                        backgroundImage: t.default_config.layout_style === 'photo-bg' && t.default_config.image_url ? `url(${t.default_config.image_url})` : undefined,
+                                                        backgroundSize: 'cover',
+                                                        backgroundPosition: 'center',
+                                                    }}
+                                                >
+                                                    {t.default_config.layout_style === 'photo-bg' && t.default_config.image_url && (
+                                                        <div className="absolute inset-0 bg-black/45" />
+                                                    )}
 
-                                            {t.default_config.layout_style === 'split-hero' && (
-                                                <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-neutral-200/90 dark:bg-neutral-800/90 border-l border-neutral-200 flex items-center justify-center text-[8px] font-bold text-neutral-400 select-none">IMAGE</div>
-                                            )}
+                                                    {t.default_config.layout_style === 'split-hero' && (
+                                                        <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-neutral-200/90 dark:bg-neutral-800/90 border-l border-neutral-200 flex items-center justify-center text-[8px] font-bold text-neutral-400 select-none">IMAGE</div>
+                                                    )}
 
-                                            <div 
-                                                className="text-center pointer-events-none scale-85 opacity-90 z-10 relative"
-                                                style={{ color: t.default_config.layout_style === 'photo-bg' && t.default_config.image_url ? '#ffffff' : undefined }}
-                                            >
-                                                <p className="text-[10px] tracking-wider uppercase font-semibold opacity-70">
-                                                    {t.default_config.title}
-                                                </p>
-                                                <p className="text-lg font-bold my-1 truncate max-w-[180px]">
-                                                    {t.default_config.guest_of_honor}
-                                                </p>
-                                                <p className="text-[8px] opacity-70">
-                                                    {t.default_config.date}
-                                                </p>
-                                            </div>
+                                                    <div
+                                                        className="text-center pointer-events-none scale-85 opacity-90 z-10 relative"
+                                                        style={{ color: t.default_config.layout_style === 'photo-bg' && t.default_config.image_url ? '#ffffff' : undefined }}
+                                                    >
+                                                        <p className="text-[10px] tracking-wider uppercase font-semibold opacity-70">
+                                                            {t.default_config.title}
+                                                        </p>
+                                                        <p className="text-lg font-bold my-1 truncate max-w-[180px]">
+                                                            {t.default_config.guest_of_honor}
+                                                        </p>
+                                                        <p className="text-[8px] opacity-70">
+                                                            {t.default_config.date}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
                                             <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs z-20">
                                                 ₹{parseFloat(String(t.price)).toFixed(2)}
                                             </span>
@@ -230,16 +237,15 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                                 <button
                                     key={cat}
                                     onClick={() => setSelectedWebsiteCategory(cat)}
-                                    className={`px-4 py-2 text-sm font-semibold capitalize border-b-2 transition-all -mb-px whitespace-nowrap ${
-                                        selectedWebsiteCategory === cat
-                                            ? 'border-blue-600 text-blue-650 dark:border-blue-400 dark:text-blue-400'
+                                    className={`px-4 py-2 text-sm font-semibold capitalize border-b-2 transition-all -mb-px whitespace-nowrap ${selectedWebsiteCategory === cat
+                                            ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
                                             : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
-                                    }`}
+                                        }`}
                                 >
-                                    {cat === 'all' 
-                                        ? 'All Websites' 
-                                        : cat === 'invitation' 
-                                            ? 'Event Invitations' 
+                                    {cat === 'all'
+                                        ? 'All Websites'
+                                        : cat === 'invitation'
+                                            ? 'Event Invitations'
                                             : 'Business Sites'
                                     }
                                 </button>
@@ -288,11 +294,10 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                                                     <h3 className="text-lg font-bold text-neutral-900 group-hover:text-blue-600 dark:text-neutral-100 dark:group-hover:text-blue-400 transition-colors truncate">
                                                         {w.name}
                                                     </h3>
-                                                    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shrink-0 ${
-                                                        w.type === 'invitation'
+                                                    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shrink-0 ${w.type === 'invitation'
                                                             ? 'bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-400'
                                                             : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400'
-                                                    }`}>
+                                                        }`}>
                                                         {w.type === 'invitation' ? 'Event' : 'Business'}
                                                     </span>
                                                 </div>

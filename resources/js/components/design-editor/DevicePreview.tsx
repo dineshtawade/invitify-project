@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Rnd } from 'react-rnd';
+import * as LucideIcons from 'lucide-react';
 import { Play, MapPin, Sparkles, HelpCircle, Star, Compass } from 'lucide-react';
 import type { Block } from './types';
 
@@ -70,6 +72,12 @@ export function DevicePreview({ blocks, activeSectionId, deviceType, title, slug
             if (bg.startsWith('linear-gradient') || bg.startsWith('#') || bg.startsWith('rgb')) {
                 style.background = bg;
             }
+        }
+        if (block.bg_image) {
+            style.backgroundImage = `url(${block.bg_image})`;
+            style.backgroundSize = 'cover';
+            style.backgroundPosition = 'center';
+            style.backgroundRepeat = 'no-repeat';
         }
         return style;
     };
@@ -263,13 +271,197 @@ export function DevicePreview({ blocks, activeSectionId, deviceType, title, slug
                         </div>
                     );
                 })()}
-                {block.type === 'hero' && (
-                    <div className={`p-8 text-center bg-gradient-to-tr ${getBgClass(block, 'from-indigo-650 to-purple-600')} flex flex-col gap-3.5 items-center justify-center min-h-[200px]`}>
-                        <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight leading-snug drop-shadow-xs">{block.title || 'Welcome'}</h2>
-                        <p className="text-xs opacity-85 max-w-sm">{block.subtitle}</p>
-                        {block.cta_text && <button type="button" className="rounded-full px-4 py-2 bg-white text-neutral-900 font-bold text-[10px] mt-1 shadow-xs">{block.cta_text}</button>}
+                {block.type === 'dynamic_layout' && (
+                    <div 
+                        className={`p-8 flex flex-col gap-4 items-center justify-center min-h-[180px] relative ${getSpacingClass(block)}`}
+                        style={getBlockStyle(block)}
+                    >
+                        {block.bg_image && (
+                            <div className="absolute inset-0 bg-black/10 pointer-events-none rounded-lg"></div>
+                        )}
+                        <div className="relative z-10 flex flex-col gap-3 items-center w-full">
+                            {block.icon && block.icon !== 'none' && (() => {
+                                const IconComponent = (LucideIcons as any)[block.icon];
+                                if (IconComponent) {
+                                    return <IconComponent className="size-8 text-pink-650 drop-shadow-xs" />;
+                                }
+                                return null;
+                            })()}
+                            {block.title && (
+                                <h3 className="text-base sm:text-lg font-bold tracking-tight text-center drop-shadow-xs">
+                                    {block.title}
+                                </h3>
+                            )}
+                            {block.custom_image_url && (
+                                <div className="w-full max-w-[200px] my-1 rounded-lg overflow-hidden border shadow-sm">
+                                    <img src={block.custom_image_url} alt="Custom" className="w-full h-auto object-cover" />
+                                </div>
+                            )}
+                            {block.text_lines?.map((line: any, idx: number) => (
+                                <p
+                                    key={idx}
+                                    style={{ color: line.color }}
+                                    className={`text-center max-w-md break-words ${line.size || 'text-xs'} ${line.weight === 'bold' ? 'font-bold' : line.weight === 'light' ? 'font-light' : 'font-normal'}`}
+                                >
+                                    {line.text}
+                                </p>
+                            ))}
+                        </div>
                     </div>
                 )}
+                {block.type === 'flexible_layout' && (
+                    <div 
+                        className={`p-8 flex flex-col gap-4 items-center justify-center min-h-[120px] relative ${getSpacingClass(block)}`}
+                        style={getBlockStyle(block)}
+                    >
+                        {block.bg_image && (
+                            <div className="absolute inset-0 bg-black/10 pointer-events-none rounded-lg"></div>
+                        )}
+                        <div className="relative z-10 flex flex-col gap-4 items-center w-full animate-none">
+                            {block.items?.map((item: any, idx: number) => {
+                                if (item.type === 'text') {
+                                    return (
+                                        <p
+                                            key={item.id || idx}
+                                            style={{ color: item.color, fontFamily: item.font_family || undefined }}
+                                            className={`max-w-md break-words ${item.font_size || 'text-sm'} ${item.weight === 'bold' ? 'font-bold' : item.weight === 'light' ? 'font-light' : 'font-normal'} text-${item.align || 'center'} w-full whitespace-pre-wrap`}
+                                        >
+                                            {item.text}
+                                        </p>
+                                    );
+                                }
+                                if (item.type === 'image') {
+                                    return (
+                                        <div 
+                                            key={item.id || idx}
+                                            className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
+                                        >
+                                            <div className={`overflow-hidden border shadow-sm ${
+                                                item.image_size === 'small' ? 'max-w-[150px]' :
+                                                item.image_size === 'medium' ? 'max-w-[320px]' :
+                                                item.image_size === 'large' ? 'max-w-[500px]' : 'w-full'
+                                            } ${item.radius || 'rounded-xl'}`}>
+                                                <img src={item.url} alt="Uploaded block element" className="w-full h-auto object-cover" />
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                if (item.type === 'video') {
+                                    return (
+                                        <div 
+                                            key={item.id || idx}
+                                            className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
+                                        >
+                                            <div className={`overflow-hidden border shadow-sm ${
+                                                item.video_size === 'small' ? 'max-w-[150px]' :
+                                                item.video_size === 'medium' ? 'max-w-[320px]' :
+                                                item.video_size === 'large' ? 'max-w-[500px]' : 'w-full'
+                                            } rounded-xl`}>
+                                                <video 
+                                                    src={item.video_url} 
+                                                    controls 
+                                                    autoPlay={item.autoplay} 
+                                                    muted={item.autoplay} 
+                                                    loop
+                                                    className="w-full h-auto"
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                if (item.type === 'button') {
+                                    return (
+                                        <div 
+                                            key={item.id || idx} 
+                                            className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
+                                        >
+                                            <a
+                                                href={item.btn_url || '#'}
+                                                style={{
+                                                    backgroundColor: item.btn_bg_color || '#2563eb',
+                                                    color: item.btn_text_color || '#ffffff'
+                                                }}
+                                                className={`inline-flex items-center justify-center font-bold transition-all duration-300 hover:scale-105 active:scale-95 shadow-md ${
+                                                    item.btn_size === 'small' ? 'px-4 py-2 text-xs' :
+                                                    item.btn_size === 'large' ? 'px-8 py-3.5 text-base' : 'px-6 py-2.5 text-sm'
+                                                } ${item.btn_radius || 'rounded-full'}`}
+                                            >
+                                                {item.btn_text}
+                                            </a>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })}
+                        </div>
+                    </div>
+                )}
+                {block.type === 'hero' && (() => {
+                    const elements = block.hero_elements && block.hero_elements.length > 0 ? block.hero_elements : null;
+                    const imgSizeMap: any = { small: 'max-w-[120px]', medium: 'max-w-[200px]', large: 'max-w-[300px]', full: 'w-full' };
+                    const btnSizeMap: any = { small: 'px-3 py-1 text-[9px]', medium: 'px-4 py-2 text-[10px]', large: 'px-6 py-2.5 text-xs' };
+
+                    return (
+                        <div className={`p-8 text-center bg-gradient-to-tr ${getBgClass(block, 'from-indigo-650 to-purple-600')} flex flex-col gap-3.5 items-center justify-center min-h-[200px]`}
+                            style={block.bg_image ? { backgroundImage: `url(${block.bg_image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+                        >
+                            {elements ? elements.map((el: any, idx: number) => {
+                                const alignCls = el.align === 'left' ? 'self-start text-left' : el.align === 'right' ? 'self-end text-right' : 'self-center text-center';
+                                if (el.type === 'text') {
+                                    return (
+                                        <p key={el.id || idx} style={{ color: el.color, fontSize: `${el.font_size_px || 16}px`, fontWeight: el.font_weight || '400', fontFamily: el.font_family || undefined, textAlign: (el.align || 'center') as any }} className={`max-w-sm break-words leading-snug ${alignCls} w-full`}>
+                                            {el.content}
+                                        </p>
+                                    );
+                                } else if (el.type === 'image' && el.url) {
+                                    return (
+                                        <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
+                                            <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${el.width_px ? '' : (imgSizeMap[el.image_size] || 'max-w-[200px]')} ${el.radius || 'rounded-xl'}`}
+                                                 style={{ 
+                                                     width: el.width_px ? `${el.width_px}px` : undefined,
+                                                     height: el.height_px ? `${el.height_px}px` : undefined
+                                                 }}
+                                            >
+                                                <img src={el.url} alt="" className={`w-full object-cover ${el.height_px ? 'h-full' : 'h-auto'}`} />
+                                            </div>
+                                        </div>
+                                    );
+                                } else if (el.type === 'video' && el.video_url) {
+                                    return (
+                                        <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
+                                            <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${el.width_px ? '' : (imgSizeMap[el.video_size] || 'max-w-[200px]')} rounded-xl`}
+                                                 style={{ 
+                                                     width: el.width_px ? `${el.width_px}px` : undefined,
+                                                     height: el.height_px ? `${el.height_px}px` : undefined
+                                                 }}
+                                            >
+                                                <video src={el.video_url} controls={!el.autoplay} autoPlay={el.autoplay} muted={el.autoplay} loop={el.autoplay} className={`w-full object-cover ${el.height_px ? 'h-full' : 'h-auto'}`} />
+                                            </div>
+                                        </div>
+                                    );
+                                } else if (el.type === 'button') {
+                                    return (
+                                        <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
+                                            <button type="button" className={`${el.btn_radius || 'rounded-full'} ${btnSizeMap[el.btn_size] || btnSizeMap.medium} font-bold shadow-xs mt-1`} style={{ backgroundColor: el.btn_bg_color || '#fff', color: el.btn_text_color || '#1f2937' }}>
+                                                {el.btn_text || 'Button'}
+                                            </button>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            }) : (
+                                <>
+                                    <h2 style={{ color: block.title_color }} className="text-xl sm:text-2xl font-extrabold tracking-tight leading-snug drop-shadow-xs">{block.title || 'Welcome'}</h2>
+                                    <p style={{ color: block.subtitle_color }} className="text-xs opacity-85 max-w-sm">{block.subtitle}</p>
+                                    {block.hero_text_lines?.map((line: any, i: number) => (
+                                        <p key={i} style={{ color: line.color }} className={`text-center max-w-xs break-words ${line.size || 'text-xs'} ${line.weight === 'bold' ? 'font-bold' : line.weight === 'light' ? 'font-light' : 'font-normal'}`}>{line.text}</p>
+                                    ))}
+                                    {block.cta_text && <button type="button" className="rounded-full px-4 py-2 bg-white text-neutral-900 font-bold text-[10px] mt-1 shadow-xs">{block.cta_text}</button>}
+                                </>
+                            )}
+                        </div>
+                    );
+                })()}
                 {block.type === 'text' && (
                     <div className={`p-6 text-neutral-800 ${getBgClass(block, 'bg-white')} flex flex-col gap-2`} style={{ textAlign: (block.align || 'center') as any }}>
                         {block.title && <h3 className="text-sm font-bold text-neutral-900">{block.title}</h3>}
@@ -399,6 +591,136 @@ export function DevicePreview({ blocks, activeSectionId, deviceType, title, slug
                                 <MapPin className="size-3" /> Open Maps Location
                             </a>
                         )}
+                    </div>
+                )}
+
+                {block.type === 'gallery' && (
+                    <div className="py-8 px-4 bg-white">
+                        {block.title && <h3 className="text-xl font-bold text-neutral-900 text-center mb-6">{block.title}</h3>}
+                        <div className={block.layout === 'masonry' ? 'columns-2 gap-4 space-y-4' : 'grid grid-cols-2 gap-4'}>
+                            {block.images?.map((img: string, i: number) => (
+                                <div key={i} className={`overflow-hidden rounded-xl ${block.layout === 'masonry' ? 'break-inside-avoid' : 'aspect-square'}`}>
+                                    <img src={img} className="w-full h-full object-cover" alt="Gallery" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {block.type === 'pricing' && (
+                    <div className="py-10 px-4 bg-neutral-50 flex flex-col gap-6">
+                        {block.title && <h3 className="text-2xl font-bold text-center text-neutral-900">{block.title}</h3>}
+                        <div className="flex flex-col gap-6 w-full max-w-sm mx-auto">
+                            {block.plans?.map((plan: any, i: number) => (
+                                <div key={i} className="bg-white border rounded-2xl p-6 shadow-xl flex flex-col gap-4 text-center">
+                                    <h4 className="text-lg font-bold text-neutral-800">{plan.name}</h4>
+                                    <div className="text-3xl font-black text-pink-600">{plan.price}</div>
+                                    <ul className="flex flex-col gap-2 my-2 text-sm text-neutral-600 text-left">
+                                        {plan.features?.map((f: string, j: number) => (
+                                            <li key={j} className="flex items-center gap-2"><Sparkles className="size-3 text-pink-500" /> {f}</li>
+                                        ))}
+                                    </ul>
+                                    <a href={plan.button_link} className="bg-neutral-900 text-white font-bold py-3 rounded-full hover:bg-neutral-800 transition-colors w-full inline-block">
+                                        {plan.button_text}
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {block.type === 'cta' && (
+                    <div className="py-12 bg-white flex flex-col md:flex-row items-center gap-6 px-6">
+                        {block.image_url && block.align === 'left' && (
+                            <img src={block.image_url} className="w-full md:w-1/2 aspect-video object-cover rounded-2xl shadow-lg" alt="CTA" />
+                        )}
+                        <div className="flex-1 flex flex-col gap-4 text-center md:text-left">
+                            <h3 className="text-3xl font-black text-neutral-900 leading-tight">{block.title}</h3>
+                            <p className="text-neutral-500 leading-relaxed text-sm">{block.content}</p>
+                            <a href={block.cta_link} className="bg-pink-600 text-white font-bold py-3 px-8 rounded-full hover:bg-pink-700 transition-colors self-center md:self-start mt-2 inline-block shadow-lg shadow-pink-500/30">
+                                {block.cta_text}
+                            </a>
+                        </div>
+                        {block.image_url && block.align === 'right' && (
+                            <img src={block.image_url} className="w-full md:w-1/2 aspect-video object-cover rounded-2xl shadow-lg mt-6 md:mt-0" alt="CTA" />
+                        )}
+                    </div>
+                )}
+                {block.type === 'html' && (
+                    <div className="w-full overflow-hidden" dangerouslySetInnerHTML={{ __html: block.html_content || '' }} />
+                )}
+                {block.type === 'profile' && (
+                    <div className="py-10 px-4 bg-white">
+                        {block.title && <h3 className="text-2xl font-bold text-center text-neutral-900 mb-8">{block.title}</h3>}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-lg mx-auto">
+                            {block.profiles?.map((prof: any, i: number) => (
+                                <div key={i} className="flex flex-col items-center text-center gap-3">
+                                    <div className="w-20 h-20 rounded-full overflow-hidden shadow-md">
+                                        <img src={prof.image} className="w-full h-full object-cover" alt={prof.name} />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-neutral-900 text-sm leading-tight">{prof.name}</h4>
+                                        <span className="text-[10px] text-pink-600 font-bold uppercase tracking-wide">{prof.role}</span>
+                                    </div>
+                                    {prof.social && (
+                                        <a href={prof.social} className="text-neutral-400 hover:text-pink-600 transition-colors text-[10px]">Follow</a>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {block.type === 'freeform' && (
+                    <div className="relative w-full h-[600px] bg-white overflow-hidden" style={{ minHeight: '600px' }}>
+                        {block.items?.map((item: any, i: number) => {
+                            const isSelected = activeSectionId === block.id;
+                            
+                            // Render specific item types
+                            let innerContent = null;
+                            if (item.type === 'text') {
+                                innerContent = (
+                                    <div style={{ color: item.color, fontSize: `${item.fontSize}px`, fontWeight: item.fontWeight, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                                        {item.content}
+                                    </div>
+                                );
+                            } else if (item.type === 'image') {
+                                innerContent = (
+                                    <img src={item.url} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: `${item.radius || 0}px` }} alt="Canvas element" draggable="false" />
+                                );
+                            } else if (item.type === 'icon') {
+                                const IconComponent = (LucideIcons as any)[item.icon] || LucideIcons.Star;
+                                innerContent = (
+                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color }}>
+                                        <IconComponent style={{ width: '100%', height: '100%' }} />
+                                    </div>
+                                );
+                            }
+                            
+                            // If in editor mode, wrap with Rnd to make it draggable/resizable
+                            // Note: Since onChange isn't passed down to DevicePreview easily to save positions,
+                            // we just allow visual drag/drop for preview. In a real app, you'd pass an update function.
+                            if (isSelected) {
+                                return (
+                                    <Rnd
+                                        key={i}
+                                        default={{ x: item.x || 0, y: item.y || 0, width: item.w || 100, height: item.h || 100 }}
+                                        bounds="parent"
+                                        className="border border-dashed border-blue-400 hover:border-solid hover:border-blue-500 bg-white/10 group"
+                                    >
+                                        <div className="absolute -top-3 -right-3 size-6 bg-white border rounded-full shadow flex items-center justify-center opacity-0 group-hover:opacity-100 z-10 pointer-events-none">
+                                            <LucideIcons.Move className="size-3 text-neutral-400" />
+                                        </div>
+                                        {innerContent}
+                                    </Rnd>
+                                );
+                            }
+
+                            // Read-only static positioning for preview mode or published site
+                            return (
+                                <div key={i} style={{ position: 'absolute', left: item.x, top: item.y, width: item.w, height: item.h }}>
+                                    {innerContent}
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
                 {block.type === 'timeline' && (

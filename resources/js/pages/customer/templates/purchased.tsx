@@ -10,9 +10,10 @@ import {
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
-import { Mail, Share2, Printer, Sparkles, Download } from 'lucide-react';
+import { Mail, Share2, Printer, Sparkles, Download, PlayCircle, Video } from 'lucide-react';
 import { normalizeConfig } from '@/utils/builder-utils';
 import { toPng } from 'html-to-image';
+import VideoGenerator from '@/components/video-generator';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -33,12 +34,24 @@ interface UserTemplate {
     is_purchased: boolean;
     template: {
         name: string;
+        type: string;
         bg_gradient: string;
     };
+    video_url?: string | null;
+    edit_count: number;
+}
+
+interface BusinessCard {
+    id: number;
+    company_name: string;
+    slug: string;
+    theme_css: string;
+    created_at: string;
 }
 
 interface PageProps {
     purchasedTemplates: UserTemplate[];
+    businessCards?: BusinessCard[];
 }
 
 const fontStyles: Record<string, string> = {
@@ -48,14 +61,17 @@ const fontStyles: Record<string, string> = {
     cinzel: "'Cinzel', serif",
 };
 
-export default function PurchasedInvitations({ purchasedTemplates }: PageProps) {
+export default function PurchasedInvitations({ purchasedTemplates, businessCards = [] }: PageProps) {
     const [selectedInvitation, setSelectedInvitation] = useState<UserTemplate | null>(null);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [copied, setCopied] = useState(false);
-    
+
     const [selectedDownloadInvitation, setSelectedDownloadInvitation] = useState<UserTemplate | null>(null);
     const [isDownloadOpen, setIsDownloadOpen] = useState(false);
     const [isDownloadingIndex, setIsDownloadingIndex] = useState<number | null>(null);
+
+    const [isVideoOpen, setIsVideoOpen] = useState(false);
+    const [selectedVideoTemplate, setSelectedVideoTemplate] = useState<UserTemplate | null>(null);
 
     const handleOpenDownload = (invitation: UserTemplate) => {
         setSelectedDownloadInvitation(invitation);
@@ -64,7 +80,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
 
     const handleDownloadPage = async (pageIdx: number) => {
         if (!selectedDownloadInvitation) return;
-        
+
         const element = document.getElementById(`download-card-page-${pageIdx}`);
         if (!element) {
             alert('Error generating preview. Please try again.');
@@ -73,7 +89,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
 
         try {
             setIsDownloadingIndex(pageIdx);
-            
+
             // Wait slightly for DOM to render
             await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -196,7 +212,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                     <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
                         My Invitations <Sparkles className="size-6 text-amber-500" />
                     </h1>
-                    <p className="text-neutral-500 dark:text-neutral-400">
+                    <p className="">
                         Manage your purchased templates, share links, or print them.
                     </p>
                 </div>
@@ -214,11 +230,15 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                 ) : (
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         {purchasedTemplates.map((t) => {
-                            const cfg = normalizeConfig(t.custom_config, t.template.bg_gradient);
-                            const firstPage = cfg.pages[0];
-                            const titleElem = firstPage?.elements.find(e => e.id === 'elem-title' || e.type === 'text');
-                            const coupleElem = firstPage?.elements.find(e => e.id === 'elem-couple' || (e.type === 'text' && e.fontSize && e.fontSize > 18));
-                            const dateElem = firstPage?.elements.find(e => e.id === 'elem-datetime' || e.type === 'text');
+                            const isVideo = t.template.type === 'video';
+                            let firstPage, titleElem, coupleElem, dateElem;
+                            if (!isVideo) {
+                                const cfg = normalizeConfig(t.custom_config, t.template.bg_gradient);
+                                firstPage = cfg.pages[0];
+                                titleElem = firstPage?.elements.find((e: any) => e.id === 'elem-title' || e.type === 'text');
+                                coupleElem = firstPage?.elements.find((e: any) => e.id === 'elem-couple' || (e.type === 'text' && e.fontSize && e.fontSize > 18));
+                                dateElem = firstPage?.elements.find((e: any) => e.id === 'elem-datetime' || e.type === 'text');
+                            }
 
                             return (
                                 <div
@@ -227,19 +247,42 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                                 >
                                     {/* Live Card Graphic Preview */}
                                     <div
-                                        className={`relative flex aspect-video flex-col items-center justify-center p-6 bg-gradient-to-tr ${firstPage?.bg_gradient || t.template.bg_gradient} border-b border-neutral-100 dark:border-neutral-850`}
+                                        className={`relative flex aspect-video flex-col items-center justify-center border-b border-neutral-100 dark:border-neutral-850 overflow-hidden ${isVideo ? 'bg-black' : `p-6 bg-gradient-to-tr ${firstPage?.bg_gradient || t.template.bg_gradient}`}`}
                                     >
-                                        <div className="text-center scale-85 opacity-90">
-                                            <p className="text-[10px] tracking-wider uppercase font-semibold opacity-70">
-                                                {titleElem?.content || 'THE WEDDING OF'}
-                                            </p>
-                                            <p className="font-serif text-lg font-bold my-1 truncate max-w-[180px]">
-                                                {coupleElem?.content || 'Couple Names'}
-                                            </p>
-                                            <p className="text-[8px] opacity-70">
-                                                {dateElem?.content || ''}
-                                            </p>
-                                        </div>
+                                        {isVideo ? (
+                                            <>
+                                                {t.custom_config?.video_url ? (
+                                                    <video
+                                                        src={t.custom_config.video_url}
+                                                        className="w-full h-full object-cover opacity-70"
+                                                        muted
+                                                        playsInline
+                                                        loop
+                                                        autoPlay
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full bg-neutral-900" />
+                                                )}
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
+                                                    <div className="w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center">
+                                                        <PlayCircle className="size-6 text-indigo-400" />
+                                                    </div>
+                                                    <span className="text-[10px] uppercase tracking-widest font-bold text-white/80 drop-shadow-md">Video Template</span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="text-center scale-85 opacity-90">
+                                                <p className="text-[10px] tracking-wider uppercase font-semibold opacity-70">
+                                                    {titleElem?.content || 'THE WEDDING OF'}
+                                                </p>
+                                                <p className="font-serif text-lg font-bold my-1 truncate max-w-[180px]">
+                                                    {coupleElem?.content || 'Couple Names'}
+                                                </p>
+                                                <p className="text-[8px] opacity-70">
+                                                    {dateElem?.content || ''}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Actions */}
@@ -253,23 +296,44 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                                             </p>
                                         </div>
 
-                                        <div className="grid grid-cols-3 gap-1.5">
-                                            <Button
-                                                onClick={() => handlePrint(t)}
-                                                variant="outline"
-                                                className="flex items-center justify-center gap-1 text-[10px] px-1 font-semibold border-neutral-200 dark:border-neutral-850"
-                                                title="Print or Save as PDF"
-                                            >
-                                                <Printer className="size-3" /> Print
-                                            </Button>
-                                            <Button
-                                                onClick={() => handleOpenDownload(t)}
-                                                variant="outline"
-                                                className="flex items-center justify-center gap-1 text-[10px] px-1 font-semibold border-neutral-200 dark:border-neutral-850"
-                                                title="Download as PNG"
-                                            >
-                                                <Download className="size-3" /> PNG
-                                            </Button>
+                                        <div className={`grid gap-1.5 ${isVideo ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                                            {!isVideo && (
+                                                <>
+                                                    <Button
+                                                        onClick={() => handlePrint(t)}
+                                                        variant="outline"
+                                                        className="flex items-center justify-center gap-1 text-[10px] px-1 font-semibold border-neutral-200 dark:border-neutral-850"
+                                                        title="Print or Save as PDF"
+                                                    >
+                                                        <Printer className="size-3" /> Print
+                                                    </Button>
+                                                    <Button
+                                                        onClick={() => handleOpenDownload(t)}
+                                                        variant="outline"
+                                                        className="flex items-center justify-center gap-1 text-[10px] px-1 font-semibold border-neutral-200 dark:border-neutral-850"
+                                                        title="Download as PNG"
+                                                    >
+                                                        <Download className="size-3" /> PNG
+                                                    </Button>
+                                                </>
+                                            )}
+                                            {isVideo && t.edit_count >= 2 ? (
+                                                <div
+                                                    className="text-neutral-400 dark:text-neutral-500 font-medium text-xs flex items-center justify-center gap-1 mt-1 py-2 bg-neutral-100 dark:bg-neutral-800/50 rounded-lg cursor-not-allowed"
+                                                    title="You have reached the maximum edit limit for this video template."
+                                                >
+                                                    Edit Limit Reached
+                                                </div>
+                                            ) : (
+                                                <Link
+                                                    href={`/templates/${t.template_id}/customize`}
+                                                    className={`text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium text-xs flex items-center gap-1 mt-1 ${isVideo ? 'justify-center py-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg' : ''}`}
+                                                >
+                                                    Edit Design →
+                                                </Link>
+                                            )}
+                                        </div>
+                                        <div className={`grid gap-2 mt-2 ${isVideo ? 'grid-cols-2' : 'grid-cols-1'}`}>
                                             <Button
                                                 onClick={() => handleOpenShare(t)}
                                                 className="bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-1 text-[10px] px-1 font-semibold"
@@ -277,6 +341,35 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                                             >
                                                 <Share2 className="size-3" /> Share
                                             </Button>
+
+                                            {isVideo && (
+                                                t.video_url ? (
+                                                    <div className="grid grid-cols-2 gap-1">
+                                                        <a
+                                                            href={t.video_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:hover:bg-indigo-800/40 dark:text-indigo-300 flex items-center justify-center gap-1 text-[10px] px-1 py-1.5 rounded-lg font-semibold transition-colors"
+                                                        >
+                                                            <PlayCircle className="size-3" /> Play
+                                                        </a>
+                                                        <a
+                                                            href={t.video_url}
+                                                            download
+                                                            className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:hover:bg-indigo-800/40 dark:text-indigo-300 flex items-center justify-center gap-1 text-[10px] px-1 py-1.5 rounded-lg font-semibold transition-colors"
+                                                        >
+                                                            <Download className="size-3" /> Save
+                                                        </a>
+                                                    </div>
+                                                ) : (
+                                                    <Button
+                                                        onClick={() => { setSelectedVideoTemplate(t); setIsVideoOpen(true); }}
+                                                        className="flex items-center justify-center gap-1 text-[10px] px-1 font-semibold"
+                                                    >
+                                                        <Video className="size-3" /> Generate MP4
+                                                    </Button>
+                                                )
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -285,6 +378,78 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                     </div>
                 )}
             </div>
+
+            {businessCards.length > 0 && (
+                <div className="flex flex-col gap-6 p-6 pt-0 border-t border-neutral-200 dark:border-neutral-800 mt-6">
+                    <div className="flex flex-col gap-2 mt-6">
+                        <h2 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+                            My Business Cards <Sparkles className="size-5 text-amber-500" />
+                        </h2>
+                        <p className="">
+                            Manage your digital business cards.
+                        </p>
+                    </div>
+
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {businessCards.map((card) => (
+                            <div
+                                key={card.id}
+                                className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900"
+                            >
+                                <div className="relative flex aspect-video flex-col items-center justify-center bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-850 overflow-hidden">
+                                    {/* Mobile Mockup */}
+                                    <div className="relative w-24 h-[135px] bg-white dark:bg-neutral-900 rounded-2xl shadow-md border-[4px] border-neutral-800 dark:border-neutral-700 overflow-hidden shrink-0 flex flex-col items-center justify-center transform group-hover:scale-105 transition-transform duration-300">
+                                        <div className="absolute top-1 left-1/2 -translate-x-1/2 w-6 h-1 rounded-full bg-neutral-800 dark:bg-neutral-700 z-10"></div>
+
+                                        {/* Card content mock */}
+                                        <div className="w-full h-full flex flex-col items-center p-2 pt-4 bg-gradient-to-br from-indigo-500 to-blue-600">
+                                            <div className="w-8 h-8 rounded-full bg-white/20 mb-2 shadow-sm flex items-center justify-center">
+                                                <Sparkles className="size-4 text-white opacity-80" />
+                                            </div>
+                                            <p className="text-[7px] font-bold text-white leading-tight text-center break-words w-full truncate px-1">
+                                                {card.company_name}
+                                            </p>
+                                            <div className="w-10 h-1 bg-white/30 rounded mt-2"></div>
+                                            <div className="w-8 h-1 bg-white/20 rounded mt-1"></div>
+                                        </div>
+                                    </div>
+
+                                    {/* Background decorative elements */}
+                                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:14px_14px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
+                                </div>
+                                <div className="flex flex-1 flex-col justify-between p-5 gap-4">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+                                            {card.company_name}
+                                        </h3>
+                                        <p className="mt-1 text-xs text-neutral-400 font-medium">
+                                            Purchased Business Card
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <Link
+                                            href={`/customer/business-cards/${card.id}/edit`}
+                                            className="flex-1 text-center bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:bg-neutral-900 dark:border-indigo-900 dark:text-indigo-400 dark:hover:bg-indigo-900/50 py-2 rounded-lg font-semibold text-xs transition-colors"
+                                        >
+                                            Edit Card
+                                        </Link>
+                                        <a
+                                            href={`/card/${card.slug}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex-1 text-center bg-indigo-600 text-white hover:bg-indigo-700 py-2 rounded-lg font-semibold text-xs transition-colors flex items-center justify-center gap-1"
+                                        >
+                                            <Share2 className="size-3" /> View
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
 
             {/* Share invitation link dialog */}
             <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
@@ -343,9 +508,9 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                                     {cfg.pages.map((page, idx) => (
                                         <div key={page.id} className="flex flex-col items-center gap-3 w-full">
                                             <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Page {idx + 1}</span>
-                                            
+
                                             {/* Rendered Invitation Card for html2image capture */}
-                                            <div 
+                                            <div
                                                 id={`download-card-page-${idx}`}
                                                 className={`w-full aspect-[3/4.2] rounded-2xl shadow-md bg-gradient-to-tr ${page.bg_gradient} relative overflow-hidden border border-neutral-200 dark:border-neutral-800`}
                                             >
@@ -392,7 +557,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                                                             )}
 
                                                             {elem.type === 'link' && (
-                                                                <span 
+                                                                <span
                                                                     className="px-2 py-0.5 bg-neutral-900/5 border rounded-full text-[8px] font-bold flex items-center gap-0.5"
                                                                     style={{ borderColor: elem.textColor || '#1f2937', color: elem.textColor || '#1f2937' }}
                                                                 >
@@ -427,6 +592,22 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Video Generator Modal */}
+            {selectedVideoTemplate && (
+                <VideoGenerator
+                    userTemplate={selectedVideoTemplate}
+                    isOpen={isVideoOpen}
+                    onClose={() => {
+                        setIsVideoOpen(false);
+                        setSelectedVideoTemplate(null);
+                    }}
+                    uploadEndpoint={`/customer/user-templates/${selectedVideoTemplate.id}/upload-video`}
+                    onComplete={(url) => {
+                        window.location.reload();
+                    }}
+                />
+            )}
         </AppLayout>
     );
 }

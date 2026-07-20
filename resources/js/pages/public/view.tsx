@@ -3,7 +3,8 @@ import { Head } from '@inertiajs/react';
 import { 
     Heart, Sparkles, Cake, Baby, Award, 
     ExternalLink, ChevronLeft, ChevronRight, MapPin, Mail,
-    Star, Compass, Gift, Calendar, Clock, Music, Wine, Bell, Smile
+    Star, Compass, Gift, Calendar, Clock, Music, Wine, Bell, Smile,
+    Download
 } from 'lucide-react';
 import { normalizeConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 
@@ -11,8 +12,10 @@ interface PageProps {
     userTemplate: {
         id: number;
         custom_config: any;
+        video_path?: string | null;
         template: {
             name: string;
+            type: string;
             bg_gradient: string;
         };
     };
@@ -31,7 +34,58 @@ const fontStyles: Record<string, string> = {
     pinyon: "'Pinyon Script', cursive",
 };
 
+import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
+import VideoGenerator from '@/components/video-generator';
+
 export default function PublicSharedView({ userTemplate }: PageProps) {
+    const isVideo = userTemplate.template.type === 'video';
+    const [isVideoGeneratorOpen, setIsVideoGeneratorOpen] = useState(false);
+
+    const handleDownloadVideo = () => {
+        if (userTemplate.video_path) {
+            const link = document.createElement('a');
+            link.href = `/storage/${userTemplate.video_path}`;
+            link.download = `invitation_${userTemplate.id}.mp4`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            setIsVideoGeneratorOpen(true);
+        }
+    };
+    
+    if (isVideo) {
+        return (
+            <>
+                <Head title={`${userTemplate.template.name} - Invitation`} />
+                <div className="w-full h-screen bg-black relative flex flex-col items-center justify-center">
+                    <VideoTemplateBuilder 
+                        data={{ default_config: userTemplate.custom_config }} 
+                        isPreviewOnly={true} 
+                    />
+
+                    {/* Floating Download Button */}
+                    <div className="absolute bottom-8 z-30 flex items-center justify-center">
+                        <button
+                            onClick={handleDownloadVideo}
+                            className="flex items-center gap-2 px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/25 text-white text-sm font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 active:scale-95 group cursor-pointer"
+                        >
+                            <Download className="size-4 group-hover:animate-bounce" />
+                            <span>Download Video</span>
+                        </button>
+                    </div>
+
+                    <VideoGenerator 
+                        userTemplate={userTemplate}
+                        isOpen={isVideoGeneratorOpen}
+                        onClose={() => setIsVideoGeneratorOpen(false)}
+                        onComplete={() => setIsVideoGeneratorOpen(false)}
+                    />
+                </div>
+            </>
+        );
+    }
+
     const config = normalizeConfig(userTemplate.custom_config, userTemplate.template.bg_gradient);
     const [currentPageIndex, setCurrentPageIndex] = useState(0);
     const cardRef = useRef<HTMLDivElement>(null);
@@ -113,8 +167,7 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
 
     return (
         <>
-            <Head>
-                <title>{userTemplate.template.name}</title>
+            <Head title={userTemplate.template.name}>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&family=Dancing+Script:wght@400..700&family=Alex+Brush&family=Outfit:wght@100..900&family=Parisienne&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Pinyon+Script&display=swap" rel="stylesheet" />
@@ -242,7 +295,14 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
                                 return (
                                     <div key={elem.id} style={style} className="overflow-hidden rounded-lg">
                                         {elem.url ? (
-                                            <img src={elem.url} alt="Element Graphic" className="w-full h-full object-cover pointer-events-none" />
+                                            <img 
+                                                src={elem.url} 
+                                                alt="Element Graphic" 
+                                                className="w-full h-full object-cover pointer-events-none" 
+                                                onError={(e) => {
+                                                    e.currentTarget.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                                                }}
+                                            />
                                         ) : (
                                             <div className="w-full h-full bg-neutral-200 flex items-center justify-center text-xs text-neutral-400">
                                                 No Image
