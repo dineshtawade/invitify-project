@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { 
-    Shield, Users, DollarSign, Activity, ArrowUpRight, 
+import {
+    Shield, Users, DollarSign, Activity, ArrowUpRight,
     CheckCircle2, Clock, CreditCard, UserCheck, AlertCircle, Coins
 } from 'lucide-react';
 
@@ -151,24 +151,24 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                         </p>
                         <div className="flex flex-wrap gap-2.5 mt-1">
                             {stats.pending_approvals > 0 && (
-                                <Link 
-                                    href="/super-admin/users" 
+                                <Link
+                                    href="/super-admin/users"
                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-white font-medium text-xs hover:bg-amber-600 transition"
                                 >
                                     <UserCheck className="size-3.5" /> Approve Users ({stats.pending_approvals})
                                 </Link>
                             )}
                             {stats.pending_deposits > 0 && (
-                                <Link 
-                                    href="/super-admin/resellers" 
+                                <Link
+                                    href="/super-admin/resellers"
                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-white font-medium text-xs hover:bg-amber-600 transition"
                                 >
                                     <Coins className="size-3.5" /> Manual Deposits ({stats.pending_deposits})
                                 </Link>
                             )}
                             {stats.pending_redemptions > 0 && (
-                                <Link 
-                                    href="/super-admin/wallets" 
+                                <Link
+                                    href="/super-admin/wallets"
                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-white font-medium text-xs hover:bg-amber-600 transition"
                                 >
                                     <CreditCard className="size-3.5" /> Redemptions ({stats.pending_redemptions})
@@ -181,7 +181,7 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                 {/* Primary Stats Grid */}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {/* Total Users */}
-                    <Link 
+                    <Link
                         href="/super-admin/users"
                         className="group relative block overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 transition-all duration-300 hover:shadow-md hover:scale-[1.01] cursor-pointer"
                     >
@@ -198,7 +198,7 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                     </Link>
 
                     {/* Pending Approvals */}
-                    <Link 
+                    <Link
                         href="/super-admin/users"
                         className="group relative block overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 transition-all duration-300 hover:shadow-md hover:scale-[1.01] cursor-pointer"
                     >
@@ -209,11 +209,10 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                                     {stats.pending_approvals}
                                 </h3>
                             </div>
-                            <div className={`rounded-xl p-3.5 group-hover:scale-110 transition duration-300 ${
-                                stats.pending_approvals > 0 
-                                    ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-450' 
+                            <div className={`rounded-xl p-3.5 group-hover:scale-110 transition duration-300 ${stats.pending_approvals > 0
+                                    ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-450'
                                     : 'bg-neutral-50 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-450'
-                            }`}>
+                                }`}>
                                 <Shield className="size-6" />
                             </div>
                         </div>
@@ -221,7 +220,7 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                     </Link>
 
                     {/* Platform Revenue */}
-                    <Link 
+                    <Link
                         href="/super-admin/transactions"
                         className="group relative block overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 transition-all duration-300 hover:shadow-md hover:scale-[1.01] cursor-pointer"
                     >
@@ -238,7 +237,7 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                     </Link>
 
                     {/* Active Sessions */}
-                    <Link 
+                    <Link
                         href="/super-admin/users"
                         className="group relative block overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 transition-all duration-300 hover:shadow-md hover:scale-[1.01] cursor-pointer"
                     >
@@ -264,15 +263,15 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                                 <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-50">Revenue History</h3>
                                 <p className="text-xs text-neutral-500 dark:text-neutral-400">Completed platform sales for the last 6 months.</p>
                             </div>
-                            <span className="text-xs font-bold text-indigo-650 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 px-2.5 py-1 rounded-md">
+                            <span className="text-xs font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 px-2.5 py-1 rounded-md">
                                 Max: {formatCurrency(maxRevenue)}
                             </span>
                         </div>
 
                         <div className="relative mt-6 flex justify-center">
                             {/* Native Custom Interactive SVG Chart */}
-                            <svg 
-                                viewBox={`0 0 ${revenueChartWidth} ${revenueChartHeight}`} 
+                            <svg
+                                viewBox={`0 0 ${revenueChartWidth} ${revenueChartHeight}`}
                                 className="w-full h-auto select-none overflow-visible"
                             >
                                 <defs>
@@ -288,19 +287,19 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                                     const val = maxRevenue * (1 - ratio);
                                     return (
                                         <g key={index} className="opacity-40 dark:opacity-20">
-                                            <line 
-                                                x1={paddingLeft} 
-                                                y1={y} 
-                                                x2={revenueChartWidth - paddingRight} 
-                                                y2={y} 
-                                                stroke="currentColor" 
-                                                strokeDasharray="4 4" 
+                                            <line
+                                                x1={paddingLeft}
+                                                y1={y}
+                                                x2={revenueChartWidth - paddingRight}
+                                                y2={y}
+                                                stroke="currentColor"
+                                                strokeDasharray="4 4"
                                                 className="text-neutral-400 dark:text-neutral-600"
                                             />
-                                            <text 
-                                                x={paddingLeft - 8} 
-                                                y={y + 4} 
-                                                textAnchor="end" 
+                                            <text
+                                                x={paddingLeft - 8}
+                                                y={y + 4}
+                                                textAnchor="end"
                                                 className="text-[10px] font-semibold fill-neutral-500 dark:fill-neutral-400"
                                             >
                                                 {formatCurrency(val)}
@@ -316,35 +315,35 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
 
                                 {/* Plotted line */}
                                 {linePath && (
-                                    <path 
-                                        d={linePath} 
-                                        fill="none" 
-                                        stroke="rgb(79, 70, 229)" 
-                                        strokeWidth="2.5" 
-                                        strokeLinecap="round" 
-                                        strokeLinejoin="round" 
+                                    <path
+                                        d={linePath}
+                                        fill="none"
+                                        stroke="rgb(79, 70, 229)"
+                                        strokeWidth="2.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
                                     />
                                 )}
 
                                 {/* X-Axis labels & points */}
                                 {points.map((p, idx) => (
                                     <g key={idx}>
-                                        <line 
-                                            x1={p.x} 
-                                            y1={paddingTop} 
-                                            x2={p.x} 
-                                            y2={paddingTop + plotHeight} 
-                                            stroke="currentColor" 
-                                            strokeWidth="1" 
-                                            className="text-neutral-200 dark:text-neutral-800 opacity-20 hover:opacity-100 transition-opacity" 
+                                        <line
+                                            x1={p.x}
+                                            y1={paddingTop}
+                                            x2={p.x}
+                                            y2={paddingTop + plotHeight}
+                                            stroke="currentColor"
+                                            strokeWidth="1"
+                                            className="text-neutral-200 dark:text-neutral-800 opacity-20 hover:opacity-100 transition-opacity"
                                         />
-                                        
-                                        <circle 
-                                            cx={p.x} 
-                                            cy={p.y} 
-                                            r="4.5" 
-                                            fill="rgb(79, 70, 229)" 
-                                            stroke="white" 
+
+                                        <circle
+                                            cx={p.x}
+                                            cy={p.y}
+                                            r="4.5"
+                                            fill="rgb(79, 70, 229)"
+                                            stroke="white"
                                             strokeWidth="1.5"
                                             className="cursor-pointer hover:r-6 transition-all duration-150"
                                             onMouseEnter={(e) => {
@@ -359,10 +358,10 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                                             onMouseLeave={() => setHoveredPoint(null)}
                                         />
 
-                                        <text 
-                                            x={p.x} 
-                                            y={paddingTop + plotHeight + 18} 
-                                            textAnchor="middle" 
+                                        <text
+                                            x={p.x}
+                                            y={paddingTop + plotHeight + 18}
+                                            textAnchor="middle"
                                             className="text-[10px] font-bold fill-neutral-500 dark:fill-neutral-450"
                                         >
                                             {p.label}
@@ -373,20 +372,20 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                                 {/* Interactive Tooltip Overlay inside SVG */}
                                 {hoveredPoint && (
                                     <g>
-                                        <rect 
-                                            x={Math.max(paddingLeft, hoveredPoint.x - 65)} 
-                                            y={hoveredPoint.y - 40} 
-                                            width="130" 
-                                            height="32" 
-                                            rx="6" 
-                                            fill="rgba(15, 23, 42, 0.95)" 
+                                        <rect
+                                            x={Math.max(paddingLeft, hoveredPoint.x - 65)}
+                                            y={hoveredPoint.y - 40}
+                                            width="130"
+                                            height="32"
+                                            rx="6"
+                                            fill="rgba(15, 23, 42, 0.95)"
                                             className="shadow-xl"
                                         />
-                                        <text 
-                                            x={Math.max(paddingLeft + 65, hoveredPoint.x)} 
-                                            y={hoveredPoint.y - 20} 
-                                            textAnchor="middle" 
-                                            fill="white" 
+                                        <text
+                                            x={Math.max(paddingLeft + 65, hoveredPoint.x)}
+                                            y={hoveredPoint.y - 20}
+                                            textAnchor="middle"
+                                            fill="white"
                                             className="text-[10px] font-extrabold"
                                         >
                                             {hoveredPoint.label}: {formatCurrency(hoveredPoint.value)}
@@ -418,7 +417,7 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                                                 <span className="font-extrabold">{item.count}</span>
                                             </div>
                                             <div className="w-full h-2 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                                                <div 
+                                                <div
                                                     className={`h-full rounded-full bg-gradient-to-r ${roleColors[item.role]} transition-all duration-500`}
                                                     style={{ width: `${percent}%` }}
                                                 ></div>
@@ -440,8 +439,8 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                                 <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-50">Recent Transactions</h3>
                                 <p className="text-xs text-neutral-500 dark:text-neutral-400">Latest client purchases across all templates.</p>
                             </div>
-                            <Link 
-                                href="/super-admin/transactions" 
+                            <Link
+                                href="/super-admin/transactions"
                                 className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
                             >
                                 View all <ArrowUpRight className="size-3.5" />
@@ -454,7 +453,7 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                                 recentTransactions.map((tx) => (
                                     <div key={tx.id} className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0 hover:bg-neutral-50/40 dark:hover:bg-neutral-800/10 px-2 rounded-lg transition">
                                         <div className="flex items-center gap-3">
-                                            <div className="flex size-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-xs">
+                                            <div className="flex size-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 font-extrabold text-xs">
                                                 {getInitials(tx.user_name)}
                                             </div>
                                             <div>
@@ -481,8 +480,8 @@ export default function SuperAdminDashboard({ stats, recentTransactions = [], re
                                 <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-50">Recent Registrations</h3>
                                 <p className="text-xs text-neutral-500 dark:text-neutral-400">Newly registered user and partner accounts.</p>
                             </div>
-                            <Link 
-                                href="/super-admin/users" 
+                            <Link
+                                href="/super-admin/users"
                                 className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
                             >
                                 Manage Users <ArrowUpRight className="size-3.5" />

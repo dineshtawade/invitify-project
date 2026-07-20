@@ -1237,7 +1237,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                             <button
                                                 type="button"
                                                 onClick={() => removeGalleryImage(index)}
-                                                className="absolute top-1 right-1 p-1 bg-red-650 hover:bg-red-700 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                className="absolute top-1 right-1 p-1 bg-red-700 hover:bg-red-700 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                                             >
                                                 <Trash2 className="size-3.5" />
                                             </button>

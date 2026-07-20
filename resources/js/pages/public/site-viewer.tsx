@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
 import * as LucideIcons from 'lucide-react';
-import { 
-    Mail, Sparkles, MapPin, Compass, Play, 
-    ChevronLeft, ChevronRight, Globe, CheckCircle, AlertCircle, 
+import {
+    Mail, Sparkles, MapPin, Compass, Play,
+    ChevronLeft, ChevronRight, Globe, CheckCircle, AlertCircle,
     Instagram, Phone, Calendar, Clock, Heart, Star, Send, HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -201,7 +201,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
         const style: React.CSSProperties = {};
         if (block.font_family) style.fontFamily = block.font_family;
         if (block.font_color) style.color = block.font_color;
-        
+
         if (block.bg_color) {
             const bg = block.bg_color.trim();
             if (bg.startsWith('linear-gradient') || bg.startsWith('#') || bg.startsWith('rgb')) {
@@ -249,24 +249,23 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
             </Head>
 
             <div className={`min-h-screen bg-gradient-to-b pb-20 font-sans transition-all selection:bg-neutral-900 selection:text-white relative ${activeTheme.bg}`}>
-                
+
                 {previewMode && (
-                    <div className={`w-full py-2.5 px-4 text-xs font-bold text-center flex flex-col sm:flex-row items-center justify-center gap-2 text-white sticky top-0 z-[100] shadow-md ${
-                        previewMode === 'draft' ? 'bg-amber-600' : 'bg-rose-600'
-                    }`}>
+                    <div className={`w-full py-2.5 px-4 text-xs font-bold text-center flex flex-col sm:flex-row items-center justify-center gap-2 text-white sticky top-0 z-[100] shadow-md ${previewMode === 'draft' ? 'bg-amber-600' : 'bg-rose-600'
+                        }`}>
                         <div className="flex items-center gap-1.5 justify-center">
                             <AlertCircle className="size-4 shrink-0" />
                             <span>
-                                {previewMode === 'draft' 
-                                    ? `This is a preview. Your site is currently in Draft mode.` 
+                                {previewMode === 'draft'
+                                    ? `This is a preview. Your site is currently in Draft mode.`
                                     : `This is a preview. Your hosting subscription has expired.`
                                 }
                             </span>
                         </div>
                         <div className="flex items-center gap-3 justify-center">
-                            <Link 
-                                href={previewMode === 'draft' 
-                                    ? `/customer/mini-websites/${website.id}/edit` 
+                            <Link
+                                href={previewMode === 'draft'
+                                    ? `/customer/mini-websites/${website.id}/edit`
                                     : `/customer/mini-websites`
                                 }
                                 className="underline hover:opacity-80 transition-opacity"
@@ -307,10 +306,10 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                     });
                                 }
                                 return (
-                                    <div 
-                                        key={block.id} 
-                                        id={block.id} 
-                                        style={getBlockStyle(block)} 
+                                    <div
+                                        key={block.id}
+                                        id={block.id}
+                                        style={getBlockStyle(block)}
                                         className={`scroll-mt-20 ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                         dangerouslySetInnerHTML={{ __html: html }}
                                     />
@@ -319,7 +318,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                             return (
                                 <div key={block.id} id={block.id} className="scroll-mt-20">
-                                    
+
                                     {/* Advanced customizable section block */}
                                     {block.type === 'advanced_section' && (() => {
                                         const bgGradientClass = block.bg_type === 'gradient' ? block.bg_gradient : '';
@@ -360,18 +359,18 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                         };
 
                                         return (
-                                            <div 
+                                            <div
                                                 id={block.custom_id}
                                                 style={getBgStyle()}
                                                 className={`w-full relative overflow-hidden transition-all ${containerClasses} ${bgGradientClass} ${block.animation_type && block.animation_type !== 'none' ? `animate-${block.animation_type}` : ''}`}
                                             >
                                                 {block.bg_type === 'image' && block.bg_overlay_color && (
-                                                    <div 
-                                                        className="absolute inset-0 z-0 pointer-events-none" 
-                                                        style={{ 
-                                                            backgroundColor: block.bg_overlay_color, 
-                                                            opacity: parseFloat(block.bg_overlay_opacity || '0.4') 
-                                                        }} 
+                                                    <div
+                                                        className="absolute inset-0 z-0 pointer-events-none"
+                                                        style={{
+                                                            backgroundColor: block.bg_overlay_color,
+                                                            opacity: parseFloat(block.bg_overlay_opacity || '0.4')
+                                                        }}
                                                     />
                                                 )}
 
@@ -380,14 +379,14 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                                 )}
 
                                                 <div className={`relative z-10 mx-auto w-full ${block.section_width || 'max-w-4xl'} flex ${block.content_align || 'flex-col items-center'} gap-6`}>
-                                                    
+
                                                     {block.header_text && (() => {
                                                         const Tag = block.header_tag || 'h2';
                                                         const headerStyle: React.CSSProperties = {};
                                                         if (block.header_color) headerStyle.color = block.header_color;
                                                         if (block.header_font_family) headerStyle.fontFamily = block.header_font_family;
                                                         const className = `${block.header_font_size || 'text-3xl'} ${block.header_font_weight || 'font-bold'} text-${block.header_align || 'center'} w-full tracking-tight`;
-                                                        
+
                                                         if (Tag === 'h1') return <h1 style={headerStyle} className={className}>{block.header_text}</h1>;
                                                         if (Tag === 'h2') return <h2 style={headerStyle} className={className}>{block.header_text}</h2>;
                                                         if (Tag === 'h3') return <h3 style={headerStyle} className={className}>{block.header_text}</h3>;
@@ -399,24 +398,23 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                                     {block.image_url && (
                                                         <div className="flex justify-center w-full">
-                                                            <img 
-                                                                src={block.image_url} 
-                                                                alt={block.image_alt || 'illustration'} 
-                                                                className={`object-cover ${
-                                                                    block.image_size === 'small' ? 'max-w-[150px]' : 
-                                                                    block.image_size === 'large' ? 'max-w-[500px]' : 
-                                                                    block.image_size === 'full' ? 'w-full' : 'max-w-[320px]'
-                                                                } ${block.image_radius || 'rounded-xl'} shadow-xs`}
+                                                            <img
+                                                                src={block.image_url}
+                                                                alt={block.image_alt || 'illustration'}
+                                                                className={`object-cover ${block.image_size === 'small' ? 'max-w-[150px]' :
+                                                                        block.image_size === 'large' ? 'max-w-[500px]' :
+                                                                            block.image_size === 'full' ? 'w-full' : 'max-w-[320px]'
+                                                                    } ${block.image_radius || 'rounded-xl'} shadow-xs`}
                                                             />
                                                         </div>
                                                     )}
 
                                                     {block.desc_text && (
-                                                        <p 
-                                                            style={{ 
-                                                                color: block.desc_color || '#4b5563', 
-                                                                fontFamily: block.desc_font_family || 'Inter' 
-                                                            }} 
+                                                        <p
+                                                            style={{
+                                                                color: block.desc_color || '#4b5563',
+                                                                fontFamily: block.desc_font_family || 'Inter'
+                                                            }}
                                                             className={`${block.desc_font_size || 'text-sm'} ${block.desc_font_weight || 'font-normal'} ${block.desc_line_height || 'leading-relaxed'} text-${block.desc_align || 'center'} w-full whitespace-pre-wrap`}
                                                         >
                                                             {block.desc_text}
@@ -425,16 +423,15 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                                     {block.btn_text && (
                                                         <div className="flex justify-center w-full mt-2">
-                                                            <a 
-                                                                href={block.btn_url || '#'} 
-                                                                style={{ 
-                                                                    backgroundColor: block.btn_bg_color || '#2563eb', 
-                                                                    color: block.btn_text_color || '#ffffff' 
-                                                                }} 
-                                                                className={`inline-flex items-center justify-center gap-2 ${block.btn_padding_x || 'px-6'} ${block.btn_padding_y || 'py-2.5'} ${block.btn_font_size || 'text-xs'} font-bold ${block.btn_border_radius || 'rounded-full'} transition-all duration-300 ${
-                                                                    block.btn_hover_effect === 'scale' ? 'hover:scale-105 active:scale-95' : 
-                                                                    block.btn_hover_effect === 'opacity' ? 'hover:opacity-90 active:opacity-100' : ''
-                                                                } shadow-md`}
+                                                            <a
+                                                                href={block.btn_url || '#'}
+                                                                style={{
+                                                                    backgroundColor: block.btn_bg_color || '#2563eb',
+                                                                    color: block.btn_text_color || '#ffffff'
+                                                                }}
+                                                                className={`inline-flex items-center justify-center gap-2 ${block.btn_padding_x || 'px-6'} ${block.btn_padding_y || 'py-2.5'} ${block.btn_font_size || 'text-xs'} font-bold ${block.btn_border_radius || 'rounded-full'} transition-all duration-300 ${block.btn_hover_effect === 'scale' ? 'hover:scale-105 active:scale-95' :
+                                                                        block.btn_hover_effect === 'opacity' ? 'hover:opacity-90 active:opacity-100' : ''
+                                                                    } shadow-md`}
                                                             >
                                                                 <span>{block.btn_text}</span>
                                                                 {block.btn_icon && block.btn_icon !== 'none' && (() => {
@@ -455,7 +452,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                     {/* Dynamic Layout Block */}
                                     {block.type === 'dynamic_layout' && (
-                                        <div 
+                                        <div
                                             className={`rounded-3xl p-10 sm:p-14 flex flex-col gap-6 items-center justify-center min-h-[220px] relative ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                             style={getBlockStyle(block)}
                                         >
@@ -466,7 +463,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                                 {block.icon && block.icon !== 'none' && (() => {
                                                     const IconComponent = (LucideIcons as any)[block.icon];
                                                     if (IconComponent) {
-                                                        return <IconComponent className="size-10 text-pink-650 drop-shadow-md animate-pulse" />;
+                                                        return <IconComponent className="size-10 text-pink-700 drop-shadow-md animate-pulse" />;
                                                     }
                                                     return null;
                                                 })()}
@@ -495,7 +492,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                     {/* Flexible Layout Block */}
                                     {block.type === 'flexible_layout' && (
-                                        <div 
+                                        <div
                                             className={`rounded-3xl p-10 sm:p-14 flex flex-col gap-6 items-center justify-center min-h-[120px] relative ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                             style={getBlockStyle(block)}
                                         >
@@ -517,15 +514,14 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                                     }
                                                     if (item.type === 'image') {
                                                         return (
-                                                            <div 
+                                                            <div
                                                                 key={item.id || idx}
                                                                 className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
                                                             >
-                                                                <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${
-                                                                    item.image_size === 'small' ? 'max-w-[150px]' :
-                                                                    item.image_size === 'medium' ? 'max-w-[320px]' :
-                                                                    item.image_size === 'large' ? 'max-w-[500px]' : 'w-full'
-                                                                } ${item.radius || 'rounded-2xl'}`}>
+                                                                <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${item.image_size === 'small' ? 'max-w-[150px]' :
+                                                                        item.image_size === 'medium' ? 'max-w-[320px]' :
+                                                                            item.image_size === 'large' ? 'max-w-[500px]' : 'w-full'
+                                                                    } ${item.radius || 'rounded-2xl'}`}>
                                                                     <img src={item.url} alt="Foreground" className="w-full h-auto object-cover" />
                                                                 </div>
                                                             </div>
@@ -533,20 +529,19 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                                     }
                                                     if (item.type === 'video') {
                                                         return (
-                                                            <div 
+                                                            <div
                                                                 key={item.id || idx}
                                                                 className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
                                                             >
-                                                                <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${
-                                                                    item.video_size === 'small' ? 'max-w-[150px]' :
-                                                                    item.video_size === 'medium' ? 'max-w-[320px]' :
-                                                                    item.video_size === 'large' ? 'max-w-[500px]' : 'w-full'
-                                                                } rounded-2xl`}>
-                                                                    <video 
-                                                                        src={item.video_url} 
-                                                                        controls 
-                                                                        autoPlay={item.autoplay} 
-                                                                        muted={item.autoplay} 
+                                                                <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${item.video_size === 'small' ? 'max-w-[150px]' :
+                                                                        item.video_size === 'medium' ? 'max-w-[320px]' :
+                                                                            item.video_size === 'large' ? 'max-w-[500px]' : 'w-full'
+                                                                    } rounded-2xl`}>
+                                                                    <video
+                                                                        src={item.video_url}
+                                                                        controls
+                                                                        autoPlay={item.autoplay}
+                                                                        muted={item.autoplay}
                                                                         loop
                                                                         className="w-full h-auto"
                                                                     />
@@ -556,8 +551,8 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                                     }
                                                     if (item.type === 'button') {
                                                         return (
-                                                            <div 
-                                                                key={item.id || idx} 
+                                                            <div
+                                                                key={item.id || idx}
                                                                 className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
                                                             >
                                                                 <a
@@ -566,10 +561,9 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                                                         backgroundColor: item.btn_bg_color || '#2563eb',
                                                                         color: item.btn_text_color || '#ffffff'
                                                                     }}
-                                                                    className={`inline-flex items-center justify-center font-bold tracking-wider uppercase transition-all duration-300 hover:scale-105 active:scale-95 shadow-md ${
-                                                                        item.btn_size === 'small' ? 'px-5 py-2 text-xs' :
-                                                                        item.btn_size === 'large' ? 'px-10 py-4 text-base' : 'px-8 py-3 text-sm'
-                                                                    } ${item.btn_radius || 'rounded-full'}`}
+                                                                    className={`inline-flex items-center justify-center font-bold tracking-wider uppercase transition-all duration-300 hover:scale-105 active:scale-95 shadow-md ${item.btn_size === 'small' ? 'px-5 py-2 text-xs' :
+                                                                            item.btn_size === 'large' ? 'px-10 py-4 text-base' : 'px-8 py-3 text-sm'
+                                                                        } ${item.btn_radius || 'rounded-full'}`}
                                                                 >
                                                                     {item.btn_text}
                                                                 </a>
@@ -589,8 +583,8 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                         const btnSizeMap: any = { small: 'px-5 py-2 text-xs', medium: 'px-8 py-3 text-xs', large: 'px-10 py-4 text-sm' };
 
                                         return (
-                                            <div 
-                                                className={`rounded-3xl p-10 sm:p-14 text-center bg-gradient-to-tr ${getBgClass(block, 'from-indigo-650 to-purple-600')} text-white shadow-xl flex flex-col gap-6 items-center justify-center min-h-[360px] ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
+                                            <div
+                                                className={`rounded-3xl p-10 sm:p-14 text-center bg-gradient-to-tr ${getBgClass(block, 'from-indigo-700 to-purple-600')} text-white shadow-xl flex flex-col gap-6 items-center justify-center min-h-[360px] ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                                 style={{
                                                     ...getBlockStyle(block),
                                                     ...(block.bg_image ? { backgroundImage: `url(${block.bg_image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {})
@@ -608,10 +602,10 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                                         return (
                                                             <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
                                                                 <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${el.width_px ? '' : (imgSizeMap[el.image_size] || 'max-w-[320px]')} ${el.radius || 'rounded-2xl'}`}
-                                                                     style={{ 
-                                                                         width: el.width_px ? `${el.width_px}px` : undefined,
-                                                                         height: el.height_px ? `${el.height_px}px` : undefined
-                                                                     }}
+                                                                    style={{
+                                                                        width: el.width_px ? `${el.width_px}px` : undefined,
+                                                                        height: el.height_px ? `${el.height_px}px` : undefined
+                                                                    }}
                                                                 >
                                                                     <img src={el.url} alt="" className={`w-full object-cover ${el.height_px ? 'h-full' : 'h-auto'}`} />
                                                                 </div>
@@ -621,10 +615,10 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                                         return (
                                                             <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
                                                                 <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${el.width_px ? '' : (imgSizeMap[el.video_size] || 'max-w-[320px]')} rounded-2xl`}
-                                                                     style={{ 
-                                                                         width: el.width_px ? `${el.width_px}px` : undefined,
-                                                                         height: el.height_px ? `${el.height_px}px` : undefined
-                                                                     }}
+                                                                    style={{
+                                                                        width: el.width_px ? `${el.width_px}px` : undefined,
+                                                                        height: el.height_px ? `${el.height_px}px` : undefined
+                                                                    }}
                                                                 >
                                                                     <video src={el.video_url} controls={!el.autoplay} autoPlay={el.autoplay} muted={el.autoplay} loop={el.autoplay} className={`w-full object-cover ${el.height_px ? 'h-full' : 'h-auto'}`} />
                                                                 </div>
@@ -669,7 +663,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                     {/* 2. Text Block */}
                                     {block.type === 'text' && (
-                                        <div 
+                                        <div
                                             className={`rounded-3xl p-8 sm:p-12 shadow-sm ${getBgClass(block, activeTheme.card)} flex flex-col gap-4 ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                             style={{ ...getBlockStyle(block), textAlign: (block.align || 'center') as any }}
                                         >
@@ -684,37 +678,37 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                     {/* 3. Swiper Photo Slideshow */}
                                     {block.type === 'swiper' && block.images && block.images.length > 0 && (
-                                        <div 
+                                        <div
                                             className={`rounded-3xl p-6 sm:p-10 shadow-sm ${getBgClass(block, activeTheme.card)} flex flex-col gap-6 ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                             style={getBlockStyle(block)}
                                         >
                                             {block.title && (
                                                 <h2 className="text-xl font-bold text-center font-serif tracking-tight uppercase tracking-widest">{block.title}</h2>
                                             )}
-                                            
+
                                             {/* Slider Body */}
                                             <div className="relative aspect-video w-full rounded-2xl overflow-hidden group shadow-lg bg-neutral-950">
                                                 {(() => {
                                                     const activeIdx = carouselIndices[block.id] || 0;
                                                     return (
                                                         <>
-                                                            <img 
-                                                                src={block.images[activeIdx]} 
-                                                                alt="slideshow" 
+                                                            <img
+                                                                src={block.images[activeIdx]}
+                                                                alt="slideshow"
                                                                 className="size-full object-cover transition-all duration-500 ease-in-out transform scale-100 group-hover:scale-102"
                                                             />
-                                                            
+
                                                             {block.images.length > 1 && (
                                                                 <>
                                                                     {/* Arrow controls */}
-                                                                    <button 
+                                                                    <button
                                                                         type="button"
                                                                         onClick={() => prevSlide(block.id, block.images.length)}
                                                                         className="absolute left-4 top-1/2 -translate-y-1/2 size-9 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors cursor-pointer border-0"
                                                                     >
                                                                         <ChevronLeft className="size-5" />
                                                                     </button>
-                                                                    <button 
+                                                                    <button
                                                                         type="button"
                                                                         onClick={() => nextSlide(block.id, block.images.length)}
                                                                         className="absolute right-4 top-1/2 -translate-y-1/2 size-9 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors cursor-pointer border-0"
@@ -725,11 +719,10 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                                                     {/* Bottom Pagination Indicators */}
                                                                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-xs">
                                                                         {block.images.map((_: any, idx: number) => (
-                                                                            <span 
+                                                                            <span
                                                                                 key={idx}
-                                                                                className={`size-2 rounded-full transition-all ${
-                                                                                    idx === activeIdx ? 'bg-white w-4' : 'bg-white/50'
-                                                                                }`}
+                                                                                className={`size-2 rounded-full transition-all ${idx === activeIdx ? 'bg-white w-4' : 'bg-white/50'
+                                                                                    }`}
                                                                             />
                                                                         ))}
                                                                     </div>
@@ -744,7 +737,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                     {/* 4. Video Embed Block */}
                                     {block.type === 'video' && block.video_url && (
-                                        <div 
+                                        <div
                                             className={`rounded-3xl p-6 sm:p-10 shadow-sm ${getBgClass(block, activeTheme.card)} flex flex-col gap-6 ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                             style={getBlockStyle(block)}
                                         >
@@ -765,7 +758,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                     {/* 5. Buttons / Links Stack */}
                                     {block.type === 'links' && block.links && block.links.length > 0 && (
-                                        <div 
+                                        <div
                                             className={`rounded-3xl p-8 sm:p-10 shadow-sm ${getBgClass(block, activeTheme.card)} flex flex-col gap-6 items-center ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                             style={getBlockStyle(block)}
                                         >
@@ -791,7 +784,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                     {/* 6. Key Features / Icon Grid */}
                                     {block.type === 'icons_grid' && block.features && block.features.length > 0 && (
-                                        <div 
+                                        <div
                                             className={`rounded-3xl p-8 sm:p-12 shadow-sm ${getBgClass(block, activeTheme.card)} flex flex-col gap-8 ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                             style={getBlockStyle(block)}
                                         >
@@ -816,12 +809,12 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                     {/* 7. Contact / RSVP Form */}
                                     {block.type === 'form' && (
-                                        <div 
+                                        <div
                                             className={`rounded-3xl p-8 sm:p-12 shadow-sm ${getBgClass(block, activeTheme.card)} flex flex-col gap-8 ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                             style={getBlockStyle(block)}
                                         >
                                             <h2 className="text-2xl font-bold font-serif tracking-tight text-center">{block.title || 'RSVP Response'}</h2>
-                                            
+
                                             {block.form_type === 'rsvp' ? (
                                                 /* RSVP Event Form */
                                                 rsvpSubmitted ? (
@@ -834,10 +827,10 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                                     <form onSubmit={handleRsvpSubmit} className="flex flex-col gap-4 text-left">
                                                         <div className="grid gap-1.5">
                                                             <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Full Name</label>
-                                                            <Input 
-                                                                value={rsvpForm.data.name} 
-                                                                onChange={(e) => rsvpForm.setData('name', e.target.value)} 
-                                                                required 
+                                                            <Input
+                                                                value={rsvpForm.data.name}
+                                                                onChange={(e) => rsvpForm.setData('name', e.target.value)}
+                                                                required
                                                                 placeholder="Guest Name"
                                                                 className={activeTheme.input}
                                                             />
@@ -846,11 +839,11 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                                         <div className="grid gap-1.5">
                                                             <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Email Address</label>
-                                                            <Input 
-                                                                type="email" 
-                                                                value={rsvpForm.data.email} 
-                                                                onChange={(e) => rsvpForm.setData('email', e.target.value)} 
-                                                                required 
+                                                            <Input
+                                                                type="email"
+                                                                value={rsvpForm.data.email}
+                                                                onChange={(e) => rsvpForm.setData('email', e.target.value)}
+                                                                required
                                                                 placeholder="guest@example.com"
                                                                 className={activeTheme.input}
                                                             />
@@ -865,7 +858,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                                                     onChange={(e) => rsvpForm.setData('guests_count', parseInt(e.target.value))}
                                                                     className={`flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden ${activeTheme.input}`}
                                                                 >
-                                                                    {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                                                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                                                                         <option key={n} value={n}>{n} {n === 1 ? 'Guest' : 'Guests'}</option>
                                                                     ))}
                                                                 </select>
@@ -885,16 +878,16 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                                         <div className="grid gap-1.5">
                                                             <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Special Notes / Message</label>
-                                                            <textarea 
-                                                                value={rsvpForm.data.message} 
-                                                                onChange={(e) => rsvpForm.setData('message', e.target.value)} 
+                                                            <textarea
+                                                                value={rsvpForm.data.message}
+                                                                onChange={(e) => rsvpForm.setData('message', e.target.value)}
                                                                 placeholder="Dietary requests or congratulations..."
                                                                 className={`flex min-h-[75px] w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs focus-visible:outline-hidden ${activeTheme.input}`}
                                                             />
                                                         </div>
 
-                                                        <Button 
-                                                            type="submit" 
+                                                        <Button
+                                                            type="submit"
                                                             disabled={rsvpForm.processing}
                                                             className={`w-full py-3 rounded-full font-bold uppercase text-xs tracking-wider transition-all mt-2 ${activeTheme.accent}`}
                                                         >
@@ -914,10 +907,10 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                                     <form onSubmit={handleContactSubmit} className="flex flex-col gap-4 text-left">
                                                         <div className="grid gap-1.5">
                                                             <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Your Name</label>
-                                                            <Input 
-                                                                value={contactForm.data.name} 
-                                                                onChange={(e) => contactForm.setData('name', e.target.value)} 
-                                                                required 
+                                                            <Input
+                                                                value={contactForm.data.name}
+                                                                onChange={(e) => contactForm.setData('name', e.target.value)}
+                                                                required
                                                                 placeholder="John Doe"
                                                                 className={activeTheme.input}
                                                             />
@@ -926,11 +919,11 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                                         <div className="grid gap-1.5">
                                                             <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Email Address</label>
-                                                            <Input 
-                                                                type="email" 
-                                                                value={contactForm.data.email} 
-                                                                onChange={(e) => contactForm.setData('email', e.target.value)} 
-                                                                required 
+                                                            <Input
+                                                                type="email"
+                                                                value={contactForm.data.email}
+                                                                onChange={(e) => contactForm.setData('email', e.target.value)}
+                                                                required
                                                                 placeholder="john@example.com"
                                                                 className={activeTheme.input}
                                                             />
@@ -939,10 +932,10 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                                         <div className="grid gap-1.5">
                                                             <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Subject</label>
-                                                            <Input 
-                                                                value={contactForm.data.subject} 
-                                                                onChange={(e) => contactForm.setData('subject', e.target.value)} 
-                                                                required 
+                                                            <Input
+                                                                value={contactForm.data.subject}
+                                                                onChange={(e) => contactForm.setData('subject', e.target.value)}
+                                                                required
                                                                 placeholder="Inquiry / Partnership details"
                                                                 className={activeTheme.input}
                                                             />
@@ -951,9 +944,9 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                                         <div className="grid gap-1.5">
                                                             <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Write Message</label>
-                                                            <textarea 
-                                                                value={contactForm.data.message} 
-                                                                onChange={(e) => contactForm.setData('message', e.target.value)} 
+                                                            <textarea
+                                                                value={contactForm.data.message}
+                                                                onChange={(e) => contactForm.setData('message', e.target.value)}
                                                                 required
                                                                 placeholder="Write details of your message..."
                                                                 className={`flex min-h-[100px] w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs focus-visible:outline-hidden ${activeTheme.input}`}
@@ -961,8 +954,8 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                                             {contactForm.errors.message && <p className="text-xs text-red-500">{contactForm.errors.message}</p>}
                                                         </div>
 
-                                                        <Button 
-                                                            type="submit" 
+                                                        <Button
+                                                            type="submit"
                                                             disabled={contactForm.processing}
                                                             className={`w-full py-3 rounded-full font-bold uppercase text-xs tracking-wider transition-all mt-2 ${activeTheme.accent}`}
                                                         >
@@ -976,7 +969,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                     {/* 8. FAQ Block */}
                                     {block.type === 'faq' && (
-                                        <div 
+                                        <div
                                             className={`rounded-3xl p-8 sm:p-12 shadow-sm ${getBgClass(block, activeTheme.card)} flex flex-col gap-6 ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                             style={getBlockStyle(block)}
                                         >
@@ -999,7 +992,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                     {/* 9. Testimonials Block */}
                                     {block.type === 'testimonials' && (
-                                        <div 
+                                        <div
                                             className={`rounded-3xl p-8 sm:p-12 shadow-sm ${getBgClass(block, activeTheme.card)} flex flex-col gap-6 ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                             style={getBlockStyle(block)}
                                         >
@@ -1032,7 +1025,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                     {/* 10. Countdown Block */}
                                     {block.type === 'countdown' && (
-                                        <div 
+                                        <div
                                             className={`rounded-3xl p-10 sm:p-14 text-center bg-gradient-to-tr ${getBgClass(block, 'from-neutral-900 to-neutral-800')} text-white shadow-xl flex flex-col gap-4 items-center justify-center min-h-[180px] ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                             style={getBlockStyle(block)}
                                         >
@@ -1043,7 +1036,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                     {/* 11. Map Block */}
                                     {block.type === 'map' && (
-                                        <div 
+                                        <div
                                             className={`rounded-3xl p-6 sm:p-10 shadow-sm ${getBgClass(block, activeTheme.card)} flex flex-col gap-6 items-center ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                             style={getBlockStyle(block)}
                                         >
@@ -1052,10 +1045,10 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                             )}
                                             {block.map_embed_url ? (
                                                 <div className="w-full aspect-video rounded-2xl overflow-hidden border bg-neutral-100 shadow-sm">
-                                                    <iframe 
-                                                        src={block.map_embed_url} 
-                                                        className="w-full h-full border-0" 
-                                                        title="Embedded Map" 
+                                                    <iframe
+                                                        src={block.map_embed_url}
+                                                        className="w-full h-full border-0"
+                                                        title="Embedded Map"
                                                         allowFullScreen
                                                         loading="lazy"
                                                     />
@@ -1067,10 +1060,10 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
                                                 </div>
                                             )}
                                             {block.map_link && (
-                                                <a 
-                                                    href={block.map_link} 
-                                                    target="_blank" 
-                                                    rel="noreferrer" 
+                                                <a
+                                                    href={block.map_link}
+                                                    target="_blank"
+                                                    rel="noreferrer"
                                                     className="mt-2 px-6 py-2.5 bg-neutral-950 text-white rounded-full font-bold text-xs uppercase flex items-center gap-1.5 shadow-sm hover:scale-105 transition-transform"
                                                 >
                                                     <MapPin className="size-4" /> Open Maps Location
@@ -1081,7 +1074,7 @@ export default function PublicSiteViewer({ website, previewMode = null, customBl
 
                                     {/* 12. Timeline Block */}
                                     {block.type === 'timeline' && (
-                                        <div 
+                                        <div
                                             className={`rounded-3xl p-8 sm:p-12 shadow-sm ${getBgClass(block, activeTheme.card)} flex flex-col gap-8 ${getSpacingClass(block)} ${getTextStyleClass(block)}`}
                                             style={getBlockStyle(block)}
                                         >

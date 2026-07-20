@@ -249,7 +249,7 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
                     <button
                         onClick={() => setActiveTab('mini')}
                         className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${activeTab === 'mini'
-                            ? 'border-indigo-600 text-indigo-650'
+                            ? 'border-indigo-600 text-indigo-700'
                             : 'border-transparent text-neutral-500 hover:text-neutral-800'
                             }`}
                     >
@@ -259,7 +259,7 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
                     <button
                         onClick={() => setActiveTab('business')}
                         className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${activeTab === 'business'
-                            ? 'border-indigo-600 text-indigo-650'
+                            ? 'border-indigo-600 text-indigo-700'
                             : 'border-transparent text-neutral-500 hover:text-neutral-800'
                             }`}
                     >
@@ -403,17 +403,17 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
                     <DialogContent className="w-[95%] sm:max-w-md max-h-[90vh] overflow-y-auto bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
                         <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2 text-neutral-900 dark:text-neutral-100">
-                                <CreditCard className="size-5 text-indigo-650" />
+                                <CreditCard className="size-5 text-indigo-700" />
                                 Hosting Subscription Checkout
                             </DialogTitle>
                         </DialogHeader>
 
                         {hostingTarget && (
-                            <form 
+                            <form
                                 onSubmit={(e) => {
                                     e.preventDefault();
                                     setIsConfirmOpen(true);
-                                }} 
+                                }}
                                 className="flex flex-col gap-5 py-3 text-sm"
                             >
                                 <div className="rounded-xl bg-neutral-50 dark:bg-neutral-950 p-4 border border-neutral-150 dark:border-neutral-850 flex flex-col gap-1">
@@ -504,7 +504,7 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
                                                             const val = e.target.value;
                                                             if (val !== 'manual') setCustomDays(Number(val));
                                                         }}
-                                                        className="flex-1 h-9 rounded-md border border-neutral-200 bg-white text-xs px-3 focus:ring-1 focus:ring-indigo-650"
+                                                        className="flex-1 h-9 rounded-md border border-neutral-200 bg-white text-xs px-3 focus:ring-1 focus:ring-indigo-700"
                                                     >
                                                         {Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
                                                             <option key={d} value={d}>{d} Days</option>
@@ -533,7 +533,7 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
                                                             const val = e.target.value;
                                                             if (val !== 'manual') setCustomWeeks(Number(val));
                                                         }}
-                                                        className="flex-1 h-9 rounded-md border border-neutral-200 bg-white text-xs px-3 focus:ring-1 focus:ring-indigo-650"
+                                                        className="flex-1 h-9 rounded-md border border-neutral-200 bg-white text-xs px-3 focus:ring-1 focus:ring-indigo-700"
                                                     >
                                                         {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
                                                             <option key={w} value={w}>{w} Weeks</option>
@@ -635,7 +635,7 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
                                     </p>
                                     <div className="rounded-lg bg-neutral-50 p-3 border text-xs flex justify-between">
                                         <span>Current Balance: ₹{wallet.balance.toFixed(2)}</span>
-                                        <span className="font-semibold text-indigo-650">Remaining Balance: ₹{(wallet.balance - cost).toFixed(2)}</span>
+                                        <span className="font-semibold text-indigo-700">Remaining Balance: ₹{(wallet.balance - cost).toFixed(2)}</span>
                                     </div>
                                 </div>
                                 <div className="flex justify-end gap-3 border-t pt-4">

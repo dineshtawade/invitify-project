@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import * as LucideIcons from 'lucide-react';
-import { 
-    Menu, X, MapPin, Sparkles, Play, Globe, 
-    HelpCircle, Star, Quote, ChevronDown, Check, ArrowRight 
+import {
+    Menu, X, MapPin, Sparkles, Play, Globe,
+    HelpCircle, Star, Quote, ChevronDown, Check, ArrowRight
 } from 'lucide-react';
 
 interface Block {
@@ -22,7 +22,7 @@ interface Block {
     features?: { title: string; desc: string; icon: string }[];
     items?: any[];
     form_type?: string;
-    
+
     // --- Advanced Features ---
     font_family?: string;
     grid_columns?: string;
@@ -89,8 +89,8 @@ function FaqItem({ item, theme }: { item: any, theme: any }) {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <div className={`rounded-2xl border transition-all duration-300 ${isOpen ? theme.card + ' shadow-md' : 'bg-transparent border-neutral-200 dark:border-neutral-800'}`}>
-            <button 
-                onClick={() => setIsOpen(!isOpen)} 
+            <button
+                onClick={() => setIsOpen(!isOpen)}
                 className="w-full flex items-center justify-between p-5 text-left focus:outline-hidden"
             >
                 <span className="font-bold text-lg">{item.question}</span>
@@ -134,8 +134,8 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                             if (!navPage) return null;
                             const isActive = slug === currentPageSlug;
                             return (
-                                <Link 
-                                    key={slug} 
+                                <Link
+                                    key={slug}
                                     href={`/business/${website.slug}/${slug}`}
                                     className={`text-sm font-bold uppercase tracking-wider transition-all hover:opacity-100 ${isActive ? 'opacity-100 text-blue-600 dark:text-blue-400' : 'opacity-60'}`}
                                 >
@@ -158,8 +158,8 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                             if (!navPage) return null;
                             const isActive = slug === currentPageSlug;
                             return (
-                                <Link 
-                                    key={slug} 
+                                <Link
+                                    key={slug}
                                     href={`/business/${website.slug}/${slug}`}
                                     onClick={() => setIsMenuOpen(false)}
                                     className={`p-3 rounded-xl text-center font-bold tracking-widest uppercase text-sm ${isActive ? theme.accent : 'bg-neutral-50 dark:bg-neutral-800'}`}
@@ -189,8 +189,8 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                         blockStyle.backgroundPosition = 'center';
                         blockStyle.backgroundRepeat = 'no-repeat';
                     }
-                    const gridColsClass = block.grid_columns 
-                        ? `sm:grid-cols-${block.grid_columns}` 
+                    const gridColsClass = block.grid_columns
+                        ? `sm:grid-cols-${block.grid_columns}`
                         : 'sm:grid-cols-2 lg:grid-cols-4';
 
                     const getBgClass = (b: Block) => {
@@ -201,14 +201,14 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                         }
                         return bg.includes('from-') ? `bg-gradient-to-tr ${bg}` : bg;
                     };
-                    
+
                     return (
                         <section key={block.id} className={`${isFirst ? 'pt-16 pb-24' : 'py-20'} relative`} style={blockStyle}>
                             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                                
+
                                 {/* Dynamic Layout Block */}
                                 {block.type === 'dynamic_layout' && (
-                                    <div 
+                                    <div
                                         className={`rounded-3xl p-8 sm:p-16 lg:p-24 flex flex-col gap-8 items-center justify-center min-h-[260px] relative overflow-hidden shadow-xl ${getBgClass(block)}`}
                                         style={blockStyle}
                                     >
@@ -219,7 +219,7 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                                             {block.icon && block.icon !== 'none' && (() => {
                                                 const IconComponent = (LucideIcons as any)[block.icon];
                                                 if (IconComponent) {
-                                                    return <IconComponent className="size-12 text-indigo-650 drop-shadow-md animate-pulse" />;
+                                                    return <IconComponent className="size-12 text-indigo-700 drop-shadow-md animate-pulse" />;
                                                 }
                                                 return null;
                                             })()}
@@ -238,14 +238,13 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                                                     <p
                                                         key={idx}
                                                         style={{ color: line.color }}
-                                                        className={`text-center max-w-2xl break-words leading-relaxed ${
-                                                            line.size === 'text-xs' ? 'text-sm' :
-                                                            line.size === 'text-sm' ? 'text-base' :
-                                                            line.size === 'text-base' ? 'text-lg' :
-                                                            line.size === 'text-lg' ? 'text-xl' :
-                                                            line.size === 'text-xl' ? 'text-2xl' :
-                                                            line.size === 'text-2xl' ? 'text-3xl lg:text-4xl' : 'text-base'
-                                                        } ${line.weight === 'bold' ? 'font-bold' : line.weight === 'light' ? 'font-light' : 'font-normal'}`}
+                                                        className={`text-center max-w-2xl break-words leading-relaxed ${line.size === 'text-xs' ? 'text-sm' :
+                                                                line.size === 'text-sm' ? 'text-base' :
+                                                                    line.size === 'text-base' ? 'text-lg' :
+                                                                        line.size === 'text-lg' ? 'text-xl' :
+                                                                            line.size === 'text-xl' ? 'text-2xl' :
+                                                                                line.size === 'text-2xl' ? 'text-3xl lg:text-4xl' : 'text-base'
+                                                            } ${line.weight === 'bold' ? 'font-bold' : line.weight === 'light' ? 'font-light' : 'font-normal'}`}
                                                     >
                                                         {line.text}
                                                     </p>
@@ -257,7 +256,7 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
 
                                 {/* Flexible Layout Block */}
                                 {block.type === 'flexible_layout' && (
-                                    <div 
+                                    <div
                                         className={`rounded-3xl p-8 sm:p-16 lg:p-24 flex flex-col gap-8 items-center justify-center min-h-[120px] relative overflow-hidden shadow-xl ${getBgClass(block)}`}
                                         style={blockStyle}
                                     >
@@ -271,18 +270,17 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                                                         <p
                                                             key={item.id || idx}
                                                             style={{ color: item.color, fontFamily: item.font_family || undefined }}
-                                                            className={`max-w-3xl break-words leading-relaxed ${
-                                                                item.font_size === 'text-xs' ? 'text-sm' :
-                                                                item.font_size === 'text-sm' ? 'text-base' :
-                                                                item.font_size === 'text-base' ? 'text-lg' :
-                                                                item.font_size === 'text-lg' ? 'text-xl' :
-                                                                item.font_size === 'text-xl' ? 'text-2xl' :
-                                                                item.font_size === 'text-2xl' ? 'text-3xl lg:text-4xl' :
-                                                                item.font_size === 'text-3xl' ? 'text-4xl lg:text-5xl' :
-                                                                item.font_size === 'text-4xl' ? 'text-5xl lg:text-6xl' :
-                                                                item.font_size === 'text-5xl' ? 'text-6xl lg:text-7xl' :
-                                                                item.font_size === 'text-6xl' ? 'text-7xl lg:text-8xl' : 'text-lg'
-                                                            } ${item.weight === 'bold' ? 'font-bold' : item.weight === 'light' ? 'font-light' : 'font-normal'} text-${item.align || 'center'} w-full whitespace-pre-wrap`}
+                                                            className={`max-w-3xl break-words leading-relaxed ${item.font_size === 'text-xs' ? 'text-sm' :
+                                                                    item.font_size === 'text-sm' ? 'text-base' :
+                                                                        item.font_size === 'text-base' ? 'text-lg' :
+                                                                            item.font_size === 'text-lg' ? 'text-xl' :
+                                                                                item.font_size === 'text-xl' ? 'text-2xl' :
+                                                                                    item.font_size === 'text-2xl' ? 'text-3xl lg:text-4xl' :
+                                                                                        item.font_size === 'text-3xl' ? 'text-4xl lg:text-5xl' :
+                                                                                            item.font_size === 'text-4xl' ? 'text-5xl lg:text-6xl' :
+                                                                                                item.font_size === 'text-5xl' ? 'text-6xl lg:text-7xl' :
+                                                                                                    item.font_size === 'text-6xl' ? 'text-7xl lg:text-8xl' : 'text-lg'
+                                                                } ${item.weight === 'bold' ? 'font-bold' : item.weight === 'light' ? 'font-light' : 'font-normal'} text-${item.align || 'center'} w-full whitespace-pre-wrap`}
                                                         >
                                                             {item.text}
                                                         </p>
@@ -290,15 +288,14 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                                                 }
                                                 if (item.type === 'image') {
                                                     return (
-                                                        <div 
+                                                        <div
                                                             key={item.id || idx}
                                                             className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
                                                         >
-                                                            <div className={`overflow-hidden border-4 border-white/20 shadow-2xl ${
-                                                                item.image_size === 'small' ? 'max-w-[200px]' :
-                                                                item.image_size === 'medium' ? 'max-w-[450px]' :
-                                                                item.image_size === 'large' ? 'max-w-[700px]' : 'w-full'
-                                                            } ${item.radius || 'rounded-2xl'}`}>
+                                                            <div className={`overflow-hidden border-4 border-white/20 shadow-2xl ${item.image_size === 'small' ? 'max-w-[200px]' :
+                                                                    item.image_size === 'medium' ? 'max-w-[450px]' :
+                                                                        item.image_size === 'large' ? 'max-w-[700px]' : 'w-full'
+                                                                } ${item.radius || 'rounded-2xl'}`}>
                                                                 <img src={item.url} alt="Foreground content" className="w-full h-auto object-cover" />
                                                             </div>
                                                         </div>
@@ -306,20 +303,19 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                                                 }
                                                 if (item.type === 'video') {
                                                     return (
-                                                        <div 
+                                                        <div
                                                             key={item.id || idx}
                                                             className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
                                                         >
-                                                            <div className={`overflow-hidden border-4 border-white/20 shadow-2xl ${
-                                                                item.video_size === 'small' ? 'max-w-[200px]' :
-                                                                item.video_size === 'medium' ? 'max-w-[450px]' :
-                                                                item.video_size === 'large' ? 'max-w-[700px]' : 'w-full'
-                                                            } rounded-2xl`}>
-                                                                <video 
-                                                                    src={item.video_url} 
-                                                                    controls 
-                                                                    autoPlay={item.autoplay} 
-                                                                    muted={item.autoplay} 
+                                                            <div className={`overflow-hidden border-4 border-white/20 shadow-2xl ${item.video_size === 'small' ? 'max-w-[200px]' :
+                                                                    item.video_size === 'medium' ? 'max-w-[450px]' :
+                                                                        item.video_size === 'large' ? 'max-w-[700px]' : 'w-full'
+                                                                } rounded-2xl`}>
+                                                                <video
+                                                                    src={item.video_url}
+                                                                    controls
+                                                                    autoPlay={item.autoplay}
+                                                                    muted={item.autoplay}
                                                                     loop
                                                                     className="w-full h-auto"
                                                                     playsInline
@@ -330,8 +326,8 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                                                 }
                                                 if (item.type === 'button') {
                                                     return (
-                                                        <div 
-                                                            key={item.id || idx} 
+                                                        <div
+                                                            key={item.id || idx}
                                                             className={`w-full flex justify-${item.align === 'left' ? 'start' : item.align === 'right' ? 'end' : 'center'}`}
                                                         >
                                                             <a
@@ -340,10 +336,9 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                                                                     backgroundColor: item.btn_bg_color || '#2563eb',
                                                                     color: item.btn_text_color || '#ffffff'
                                                                 }}
-                                                                className={`inline-flex items-center justify-center font-black tracking-wider uppercase transition-transform hover:scale-105 shadow-2xl ${
-                                                                    item.btn_size === 'small' ? 'px-6 py-3 text-xs' :
-                                                                    item.btn_size === 'large' ? 'px-12 py-5 text-base' : 'px-9 py-4 text-sm'
-                                                                } ${item.btn_radius || 'rounded-full'}`}
+                                                                className={`inline-flex items-center justify-center font-black tracking-wider uppercase transition-transform hover:scale-105 shadow-2xl ${item.btn_size === 'small' ? 'px-6 py-3 text-xs' :
+                                                                        item.btn_size === 'large' ? 'px-12 py-5 text-base' : 'px-9 py-4 text-sm'
+                                                                    } ${item.btn_radius || 'rounded-full'}`}
                                                             >
                                                                 {item.btn_text}
                                                             </a>
@@ -381,10 +376,10 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                                                         return (
                                                             <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
                                                                 <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${el.width_px ? '' : (imgSizeMap[el.image_size] || 'max-w-[400px]')} ${el.radius || 'rounded-2xl'}`}
-                                                                     style={{ 
-                                                                         width: el.width_px ? `${el.width_px}px` : undefined,
-                                                                         height: el.height_px ? `${el.height_px}px` : undefined
-                                                                     }}
+                                                                    style={{
+                                                                        width: el.width_px ? `${el.width_px}px` : undefined,
+                                                                        height: el.height_px ? `${el.height_px}px` : undefined
+                                                                    }}
                                                                 >
                                                                     <img src={el.url} alt="" className={`w-full object-cover ${el.height_px ? 'h-full' : 'h-auto'}`} />
                                                                 </div>
@@ -394,10 +389,10 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                                                         return (
                                                             <div key={el.id || idx} className={`w-full flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'}`}>
                                                                 <div className={`overflow-hidden border-2 border-white/20 shadow-lg ${el.width_px ? '' : (imgSizeMap[el.video_size] || 'max-w-[400px]')} rounded-2xl`}
-                                                                     style={{ 
-                                                                         width: el.width_px ? `${el.width_px}px` : undefined,
-                                                                         height: el.height_px ? `${el.height_px}px` : undefined
-                                                                     }}
+                                                                    style={{
+                                                                        width: el.width_px ? `${el.width_px}px` : undefined,
+                                                                        height: el.height_px ? `${el.height_px}px` : undefined
+                                                                    }}
                                                                 >
                                                                     <video src={el.video_url} controls={!el.autoplay} autoPlay={el.autoplay} muted={el.autoplay} loop={el.autoplay} className={`w-full object-cover ${el.height_px ? 'h-full' : 'h-auto'}`} />
                                                                 </div>
@@ -567,7 +562,7 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                                         </div>
                                     </div>
                                 )}
-                                
+
                             </div>
                         </section>
                     );
@@ -583,14 +578,14 @@ export default function BusinessViewer({ website, currentPageSlug, pageData, nav
                         </Link>
                         <p className="text-sm">© {new Date().getFullYear()} All rights reserved.</p>
                     </div>
-                    
+
                     <div className="flex flex-wrap justify-center gap-6">
                         {navigation.map(slug => {
                             const navPage = website.pages[slug];
                             if (!navPage) return null;
                             return (
-                                <Link 
-                                    key={slug} 
+                                <Link
+                                    key={slug}
                                     href={`/business/${website.slug}/${slug}`}
                                     className="text-sm font-bold uppercase tracking-wider hover:text-white transition-colors"
                                 >

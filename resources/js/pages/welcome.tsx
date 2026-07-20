@@ -292,7 +292,10 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                 </header>
 
                 {/* Hero Section */}
-                <section className="relative z-10 max-w-6xl mx-auto px-6 py-20 lg:py-28">
+                <section className="relative z-10 max-w-6xl mx-auto ">
+                    <div className="text-3xl sm:text-4xl font-serif text-[#3e3832] leading-[1.1] mt-20 text-center">
+                        <h1 className="text-4xl sm:text-4xl font-semibold text-[#3e3832] mb-4 text-center underline">Digital Visiting Cards with Mini Website</h1>
+                    </div>
                     <div className="grid lg:grid-cols-12 gap-12 items-center">
                         {/* Hero Left Content */}
                         <div className="lg:col-span-7 flex flex-col gap-5 text-center items-center lg:text-left lg:items-start relative">
@@ -389,8 +392,8 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                 </div>
                             </div>
                         </div>
-                        <div className="text-black text-center text-xl font-semibold"> Digital Visiting Card with Mini Website</div>
                     </div>
+
                 </section>
 
                 {/* Features Section */}
@@ -605,7 +608,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                 {/* ===== DIGITAL BUSINESS CARDS SECTION (always visible below showcase) ===== */}
                 <section id="digital-business-cards" className="relative z-10 max-w-6xl mx-auto px-6 py-16">
 
-                    <div className="flex flex-col items-center justify-center text-center gap-2 mb-12">
+                    {/* <div className="flex flex-col items-center justify-center text-center gap-2 mb-12">
                         <h2 className="text-3xl sm:text-4xl font-bold font-serif text-[#3e3832]">
                             Digital Visiting Cards with Mini Website
                         </h2>
@@ -613,7 +616,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                             Create Professional & Interactive E-Visiting Cards
                         </p>
                     </div>
-
+ */}
 
                     <div ref={businessCardsScrollRef} className="flex overflow-x-auto pb-10 snap-x snap-mandatory gap-6 sm:grid sm:grid-cols-3 lg:grid-cols-5 relative w-full max-w-5xl mx-auto sm:overflow-visible sm:pb-0 sm:snap-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-2 sm:px-0">
                         {showcasedDigitalCards.slice(0, 5).map((t, idx) => (
