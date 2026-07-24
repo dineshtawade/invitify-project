@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, usePage, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Trash, Globe, Pencil, Save } from 'lucide-react';
+import { Plus, Trash, Globe, Pencil, Save, ShieldAlert, Clock, Search } from 'lucide-react';
 import { SharedEditor } from '@/components/design-editor/SharedEditor';
 import type { Block } from '@/components/design-editor/types';
 
@@ -15,11 +15,73 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Mini Website Templates', href: '/super-admin/mini-website-templates' },
 ];
 
-export default function MiniWebsiteTemplatesIndex({ templates = [], customBlocks = [] }: { templates: any[], customBlocks?: any[] }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const [editingTemplate, setEditingTemplate] = useState<any | null>(null);
+interface MiniWebsiteTemplate {
+    id: number;
+    name: string;
+    price: number | string;
+    preview_image: string;
+    config: Block[];
+}
 
-    const { data, setData, post, put, reset, processing, errors } = useForm({
+interface EditorRequest {
+    id: number;
+    target_id: number;
+    action: string;
+    status: string;
+}
+
+interface LinkItem {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+interface PaginationData<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: LinkItem[];
+    from: number;
+    to: number;
+}
+
+interface PageProps {
+    templates: PaginationData<MiniWebsiteTemplate>;
+    customBlocks?: any[];
+    editorRequests?: EditorRequest[];
+    filters?: { search: string };
+}
+
+export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = [], editorRequests = [], filters = { search: '' } }: PageProps) {
+    const { auth } = usePage().props as any;
+    const isEditor = auth?.user?.role === 'editor';
+
+    const [searchVal, setSearchVal] = useState(filters.search || '');
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        router.get('/super-admin/mini-website-templates', { search: searchVal }, { preserveState: true });
+    };
+
+    const handleReset = () => {
+        setSearchVal('');
+        router.get('/super-admin/mini-website-templates', {}, { preserveState: true });
+    };
+
+    const [isOpen, setIsOpen] = useState(false);
+    const [editingTemplate, setEditingTemplate] = useState<MiniWebsiteTemplate | null>(null);
+
+    const handleRequestAction = (target_id: number, action: 'edit' | 'delete') => {
+        router.post('/super-admin/editor-requests', {
+            target_type: 'MiniWebsiteTemplate',
+            target_id,
+            action
+        });
+    };
+
+    const { data, setData, post, put, reset, processing } = useForm({
         name: '',
         price: '0.00',
         preview_image: '',
@@ -74,8 +136,7 @@ export default function MiniWebsiteTemplatesIndex({ templates = [], customBlocks
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
                 <div className="flex items-center justify-between border-b pb-4">
                     <div>
-                        <h1 className="text-3xl font-bold flex items-center gap-2">
-                            <Globe className="size-8 text-pink-600" /> Mini Website Templates
+                        <h1 className="text-3xl font-bold flex items-center gap-2"> Mini Website Templates
                         </h1>
                         <p className="text-neutral-500 text-sm">Design single-page invitation templates.</p>
                     </div>
@@ -84,22 +145,136 @@ export default function MiniWebsiteTemplatesIndex({ templates = [], customBlocks
                     </Button>
                 </div>
 
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {templates.map((t) => (
-                        <div key={t.id} className="rounded-2xl border p-5 shadow-xs flex flex-col justify-between">
-                            <div className="flex flex-col gap-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="bg-pink-100 text-pink-700 px-2 py-0.5 rounded text-xs font-bold uppercase">Mini Site</span>
-                                    <span className="text-sm font-bold">₹{parseFloat(String(t.price)).toFixed(2)}</span>
-                                </div>
-                                <h3 className="text-lg font-bold">{t.name}</h3>
+                {/* Filter and Search Bar */}
+                <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white dark:bg-neutral-900 p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-2xs">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+                        <Input
+                            type="text"
+                            placeholder="Search templates by name..."
+                            value={searchVal}
+                            onChange={(e) => setSearchVal(e.target.value)}
+                            className="pl-10 h-10 w-full bg-neutral-50/50 dark:bg-neutral-950/20 border-neutral-200 dark:border-neutral-800 text-sm rounded-xl focus:ring-2 focus:ring-pink-500"
+                        />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button type="submit" size="sm" className="h-10 rounded-xl px-5">
+                            Filter
+                        </Button>
+                        {filters.search && (
+                            <Button type="button" onClick={handleReset} variant="outline" size="sm" className="h-10 rounded-xl px-4">
+                                Clear
+                            </Button>
+                        )}
+                    </div>
+                </form>
+
+                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
+                    <div className="overflow-x-auto">
+                        <table className="w-full border-collapse text-left text-sm text-neutral-500 dark:text-neutral-400">
+                            <thead className=" text-[11px] font-bold uppercase tracking-wider text-neutral-700 dark:bg-neutral-850/60 dark:text-neutral-300 border-b border-neutral-200 dark:border-neutral-800">
+                                <tr>
+                                    <th scope="col" className="px-6 py-4">Name</th>
+                                    <th scope="col" className="px-6 py-4">Standard Price</th>
+                                    <th scope="col" className="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                                {templates.data.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={3} className="px-6 py-12 text-center text-sm text-neutral-400">
+                                            No mini website templates created yet.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    templates.data.map((t) => (
+                                        <tr key={t.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/15 transition-colors">
+                                            <td className="px-6 py-4 font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+                                                <Globe className="size-4.5 text-pink-600" /> {t.name}
+                                            </td>
+                                            <td className="px-6 py-4 font-bold text-emerald-600 dark:text-emerald-450">
+                                                ₹{parseFloat(String(t.price)).toFixed(2)}
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    {isEditor ? (
+                                                        (() => {
+                                                            const editReq = editorRequests.find(r => r.target_id === t.id && r.action === 'edit');
+                                                            const deleteReq = editorRequests.find(r => r.target_id === t.id && r.action === 'delete');
+                                                            return (
+                                                                <>
+                                                                    {editReq?.status === 'approved' ? (
+                                                                        <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><Pencil className="size-3.5" /> Edit</Button>
+                                                                    ) : editReq?.status === 'pending' ? (
+                                                                        <Button disabled variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs opacity-50"><Clock className="size-3.5" /> Edit Pending</Button>
+                                                                    ) : (
+                                                                        <Button onClick={() => handleRequestAction(t.id, 'edit')} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><ShieldAlert className="size-3.5" /> Request Edit</Button>
+                                                                    )}
+
+                                                                    {deleteReq?.status === 'approved' ? (
+                                                                        <Button onClick={() => { if (confirm('Delete?')) router.delete(`/super-admin/mini-website-templates/${t.id}`) }} variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs"><Trash className="size-3.5" /> Delete</Button>
+                                                                    ) : deleteReq?.status === 'pending' ? (
+                                                                        <Button disabled variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs opacity-50"><Clock className="size-3.5" /> Delete Pending</Button>
+                                                                    ) : (
+                                                                        <Button onClick={() => handleRequestAction(t.id, 'delete')} variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs"><ShieldAlert className="size-3.5" /> Request Delete</Button>
+                                                                    )}
+                                                                </>
+                                                            );
+                                                        })()
+                                                    ) : (
+                                                        <>
+                                                            <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><Pencil className="size-3.5" /> Edit</Button>
+                                                            <Button onClick={() => { if (confirm('Delete?')) router.delete(`/super-admin/mini-website-templates/${t.id}`) }} variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs"><Trash className="size-3.5" /> Delete</Button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Pagination Links */}
+                    {templates.total > templates.per_page && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-neutral-200 bg-neutral-50/50 p-5 dark:border-neutral-800 dark:bg-neutral-900/40">
+                            <div className="text-xs text-neutral-500 dark:text-neutral-450 font-semibold">
+                                Showing <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{templates.from}</span> to{' '}
+                                <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{templates.to}</span> of{' '}
+                                <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{templates.total}</span> templates
                             </div>
-                            <div className="flex gap-2 mt-6 border-t pt-4">
-                                <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex-1"><Pencil className="size-3 mr-1" /> Edit</Button>
-                                <Button onClick={() => { if (confirm('Delete?')) router.delete(`/super-admin/mini-website-templates/${t.id}`) }} variant="destructive" size="sm"><Trash className="size-3" /></Button>
+                            <div className="flex items-center flex-wrap gap-1">
+                                {templates.links.map((link, idx) => {
+                                    const cleanLabel = link.label
+                                        .replace('&laquo; Previous', '← Prev')
+                                        .replace('Next &raquo;', 'Next →');
+
+                                    if (!link.url) {
+                                        return (
+                                            <span
+                                                key={idx}
+                                                className="inline-flex h-8 items-center justify-center rounded-lg border border-neutral-200/50 bg-neutral-100/50 px-3 text-xs select-none cursor-not-allowed dark:border-neutral-800/40 dark:bg-neutral-850/40"
+                                                dangerouslySetInnerHTML={{ __html: cleanLabel }}
+                                            />
+                                        );
+                                    }
+
+                                    return (
+                                        <Link
+                                            key={idx}
+                                            href={link.url}
+                                            className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-bold transition-all ${link.active
+                                                ? 'bg-pink-600 text-white border-pink-600 dark:bg-pink-700 dark:border-pink-700'
+                                                : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-350 dark:hover:bg-neutral-800'
+                                                }`}
+                                            dangerouslySetInnerHTML={{ __html: cleanLabel }}
+                                        />
+                                    );
+                                })}
                             </div>
                         </div>
-                    ))}
+                    )}
                 </div>
 
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>

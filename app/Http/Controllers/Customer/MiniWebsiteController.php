@@ -131,16 +131,36 @@ class MiniWebsiteController extends Controller
         
         $dailyPrice = $mini_website->template ? floatval($mini_website->template->price) : 0.0;
         $originalPrice = $dailyPrice * $days;
-        $discountAmount = 0.0;
+        $discountAmount = 0;
         $referralCodeId = null;
+        $globalCouponUsed = null;
 
         // Apply referral code discount if provided
         $referralCodeInput = $request->input('referral_code');
         if ($referralCodeInput) {
-            $referralCode = ReferralCode::where('code', strtoupper($referralCodeInput))->first();
-            if ($referralCode && $referralCode->isValid()) {
-                $discountAmount = round($originalPrice * ($referralCode->discount_percentage / 100), 2);
-                $referralCodeId = $referralCode->id;
+            $globalCouponActive = SystemSetting::get('global_coupon_active', '0');
+            $globalCouponCode = SystemSetting::get('global_coupon_code', '');
+
+            if ($globalCouponActive === '1' && !empty($globalCouponCode) && strtoupper($referralCodeInput) === strtoupper($globalCouponCode)) {
+                // Check if user already used the global coupon
+                $hasUsed = \App\Models\Transaction::where('user_id', auth()->id())
+                    ->where('global_coupon_code', strtoupper($globalCouponCode))
+                    ->where('status', 'completed')
+                    ->exists();
+
+                if (!$hasUsed) {
+                    $discountPercentage = (float) SystemSetting::get('global_coupon_discount', '0');
+                    $discountAmount = round($originalPrice * ($discountPercentage / 100), 2);
+                    $globalCouponUsed = strtoupper($globalCouponCode);
+                } else {
+                    return response()->json(['error' => 'You have already used this coupon.'], 400);
+                }
+            } else {
+                $referralCode = ReferralCode::where('code', strtoupper($referralCodeInput))->first();
+                if ($referralCode && $referralCode->isValid()) {
+                    $discountAmount = round($originalPrice * ($referralCode->discount_percentage / 100), 2);
+                    $referralCodeId = $referralCode->id;
+                }
             }
         }
 
@@ -157,6 +177,7 @@ class MiniWebsiteController extends Controller
             'original_price' => $originalPrice,
             'days' => $days,
             'amount' => $finalPrice,
+            'global_coupon_code' => $globalCouponUsed,
         ]]);
 
         // If credentials are not set, fallback to mock order
@@ -227,11 +248,13 @@ class MiniWebsiteController extends Controller
             'original_price' => 0.0,
             'days' => 1,
             'amount' => 0.0,
+            'global_coupon_code' => null,
         ]);
         session()->forget($sessionKey);
 
         $referralCodeId = $checkoutData['referral_code_id'];
         $discountAmount = $checkoutData['discount_amount'];
+        $globalCouponCode = $checkoutData['global_coupon_code'] ?? null;
         $days = $checkoutData['days'];
         $finalAmount = $checkoutData['amount'];
 
@@ -270,6 +293,7 @@ class MiniWebsiteController extends Controller
                 'referral_code_id' => $referralCodeId,
                 'discount_amount' => $discountAmount,
                 'commission_amount' => $commissionAmount,
+                'global_coupon_code' => $globalCouponCode,
             ]);
 
             // Credit commission to referral partner's wallet
@@ -306,6 +330,7 @@ class MiniWebsiteController extends Controller
                 'referral_code_id' => $referralCodeId,
                 'discount_amount' => $discountAmount,
                 'commission_amount' => $commissionAmount,
+                'global_coupon_code' => $globalCouponCode,
             ]);
 
             // Credit commission to referral partner's wallet

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::approve
- * @see app/Http/Controllers/SuperAdmin/UserController.php:56
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:80
  * @route '/super-admin/users/{user}/approve'
  */
 export const approve = (args: { user: number | { id: number } } | [user: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ approve.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::approve
- * @see app/Http/Controllers/SuperAdmin/UserController.php:56
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:80
  * @route '/super-admin/users/{user}/approve'
  */
 approve.url = (args: { user: number | { id: number } } | [user: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ approve.url = (args: { user: number | { id: number } } | [user: number | { id: n
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::approve
- * @see app/Http/Controllers/SuperAdmin/UserController.php:56
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:80
  * @route '/super-admin/users/{user}/approve'
  */
 approve.post = (args: { user: number | { id: number } } | [user: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -59,7 +59,7 @@ approve.post = (args: { user: number | { id: number } } | [user: number | { id: 
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::approve
- * @see app/Http/Controllers/SuperAdmin/UserController.php:56
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:80
  * @route '/super-admin/users/{user}/approve'
  */
     const approveForm = (args: { user: number | { id: number } } | [user: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -69,7 +69,7 @@ approve.post = (args: { user: number | { id: number } } | [user: number | { id: 
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::approve
- * @see app/Http/Controllers/SuperAdmin/UserController.php:56
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:80
  * @route '/super-admin/users/{user}/approve'
  */
         approveForm.post = (args: { user: number | { id: number } } | [user: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

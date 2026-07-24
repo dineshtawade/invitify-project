@@ -92,6 +92,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
         $user = auth()->user();
         if ($user->role === 'super_admin') {
             return redirect()->route('super-admin.dashboard');
+        } elseif ($user->role === 'editor') {
+            return redirect()->route('super-admin.templates');
         } elseif ($user->role === 'reseller') {
             return redirect()->route('reseller.dashboard');
         } elseif ($user->role === 'referral_partner') {
@@ -116,6 +118,16 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
 
         Route::post('super-admin/users/{user}/approve', [\App\Http\Controllers\SuperAdmin\UserController::class, 'approve'])
             ->name('super-admin.users.approve');
+
+        // Editor Action Requests
+        Route::get('super-admin/editor-requests', [\App\Http\Controllers\SuperAdmin\EditorActionRequestController::class, 'index'])
+            ->name('super-admin.editor-requests.index');
+        Route::post('super-admin/editor-requests', [\App\Http\Controllers\SuperAdmin\EditorActionRequestController::class, 'store'])
+            ->name('super-admin.editor-requests.store');
+        Route::post('super-admin/editor-requests/{editorRequest}/approve', [\App\Http\Controllers\SuperAdmin\EditorActionRequestController::class, 'approve'])
+            ->name('super-admin.editor-requests.approve');
+        Route::post('super-admin/editor-requests/{editorRequest}/reject', [\App\Http\Controllers\SuperAdmin\EditorActionRequestController::class, 'reject'])
+            ->name('super-admin.editor-requests.reject');
 
         // Template Management
         Route::get('super-admin/templates', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'index'])
