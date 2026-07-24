@@ -243,14 +243,34 @@ class TemplateController extends Controller
         $originalPrice = floatval($userTemplate->template->price);
         $discountAmount = 0;
         $referralCodeId = null;
+        $globalCouponUsed = null;
 
         // Apply referral code discount if provided
         $referralCodeInput = $request->input('referral_code');
         if ($referralCodeInput) {
-            $referralCode = ReferralCode::where('code', strtoupper($referralCodeInput))->first();
-            if ($referralCode && $referralCode->isValid()) {
-                $discountAmount = round($originalPrice * ($referralCode->discount_percentage / 100), 2);
-                $referralCodeId = $referralCode->id;
+            $globalCouponActive = SystemSetting::get('global_coupon_active', '0');
+            $globalCouponCode = SystemSetting::get('global_coupon_code', '');
+
+            if ($globalCouponActive === '1' && !empty($globalCouponCode) && strtoupper($referralCodeInput) === strtoupper($globalCouponCode)) {
+                // Check if user already used the global coupon
+                $hasUsed = \App\Models\Transaction::where('user_id', auth()->id())
+                    ->where('global_coupon_code', strtoupper($globalCouponCode))
+                    ->where('status', 'completed')
+                    ->exists();
+
+                if (!$hasUsed) {
+                    $discountPercentage = (float) SystemSetting::get('global_coupon_discount', '0');
+                    $discountAmount = round($originalPrice * ($discountPercentage / 100), 2);
+                    $globalCouponUsed = strtoupper($globalCouponCode);
+                } else {
+                    return response()->json(['error' => 'You have already used this coupon.'], 400);
+                }
+            } else {
+                $referralCode = ReferralCode::where('code', strtoupper($referralCodeInput))->first();
+                if ($referralCode && $referralCode->isValid()) {
+                    $discountAmount = round($originalPrice * ($referralCode->discount_percentage / 100), 2);
+                    $referralCodeId = $referralCode->id;
+                }
             }
         }
 
@@ -265,6 +285,7 @@ class TemplateController extends Controller
             'referral_code_id' => $referralCodeId,
             'discount_amount' => $discountAmount,
             'original_price' => $originalPrice,
+            'global_coupon_code' => $globalCouponUsed,
         ]]);
 
         // If credentials are not set, fallback to mock order
@@ -332,11 +353,13 @@ class TemplateController extends Controller
             'referral_code_id' => null,
             'discount_amount' => 0,
             'original_price' => 0,
+            'global_coupon_code' => null,
         ]);
         session()->forget('checkout_referral');
 
         $referralCodeId = $referralData['referral_code_id'];
         $discountAmount = $referralData['discount_amount'];
+        $globalCouponCode = $referralData['global_coupon_code'] ?? null;
 
         // Calculate commission
         $commissionAmount = 0;
@@ -374,6 +397,7 @@ class TemplateController extends Controller
                 'referral_code_id' => $referralCodeId,
                 'discount_amount' => $discountAmount,
                 'commission_amount' => $commissionAmount,
+                'global_coupon_code' => $globalCouponCode,
             ]);
 
             // Credit commission to referral partner's wallet
@@ -411,6 +435,7 @@ class TemplateController extends Controller
                 'referral_code_id' => $referralCodeId,
                 'discount_amount' => $discountAmount,
                 'commission_amount' => $commissionAmount,
+                'global_coupon_code' => $globalCouponCode,
             ]);
 
             // Credit commission to referral partner's wallet

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::index
- * @see app/Http/Controllers/SuperAdmin/UserController.php:15
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:16
  * @route '/super-admin/users'
  */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::index
- * @see app/Http/Controllers/SuperAdmin/UserController.php:15
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:16
  * @route '/super-admin/users'
  */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::index
- * @see app/Http/Controllers/SuperAdmin/UserController.php:15
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:16
  * @route '/super-admin/users'
  */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::index
- * @see app/Http/Controllers/SuperAdmin/UserController.php:15
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:16
  * @route '/super-admin/users'
  */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::index
- * @see app/Http/Controllers/SuperAdmin/UserController.php:15
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:16
  * @route '/super-admin/users'
  */
     const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::index
- * @see app/Http/Controllers/SuperAdmin/UserController.php:15
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:16
  * @route '/super-admin/users'
  */
         indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::index
- * @see app/Http/Controllers/SuperAdmin/UserController.php:15
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:16
  * @route '/super-admin/users'
  */
         indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -157,7 +157,7 @@ create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     create.form = createForm
 /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::store
- * @see app/Http/Controllers/SuperAdmin/UserController.php:0
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:57
  * @route '/super-admin/users'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -172,7 +172,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::store
- * @see app/Http/Controllers/SuperAdmin/UserController.php:0
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:57
  * @route '/super-admin/users'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -181,7 +181,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::store
- * @see app/Http/Controllers/SuperAdmin/UserController.php:0
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:57
  * @route '/super-admin/users'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -191,7 +191,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::store
- * @see app/Http/Controllers/SuperAdmin/UserController.php:0
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:57
  * @route '/super-admin/users'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -201,7 +201,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\UserController::store
- * @see app/Http/Controllers/SuperAdmin/UserController.php:0
+ * @see app/Http/Controllers/SuperAdmin/UserController.php:57
  * @route '/super-admin/users'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

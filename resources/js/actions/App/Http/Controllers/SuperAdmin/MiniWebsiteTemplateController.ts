@@ -157,7 +157,7 @@ create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     create.form = createForm
 /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::store
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:22
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:37
  * @route '/super-admin/mini-website-templates'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -172,7 +172,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::store
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:22
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:37
  * @route '/super-admin/mini-website-templates'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -181,7 +181,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::store
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:22
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:37
  * @route '/super-admin/mini-website-templates'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -191,7 +191,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::store
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:22
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:37
  * @route '/super-admin/mini-website-templates'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -201,7 +201,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::store
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:22
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:37
  * @route '/super-admin/mini-website-templates'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -406,7 +406,7 @@ edit.head = (args: { mini_website_template: string | number } | [mini_website_te
     edit.form = editForm
 /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::update
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:38
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:53
  * @route '/super-admin/mini-website-templates/{mini_website_template}'
  */
 export const update = (args: { mini_website_template: number | { id: number } } | [mini_website_template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -421,7 +421,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::update
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:38
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:53
  * @route '/super-admin/mini-website-templates/{mini_website_template}'
  */
 update.url = (args: { mini_website_template: number | { id: number } } | [mini_website_template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -454,7 +454,7 @@ update.url = (args: { mini_website_template: number | { id: number } } | [mini_w
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::update
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:38
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:53
  * @route '/super-admin/mini-website-templates/{mini_website_template}'
  */
 update.put = (args: { mini_website_template: number | { id: number } } | [mini_website_template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -463,7 +463,7 @@ update.put = (args: { mini_website_template: number | { id: number } } | [mini_w
 })
 /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::update
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:38
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:53
  * @route '/super-admin/mini-website-templates/{mini_website_template}'
  */
 update.patch = (args: { mini_website_template: number | { id: number } } | [mini_website_template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -473,7 +473,7 @@ update.patch = (args: { mini_website_template: number | { id: number } } | [mini
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::update
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:38
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:53
  * @route '/super-admin/mini-website-templates/{mini_website_template}'
  */
     const updateForm = (args: { mini_website_template: number | { id: number } } | [mini_website_template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -488,7 +488,7 @@ update.patch = (args: { mini_website_template: number | { id: number } } | [mini
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::update
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:38
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:53
  * @route '/super-admin/mini-website-templates/{mini_website_template}'
  */
         updateForm.put = (args: { mini_website_template: number | { id: number } } | [mini_website_template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -502,7 +502,7 @@ update.patch = (args: { mini_website_template: number | { id: number } } | [mini
         })
             /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::update
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:38
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:53
  * @route '/super-admin/mini-website-templates/{mini_website_template}'
  */
         updateForm.patch = (args: { mini_website_template: number | { id: number } } | [mini_website_template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -518,7 +518,7 @@ update.patch = (args: { mini_website_template: number | { id: number } } | [mini
     update.form = updateForm
 /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:52
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:82
  * @route '/super-admin/mini-website-templates/{mini_website_template}'
  */
 export const destroy = (args: { mini_website_template: number | { id: number } } | [mini_website_template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -533,7 +533,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:52
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:82
  * @route '/super-admin/mini-website-templates/{mini_website_template}'
  */
 destroy.url = (args: { mini_website_template: number | { id: number } } | [mini_website_template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -566,7 +566,7 @@ destroy.url = (args: { mini_website_template: number | { id: number } } | [mini_
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:52
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:82
  * @route '/super-admin/mini-website-templates/{mini_website_template}'
  */
 destroy.delete = (args: { mini_website_template: number | { id: number } } | [mini_website_template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -576,7 +576,7 @@ destroy.delete = (args: { mini_website_template: number | { id: number } } | [mi
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:52
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:82
  * @route '/super-admin/mini-website-templates/{mini_website_template}'
  */
     const destroyForm = (args: { mini_website_template: number | { id: number } } | [mini_website_template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -591,7 +591,7 @@ destroy.delete = (args: { mini_website_template: number | { id: number } } | [mi
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\MiniWebsiteTemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:52
+ * @see app/Http/Controllers/SuperAdmin/MiniWebsiteTemplateController.php:82
  * @route '/super-admin/mini-website-templates/{mini_website_template}'
  */
         destroyForm.delete = (args: { mini_website_template: number | { id: number } } | [mini_website_template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
