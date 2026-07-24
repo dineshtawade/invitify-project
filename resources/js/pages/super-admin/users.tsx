@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Head, router, Link } from '@inertiajs/react';
+import { Head, router, Link, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -102,6 +102,24 @@ export default function UsersList({ users, filters }: UsersPageProps) {
     const [searchVal, setSearchVal] = useState(filters.search || '');
     const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
     const [showModal, setShowModal] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+
+    const { data: createData, setData: setCreateData, post: submitCreate, processing: createProcessing, errors: createErrors, reset: resetCreate } = useForm({
+        name: '',
+        email: '',
+        password: '',
+        role: 'editor',
+    });
+
+    const handleCreateSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        submitCreate('/super-admin/users', {
+            onSuccess: () => {
+                setShowCreateModal(false);
+                resetCreate();
+            }
+        });
+    };
 
     // Apply filter search
     const handleSearchSubmit = (e: React.FormEvent) => {
@@ -178,6 +196,11 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                     <div className="flex flex-col gap-1.5">
                         <h1 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-neutral-50">Users & Approvals</h1>
                         <p className="text-neutral-500 dark:text-neutral-400 text-sm">Approve newly registered resellers/partners, review transactions, and audit account states.</p>
+                    </div>
+                    <div>
+                        <Button onClick={() => setShowCreateModal(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold">
+                            + Create User
+                        </Button>
                     </div>
                 </div>
 
@@ -290,13 +313,13 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                     </div>
 
                     {/* Pagination Links */}
-                    {users.total > users.per_page && (
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-neutral-200 bg-neutral-50/50 p-5 dark:border-neutral-800 dark:bg-neutral-900/40">
-                            <div className="text-xs text-neutral-500 dark:text-neutral-450 font-semibold">
-                                Showing <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{users.from}</span> to{' '}
-                                <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{users.to}</span> of{' '}
-                                <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{users.total}</span> users
-                            </div>
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-neutral-200 bg-neutral-50/50 p-5 dark:border-neutral-800 dark:bg-neutral-900/40">
+                        <div className="text-xs text-neutral-500 dark:text-neutral-450 font-semibold">
+                            Showing <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{users.from || 0}</span> to{' '}
+                            <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{users.to || 0}</span> of{' '}
+                            <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{users.total || 0}</span> users
+                        </div>
+                        {users.last_page > 1 && (
                             <div className="flex items-center flex-wrap gap-1">
                                 {users.links.map((link, idx) => {
                                     // Make links cleaner: Replace &laquo; and &raquo; tags with neat arrows
@@ -327,8 +350,8 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                                     );
                                 })}
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -609,6 +632,76 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                                 </Button>
                             )}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Create User Modal */}
+            {showCreateModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+                    <div className="relative w-full max-w-md rounded-2xl border border-neutral-200 dark:border-neutral-850 bg-white dark:bg-neutral-900 shadow-2xl p-6">
+                        <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4 mb-4">
+                            <h2 className="text-xl font-extrabold text-neutral-900 dark:text-neutral-50">Create New User</h2>
+                            <Button onClick={() => setShowCreateModal(false)} variant="ghost" size="sm" className="rounded-xl size-8 p-0">
+                                <XCircle className="size-5 text-neutral-400 hover:text-neutral-600" />
+                            </Button>
+                        </div>
+                        <form onSubmit={handleCreateSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1">Name</label>
+                                <Input 
+                                    value={createData.name}
+                                    onChange={e => setCreateData('name', e.target.value)}
+                                    className="rounded-xl"
+                                    required
+                                />
+                                {createErrors.name && <div className="text-red-500 text-xs mt-1">{createErrors.name}</div>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1">Email</label>
+                                <Input 
+                                    type="email"
+                                    value={createData.email}
+                                    onChange={e => setCreateData('email', e.target.value)}
+                                    className="rounded-xl"
+                                    required
+                                />
+                                {createErrors.email && <div className="text-red-500 text-xs mt-1">{createErrors.email}</div>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1">Password</label>
+                                <Input 
+                                    type="password"
+                                    value={createData.password}
+                                    onChange={e => setCreateData('password', e.target.value)}
+                                    className="rounded-xl"
+                                    required
+                                />
+                                {createErrors.password && <div className="text-red-500 text-xs mt-1">{createErrors.password}</div>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1">Role</label>
+                                <select
+                                    value={createData.role}
+                                    onChange={e => setCreateData('role', e.target.value)}
+                                    className="w-full rounded-xl border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950/20 text-sm focus:ring-2 focus:ring-indigo-500"
+                                >
+                                    <option value="editor">Editor</option>
+                                    <option value="reseller">Reseller</option>
+                                    <option value="referral_partner">Referral Partner</option>
+                                    <option value="customer">Customer</option>
+                                </select>
+                                {createErrors.role && <div className="text-red-500 text-xs mt-1">{createErrors.role}</div>}
+                            </div>
+                            <div className="pt-4 flex justify-end gap-2">
+                                <Button type="button" variant="outline" onClick={() => setShowCreateModal(false)} className="rounded-xl">
+                                    Cancel
+                                </Button>
+                                <Button type="submit" disabled={createProcessing} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl">
+                                    {createProcessing ? 'Creating...' : 'Create User'}
+                                </Button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

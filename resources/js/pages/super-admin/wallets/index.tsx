@@ -171,7 +171,7 @@ export default function WalletsIndex({ wallets, redemptionRequests }: { wallets:
                                     {wallets.map(w => (
                                         <tr key={w.id} className="border-t hover:bg-neutral-50/50">
                                             <td className="px-4 py-3">
-                                                <p className="font-bold">{w.user_name}</p>
+                                                <p className="font-bold text-neutral-800">{w.user_name}</p>
                                                 <p className="text-xs text-neutral-800">{w.user_email}</p>
                                             </td>
                                             <td className="px-4 py-3 text-center font-bold text-lg text-emerald-700">₹{Number(w.balance).toFixed(2)}</td>

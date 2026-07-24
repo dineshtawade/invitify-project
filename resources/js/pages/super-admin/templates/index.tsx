@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, usePage, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,9 @@ import {
 import {
     Plus, Pencil, Trash, Layers, Sparkles, Heart,
     Cake, Baby, Award, Move, Type, Image as ImageIcon,
-    Smile, Link, MapPin, Compass, Gift, Calendar, Clock,
+    Smile, Link as LinkIcon, MapPin, Compass, Gift, Calendar, Clock,
     Music, Wine, Star, Bell, ZoomIn, ZoomOut, Check, ArrowRight,
-    Laptop, Tablet, Smartphone, Settings, PlayCircle, Play
+    Laptop, Tablet, Smartphone, Settings, PlayCircle, Play, ShieldAlert, Search
 } from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
@@ -51,9 +51,35 @@ interface Category {
     slug: string;
 }
 
+interface EditorRequest {
+    id: number;
+    target_id: number;
+    action: string;
+    status: string;
+}
+
+interface LinkItem {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+interface PaginationData<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: LinkItem[];
+    from: number;
+    to: number;
+}
+
 interface PageProps {
-    templates: Template[];
+    templates: PaginationData<Template>;
     categories: Category[];
+    editorRequests?: EditorRequest[];
+    filters?: { search: string };
 }
 
 const fontStyles: Record<string, string> = {
@@ -90,11 +116,33 @@ const gradientPresets = [
     { name: 'Classic Gold', value: 'from-amber-100 via-yellow-50 to-amber-200 text-neutral-800' },
 ];
 
-export default function TemplatesIndex({ templates, categories = [] }: PageProps) {
+export default function TemplatesIndex({ templates, categories = [], editorRequests = [], filters = { search: '' } }: PageProps) {
+    const { auth } = usePage().props as any;
+    const isEditor = auth?.user?.role === 'editor';
+    const [searchVal, setSearchVal] = useState(filters.search || '');
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        router.get('/super-admin/templates', { search: searchVal }, { preserveState: true });
+    };
+
+    const handleReset = () => {
+        setSearchVal('');
+        router.get('/super-admin/templates', {}, { preserveState: true });
+    };
+
     const [isOpen, setIsOpen] = useState(false);
     const [templateMode, setTemplateMode] = useState<'select' | 'editor'>('select');
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
     const [activeTab, setActiveTab] = useState<'pages' | 'text' | 'image' | 'icon' | 'link'>('pages');
+
+    const handleRequestAction = (target_id: number, action: 'edit' | 'delete') => {
+        router.post('/super-admin/editor-requests', {
+            target_type: 'Template',
+            target_id,
+            action
+        });
+    };
 
     const cardRef = useRef<HTMLDivElement>(null);
     const [activePageIndex, setActivePageIndex] = useState(0);
@@ -586,6 +634,30 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                     </Button>
                 </div>
 
+                {/* Filter and Search Bar */}
+                <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white dark:bg-neutral-900 p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-2xs">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+                        <Input
+                            type="text"
+                            placeholder="Search templates by name or category..."
+                            value={searchVal}
+                            onChange={(e) => setSearchVal(e.target.value)}
+                            className="pl-10 h-10 w-full bg-neutral-50/50 dark:bg-neutral-950/20 border-neutral-200 dark:border-neutral-800 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500"
+                        />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button type="submit" size="sm" className="h-10 rounded-xl px-5">
+                            Filter
+                        </Button>
+                        {filters.search && (
+                            <Button type="button" onClick={handleReset} variant="outline" size="sm" className="h-10 rounded-xl px-4">
+                                Clear
+                            </Button>
+                        )}
+                    </div>
+                </form>
+
                 <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
                     <div className="overflow-x-auto">
                         <table className="w-full border-collapse text-left text-sm text-neutral-500 dark:text-neutral-400">
@@ -599,14 +671,14 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                                {templates.length === 0 ? (
+                                {templates.data.length === 0 ? (
                                     <tr>
                                         <td colSpan={5} className="px-6 py-12 text-center text-sm text-neutral-400">
                                             No templates created yet. Click "Add Design Template" to launch the builder.
                                         </td>
                                     </tr>
                                 ) : (
-                                    templates.map((t) => {
+                                    templates.data.map((t) => {
                                         const isCustomBg = t.bg_gradient.startsWith('linear-gradient');
                                         return (
                                             <tr key={t.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/15 transition-colors">
@@ -642,22 +714,50 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <div className="flex justify-end gap-2">
-                                                        <Button
-                                                            onClick={() => handleOpenEdit(t)}
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"
-                                                        >
-                                                            <Pencil className="size-3.5" /> Edit Builder
-                                                        </Button>
-                                                        <Button
-                                                            onClick={() => handleDelete(t.id)}
-                                                            variant="destructive"
-                                                            size="sm"
-                                                            className="flex items-center gap-1 rounded-lg text-xs"
-                                                        >
-                                                            <Trash className="size-3.5" /> Delete
-                                                        </Button>
+                                                        {isEditor ? (
+                                                            (() => {
+                                                                const editReq = editorRequests.find(r => r.target_id === t.id && r.action === 'edit');
+                                                                const deleteReq = editorRequests.find(r => r.target_id === t.id && r.action === 'delete');
+                                                                return (
+                                                                    <>
+                                                                        {editReq?.status === 'approved' ? (
+                                                                            <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><Pencil className="size-3.5" /> Edit Builder</Button>
+                                                                        ) : editReq?.status === 'pending' ? (
+                                                                            <Button disabled variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs opacity-50"><Clock className="size-3.5" /> Edit Pending</Button>
+                                                                        ) : (
+                                                                            <Button onClick={() => handleRequestAction(t.id, 'edit')} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><ShieldAlert className="size-3.5" /> Request Edit</Button>
+                                                                        )}
+
+                                                                        {deleteReq?.status === 'approved' ? (
+                                                                            <Button onClick={() => handleDelete(t.id)} variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs"><Trash className="size-3.5" /> Delete</Button>
+                                                                        ) : deleteReq?.status === 'pending' ? (
+                                                                            <Button disabled variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs opacity-50"><Clock className="size-3.5" /> Delete Pending</Button>
+                                                                        ) : (
+                                                                            <Button onClick={() => handleRequestAction(t.id, 'delete')} variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs"><ShieldAlert className="size-3.5" /> Request Delete</Button>
+                                                                        )}
+                                                                    </>
+                                                                );
+                                                            })()
+                                                        ) : (
+                                                            <>
+                                                                <Button
+                                                                    onClick={() => handleOpenEdit(t)}
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"
+                                                                >
+                                                                    <Pencil className="size-3.5" /> Edit Builder
+                                                                </Button>
+                                                                <Button
+                                                                    onClick={() => handleDelete(t.id)}
+                                                                    variant="destructive"
+                                                                    size="sm"
+                                                                    className="flex items-center gap-1 rounded-lg text-xs"
+                                                                >
+                                                                    <Trash className="size-3.5" /> Delete
+                                                                </Button>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -667,6 +767,47 @@ export default function TemplatesIndex({ templates, categories = [] }: PageProps
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Pagination Links */}
+                    {templates.total > templates.per_page && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-neutral-200 bg-neutral-50/50 p-5 dark:border-neutral-800 dark:bg-neutral-900/40">
+                            <div className="text-xs text-neutral-500 dark:text-neutral-450 font-semibold">
+                                Showing <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{templates.from}</span> to{' '}
+                                <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{templates.to}</span> of{' '}
+                                <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{templates.total}</span> templates
+                            </div>
+                            <div className="flex items-center flex-wrap gap-1">
+                                {templates.links.map((link, idx) => {
+                                    // Make links cleaner: Replace &laquo; and &raquo; tags with neat arrows
+                                    const cleanLabel = link.label
+                                        .replace('&laquo; Previous', '← Prev')
+                                        .replace('Next &raquo;', 'Next →');
+
+                                    if (!link.url) {
+                                        return (
+                                            <span
+                                                key={idx}
+                                                className="inline-flex h-8 items-center justify-center rounded-lg border border-neutral-200/50 bg-neutral-100/50 px-3 text-xs   select-none cursor-not-allowed dark:border-neutral-800/40 dark:bg-neutral-850/40"
+                                                dangerouslySetInnerHTML={{ __html: cleanLabel }}
+                                            />
+                                        );
+                                    }
+
+                                    return (
+                                        <Link
+                                            key={idx}
+                                            href={link.url}
+                                            className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-bold transition-all ${link.active
+                                                ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-700 dark:border-indigo-700'
+                                                : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-350 dark:hover:bg-neutral-800'
+                                                }`}
+                                            dangerouslySetInnerHTML={{ __html: cleanLabel }}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

@@ -27,6 +27,9 @@ class PaymentSettingsController extends Controller
                 'reseller_ifsc_code'               => SystemSetting::get('reseller_ifsc_code', ''),
                 'reseller_upi_id'                  => SystemSetting::get('reseller_upi_id', ''),
                 'reseller_default_bonus_percentage' => SystemSetting::get('reseller_default_bonus_percentage', '0'),
+                'global_coupon_active'             => SystemSetting::get('global_coupon_active', '0'),
+                'global_coupon_code'               => SystemSetting::get('global_coupon_code', ''),
+                'global_coupon_discount'           => SystemSetting::get('global_coupon_discount', '0'),
             ],
         ]);
     }
@@ -45,6 +48,9 @@ class PaymentSettingsController extends Controller
             'reseller_ifsc_code' => 'nullable|string|max:255',
             'reseller_upi_id' => 'nullable|string|max:255',
             'reseller_default_bonus_percentage' => 'nullable|numeric|min:0|max:100',
+            'global_coupon_active' => 'nullable|string|in:0,1',
+            'global_coupon_code' => 'nullable|string|max:50',
+            'global_coupon_discount' => 'nullable|numeric|min:0|max:100',
         ]);
 
         if (array_key_exists('razorpay_key_id', $validated)) {
@@ -74,6 +80,17 @@ class PaymentSettingsController extends Controller
         }
         if (array_key_exists('reseller_default_bonus_percentage', $validated)) {
             SystemSetting::set('reseller_default_bonus_percentage', $validated['reseller_default_bonus_percentage']);
+        }
+
+        // Global Promotional Coupon
+        if (array_key_exists('global_coupon_active', $validated)) {
+            SystemSetting::set('global_coupon_active', $validated['global_coupon_active']);
+        }
+        if (array_key_exists('global_coupon_code', $validated)) {
+            SystemSetting::set('global_coupon_code', strtoupper($validated['global_coupon_code']));
+        }
+        if (array_key_exists('global_coupon_discount', $validated)) {
+            SystemSetting::set('global_coupon_discount', $validated['global_coupon_discount']);
         }
 
         return redirect()->back()->with('status', 'Payment settings updated successfully.');

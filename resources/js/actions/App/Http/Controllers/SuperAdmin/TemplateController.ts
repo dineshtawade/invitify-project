@@ -79,7 +79,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::store
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:28
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:44
  * @route '/super-admin/templates'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -94,7 +94,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::store
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:28
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:44
  * @route '/super-admin/templates'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::store
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:28
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:44
  * @route '/super-admin/templates'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -113,7 +113,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::store
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:28
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:44
  * @route '/super-admin/templates'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -123,7 +123,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::store
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:28
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:44
  * @route '/super-admin/templates'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -134,7 +134,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::update
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:48
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:64
  * @route '/super-admin/templates/{template}'
  */
 export const update = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -149,7 +149,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::update
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:48
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:64
  * @route '/super-admin/templates/{template}'
  */
 update.url = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -182,7 +182,7 @@ update.url = (args: { template: number | { id: number } } | [template: number | 
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::update
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:48
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:64
  * @route '/super-admin/templates/{template}'
  */
 update.put = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -192,7 +192,7 @@ update.put = (args: { template: number | { id: number } } | [template: number | 
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::update
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:48
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:64
  * @route '/super-admin/templates/{template}'
  */
     const updateForm = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -207,7 +207,7 @@ update.put = (args: { template: number | { id: number } } | [template: number | 
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::update
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:48
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:64
  * @route '/super-admin/templates/{template}'
  */
         updateForm.put = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -223,7 +223,7 @@ update.put = (args: { template: number | { id: number } } | [template: number | 
     update.form = updateForm
 /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:68
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:99
  * @route '/super-admin/templates/{template}'
  */
 export const destroy = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -238,7 +238,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:68
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:99
  * @route '/super-admin/templates/{template}'
  */
 destroy.url = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -271,7 +271,7 @@ destroy.url = (args: { template: number | { id: number } } | [template: number |
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:68
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:99
  * @route '/super-admin/templates/{template}'
  */
 destroy.delete = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -281,7 +281,7 @@ destroy.delete = (args: { template: number | { id: number } } | [template: numbe
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:68
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:99
  * @route '/super-admin/templates/{template}'
  */
     const destroyForm = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -296,7 +296,7 @@ destroy.delete = (args: { template: number | { id: number } } | [template: numbe
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:68
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:99
  * @route '/super-admin/templates/{template}'
  */
         destroyForm.delete = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

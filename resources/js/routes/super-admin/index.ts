@@ -1,5 +1,6 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../wayfinder'
 import users from './users'
+import editorRequests from './editor-requests'
 import templatesD41748 from './templates'
 import paymentSettings from './payment-settings'
 import settings69f00b from './settings'
@@ -557,6 +558,7 @@ const superAdmin = {
     dashboard: Object.assign(dashboard, dashboard),
 transactions: Object.assign(transactions, transactions),
 users: Object.assign(users, users),
+editorRequests: Object.assign(editorRequests, editorRequests),
 templates: Object.assign(templates, templatesD41748),
 paymentSettings: Object.assign(paymentSettings, paymentSettings),
 settings: Object.assign(settings, settings69f00b),

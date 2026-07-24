@@ -61,7 +61,7 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [] }:
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
                 <div className="flex flex-col gap-2">
                     <h1 className="text-3xl font-bold tracking-tight text-[#3e3832] font-serif">Customer Space</h1>
-                    <p className="text-[#706557]">Welcome to Invitify! Create invitations, customize your design templates, and track RSVP responses.</p>
+                    <p className="text-[#706557]">Welcome to Invitify! Create invitations, customize your design templates.</p>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
