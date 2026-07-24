@@ -5,6 +5,7 @@ import BusinessWebsiteTemplateController from './BusinessWebsiteTemplateControll
 import TransactionController from './TransactionController'
 import CategoryController from './CategoryController'
 import CustomBlockController from './CustomBlockController'
+import EditorActionRequestController from './EditorActionRequestController'
 import TemplateController from './TemplateController'
 import PaymentSettingsController from './PaymentSettingsController'
 import SettingsController from './SettingsController'
@@ -20,6 +21,7 @@ BusinessWebsiteTemplateController: Object.assign(BusinessWebsiteTemplateControll
 TransactionController: Object.assign(TransactionController, TransactionController),
 CategoryController: Object.assign(CategoryController, CategoryController),
 CustomBlockController: Object.assign(CustomBlockController, CustomBlockController),
+EditorActionRequestController: Object.assign(EditorActionRequestController, EditorActionRequestController),
 TemplateController: Object.assign(TemplateController, TemplateController),
 PaymentSettingsController: Object.assign(PaymentSettingsController, PaymentSettingsController),
 SettingsController: Object.assign(SettingsController, SettingsController),

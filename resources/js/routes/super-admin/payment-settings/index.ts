@@ -79,7 +79,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\SuperAdmin\PaymentSettingsController::update
- * @see app/Http/Controllers/SuperAdmin/PaymentSettingsController.php:37
+ * @see app/Http/Controllers/SuperAdmin/PaymentSettingsController.php:40
  * @route '/super-admin/payment-settings'
  */
 export const update = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -94,7 +94,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\PaymentSettingsController::update
- * @see app/Http/Controllers/SuperAdmin/PaymentSettingsController.php:37
+ * @see app/Http/Controllers/SuperAdmin/PaymentSettingsController.php:40
  * @route '/super-admin/payment-settings'
  */
 update.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ update.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\PaymentSettingsController::update
- * @see app/Http/Controllers/SuperAdmin/PaymentSettingsController.php:37
+ * @see app/Http/Controllers/SuperAdmin/PaymentSettingsController.php:40
  * @route '/super-admin/payment-settings'
  */
 update.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -113,7 +113,7 @@ update.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\PaymentSettingsController::update
- * @see app/Http/Controllers/SuperAdmin/PaymentSettingsController.php:37
+ * @see app/Http/Controllers/SuperAdmin/PaymentSettingsController.php:40
  * @route '/super-admin/payment-settings'
  */
     const updateForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -123,7 +123,7 @@ update.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\PaymentSettingsController::update
- * @see app/Http/Controllers/SuperAdmin/PaymentSettingsController.php:37
+ * @see app/Http/Controllers/SuperAdmin/PaymentSettingsController.php:40
  * @route '/super-admin/payment-settings'
  */
         updateForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

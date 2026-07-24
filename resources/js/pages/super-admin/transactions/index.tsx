@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Input } from '@/components/ui/input';
@@ -38,8 +38,31 @@ interface Transaction {
     userTemplate?: any;
 }
 
+interface LinkItem {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+interface PaginationData<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: LinkItem[];
+    from: number;
+    to: number;
+}
+
 interface PageProps {
-    transactions: Transaction[];
+    transactions: PaginationData<Transaction>;
+    filters?: { search: string };
+    metrics: {
+        total_transactions: number;
+        total_revenue: number;
+        avg_transaction_value: number;
+    };
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -53,25 +76,21 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function TransactionsIndex({ transactions = [] }: PageProps) {
-    const [searchQuery, setSearchQuery] = useState('');
+export default function TransactionsIndex({ transactions, filters = { search: '' }, metrics }: PageProps) {
+    const [searchQuery, setSearchQuery] = useState(filters.search || '');
 
-    const filteredTransactions = transactions.filter((tx) => {
-        const query = searchQuery.toLowerCase();
-        return (
-            tx.user?.name?.toLowerCase().includes(query) ||
-            tx.user?.email?.toLowerCase().includes(query) ||
-            tx.template?.name?.toLowerCase().includes(query) ||
-            tx.payment_id?.toLowerCase().includes(query) ||
-            tx.status?.toLowerCase().includes(query) ||
-            tx.payment_method?.toLowerCase().includes(query)
-        );
-    });
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        router.get('/super-admin/transactions', { search: searchQuery }, { preserveState: true });
+    };
 
-    // Calculate metrics
-    const totalTransactions = transactions.length;
-    const totalRevenue = transactions.reduce((acc, tx) => acc + parseFloat(String(tx.amount)), 0);
-    const avgTransactionValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
+    const handleReset = () => {
+        setSearchQuery('');
+        router.get('/super-admin/transactions', {}, { preserveState: true });
+    };
+
+    // Use metrics from backend
+    const { total_transactions, total_revenue, avg_transaction_value } = metrics;
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -104,7 +123,7 @@ export default function TransactionsIndex({ transactions = [] }: PageProps) {
                         <div className="flex items-center justify-between gap-4">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Total Revenue</p>
-                                <h3 className="mt-2 text-3xl font-extrabold text-neutral-900 dark:text-neutral-100">₹{totalRevenue.toFixed(2)}</h3>
+                                <h3 className="mt-2 text-3xl font-extrabold text-neutral-900 dark:text-neutral-100">₹{parseFloat(String(total_revenue)).toFixed(2)}</h3>
                             </div>
                             <div className="rounded-xl bg-blue-50 p-3.5 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
                                 <TrendingUp className="size-6" />
@@ -117,7 +136,7 @@ export default function TransactionsIndex({ transactions = [] }: PageProps) {
                         <div className="flex items-center justify-between gap-4">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Total Purchases</p>
-                                <h3 className="mt-2 text-3xl font-extrabold text-neutral-900 dark:text-neutral-100">{totalTransactions}</h3>
+                                <h3 className="mt-2 text-3xl font-extrabold text-neutral-900 dark:text-neutral-100">{total_transactions}</h3>
                             </div>
                             <div className="rounded-xl bg-emerald-50 p-3.5 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
                                 <Landmark className="size-6" />
@@ -130,7 +149,7 @@ export default function TransactionsIndex({ transactions = [] }: PageProps) {
                         <div className="flex items-center justify-between gap-4">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Avg. Ticket Price</p>
-                                <h3 className="mt-2 text-3xl font-extrabold text-neutral-900 dark:text-neutral-100">₹{avgTransactionValue.toFixed(2)}</h3>
+                                <h3 className="mt-2 text-3xl font-extrabold text-neutral-900 dark:text-neutral-100">₹{parseFloat(String(avg_transaction_value)).toFixed(2)}</h3>
                             </div>
                             <div className="rounded-xl bg-amber-50 p-3.5 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
                                 <CreditCard className="size-6" />
@@ -141,18 +160,28 @@ export default function TransactionsIndex({ transactions = [] }: PageProps) {
                 </div>
 
                 {/* Filter and Search */}
-                <div className="flex flex-col sm:flex-row items-center gap-4 bg-neutral-50/50 dark:bg-neutral-950/30 p-4 rounded-2xl border border-neutral-150 dark:border-neutral-850">
-                    <div className="relative w-full">
+                <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-center gap-4 bg-neutral-50/50 dark:bg-neutral-950/30 p-4 rounded-2xl border border-neutral-150 dark:border-neutral-850">
+                    <div className="relative flex-1">
                         <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
                         <Input
                             type="text"
-                            placeholder="Search by customer, email, template, payment ID, or method..."
+                            placeholder="Search by ID, customer name, email..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="pl-10 h-10 w-full bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 text-sm rounded-xl focus:ring-blue-500"
                         />
                     </div>
-                </div>
+                    <div className="flex items-center gap-2">
+                        <button type="submit" className="h-10 rounded-xl px-5 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
+                            Search
+                        </button>
+                        {filters.search && (
+                            <button type="button" onClick={handleReset} className="h-10 rounded-xl px-4 border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 font-semibold dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 transition-colors">
+                                Clear
+                            </button>
+                        )}
+                    </div>
+                </form>
 
                 {/* Transactions Table */}
                 <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
@@ -169,14 +198,14 @@ export default function TransactionsIndex({ transactions = [] }: PageProps) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                                {filteredTransactions.length === 0 ? (
+                                {transactions.data.length === 0 ? (
                                     <tr>
                                         <td colSpan={6} className="px-6 py-12 text-center text-sm text-neutral-400 dark:text-neutral-500">
                                             No transactions found matching your criteria.
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredTransactions.map((tx) => (
+                                    transactions.data.map((tx) => (
                                         <tr key={tx.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/15 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
@@ -269,6 +298,46 @@ export default function TransactionsIndex({ transactions = [] }: PageProps) {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Pagination Links */}
+                    {transactions.total > transactions.per_page && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-neutral-200 bg-neutral-50/50 p-5 dark:border-neutral-800 dark:bg-neutral-900/40">
+                            <div className="text-xs text-neutral-500 dark:text-neutral-450 font-semibold">
+                                Showing <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{transactions.from}</span> to{' '}
+                                <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{transactions.to}</span> of{' '}
+                                <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{transactions.total}</span> transactions
+                            </div>
+                            <div className="flex items-center flex-wrap gap-1">
+                                {transactions.links.map((link, idx) => {
+                                    const cleanLabel = link.label
+                                        .replace('&laquo; Previous', '← Prev')
+                                        .replace('Next &raquo;', 'Next →');
+
+                                    if (!link.url) {
+                                        return (
+                                            <span
+                                                key={idx}
+                                                className="inline-flex h-8 items-center justify-center rounded-lg border border-neutral-200/50 bg-neutral-100/50 px-3 text-xs select-none cursor-not-allowed dark:border-neutral-800/40 dark:bg-neutral-850/40 text-neutral-400"
+                                                dangerouslySetInnerHTML={{ __html: cleanLabel }}
+                                            />
+                                        );
+                                    }
+
+                                    return (
+                                        <Link
+                                            key={idx}
+                                            href={link.url}
+                                            className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-bold transition-all ${link.active
+                                                ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-700 dark:border-blue-700'
+                                                : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-350 dark:hover:bg-neutral-800'
+                                                }`}
+                                            dangerouslySetInnerHTML={{ __html: cleanLabel }}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </AppLayout>

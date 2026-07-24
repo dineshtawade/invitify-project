@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Users, Layers, Mail, Globe, CreditCard, Receipt, Briefcase, Share2, Wallet, ShoppingBag, History, Settings } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, Users, Layers, Mail, Globe, CreditCard, Receipt, Briefcase, Share2, Wallet, ShoppingBag, History, Settings, FileSignature } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -46,6 +46,11 @@ export function AppSidebar() {
                 title: 'Manage Users',
                 href: '/super-admin/users',
                 icon: Users,
+            },
+            {
+                title: 'Editor Requests',
+                href: '/super-admin/editor-requests',
+                icon: FileSignature,
             },
             {
                 title: 'Manage Templates',
@@ -96,6 +101,19 @@ export function AppSidebar() {
                 title: 'Settings',
                 href: '/super-admin/settings',
                 icon: Settings,
+            }
+        );
+    } else if (userRole === 'editor') {
+        mainNavItems.push(
+            {
+                title: 'Manage Templates',
+                href: '/super-admin/templates',
+                icon: Layers,
+            },
+            {
+                title: 'Create Mini Website',
+                href: '/super-admin/mini-website-templates',
+                icon: Globe,
             }
         );
     } else if (userRole === 'reseller') {
