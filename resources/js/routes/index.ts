@@ -637,7 +637,7 @@ cookiePolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     
     cookiePolicy.form = cookiePolicyForm
 /**
- * @see routes/web.php:76
+ * @see routes/web.php:77
  * @route '/apply-referral'
  */
 export const applyReferral = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -651,7 +651,7 @@ applyReferral.definition = {
 } satisfies RouteDefinition<["post"]>
 
 /**
- * @see routes/web.php:76
+ * @see routes/web.php:77
  * @route '/apply-referral'
  */
 applyReferral.url = (options?: RouteQueryOptions) => {
@@ -659,7 +659,7 @@ applyReferral.url = (options?: RouteQueryOptions) => {
 }
 
 /**
- * @see routes/web.php:76
+ * @see routes/web.php:77
  * @route '/apply-referral'
  */
 applyReferral.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -668,7 +668,7 @@ applyReferral.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
 })
 
     /**
- * @see routes/web.php:76
+ * @see routes/web.php:77
  * @route '/apply-referral'
  */
     const applyReferralForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -677,7 +677,7 @@ applyReferral.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
     })
 
             /**
- * @see routes/web.php:76
+ * @see routes/web.php:77
  * @route '/apply-referral'
  */
         applyReferralForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -687,7 +687,7 @@ applyReferral.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
     
     applyReferral.form = applyReferralForm
 /**
- * @see routes/web.php:91
+ * @see routes/web.php:92
  * @route '/dashboard'
  */
 export const dashboard = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -701,7 +701,7 @@ dashboard.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
- * @see routes/web.php:91
+ * @see routes/web.php:92
  * @route '/dashboard'
  */
 dashboard.url = (options?: RouteQueryOptions) => {
@@ -709,7 +709,7 @@ dashboard.url = (options?: RouteQueryOptions) => {
 }
 
 /**
- * @see routes/web.php:91
+ * @see routes/web.php:92
  * @route '/dashboard'
  */
 dashboard.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -717,7 +717,7 @@ dashboard.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     method: 'get',
 })
 /**
- * @see routes/web.php:91
+ * @see routes/web.php:92
  * @route '/dashboard'
  */
 dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -726,7 +726,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 })
 
     /**
- * @see routes/web.php:91
+ * @see routes/web.php:92
  * @route '/dashboard'
  */
     const dashboardForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -735,7 +735,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     })
 
             /**
- * @see routes/web.php:91
+ * @see routes/web.php:92
  * @route '/dashboard'
  */
         dashboardForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -743,7 +743,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
             method: 'get',
         })
             /**
- * @see routes/web.php:91
+ * @see routes/web.php:92
  * @route '/dashboard'
  */
         dashboardForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

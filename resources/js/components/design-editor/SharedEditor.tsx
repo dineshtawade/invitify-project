@@ -1,14 +1,21 @@
-import { useState } from 'react';
-import { Eye, Smartphone, Monitor, Tablet, ArrowUp, ArrowDown, Trash, Compass, Plus, GripVertical, Image, Tag, Code, Users, Type } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Eye, Smartphone, Monitor, Tablet, Type, Image as ImageIcon, Video, Link as LinkIcon, MapPin, MousePointer2, Trash } from 'lucide-react';
 import { BlockSettings } from './BlockSettings';
-import { DevicePreview } from './DevicePreview';
-import { getNewBlockDefaults, type Block } from './types';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { getNewElementDefaults, type Block, type WebsiteConfig } from './types';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import * as LucideIcons from 'lucide-react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
 
 interface SharedEditorProps {
-    blocks: Block[];
-    onChange: (blocks: Block[]) => void;
+    // New format: WebsiteConfig with pages
+    config?: WebsiteConfig;
+    onChange?: (config: WebsiteConfig) => void;
+    // Legacy format: flat Block[] (used by business-website pages)
+    blocks?: Block[];
     title?: string;
     slug?: string;
     pagesNav?: { slug: string; title: string; active: boolean }[];
@@ -17,239 +24,408 @@ interface SharedEditorProps {
     customBlocks?: any[];
 }
 
-export function SharedEditor({ blocks, onChange, title, slug, pagesNav, isInvitation = false, isCustomerMode = false, customBlocks = [] }: SharedEditorProps) {
-    const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
-    const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
-    const handleAddBlock = (type: string) => {
-        if (!type) return;
-        const customBlock = customBlocks.find(cb => cb.type === type);
-        if (customBlock) {
-            const defaults: Record<string, any> = {};
-            if (customBlock.fields && Array.isArray(customBlock.fields)) {
-                customBlock.fields.forEach((f: any) => {
-                    defaults[f.name] = f.default || '';
-                });
+
+const pxToCqw = (px?: number | string | null, defaultPx: number = 0) => {
+    const val = px !== undefined && px !== null ? Number(px) : defaultPx;
+    return `${(val / 384) * 100}cqw`;
+};
+
+function normalizeToConfig(props: SharedEditorProps): WebsiteConfig {
+    if (props.config && props.config.pages) return props.config;
+    if (props.blocks) return { pages: [{ id: 'home', name: 'Home', blocks: props.blocks }] };
+    return { pages: [{ id: 'home', name: 'Home', blocks: [] }] };
+}
+
+export function SharedEditor(props: SharedEditorProps) {
+    const { title, slug, pagesNav, isInvitation = false, isCustomerMode = false, customBlocks = [] } = props;
+    const config = normalizeToConfig(props);
+    const onChange = (newConfig: WebsiteConfig) => {
+        if (props.onChange) props.onChange(newConfig);
+        // Legacy: if caller passes blocks + onChange that expects Block[]
+        // they should migrate to config/onChange pattern
+    };
+    const [activePageId, setActivePageId] = useState<string>(config?.pages?.[0]?.id || 'home');
+    const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+    const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('mobile');
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dragPos, setDragPos] = useState<{ id: string, x: number, y: number } | null>(null);
+
+    const activePage = config?.pages?.find(p => p.id === activePageId) || config?.pages?.[0];
+    const blocks = activePage?.blocks || [];
+
+    const handleUpdateBlocks = (newBlocks: Block[]) => {
+        if (!activePage) return;
+        onChange({
+            ...config,
+            pages: config.pages.map(p => p.id === activePage.id ? { ...p, blocks: newBlocks } : p)
+        });
+    };
+
+    const handleAddElement = (type: string) => {
+        if (type === 'background') {
+            const existingBg = blocks.find(b => b.type === 'background');
+            if (existingBg) {
+                setSelectedElementId(existingBg.id);
+                return;
             }
-            const newBlock = {
-                id: `block_${type}_${Math.random().toString(36).substring(2, 9)}`,
-                type,
-                ...defaults
-            } as Block;
-            onChange([...blocks, newBlock]);
-            setActiveSectionId(newBlock.id);
-        } else {
-            const newBlock = getNewBlockDefaults(type, isInvitation);
-            onChange([...blocks, newBlock]);
-            setActiveSectionId(newBlock.id);
         }
+        const newEl = getNewElementDefaults(type);
+        handleUpdateBlocks([...blocks, newEl]);
+        setSelectedElementId(newEl.id);
     };
 
-    const handleUpdateBlock = (id: string, updates: Partial<Block>) => {
-        onChange(blocks.map((b) => b.id === id ? { ...b, ...updates } : b));
+    const handleUpdateElement = (id: string, updates: Partial<Block>) => {
+        handleUpdateBlocks(blocks.map(b => b.id === id ? { ...b, ...updates } : b));
     };
 
-    const handleDeleteBlock = (id: string) => {
-        onChange(blocks.filter((b) => b.id !== id));
-        if (activeSectionId === id) setActiveSectionId(null);
+    const handleDeleteElement = (id: string) => {
+        handleUpdateBlocks(blocks.filter(b => b.id !== id));
+        if (selectedElementId === id) setSelectedElementId(null);
     };
 
-    const handleMoveBlock = (index: number, direction: 'up' | 'down') => {
-        const newBlocks = [...blocks];
-        if (direction === 'up' && index === 0) return;
-        if (direction === 'down' && index === newBlocks.length - 1) return;
-        const swapIndex = direction === 'up' ? index - 1 : index + 1;
-        [newBlocks[index], newBlocks[swapIndex]] = [newBlocks[swapIndex], newBlocks[index]];
-        onChange(newBlocks);
+    const getDeviceWidth = () => {
+        if (previewDevice === 'mobile') return 'max-w-sm';
+        if (previewDevice === 'tablet') return 'max-w-2xl';
+        return 'max-w-5xl';
     };
+
+    const bgBlock = blocks.find(b => b.type === 'background');
+    const bgStyle = bgBlock ? (bgBlock.src ? { backgroundImage: `url(${bgBlock.src})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: bgBlock.bgColor }) : { backgroundSize: '20px 20px', backgroundImage: 'radial-gradient(circle, #00000010 1px, transparent 1px)', backgroundColor: 'white' };
 
     return (
-        <div className="flex-1 overflow-hidden grid lg:grid-cols-12 h-full">
-            {/* Left Editor Panel */}
-            <div className="lg:col-span-5 border-r border-neutral-150 dark:border-neutral-850 flex flex-col overflow-y-auto p-6 gap-6 bg-neutral-50/30 dark:bg-neutral-950/20">
-                <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between gap-4">
-                        <h4 className="text-xs uppercase tracking-widest font-black text-neutral-400">Layout Blocks</h4>
-                        {!isCustomerMode && (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button size="sm" className="h-8 bg-pink-600 hover:bg-pink-700 text-white rounded-full shadow-md shadow-pink-500/20 px-4 transition-all hover:scale-105 active:scale-95 cursor-pointer">
-                                        <Plus className="size-4 mr-1.5" /> Add Block
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border border-pink-100 dark:border-neutral-800 shadow-2xl">
-                                    <DropdownMenuLabel className="text-[10px] font-extrabold tracking-widest uppercase text-pink-500/80 px-2">Standard Blocks</DropdownMenuLabel>
-                                    <DropdownMenuSeparator className="bg-pink-50/50 dark:bg-neutral-800" />
-                                    <DropdownMenuGroup className="grid grid-cols-1 gap-1 max-h-[300px] overflow-y-auto pr-1">
-                                        <DropdownMenuItem onClick={() => handleAddBlock('advanced_section')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-pink-50 hover:text-pink-700">
-                                            <span className="bg-pink-100 text-pink-600 rounded mr-2 p-1"><Compass className="size-3" /></span> Advanced Section
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('dynamic_layout')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            <span className="bg-neutral-100 rounded mr-2 p-1"><Type className="size-3" /></span> Dynamic Layout
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('flexible_layout')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50 hover:text-pink-600">
-                                            <span className="bg-pink-100 text-pink-600 rounded mr-2 p-1"><Compass className="size-3" /></span> Flexible Section
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('hero')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            <span className="bg-neutral-100 rounded mr-2 p-1"><Eye className="size-3" /></span> Hero Section
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('cta')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            <span className="bg-neutral-100 rounded mr-2 p-1"><Smartphone className="size-3" /></span> Call to Action
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('gallery')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            <span className="bg-neutral-100 rounded mr-2 p-1"><Image className="size-3" /></span> Photo Gallery
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('pricing')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            <span className="bg-neutral-100 rounded mr-2 p-1"><Tag className="size-3" /></span> Pricing Table
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('profile')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            <span className="bg-neutral-100 rounded mr-2 p-1"><Users className="size-3" /></span> Team Profiles
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('html')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50 dark:hover:bg-neutral-800">
-                                            <span className="bg-neutral-100 dark:bg-neutral-800 rounded mr-2 p-1"><Code className="size-3" /></span> Custom HTML
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('freeform')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50 dark:hover:bg-neutral-800">
-                                            <span className="bg-pink-100 text-pink-600 rounded mr-2 p-1"><Compass className="size-3" /></span> Freeform Canvas
-                                        </DropdownMenuItem>
-                                        
-                                        <DropdownMenuSeparator className="my-1" />
-                                        
-                                        <DropdownMenuItem onClick={() => handleAddBlock('text')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            Text Section
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('swiper')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            Photo Slider
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('video')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            Video Embed
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('links')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            Button Links
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('icons_grid')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            Features Grid
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('form')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            {isInvitation ? 'RSVP Form' : 'Contact Form'}
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('countdown')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            Countdown Timer
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('map')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            Google Map
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleAddBlock('timeline')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">
-                                            Timeline Schedule
-                                        </DropdownMenuItem>
-                                        {!isInvitation && <DropdownMenuItem onClick={() => handleAddBlock('faq')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">FAQ Accordion</DropdownMenuItem>}
-                                        {!isInvitation && <DropdownMenuItem onClick={() => handleAddBlock('testimonials')} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-neutral-50">Testimonials</DropdownMenuItem>}
-                                    </DropdownMenuGroup>
-                                    
-                                    {customBlocks.length > 0 && (
-                                        <>
-                                            <DropdownMenuSeparator className="my-1 bg-pink-50/50" />
-                                            <DropdownMenuLabel className="text-[10px] font-extrabold tracking-widest uppercase text-pink-500/80 px-2 pt-2">Custom Blocks</DropdownMenuLabel>
-                                            <DropdownMenuGroup className="grid grid-cols-1 gap-1">
-                                                {customBlocks.map(cb => (
-                                                    <DropdownMenuItem key={cb.id} onClick={() => handleAddBlock(cb.type)} className="cursor-pointer rounded-xl font-medium text-xs py-2 px-3 hover:bg-pink-50">
-                                                        {cb.name}
-                                                    </DropdownMenuItem>
-                                                ))}
-                                            </DropdownMenuGroup>
-                                        </>
-                                    )}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        )}
-                    </div>
+        <div className="flex-1 overflow-hidden flex h-full">
+            {/* Left Toolbar (Elements & Layers / Customer Content Editor) */}
+            {!isCustomerMode ? (
+                <div className="w-[300px] shrink-0 border-r border-neutral-150 dark:border-neutral-850 flex flex-col overflow-y-auto bg-neutral-50 dark:bg-neutral-950 custom-scrollbar">
+                <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
+                    <h4 className="text-xs uppercase tracking-widest font-black text-neutral-400 mb-3">Add Elements</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handleAddElement('text')} className="h-10 justify-start"><Type className="size-4 mr-2" /> Text</Button>
+                        <Button variant="outline" size="sm" onClick={() => handleAddElement('image')} className="h-10 justify-start"><ImageIcon className="size-4 mr-2" /> Image</Button>
+                        <Button variant="outline" size="sm" onClick={() => handleAddElement('button')} className="h-10 justify-start"><MousePointer2 className="size-4 mr-2" /> Button</Button>
+                        <Button variant="outline" size="sm" onClick={() => handleAddElement('icon')} className="h-10 justify-start"><LucideIcons.Star className="size-4 mr-2" /> Icon</Button>
+                        <Button variant="outline" size="sm" onClick={() => handleAddElement('video')} className="h-10 justify-start"><Video className="size-4 mr-2" /> Video</Button>
+                        <Button variant="outline" size="sm" onClick={() => handleAddElement('map')} className="h-10 justify-start"><MapPin className="size-4 mr-2" /> Map</Button>
+                        <Button variant="outline" size="sm" onClick={() => handleAddElement('carousel')} className="h-10 justify-start"><LucideIcons.Images className="size-4 mr-2" /> Carousel</Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                            if (!bgBlock) handleAddElement('background');
+                            setTimeout(() => {
+                                const bg = blocks.find(b => b.type === 'background');
+                                if (bg) setSelectedElementId(bg.id);
+                            }, 50);
+                        }} className="h-10 justify-start border-pink-200 bg-pink-50 text-pink-700 hover:bg-pink-100 hover:text-pink-800 dark:bg-pink-950/20 dark:border-pink-900/50 dark:text-pink-400"><LucideIcons.PaintBucket className="size-4 mr-2" /> Canvas BG</Button>
 
-                    <div className="flex flex-col gap-3">
-                        {blocks.map((block, idx) => {
-                            const isActive = activeSectionId === block.id;
-                            return (
-                                <div 
-                                    key={block.id} 
-                                    draggable={!isCustomerMode}
-                                    onDragStart={(e) => {
-                                        if (isCustomerMode) return;
-                                        e.dataTransfer.setData('text/plain', String(idx));
-                                    }}
-                                    onDragOver={(e) => {
-                                        if (isCustomerMode) return;
-                                        e.preventDefault();
-                                    }}
-                                    onDrop={(e) => {
-                                        if (isCustomerMode) return;
-                                        e.preventDefault();
-                                        const fromIndex = Number(e.dataTransfer.getData('text/plain'));
-                                        if (isNaN(fromIndex) || fromIndex === idx) return;
-                                        const updatedBlocks = [...blocks];
-                                        const [draggedItem] = updatedBlocks.splice(fromIndex, 1);
-                                        updatedBlocks.splice(idx, 0, draggedItem);
-                                        onChange(updatedBlocks);
-                                    }}
-                                    className={`rounded-2xl border transition-all duration-300 backdrop-blur-md shadow-sm dark:bg-neutral-900/80 ${isActive ? 'bg-white dark:bg-neutral-900 border-pink-500 ring-4 ring-pink-500/20 shadow-lg scale-[1.01]' : 'bg-white/70 border-white dark:border-neutral-800 hover:border-pink-300 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-neutral-900'} ${!isCustomerMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
-                                >
-                                    <div onClick={() => setActiveSectionId(isActive ? null : block.id)} className="p-3.5 flex items-center justify-between cursor-pointer select-none">
-                                        <div className="flex items-center gap-3">
-                                            {!isCustomerMode && <GripVertical className="size-4 text-neutral-300 dark:text-neutral-600" />}
-                                            <div className="rounded-lg bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 px-2.5 py-1.5 font-bold text-[10px] uppercase tracking-wider">{block.type}</div>
-                                            <span className="font-bold text-sm text-neutral-700 dark:text-neutral-200 capitalize">{block.title || `${block.type} section`}</span>
-                                            {block.is_hidden && <span className="text-[9px] bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-0.5 rounded font-black uppercase tracking-wider shadow-sm">Hidden</span>}
-                                        </div>
-                                        {!isCustomerMode && (
-                                            <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                                                <button type="button" disabled={idx === 0} onClick={() => handleMoveBlock(idx, 'up')} className="p-1 rounded text-neutral-400 hover:bg-neutral-100 disabled:opacity-30 dark:hover:bg-neutral-800"><ArrowUp className="size-4" /></button>
-                                                <button type="button" disabled={idx === blocks.length - 1} onClick={() => handleMoveBlock(idx, 'down')} className="p-1 rounded text-neutral-400 hover:bg-neutral-100 disabled:opacity-30 dark:hover:bg-neutral-800"><ArrowDown className="size-4" /></button>
-                                                <button type="button" onClick={() => handleDeleteBlock(block.id)} className="p-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"><Trash className="size-4" /></button>
+                        {/* Effects as buttons in the grid */}
+                        <Button variant="outline" size="sm" onClick={() => {
+                            if (!bgBlock) handleAddElement('background');
+                            setTimeout(() => {
+                                const bg = blocks.find(b => b.type === 'background');
+                                if (bg) setSelectedElementId(bg.id);
+                            }, 50);
+                        }} className="h-10 justify-start border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800 dark:bg-indigo-950/20 dark:border-indigo-900/50 dark:text-indigo-400"><LucideIcons.Wand2 className="size-4 mr-2" /> Animations</Button>
+                        
+                        <Button variant="outline" size="sm" onClick={() => {
+                            if (!bgBlock) handleAddElement('background');
+                            setTimeout(() => {
+                                const bg = blocks.find(b => b.type === 'background');
+                                if (bg) setSelectedElementId(bg.id);
+                            }, 50);
+                        }} className="h-10 justify-start border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 hover:text-orange-800 dark:bg-orange-950/20 dark:border-orange-900/50 dark:text-orange-400"><LucideIcons.PartyPopper className="size-4 mr-2" /> Celebrations</Button>
+                    </div>
+                </div>
+
+                {/* Layer List */}
+                <div className="p-4 flex-1 overflow-y-auto">
+                    <h4 className="text-xs uppercase tracking-widest font-black text-neutral-400 mb-3">Layers</h4>
+                    <div className="space-y-2">
+                        {blocks.map((el, i) => (
+                            <div 
+                                key={el.id} 
+                                onClick={() => setSelectedElementId(el.id)}
+                                className={`flex items-center justify-between p-2 rounded-lg border text-xs cursor-pointer transition-colors ${selectedElementId === el.id ? 'bg-pink-50 border-pink-200 text-pink-700 dark:bg-pink-950/30 dark:border-pink-900/50 dark:text-pink-400' : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50 dark:bg-neutral-900 dark:border-neutral-800 dark:text-neutral-300'}`}
+                            >
+                                <span className="font-semibold capitalize truncate">{el.content || el.type}</span>
+                                <button type="button" onClick={(e) => { e.stopPropagation(); handleDeleteElement(el.id); }} className="text-neutral-400 hover:text-red-500">
+                                    <Trash className="size-3" />
+                                </button>
+                            </div>
+                        ))}
+                        {blocks.length === 0 && <div className="text-center text-xs text-neutral-400 py-4">No layers yet.</div>}
+                    </div>
+                </div>
+            </div>
+            ) : (
+                <div className="w-[350px] shrink-0 border-r border-neutral-150 dark:border-neutral-850 flex flex-col overflow-y-auto bg-white dark:bg-neutral-950 custom-scrollbar p-6">
+                    <h3 className="font-serif text-xl font-bold text-neutral-800 dark:text-neutral-200 mb-6">Customize Content</h3>
+                    <div className="space-y-6">
+                        {blocks.filter(el => ['text', 'image', 'video', 'button', 'background'].includes(el.type)).map((el, idx) => {
+                            if (el.type === 'text' || el.type === 'button') {
+                                return (
+                                    <div key={el.id} className="space-y-2 pb-4 border-b border-neutral-100 dark:border-neutral-800 last:border-0">
+                                        <label className="text-xs uppercase tracking-widest text-neutral-500 font-bold block">{el.type} Field {idx + 1}</label>
+                                        {el.type === 'text' && el.content && el.content.length > 50 ? (
+                                            <textarea 
+                                                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[80px]"
+                                                value={el.content || ''}
+                                                onChange={e => handleUpdateElement(el.id, { content: e.target.value })}
+                                            />
+                                        ) : (
+                                            <Input 
+                                                value={el.content || ''}
+                                                onChange={e => handleUpdateElement(el.id, { content: e.target.value })}
+                                            />
+                                        )}
+                                        {el.type === 'button' && (
+                                            <div className="mt-2">
+                                                <label className="text-[10px] uppercase tracking-wider text-neutral-400 block mb-1">Link URL</label>
+                                                <Input 
+                                                    value={el.actionType === 'url' ? el.url : ''}
+                                                    onChange={e => handleUpdateElement(el.id, { actionType: 'url', url: e.target.value })}
+                                                    placeholder="https://"
+                                                    className="h-8"
+                                                />
                                             </div>
                                         )}
                                     </div>
-                                    {isActive && <BlockSettings block={block} onUpdate={handleUpdateBlock} isCustomerMode={isCustomerMode} customBlocks={customBlocks} />}
-                                </div>
-                            );
+                                );
+                            } else if (el.type === 'image' || el.type === 'video' || el.type === 'background') {
+                                return (
+                                    <div key={el.id} className="space-y-2 pb-4 border-b border-neutral-100 dark:border-neutral-800 last:border-0">
+                                        <label className="text-xs uppercase tracking-widest text-neutral-500 font-bold capitalize block">{el.type} URL {idx + 1}</label>
+                                        <Input 
+                                            value={el.src || ''}
+                                            onChange={e => handleUpdateElement(el.id, { src: e.target.value })}
+                                            placeholder={`https://example.com/your-${el.type}.jpg`}
+                                        />
+                                        {el.src && (el.type === 'image' || el.type === 'background') && (
+                                            <div className="mt-2 h-24 rounded overflow-hidden border border-neutral-200">
+                                                <img src={el.src} className="w-full h-full object-cover" />
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            }
+                            return null;
                         })}
-                        {blocks.length === 0 && (
-                            <div className="py-8 text-center text-neutral-400 text-xs border border-dashed rounded-xl">
-                                No blocks added.
-                            </div>
-                        )}
                     </div>
                 </div>
-            </div>
+            )}
 
-            {/* Right Simulator Panel */}
-            <div className="lg:col-span-7 flex flex-col items-center justify-start p-6 bg-neutral-900 relative h-full max-h-full overflow-hidden">
-                <div className="flex items-center gap-4 mb-4 justify-between w-full text-white text-xs z-10 shrink-0">
+            {/* Central Canvas */}
+            <div className="flex-1 flex flex-col bg-neutral-900 relative h-full max-h-full overflow-hidden">
+                {/* Topbar */}
+                <div className="flex items-center gap-4 justify-between w-full p-4 text-white text-xs z-10 bg-neutral-950/50 backdrop-blur-md shrink-0 border-b border-neutral-800">
                     <span className="font-semibold uppercase tracking-widest flex items-center gap-1.5 opacity-80">
-                        <Eye className="size-4" /> Live Simulator
+                        <Eye className="size-4" /> Canvas
                     </span>
                     <div className="flex items-center bg-neutral-800 rounded-lg p-0.5 border border-neutral-750">
-                        <button type="button" onClick={() => setPreviewDevice('desktop')} className={`p-1.5 rounded-md transition-all ${previewDevice === 'desktop' ? 'bg-blue-600 text-white' : 'text-neutral-400 hover:text-white'}`}>
-                            <Monitor className="size-4" />
-                        </button>
-                        <button type="button" onClick={() => setPreviewDevice('tablet')} className={`p-1.5 rounded-md transition-all ${previewDevice === 'tablet' ? 'bg-blue-600 text-white' : 'text-neutral-400 hover:text-white'}`}>
-                            <Tablet className="size-4" />
-                        </button>
-                        <button type="button" onClick={() => setPreviewDevice('mobile')} className={`p-1.5 rounded-md transition-all ${previewDevice === 'mobile' ? 'bg-blue-600 text-white' : 'text-neutral-400 hover:text-white'}`}>
-                            <Smartphone className="size-4" />
-                        </button>
+                        <button type="button" onClick={() => setPreviewDevice('desktop')} className={`p-1.5 rounded-md transition-all ${previewDevice === 'desktop' ? 'bg-blue-600 text-white' : 'text-neutral-400 hover:text-white'}`}><Monitor className="size-4" /></button>
+                        <button type="button" onClick={() => setPreviewDevice('tablet')} className={`p-1.5 rounded-md transition-all ${previewDevice === 'tablet' ? 'bg-blue-600 text-white' : 'text-neutral-400 hover:text-white'}`}><Tablet className="size-4" /></button>
+                        <button type="button" onClick={() => setPreviewDevice('mobile')} className={`p-1.5 rounded-md transition-all ${previewDevice === 'mobile' ? 'bg-blue-600 text-white' : 'text-neutral-400 hover:text-white'}`}><Smartphone className="size-4" /></button>
                     </div>
                 </div>
 
-                <div className="flex-1 w-full min-h-0 flex items-center justify-center overflow-hidden">
-                    <DevicePreview 
-                        blocks={blocks} 
-                        activeSectionId={activeSectionId} 
-                        deviceType={previewDevice}
-                        title={title}
-                        slug={slug}
-                        pagesNav={pagesNav}
-                        isInvitation={isInvitation}
-                        customBlocks={customBlocks}
-                    />
+                {/* Page Manager Tab Bar */}
+                <div className="flex items-center gap-2 w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 shrink-0 overflow-x-auto custom-scrollbar">
+                    {config?.pages?.map(page => (
+                        <div key={page.id} className={`flex items-center gap-1 px-3 py-1.5 rounded-md transition-all ${activePageId === page.id ? 'bg-white shadow-sm border border-neutral-200 dark:bg-neutral-800 dark:border-neutral-700' : 'bg-transparent border border-transparent hover:bg-neutral-200 dark:hover:bg-neutral-800'}`}>
+                            <button
+                                onClick={() => {
+                                    setActivePageId(page.id);
+                                    setSelectedElementId(null);
+                                }}
+                                className={`text-xs font-semibold whitespace-nowrap ${activePageId === page.id ? 'text-neutral-900 dark:text-white' : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
+                            >
+                                {page.name}
+                            </button>
+                            {!isCustomerMode && config.pages.length > 1 && (
+                                <button 
+                                    onClick={() => {
+                                        const newPages = config.pages.filter(p => p.id !== page.id);
+                                        onChange({ ...config, pages: newPages });
+                                        if (activePageId === page.id) {
+                                            setActivePageId(newPages[0].id);
+                                            setSelectedElementId(null);
+                                        }
+                                    }}
+                                    className="ml-1 text-neutral-400 hover:text-red-500 transition-colors"
+                                >
+                                    <LucideIcons.X className="size-3" />
+                                </button>
+                            )}
+                        </div>
+                    ))}
+                    {!isCustomerMode && (
+                        <button 
+                            onClick={() => {
+                                const newId = `page_${Math.random().toString(36).substr(2, 9)}`;
+                                const newPageName = `Page ${(config?.pages?.length || 0) + 1}`;
+                                
+                                const navBtn = getNewElementDefaults('button');
+                                navBtn.content = `Go to ${newPageName}`;
+                                navBtn.actionType = 'page';
+                                navBtn.targetPageId = newId;
+                                navBtn.y = 80; // place near bottom to avoid overlap with top elements
+                                
+                                const newPages = config?.pages ? [...config.pages] : [];
+                                if (newPages.length > 0) {
+                                    newPages[0] = {
+                                        ...newPages[0],
+                                        blocks: [...newPages[0].blocks, navBtn]
+                                    };
+                                }
+                                
+                                newPages.push({ id: newId, name: newPageName, blocks: [] });
+                                
+                                onChange({
+                                    ...config,
+                                    pages: newPages
+                                });
+                                setActivePageId(newId);
+                                setSelectedElementId(null);
+                            }}
+                            className="px-3 py-1.5 text-xs font-semibold rounded-md border border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/20 whitespace-nowrap flex items-center gap-1 ml-2"
+                        >
+                            <LucideIcons.Plus className="size-3" /> Add Page
+                        </button>
+                    )}
+                </div>
+
+                {/* Canvas Area */}
+                <div className="flex-1 overflow-y-auto p-8 flex justify-center bg-neutral-100/50 dark:bg-neutral-900/50 custom-scrollbar" onClick={() => setSelectedElementId(null)}>
+                    <div 
+                        ref={containerRef}
+                        className={`relative w-full shadow-2xl transition-all duration-300 ${getDeviceWidth()} overflow-hidden rounded-md`}
+                        style={{
+                            ...bgStyle,
+                            containerType: 'inline-size' as any,
+                            minHeight: pxToCqw(Math.max(800, blocks.filter(b => b.type !== 'background').reduce((max, b) => {
+                                const bY = dragPos?.id === b.id ? dragPos.y : b.y;
+                                return Math.max(max, bY + (b.h || 100));
+                            }, 0) + 200))
+                        }}
+                    >
+                        {blocks.filter(b => b.type !== 'background').map(el => {
+                            const displayX = dragPos?.id === el.id ? dragPos.x : el.x;
+                            const displayY = dragPos?.id === el.id ? dragPos.y : el.y;
+                            const isSelected = selectedElementId === el.id;
+
+                            let innerContent = null;
+                            if (el.type === 'text') innerContent = el.content;
+                            else if (el.type === 'image') innerContent = <img src={el.src} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: pxToCqw(el.borderRadius) }} draggable="false" />;
+                            else if (el.type === 'video') innerContent = <video src={el.src} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: pxToCqw(el.borderRadius), pointerEvents: 'none' }} autoPlay loop muted playsInline />;
+                            else if (el.type === 'button') innerContent = <button style={{ width: '100%', height: '100%', backgroundColor: el.bgColor, color: el.color, borderRadius: pxToCqw(el.borderRadius), fontSize: pxToCqw(el.fontSize, 16), fontWeight: el.fontWeight }} className="flex items-center justify-center pointer-events-none">{el.content}</button>;
+                            else if (el.type === 'icon') {
+                                const IconComp = (LucideIcons as any)[el.iconName || 'Star'] || LucideIcons.Star;
+                                innerContent = <IconComp style={{ width: '100%', height: '100%', color: el.color }} />;
+                            } else if (el.type === 'map') innerContent = <iframe src={el.src} style={{ width: '100%', height: '100%', borderRadius: pxToCqw(el.borderRadius), pointerEvents: isSelected ? 'none' : 'auto' }} frameBorder="0" />;
+                            else if (el.type === 'carousel') {
+                                const imgs = el.images && el.images.length > 0 ? el.images : ['https://via.placeholder.com/300x200'];
+                                innerContent = (
+                                    <Swiper 
+                                        modules={[Autoplay, Pagination]} 
+                                        autoplay={{ delay: 2500 }} 
+                                        pagination={{ clickable: true }}
+                                        className="w-full h-full"
+                                        style={{ borderRadius: pxToCqw(el.borderRadius), pointerEvents: isSelected ? 'none' : 'auto' }}
+                                    >
+                                        {imgs.map((src, idx) => (
+                                            <SwiperSlide key={idx}>
+                                                <img src={src} className="w-full h-full object-cover" draggable="false" />
+                                            </SwiperSlide>
+                                        ))}
+                                    </Swiper>
+                                );
+                            }
+
+                            return (
+                                <React.Fragment key={el.id}>
+                                    <div
+                                        onClick={(e) => e.stopPropagation()}
+                                        onMouseDown={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedElementId(el.id);
+                                            if (isCustomerMode) return;
+                                            
+                                            const container = containerRef.current;
+                                            if (!container) return;
+                                            const rect = container.getBoundingClientRect();
+                                            const startX = e.clientX;
+                                            const startY = e.clientY;
+                                            const startLeft = el.x;
+                                            const startTop = el.y;
+
+                                            const handleMouseMove = (moveEvent: MouseEvent) => {
+                                                const deltaX = ((moveEvent.clientX - startX) / rect.width) * 100;
+                                                const scaleRatio = 384 / rect.width;
+                                                const deltaY = (moveEvent.clientY - startY) * scaleRatio;
+                                                setDragPos({ 
+                                                    id: el.id, 
+                                                    x: Math.max(0, Math.min(100, startLeft + deltaX)), 
+                                                    y: Math.max(0, startTop + deltaY)
+                                                });
+                                            };
+                                            const handleMouseUp = () => {
+                                                document.removeEventListener('mousemove', handleMouseMove);
+                                                document.removeEventListener('mouseup', handleMouseUp);
+                                                setDragPos(current => {
+                                                    if (current) {
+                                                        handleUpdateElement(el.id, { x: current.x, y: current.y });
+                                                    }
+                                                    return null;
+                                                });
+                                            };
+                                            document.addEventListener('mousemove', handleMouseMove);
+                                            document.addEventListener('mouseup', handleMouseUp);
+                                        }}
+                                        className={`absolute ${!isCustomerMode ? 'cursor-move' : ''} ${isSelected && !isCustomerMode ? 'ring-2 ring-indigo-500 shadow-xl z-50' : ''}`}
+
+                                        style={{
+                                            left: `${displayX}%`,
+                                            top: pxToCqw(displayY),
+                                            width: el.w ? pxToCqw(el.w) : undefined,
+                                            height: el.h ? pxToCqw(el.h) : undefined,
+                                            zIndex: el.zIndex || 1,
+                                            ...(el.type === 'text' || el.type === 'link' || el.type === 'button' ? {
+                                                fontSize: pxToCqw(el.fontSize, 16),
+                                                fontWeight: el.fontWeight || 'normal',
+                                                fontFamily: el.fontFamily,
+                                                color: el.color,
+                                                textShadow: el.textShadow && el.textShadow !== 'none' ? el.textShadow : undefined,
+                                                whiteSpace: 'nowrap'
+                                            } : {})
+                                        }}
+                                    >
+                                        {innerContent}
+                                        {isSelected && (el.w !== undefined) && (
+                                            <div className="absolute right-0 bottom-0 w-3 h-3 bg-white border-2 border-indigo-500 rounded-full cursor-se-resize translate-x-1/2 translate-y-1/2" />
+                                        )}
+                                    </div>
+                                </React.Fragment>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
+            
+            {/* Right Toolbar (Properties) */}
+            {!isCustomerMode && selectedElementId && blocks.find(b => b.id === selectedElementId) && (
+                <div className="w-80 shrink-0 border-l border-neutral-200 dark:border-neutral-800 flex flex-col overflow-y-auto bg-white dark:bg-neutral-950 shadow-xl custom-scrollbar z-20">
+                    <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center sticky top-0 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md z-10">
+                        <h4 className="text-xs uppercase tracking-widest font-black text-neutral-400">Properties</h4>
+                        <button type="button" onClick={() => setSelectedElementId(null)} className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300">
+                            <LucideIcons.X className="size-4" />
+                        </button>
+                    </div>
+                    <BlockSettings 
+                        block={blocks.find(b => b.id === selectedElementId)!} 
+                        onUpdate={handleUpdateElement} 
+                        pages={config?.pages || []}
+                        isCustomerMode={isCustomerMode} 
+                    />
+                </div>
+            )}
         </div>
     );
 }

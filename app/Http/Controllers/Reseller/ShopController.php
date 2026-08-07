@@ -16,7 +16,7 @@ class ShopController extends Controller
         $wallet = $user->getOrCreateWallet();
 
         // Catalog of normal invitation templates
-        $templates = Template::all()->map(fn($t) => [
+        $templates = Template::where('status', 'published')->get()->map(fn($t) => [
             'id' => $t->id,
             'name' => $t->name,
             'type' => $t->type,
@@ -29,7 +29,7 @@ class ShopController extends Controller
         ]);
 
         // Catalog of Mini Website templates
-        $miniTemplates = MiniWebsiteTemplate::all()->map(fn($t) => [
+        $miniTemplates = MiniWebsiteTemplate::where('status', 'published')->get()->map(fn($t) => [
             'id' => $t->id,
             'name' => $t->name,
             'type' => $t->type,

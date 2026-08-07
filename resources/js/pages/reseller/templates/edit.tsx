@@ -599,6 +599,9 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                             fontSize: elem.fontSize ? `${elem.fontSize * scaleRatio}px` : undefined,
                                             fontWeight: elem.fontWeight || 'normal',
                                             fontStyle: elem.isItalic ? 'italic' : 'normal',
+                                            textShadow: elem.type === 'text' && elem.textShadow && elem.textShadow !== 'none' ? elem.textShadow : undefined,
+                                            opacity: elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1,
+                                            zIndex: elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25,
                                         };
 
                                         return (

@@ -131,6 +131,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
     const [previewMode, setPreviewMode] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const [csrfToken, setCsrfToken] = useState('');
 
     // State matching our Eloquent model fields
@@ -185,6 +186,16 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
     // Autosave function using axios
     const saveDraft = async (targetStep?: number) => {
         if (!cardState.id) return;
+
+        if (currentStep === 2 && targetStep && targetStep > 2) {
+            const pd = cardState.personal_details || {};
+            if (!pd.first_name || !pd.last_name || !pd.phone_1 || !pd.about_us) {
+                setErrorMessage("Please fill in First Name, Last Name, Primary Phone, and About Us before proceeding.");
+                setTimeout(() => setErrorMessage(''), 4000);
+                return;
+            }
+        }
+
         setIsSaving(true);
         setSaveMessage('');
         try {
@@ -610,12 +621,18 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
 
+            {errorMessage && (
+                <div className="fixed bottom-10 right-10 z-50 bg-red-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-bounce">
+                    <AlertCircle className="size-5" />
+                    <span className="text-sm font-semibold">{errorMessage}</span>
+                </div>
+            )}
 
             <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)] overflow-y-auto lg:overflow-hidden bg-slate-50">
                 {/* Left Side Editing Wizard */}
                 <div className={`${currentStep === 8 ? 'w-full lg:w-1/2' : 'w-full'} flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200 bg-white h-auto lg:h-full min-h-[80vh] transition-all duration-500 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10`}>
                     {/* Header */}
-                    <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-20">
+                    <div className="px-8 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-20">
                         <div>
                             <h2 className="text-2xl font-black text-slate-800 tracking-tight">{cardState.company_name || 'New Design'}</h2>
                             <p className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">
@@ -763,7 +780,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">First Name</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">First Name *</label>
                                         <input
                                             type="text"
                                             value={cardState.personal_details?.first_name || ''}
@@ -772,7 +789,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Last Name</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Last Name *</label>
                                         <input
                                             type="text"
                                             value={cardState.personal_details?.last_name || ''}
@@ -796,10 +813,9 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                     <div>
                                         <label className="block text-xs font-bold text-neutral-1000">Est. Start Date</label>
                                         <input
-                                            type="text"
+                                            type="date"
                                             value={cardState.personal_details?.est_date || ''}
                                             onChange={(e) => updatePersonalDetails('est_date', e.target.value)}
-                                            placeholder="e.g. 2018 or 15-May-2020"
                                             className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
                                         />
                                     </div>
@@ -807,7 +823,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Primary Phone</label>
+                                        <label className="block text-xs font-bold text-neutral-1000">Primary Phone *</label>
                                         <input
                                             type="text"
                                             value={cardState.personal_details?.phone_1 || ''}
@@ -880,7 +896,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-neutral-1000">About Us / Description</label>
+                                    <label className="block text-xs font-bold text-neutral-1000">About Us / Description *</label>
                                     <textarea
                                         value={cardState.personal_details?.about_us || ''}
                                         onChange={(e) => updatePersonalDetails('about_us', e.target.value)}

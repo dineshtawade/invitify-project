@@ -19,8 +19,9 @@ interface MiniWebsiteTemplate {
     id: number;
     name: string;
     price: number | string;
+    status: string;
     preview_image: string;
-    config: Block[];
+    config: any;
 }
 
 interface EditorRequest {
@@ -80,12 +81,12 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
             action
         });
     };
-
     const { data, setData, post, put, reset, processing } = useForm({
         name: '',
+        status: 'published',
         price: '0.00',
         preview_image: '',
-        config: [] as Block[],
+        config: { pages: [] },
     });
 
     const handleOpenAdd = () => {
@@ -93,19 +94,29 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
         reset();
         setData({
             name: '',
+            status: 'published',
             price: '0.00',
             preview_image: '',
-            config: [
-                {
-                    id: 'block_hero_1',
-                    type: 'hero',
-                    title: 'You are Invited!',
-                    subtitle: 'Join us for a special celebration.',
-                    bg_color: 'from-pink-500 to-rose-600',
-                    cta_text: 'RSVP Now',
-                    cta_link: '#rsvp'
-                }
-            ],
+            config: {
+                pages: [{
+                    id: 'home',
+                    name: 'Home',
+                    blocks: [
+                        {
+                            id: `el_${Math.random().toString(36).substr(2, 9)}`,
+                            type: 'text',
+                            x: 10,
+                            y: 10,
+                            zIndex: 1,
+                            content: 'Your new template',
+                            fontSize: 32,
+                            fontWeight: 'bold',
+                            color: '#1f2937',
+                            fontFamily: "'Inter', sans-serif"
+                        }
+                    ]
+                }]
+            },
         });
         setIsOpen(true);
     };
@@ -114,9 +125,10 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
         setEditingTemplate(template);
         setData({
             name: template.name,
+            status: template.status || 'published',
             price: String(template.price),
             preview_image: template.preview_image || '',
-            config: template.config || [],
+            config: template.config ? (Array.isArray(template.config) ? { pages: [{ id: 'home', name: 'Home', blocks: template.config }] } : template.config) : { pages: [] },
         });
         setIsOpen(true);
     };
@@ -191,6 +203,11 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                                         <tr key={t.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/15 transition-colors">
                                             <td className="px-6 py-4 font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
                                                 <Globe className="size-4.5 text-pink-600" /> {t.name}
+                                                {t.status === 'draft' && (
+                                                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-300">
+                                                        Draft
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 font-bold text-emerald-600 dark:text-emerald-450">
                                                 ₹{parseFloat(String(t.price)).toFixed(2)}
@@ -278,38 +295,75 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                 </div>
 
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                    <DialogContent aria-describedby={undefined} className="max-w-[95vw] w-[95vw] h-[90vh] flex flex-col p-0">
+                    <DialogContent aria-describedby={undefined} className="max-w-[99vw] w-[99vw] h-[99vh] flex flex-col p-0">
                         <DialogHeader className="p-6 border-b flex-row justify-between">
-                            <DialogTitle className="text-xl font-bold">
+                            <DialogTitle className="text-xl font-bold mt-1.5">
                                 {editingTemplate ? `Edit: ${editingTemplate.name}` : 'New Mini Template'}
                             </DialogTitle>
-                            <div className="flex gap-4">
-                                <div className="flex items-center gap-2">
-                                    <Label className="text-xs">Name</Label>
-                                    <Input value={data.name} onChange={e => setData('name', e.target.value)} className="h-8" />
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Label className="text-xs">Price / Day</Label>
-                                    <Input type="number" step="0.01" value={data.price} onChange={e => setData('price', e.target.value)} className="h-8 w-24" />
-                                </div>
-                            </div>
                         </DialogHeader>
 
                         <div className="flex-1 overflow-hidden">
                             <SharedEditor
-                                blocks={data.config}
-                                onChange={(blocks) => setData('config', blocks)}
+                                config={data.config}
+                                onChange={(config) => setData('config', config)}
                                 isInvitation={true}
                                 title={data.name}
                                 customBlocks={customBlocks}
                             />
                         </div>
 
-                        <DialogFooter className="p-4 border-t">
-                            <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-                            <Button onClick={handleSubmit} disabled={processing} className="bg-pink-600 hover:bg-pink-700 text-white">
-                                <Save className="size-4 mr-2" /> Save Template
-                            </Button>
+                        <DialogFooter className="p-4 border-t flex items-center justify-between">
+                            <div className="flex gap-4">
+                                <div className="flex items-center gap-2">
+                                    <Label className="text-xs whitespace-nowrap">Name</Label>
+                                    <Input value={data.name} onChange={e => setData('name', e.target.value)} className="h-9 w-64" placeholder="Template Name" />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Label className="text-xs whitespace-nowrap">Price / Day</Label>
+                                    <Input type="number" step="0.01" value={data.price} onChange={e => setData('price', e.target.value)} className="h-9 w-28" />
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+                                <Button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        const payload = { ...data, status: 'draft' };
+                                        const options = {
+                                            onSuccess: () => setIsOpen(false),
+                                            onError: (errs: any) => alert('Error saving draft: \n' + Object.values(errs).join('\n'))
+                                        };
+                                        if (editingTemplate) {
+                                            router.put(`/super-admin/mini-website-templates/${editingTemplate.id}`, payload, options);
+                                        } else {
+                                            router.post('/super-admin/mini-website-templates', payload, options);
+                                        }
+                                    }}
+                                    className="bg-neutral-800 hover:bg-neutral-900 text-white dark:bg-neutral-700 dark:hover:bg-neutral-600"
+                                >
+                                    Save Draft
+                                </Button>
+                                <Button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        const payload = { ...data, status: 'published' };
+                                        const options = {
+                                            onSuccess: () => setIsOpen(false),
+                                            onError: (errs: any) => alert('Error publishing: \n' + Object.values(errs).join('\n'))
+                                        };
+                                        if (editingTemplate) {
+                                            router.put(`/super-admin/mini-website-templates/${editingTemplate.id}`, payload, options);
+                                        } else {
+                                            router.post('/super-admin/mini-website-templates', payload, options);
+                                        }
+                                    }}
+                                    className="bg-pink-600 hover:bg-pink-700 text-white"
+                                >
+                                    <Save className="size-4 mr-2" /> {editingTemplate ? 'Publish Update' : 'Publish'}
+                                </Button>
+                            </div>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>

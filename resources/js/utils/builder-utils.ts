@@ -14,15 +14,22 @@ export interface ElementConfig {
     color?: string;
     textAlign?: 'left' | 'center' | 'right';
     fontWeight?: 'normal' | 'bold';
-    isItalic?: boolean;
+    textShadow?: string;
     isEditable?: boolean;
     editableLabel?: string;
     multiline?: boolean;
+    opacity?: number;
+    isBackground?: boolean;
+    animation?: string;
 }
 
 export interface PageConfig {
     id: string;
     bg_gradient: string;
+    bg_image?: string;
+    bg_image_opacity?: number;
+    bg_image_size?: string;
+    bg_image_position?: string;
     borderStyle?: 'none' | 'solid' | 'dashed' | 'double' | 'floral' | 'classic';
     borderColor?: string;
     borderWidth?: number;
@@ -63,32 +70,59 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
             pages: config.pages.map((p: any) => ({
                 id: p.id || `page-${Math.random().toString(36).substr(2, 9)}`,
                 bg_gradient: p.bg_gradient || bg_gradient_default,
+                bg_image: p.bg_image,
+                bg_image_opacity: p.bg_image_opacity ?? 100,
+                bg_image_size: p.bg_image_size || 'cover',
+                bg_image_position: p.bg_image_position || 'center',
                 borderStyle: p.borderStyle || 'none',
                 borderColor: p.borderColor || '#e4e4e7',
                 borderWidth: p.borderWidth || 1,
-                elements: (p.elements || []).map((e: any) => ({
-                    id: e.id || `elem-${Math.random().toString(36).substr(2, 9)}`,
-                    type: e.type,
-                    content: e.content,
-                    url: e.url,
-                    iconType: e.iconType,
-                    x: typeof e.x === 'number' ? e.x : 0,
-                    y: typeof e.y === 'number' ? e.y : 0,
-                    w: typeof e.w === 'number' ? e.w : 50,
-                    h: typeof e.h === 'number' ? e.h : 10,
-                    fontSize: e.fontSize,
-                    fontStyle: e.fontStyle,
-                    textColor: e.textColor,
-                    color: e.color,
-                    textAlign: e.textAlign,
-                    fontWeight: e.fontWeight,
-                    isItalic: e.isItalic,
-                    isEditable: e.isEditable,
-                    editableLabel: e.editableLabel,
-                    multiline: e.multiline,
-                }))
+                elements: (() => {
+                    const parsedElements = (p.elements || []).map((e: any) => ({
+                        id: e.id || `elem-${Math.random().toString(36).substr(2, 9)}`,
+                        type: e.type,
+                        content: e.content,
+                        url: e.url,
+                        iconType: e.iconType,
+                        x: typeof e.x === 'number' ? e.x : 0,
+                        y: typeof e.y === 'number' ? e.y : 0,
+                        w: typeof e.w === 'number' ? e.w : 50,
+                        h: typeof e.h === 'number' ? e.h : 10,
+                        fontSize: e.fontSize,
+                        fontStyle: e.fontStyle,
+                        textColor: e.textColor,
+                        color: e.color,
+                        textAlign: e.textAlign,
+                        fontWeight: e.fontWeight,
+                        textShadow: e.textShadow,
+                        isItalic: e.isItalic,
+                        isEditable: e.isEditable,
+                        editableLabel: e.editableLabel,
+                        multiline: e.multiline,
+                        opacity: e.opacity ?? 100,
+                        isBackground: !!e.isBackground,
+                        animation: e.animation,
+                    }));
+                    
+                    if (p.bg_image) {
+                        parsedElements.unshift({
+                            id: `bg-${Math.random().toString(36).substr(2, 9)}`,
+                            type: 'image',
+                            url: p.bg_image,
+                            x: 0,
+                            y: 0,
+                            w: 100,
+                            h: 100,
+                            isBackground: true,
+                            opacity: p.bg_image_opacity ?? 100,
+                        });
+                        delete p.bg_image;
+                    }
+                    return parsedElements;
+                })()
             })),
             video_url: config.video_url || undefined,
+            opacity: 100,
         };
     }
 

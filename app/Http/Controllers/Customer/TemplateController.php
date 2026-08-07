@@ -18,7 +18,7 @@ class TemplateController extends Controller
      */
     public function index()
     {
-        $templates = Template::all()->map(fn($t) => [
+        $templates = Template::where('status', 'published')->get()->map(fn($t) => [
             'id' => $t->id,
             'name' => $t->name,
             'category' => $t->category,
@@ -27,7 +27,7 @@ class TemplateController extends Controller
             'default_config' => $t->default_config,
         ]);
 
-        $miniTemplates = \App\Models\MiniWebsiteTemplate::all()->map(fn($t) => [
+        $miniTemplates = \App\Models\MiniWebsiteTemplate::where('status', 'published')->get()->map(fn($t) => [
             'id' => $t->id,
             'name' => $t->name,
             'type' => $t->type,
@@ -250,8 +250,26 @@ class TemplateController extends Controller
         if ($referralCodeInput) {
             $globalCouponActive = SystemSetting::get('global_coupon_active', '0');
             $globalCouponCode = SystemSetting::get('global_coupon_code', '');
+            $startDateStr = SystemSetting::get('global_coupon_start_date', '');
+            $endDateStr = SystemSetting::get('global_coupon_end_date', '');
+
+            $isDateValid = true;
+            $now = \Carbon\Carbon::now();
+
+            if (!empty($startDateStr)) {
+                $startDate = \Carbon\Carbon::parse($startDateStr);
+                if ($now->lt($startDate)) $isDateValid = false;
+            }
+            if (!empty($endDateStr)) {
+                $endDate = \Carbon\Carbon::parse($endDateStr);
+                if ($now->gt($endDate)) $isDateValid = false;
+            }
 
             if ($globalCouponActive === '1' && !empty($globalCouponCode) && strtoupper($referralCodeInput) === strtoupper($globalCouponCode)) {
+                if (!$isDateValid) {
+                    return response()->json(['error' => 'This coupon is expired or not yet active.'], 400);
+                }
+
                 // Check if user already used the global coupon
                 $hasUsed = \App\Models\Transaction::where('user_id', auth()->id())
                     ->where('global_coupon_code', strtoupper($globalCouponCode))

@@ -327,7 +327,7 @@ createOrder.post = (args: { userTemplate: number | { id: number } } | [userTempl
     createOrder.form = createOrderForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:345
+ * @see app/Http/Controllers/Customer/TemplateController.php:363
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
 export const verifyPayment = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -342,7 +342,7 @@ verifyPayment.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:345
+ * @see app/Http/Controllers/Customer/TemplateController.php:363
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
 verifyPayment.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -375,7 +375,7 @@ verifyPayment.url = (args: { userTemplate: number | { id: number } } | [userTemp
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:345
+ * @see app/Http/Controllers/Customer/TemplateController.php:363
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
 verifyPayment.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -385,7 +385,7 @@ verifyPayment.post = (args: { userTemplate: number | { id: number } } | [userTem
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:345
+ * @see app/Http/Controllers/Customer/TemplateController.php:363
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
     const verifyPaymentForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -395,7 +395,7 @@ verifyPayment.post = (args: { userTemplate: number | { id: number } } | [userTem
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:345
+ * @see app/Http/Controllers/Customer/TemplateController.php:363
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
         verifyPaymentForm.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

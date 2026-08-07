@@ -12,9 +12,9 @@ import {
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
-import { 
-    Plus, Globe, ExternalLink, MessageSquare, Trash, Pencil, 
-    ShieldAlert, Download, Package, Loader2, CreditCard, Ticket, Check, AlertCircle 
+import {
+    Plus, Globe, ExternalLink, MessageSquare, Trash, Pencil,
+    ShieldAlert, Download, Package, Loader2, CreditCard, Ticket, Check, AlertCircle
 } from 'lucide-react';
 import { getCsrfHeaders } from '@/lib/utils';
 
@@ -108,7 +108,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
             .replace(/\s+/g, '-')         // Replace spaces with dash
             .replace(/-+/g, '-')          // Replace duplicate dashes
             .trim();
-        
+
         setData((prev) => ({
             ...prev,
             title: val,
@@ -149,7 +149,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
+
             setTimeout(() => {
                 setDownloadingId(null);
             }, 3000);
@@ -278,7 +278,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                 try {
                     const data = await response.json();
                     errorMsg = data.error || errorMsg;
-                } catch (e) {}
+                } catch (e) { }
                 alert(errorMsg);
                 setIsCheckingOut(false);
                 return;
@@ -403,20 +403,18 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold uppercase tracking-wider ${
-                                                    w.type === 'invitation'
-                                                        ? 'bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-400'
-                                                        : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400'
-                                                }`}>
+                                                <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold uppercase tracking-wider ${w.type === 'invitation'
+                                                    ? 'bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-400'
+                                                    : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400'
+                                                    }`}>
                                                     {w.type}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                                                    w.is_published
-                                                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
-                                                        : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'
-                                                }`}>
+                                                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${w.is_published
+                                                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                                                    : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'
+                                                    }`}>
                                                     <span className={`size-1.5 rounded-full ${w.is_published ? 'bg-emerald-500' : 'bg-neutral-400'}`} />
                                                     {w.is_published ? 'Live' : 'Draft'}
                                                 </span>
@@ -441,7 +439,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                                         <span className="text-[10px] text-neutral-400">Expires: {new Date(w.expires_at!).toLocaleDateString()}</span>
                                                                     </div>
                                                                 )}
-                                                                <button 
+                                                                <button
                                                                     type="button"
                                                                     onClick={() => handleOpenCheckout(w)}
                                                                     className="text-[10px] h-6 px-2 py-0.5 bg-blue-600 text-white hover:bg-blue-700 rounded-md font-extrabold flex items-center justify-center transition-colors shadow-xs"
@@ -472,7 +470,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                             href={`/mini-website/${w.slug}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow-xs hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-350 dark:hover:bg-neutral-800 transition-colors"
+                                                            className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 shadow-xs hover:bg-neutral-50 dark:border-red-800 dark:bg-neutral-900 dark:text-blue-800 dark:hover:bg-neutral-800 transition-colors"
                                                             title="View live site"
                                                         >
                                                             <ExternalLink className="size-3.5" /> View
@@ -499,7 +497,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                     )}
                                                     <Link
                                                         href={`/customer/mini-websites/${w.id}/edit`}
-                                                        className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow-xs hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-350 dark:hover:bg-neutral-800 transition-colors"
+                                                        className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-700 shadow-xs hover:bg-neutral-50 dark:border-red-800 dark:bg-neutral-900 dark:text-blue-800 dark:hover:bg-neutral-800 transition-colors"
                                                     >
                                                         <Pencil className="size-3.5" /> Edit
                                                     </Link>
@@ -620,22 +618,20 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                     <button
                                         type="button"
                                         onClick={() => handleUnitChange('days')}
-                                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
-                                            durationUnit === 'days'
-                                                ? 'bg-white dark:bg-neutral-800 text-blue-600 shadow-sm border border-neutral-200/50 dark:border-neutral-700'
-                                                : 'text-neutral-500 hover:text-neutral-850'
-                                        }`}
+                                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${durationUnit === 'days'
+                                            ? 'bg-white dark:bg-neutral-800 text-blue-600 shadow-sm border border-neutral-200/50 dark:border-neutral-700'
+                                            : 'text-neutral-500 hover:text-neutral-850'
+                                            }`}
                                     >
                                         Daily Billing (Days)
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => handleUnitChange('weeks')}
-                                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
-                                            durationUnit === 'weeks'
-                                                ? 'bg-white dark:bg-neutral-800 text-blue-600 shadow-sm border border-neutral-200/50 dark:border-neutral-700'
-                                                : 'text-neutral-500 hover:text-neutral-850'
-                                        }`}
+                                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${durationUnit === 'weeks'
+                                            ? 'bg-white dark:bg-neutral-800 text-blue-600 shadow-sm border border-neutral-200/50 dark:border-neutral-700'
+                                            : 'text-neutral-500 hover:text-neutral-850'
+                                            }`}
                                     >
                                         Weekly Billing (Weeks)
                                     </button>
@@ -651,11 +647,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('1')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
-                                                    durationMode === '1'
-                                                        ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '1'
+                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span className="text-sm">1 Day</span>
                                                 <span className="text-[10px] opacity-70">₹{1 * dailyPrice}</span>
@@ -663,11 +658,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('2')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
-                                                    durationMode === '2'
-                                                        ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '2'
+                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span className="text-sm">2 Days</span>
                                                 <span className="text-[10px] opacity-70">₹{2 * dailyPrice}</span>
@@ -675,11 +669,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('3')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
-                                                    durationMode === '3'
-                                                        ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '3'
+                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span className="text-sm">3 Days</span>
                                                 <span className="text-[10px] opacity-70">₹{3 * dailyPrice}</span>
@@ -687,11 +680,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('7')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
-                                                    durationMode === '7'
-                                                        ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '7'
+                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span className="text-sm">7 Days</span>
                                                 <span className="text-[10px] opacity-70">₹{7 * dailyPrice}</span>
@@ -699,11 +691,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('30')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
-                                                    durationMode === '30'
-                                                        ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '30'
+                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span className="text-sm">30 Days</span>
                                                 <span className="text-[10px] opacity-70">₹{30 * dailyPrice}</span>
@@ -711,11 +702,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('90')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
-                                                    durationMode === '90'
-                                                        ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '90'
+                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span className="text-sm">90 Days</span>
                                                 <span className="text-[10px] opacity-70">₹{90 * dailyPrice}</span>
@@ -723,11 +713,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('custom')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
-                                                    durationMode === 'custom'
-                                                        ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === 'custom'
+                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span className="text-sm">Custom Days</span>
                                                 <span className="text-[10px] opacity-70">Flexible duration</span>
@@ -738,11 +727,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('1')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
-                                                    durationMode === '1'
-                                                        ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '1'
+                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span className="text-sm">1 Week</span>
                                                 <span className="text-[10px] opacity-70">₹{1 * 7 * dailyPrice}</span>
@@ -750,11 +738,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('2')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
-                                                    durationMode === '2'
-                                                        ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '2'
+                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span className="text-sm">2 Weeks</span>
                                                 <span className="text-[10px] opacity-70">₹{2 * 7 * dailyPrice}</span>
@@ -762,11 +749,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('4')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
-                                                    durationMode === '4'
-                                                        ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '4'
+                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span className="text-sm">4 Weeks</span>
                                                 <span className="text-[10px] opacity-70">₹{4 * 7 * dailyPrice}</span>
@@ -774,11 +760,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('12')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
-                                                    durationMode === '12'
-                                                        ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '12'
+                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span className="text-sm">12 Weeks</span>
                                                 <span className="text-[10px] opacity-70">₹{12 * 7 * dailyPrice}</span>
@@ -786,11 +771,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('26')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
-                                                    durationMode === '26'
-                                                        ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '26'
+                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span className="text-sm">26 Weeks</span>
                                                 <span className="text-[10px] opacity-70">₹{26 * 7 * dailyPrice}</span>
@@ -798,11 +782,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('custom')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
-                                                    durationMode === 'custom'
-                                                        ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                        : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                }`}
+                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === 'custom'
+                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
+                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    }`}
                                             >
                                                 <span className="text-sm">Custom Weeks</span>
                                                 <span className="text-[10px] opacity-70">Flexible duration</span>
@@ -851,7 +834,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                     ))
                                             )}
                                         </select>
-                                        
+
                                         <Input
                                             type="number"
                                             value={durationMode === 'custom' ? (durationUnit === 'days' ? customDays : customWeeks) : ''}
@@ -866,11 +849,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             }}
                                             placeholder={durationMode === 'custom' ? "Custom" : "Type manual..."}
                                             min={1}
-                                            className={`h-9 w-32 shrink-0 font-semibold bg-white dark:bg-neutral-900 transition-all ${
-                                                durationMode === 'custom' 
-                                                    ? 'border-blue-500 bg-blue-50/10 text-blue-700 dark:text-blue-400' 
-                                                    : 'border-neutral-200'
-                                            }`}
+                                            className={`h-9 w-32 shrink-0 font-semibold bg-white dark:bg-neutral-900 transition-all ${durationMode === 'custom'
+                                                ? 'border-blue-500 bg-blue-50/10 text-blue-700 dark:text-blue-400'
+                                                : 'border-neutral-200'
+                                                }`}
                                         />
                                     </div>
                                 </div>
@@ -904,9 +886,8 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                     </Button>
                                 </div>
                                 {couponMessage && (
-                                    <p className={`text-xs font-semibold flex items-center gap-1 mt-1 ${
-                                        isValidCoupon ? 'text-emerald-600 dark:text-emerald-450' : 'text-red-500'
-                                    }`}>
+                                    <p className={`text-xs font-semibold flex items-center gap-1 mt-1 ${isValidCoupon ? 'text-emerald-600 dark:text-emerald-450' : 'text-red-500'
+                                        }`}>
                                         {isValidCoupon ? <Check className="size-3.5" /> : <AlertCircle className="size-3.5" />}
                                         {couponMessage}
                                     </p>
@@ -925,7 +906,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                 </div>
                                 {discountDeduction > 0 && (
                                     <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-450">
-                                        <span className="flex items-center gap-1"><Ticket className="size-3.5"/> Referral Discount ({appliedDiscount}%)</span>
+                                        <span className="flex items-center gap-1"><Ticket className="size-3.5" /> Referral Discount ({appliedDiscount}%)</span>
                                         <span className="font-bold">-₹{discountDeduction}</span>
                                     </div>
                                 )}
@@ -939,10 +920,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                 <Button type="button" variant="outline" onClick={() => setIsCheckoutOpen(false)} disabled={isCheckingOut}>
                                     Cancel
                                 </Button>
-                                <Button 
-                                    type="button" 
-                                    onClick={handleConfirmRenewal} 
-                                    disabled={isCheckingOut || finalAmount <= 0} 
+                                <Button
+                                    type="button"
+                                    onClick={handleConfirmRenewal}
+                                    disabled={isCheckingOut || finalAmount <= 0}
                                     className="bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1.5"
                                 >
                                     {isCheckingOut ? (

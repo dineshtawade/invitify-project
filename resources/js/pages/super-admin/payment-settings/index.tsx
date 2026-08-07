@@ -28,9 +28,6 @@ interface PaymentSettingsProps {
         reseller_ifsc_code: string;
         reseller_upi_id: string;
         reseller_default_bonus_percentage: string;
-        global_coupon_active: string;
-        global_coupon_code: string;
-        global_coupon_discount: string;
     };
 }
 
@@ -50,9 +47,6 @@ export default function PaymentSettings({ settings }: PaymentSettingsProps) {
         reseller_ifsc_code: settings.reseller_ifsc_code || '',
         reseller_upi_id: settings.reseller_upi_id || '',
         reseller_default_bonus_percentage: settings.reseller_default_bonus_percentage || '0',
-        global_coupon_active: settings.global_coupon_active || '0',
-        global_coupon_code: settings.global_coupon_code || '',
-        global_coupon_discount: settings.global_coupon_discount || '0',
     });
 
     const handleSaveConfig = (e: React.FormEvent) => {
@@ -187,54 +181,6 @@ export default function PaymentSettings({ settings }: PaymentSettingsProps) {
                             </div>
                         </div>
                     </div>
-
-                    {/* Global Promotional Coupon */}
-                    <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 flex flex-col gap-6">
-                        <div className="flex items-center gap-2.5 pb-4 border-b border-neutral-150 dark:border-neutral-800">
-                            <div className="bg-purple-50 p-2.5 text-purple-600 rounded-xl dark:bg-purple-950/40 dark:text-purple-400">
-                                <Save className="size-5" />
-                            </div>
-                            <div className="flex flex-col">
-                                <h3 className="font-bold text-base text-neutral-900 dark:text-neutral-100">Global Promotional Coupon</h3>
-                                <p className="text-xs text-neutral-400">One-time use coupon displayed in the site header</p>
-                            </div>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-5">
-                            <div className="flex flex-col gap-2 md:col-span-2">
-                                <Label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={configData.global_coupon_active === '1'}
-                                        onChange={(e) => setConfigData('global_coupon_active', e.target.checked ? '1' : '0')}
-                                        className="rounded border-neutral-300 text-purple-600 focus:ring-purple-600 size-4"
-                                    />
-                                    <span>Enable Global Coupon</span>
-                                </Label>
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <Label htmlFor="global_coupon_code">Coupon Code</Label>
-                                <Input
-                                    id="global_coupon_code"
-                                    value={configData.global_coupon_code}
-                                    onChange={(e) => setConfigData('global_coupon_code', e.target.value.toUpperCase())}
-                                    placeholder="e.g. WELCOME50"
-                                />
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <Label htmlFor="global_coupon_discount">Discount Percentage (%)</Label>
-                                <Input
-                                    id="global_coupon_discount"
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    value={configData.global_coupon_discount}
-                                    onChange={(e) => setConfigData('global_coupon_discount', e.target.value)}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
                     {configSuccess && (
                         <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-lg text-emerald-800 text-xs font-semibold dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-400 animate-fade-in">
                             ✓ Payment settings updated successfully.

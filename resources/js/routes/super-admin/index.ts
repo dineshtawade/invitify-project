@@ -2,7 +2,9 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFo
 import users from './users'
 import editorRequests from './editor-requests'
 import templatesD41748 from './templates'
+import customIcons from './custom-icons'
 import paymentSettings from './payment-settings'
+import coupons from './coupons'
 import settings69f00b from './settings'
 import businessCardPlans from './business-card-plans'
 import referralsA7ebb0 from './referrals'
@@ -560,7 +562,9 @@ transactions: Object.assign(transactions, transactions),
 users: Object.assign(users, users),
 editorRequests: Object.assign(editorRequests, editorRequests),
 templates: Object.assign(templates, templatesD41748),
+customIcons: Object.assign(customIcons, customIcons),
 paymentSettings: Object.assign(paymentSettings, paymentSettings),
+coupons: Object.assign(coupons, coupons),
 settings: Object.assign(settings, settings69f00b),
 businessCardPlans: Object.assign(businessCardPlans, businessCardPlans),
 referrals: Object.assign(referrals, referralsA7ebb0),

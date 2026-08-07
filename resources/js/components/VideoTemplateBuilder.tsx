@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Upload, Plus, SkipBack, Trash, Type, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,26 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
     };
 
     const [isUploading, setIsUploading] = useState(false);
+    const [mediaLibrary, setMediaLibrary] = useState<any[]>([]);
+    const [isLoadingMedia, setIsLoadingMedia] = useState(false);
+
+    useEffect(() => {
+        if (!videoUrl && !isCustomerMode) {
+            fetchMediaLibrary();
+        }
+    }, [videoUrl, isCustomerMode]);
+
+    const fetchMediaLibrary = async () => {
+        try {
+            setIsLoadingMedia(true);
+            const response = await axios.get('/media?type=video');
+            setMediaLibrary(response.data.media || []);
+        } catch (error) {
+            console.error("Failed to fetch media library:", error);
+        } finally {
+            setIsLoadingMedia(false);
+        }
+    };
 
     const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -40,7 +60,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                 formData.append('file', file);
                 const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
                 const response = await axios.post('/media/upload', formData, {
-                    headers: { 
+                    headers: {
                         'Content-Type': 'multipart/form-data',
                         'X-CSRF-TOKEN': csrfToken
                     }
@@ -95,7 +115,8 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
             );
         }
         return (
-            <div className="flex-1 flex flex-col items-center justify-center bg-neutral-950 text-white p-8">
+            <div className="flex-1 flex flex-col items-center justify-center
+             text-white p-8">
                 <div className="max-w-md w-full bg-neutral-900 rounded-[2rem] p-10 text-center space-y-6 shadow-2xl border border-neutral-800">
                     <div className="size-20 bg-indigo-500/20 text-indigo-400 rounded-3xl mx-auto flex items-center justify-center">
                         <Upload className="size-10" />
@@ -122,6 +143,30 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                             Use Demo Video
                         </Button>
                     </div>
+
+                    {mediaLibrary.length > 0 && (
+                        <div className="pt-6 border-t border-neutral-800 text-left">
+                            <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-3">Your Media Library</h3>
+                            <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                                {mediaLibrary.map((media) => (
+                                    <div
+                                        key={media.id}
+                                        onClick={() => {
+                                            setVideoUrl(media.url);
+                                            setData?.('default_config', { ...data.default_config, video_url: media.url });
+                                        }}
+                                        className="relative aspect-[9/16] bg-neutral-800 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-indigo-500 transition-all group"
+                                        title={media.filename}
+                                    >
+                                        <video src={media.url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 transition-all">
+                                            <Play className="size-6 text-white drop-shadow-md" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -181,6 +226,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                 fontSize: el.fontSize || '24px',
                                                 color: el.color || '#ffffff',
                                                 fontWeight: el.fontWeight || 'normal',
+                                                textShadow: el.textShadow && el.textShadow !== 'none' ? el.textShadow : undefined,
                                             }}
                                             className="text-center w-full break-words"
                                         >
@@ -189,10 +235,10 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
                                             {el.src ? (
-                                                <img 
-                                                    src={el.src} 
-                                                    alt="" 
-                                                    className="max-w-full max-h-full object-contain" 
+                                                <img
+                                                    src={el.src}
+                                                    alt=""
+                                                    className="max-w-full max-h-full object-contain"
                                                     onError={(e) => {
                                                         e.currentTarget.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
                                                     }}
@@ -208,7 +254,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                     </div>
 
                     {/* Play Overlay */}
-                    <button 
+                    <button
                         onClick={togglePlay}
                         className={`absolute inset-0 w-full h-full flex items-center justify-center bg-black/20 transition-opacity ${isPlaying ? 'opacity-0' : 'opacity-100'}`}
                     >
@@ -242,74 +288,74 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                         {!isCustomerMode && (
                             <div className="grid grid-cols-2 gap-2">
                                 <Button
-                                type="button"
-                                onClick={() => {
-                                    const newId = `text_${Date.now()}`;
-                                    const newElement = {
-                                        id: newId,
-                                        type: 'text',
-                                        content: 'New Text Layer',
-                                        x: 20, y: 40,
-                                        fontFamily: 'Playfair Display',
-                                        fontSize: '24px',
-                                        color: '#ffffff',
-                                        startTime: 0,
-                                        endTime: duration > 0 ? duration : 5,
-                                        animationIn: 'fade',
-                                        animationOut: 'fade',
-                                    };
-                                    updateConfig([...elements, newElement]);
-                                    setSelectedElementId(newId);
-                                }}
-                                className="w-full bg-white text-black hover:bg-neutral-200 font-bold gap-2 h-12 rounded-xl text-xs px-2"
-                            >
-                                <Type className="size-4 shrink-0" /> Add Text
-                            </Button>
-
-                            <label className="w-full bg-indigo-600 text-white hover:bg-indigo-700 font-bold gap-2 h-12 rounded-xl flex items-center justify-center cursor-pointer transition-colors text-xs px-2">
-                                <ImageIcon className="size-4 shrink-0" /> Add Image
-                                <input 
-                                    type="file" 
-                                    accept="image/png, image/jpeg, image/webp" 
-                                    className="hidden" 
-                                    onChange={async (e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) {
-                                            try {
-                                                const formData = new FormData();
-                                                formData.append('file', file);
-                                                 const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
-                                                 const response = await axios.post('/media/upload', formData, {
-                                                     headers: { 
-                                                         'Content-Type': 'multipart/form-data',
-                                                         'X-CSRF-TOKEN': csrfToken
-                                                     }
-                                                 });
-                                                
-                                                const newId = `image_${Date.now()}`;
-                                                const newElement = {
-                                                    id: newId,
-                                                    type: 'image',
-                                                    src: response.data.url,
-                                                    x: 50, y: 50,
-                                                    width: 100, height: 100, // starting size in px
-                                                    startTime: 0,
-                                                    endTime: duration > 0 ? duration : 5,
-                                                    animationIn: 'fade',
-                                                    animationOut: 'fade',
-                                                };
-                                                updateConfig([...elements, newElement]);
-                                                setSelectedElementId(newId);
-                                            } catch (error) {
-                                                console.error("Failed to upload image:", error);
-                                                alert("Failed to upload image. Please check format and size.");
-                                            }
-                                        }
-                                        e.target.value = ''; // reset
+                                    type="button"
+                                    onClick={() => {
+                                        const newId = `text_${Date.now()}`;
+                                        const newElement = {
+                                            id: newId,
+                                            type: 'text',
+                                            content: 'New Text Layer',
+                                            x: 20, y: 40,
+                                            fontFamily: 'Playfair Display',
+                                            fontSize: '24px',
+                                            color: '#ffffff',
+                                            startTime: 0,
+                                            endTime: duration > 0 ? duration : 5,
+                                            animationIn: 'fade',
+                                            animationOut: 'fade',
+                                        };
+                                        updateConfig([...elements, newElement]);
+                                        setSelectedElementId(newId);
                                     }}
-                                />
-                            </label>
-                        </div>
+                                    className="w-full bg-white text-black hover:bg-neutral-200 font-bold gap-2 h-12 rounded-xl text-xs px-2"
+                                >
+                                    <Type className="size-4 shrink-0" /> Add Text
+                                </Button>
+
+                                <label className="w-full bg-indigo-600 text-white hover:bg-indigo-700 font-bold gap-2 h-12 rounded-xl flex items-center justify-center cursor-pointer transition-colors text-xs px-2">
+                                    <ImageIcon className="size-4 shrink-0" /> Add Image
+                                    <input
+                                        type="file"
+                                        accept="image/png, image/jpeg, image/webp"
+                                        className="hidden"
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                try {
+                                                    const formData = new FormData();
+                                                    formData.append('file', file);
+                                                    const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
+                                                    const response = await axios.post('/media/upload', formData, {
+                                                        headers: {
+                                                            'Content-Type': 'multipart/form-data',
+                                                            'X-CSRF-TOKEN': csrfToken
+                                                        }
+                                                    });
+
+                                                    const newId = `image_${Date.now()}`;
+                                                    const newElement = {
+                                                        id: newId,
+                                                        type: 'image',
+                                                        src: response.data.url,
+                                                        x: 50, y: 50,
+                                                        width: 100, height: 100, // starting size in px
+                                                        startTime: 0,
+                                                        endTime: duration > 0 ? duration : 5,
+                                                        animationIn: 'fade',
+                                                        animationOut: 'fade',
+                                                    };
+                                                    updateConfig([...elements, newElement]);
+                                                    setSelectedElementId(newId);
+                                                } catch (error) {
+                                                    console.error("Failed to upload image:", error);
+                                                    alert("Failed to upload image. Please check format and size.");
+                                                }
+                                            }
+                                            e.target.value = ''; // reset
+                                        }}
+                                    />
+                                </label>
+                            </div>
                         )}
 
                         {/* Customer Mode Personalization Panel */}
@@ -340,13 +386,13 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                 try {
                                                                     const formData = new FormData();
                                                                     formData.append('file', file);
-                                                                     const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
-                                                                     const response = await axios.post('/media/upload', formData, {
-                                                                         headers: { 
-                                                                             'Content-Type': 'multipart/form-data',
-                                                                             'X-CSRF-TOKEN': csrfToken
-                                                                         }
-                                                                     });
+                                                                    const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
+                                                                    const response = await axios.post('/media/upload', formData, {
+                                                                        headers: {
+                                                                            'Content-Type': 'multipart/form-data',
+                                                                            'X-CSRF-TOKEN': csrfToken
+                                                                        }
+                                                                    });
                                                                     const newEls = elements.map((x: any) => x.id === el.id ? { ...x, src: response.data.url } : x);
                                                                     updateConfig(newEls);
                                                                 } catch (error) {
@@ -509,21 +555,44 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                             )}
 
                                             <div className="grid grid-cols-2 gap-2">
-                                                <div>
-                                                    <label className="text-xs text-neutral-500 mb-1 block">Animation</label>
-                                                    <select
-                                                        value={el.animationIn}
-                                                        onChange={(e) => {
-                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, animationIn: e.target.value, animationOut: e.target.value } : x);
-                                                            updateConfig(newEls);
-                                                        }}
-                                                        className="flex h-9 w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-1 text-sm shadow-sm transition-colors focus:border-indigo-500"
-                                                    >
-                                                        <option value="none">None</option>
-                                                        <option value="fade">Fade In/Out</option>
-                                                        <option value="slide">Slide In/Out</option>
-                                                        <option value="zoom">Zoom In/Out</option>
-                                                    </select>
+                                                <div className="grid gap-2">
+                                                    <div>
+                                                        <label className="text-xs text-neutral-500 mb-1 block">Animation</label>
+                                                        <select
+                                                            value={el.animationIn}
+                                                            onChange={(e) => {
+                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, animationIn: e.target.value, animationOut: e.target.value } : x);
+                                                                updateConfig(newEls);
+                                                            }}
+                                                            className="flex h-9 w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-1 text-sm shadow-sm transition-colors focus:border-indigo-500"
+                                                        >
+                                                            <option value="none">None</option>
+                                                            <option value="fade">Fade In/Out</option>
+                                                            <option value="slide">Slide In/Out</option>
+                                                            <option value="zoom">Zoom In/Out</option>
+                                                        </select>
+                                                    </div>
+                                                    {el.type === 'text' && (
+                                                        <div>
+                                                            <label className="text-xs text-neutral-500 mb-1 block">Text Shadow</label>
+                                                            <select
+                                                                value={el.textShadow || 'none'}
+                                                                onChange={(e) => {
+                                                                    const newEls = elements.map((x: any) => x.id === el.id ? { ...x, textShadow: e.target.value } : x);
+                                                                    updateConfig(newEls);
+                                                                }}
+                                                                className="flex h-9 w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-1 text-sm shadow-sm transition-colors focus:border-indigo-500"
+                                                            >
+                                                                <option value="none">None</option>
+                                                                <option value="1px 1px 2px rgba(0,0,0,0.8)">Soft Shadow</option>
+                                                                <option value="2px 2px 4px rgba(0,0,0,0.9)">Strong Shadow</option>
+                                                                <option value="0px 0px 8px rgba(255,255,255,0.8)">White Glow</option>
+                                                                <option value="0px 0px 8px rgba(0,0,0,0.8)">Dark Glow</option>
+                                                                <option value="0 0 5px #fff, 0 0 10px #fff, 0 0 20px #0ff, 0 0 30px #0ff">Neon Glow</option>
+                                                                <option value="1px 1px 0 #999, 2px 2px 0 #888, 3px 3px 0 #777">3D Block</option>
+                                                            </select> 
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <div>
@@ -623,71 +692,71 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                             >
                                                 {/* Left Handle (Start Time) */}
                                                 {!isCustomerMode && (
-                                                <div 
-                                                    onMouseDown={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedElementId(el.id);
-                                                        const container = e.currentTarget.parentElement?.parentElement;
-                                                        if (!container) return;
-                                                        const rect = container.getBoundingClientRect();
-                                                        let currentTimeValue = el.startTime;
-                                                        
-                                                        const handleMouseMove = (moveEvent: MouseEvent) => {
-                                                            let newX = moveEvent.clientX - rect.left;
-                                                            newX = Math.max(0, Math.min(newX, rect.width));
-                                                            let newTime = (newX / rect.width) * duration;
-                                                            newTime = Math.min(newTime, el.endTime - 0.5); // Constraint
-                                                            currentTimeValue = newTime;
-                                                            setTimelineDrag({ id: el.id, type: 'start', time: newTime });
-                                                        };
+                                                    <div
+                                                        onMouseDown={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedElementId(el.id);
+                                                            const container = e.currentTarget.parentElement?.parentElement;
+                                                            if (!container) return;
+                                                            const rect = container.getBoundingClientRect();
+                                                            let currentTimeValue = el.startTime;
 
-                                                        const handleMouseUp = () => {
-                                                            document.removeEventListener('mousemove', handleMouseMove);
-                                                            document.removeEventListener('mouseup', handleMouseUp);
-                                                            setTimelineDrag(null);
-                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, startTime: parseFloat(currentTimeValue.toFixed(1)) } : x);
-                                                            updateConfig(newEls);
-                                                        };
+                                                            const handleMouseMove = (moveEvent: MouseEvent) => {
+                                                                let newX = moveEvent.clientX - rect.left;
+                                                                newX = Math.max(0, Math.min(newX, rect.width));
+                                                                let newTime = (newX / rect.width) * duration;
+                                                                newTime = Math.min(newTime, el.endTime - 0.5); // Constraint
+                                                                currentTimeValue = newTime;
+                                                                setTimelineDrag({ id: el.id, type: 'start', time: newTime });
+                                                            };
 
-                                                        document.addEventListener('mousemove', handleMouseMove);
-                                                        document.addEventListener('mouseup', handleMouseUp);
-                                                    }}
-                                                    className="absolute left-0 top-0 bottom-0 w-3 cursor-col-resize hover:bg-white/50 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                                />
+                                                            const handleMouseUp = () => {
+                                                                document.removeEventListener('mousemove', handleMouseMove);
+                                                                document.removeEventListener('mouseup', handleMouseUp);
+                                                                setTimelineDrag(null);
+                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, startTime: parseFloat(currentTimeValue.toFixed(1)) } : x);
+                                                                updateConfig(newEls);
+                                                            };
+
+                                                            document.addEventListener('mousemove', handleMouseMove);
+                                                            document.addEventListener('mouseup', handleMouseUp);
+                                                        }}
+                                                        className="absolute left-0 top-0 bottom-0 w-3 cursor-col-resize hover:bg-white/50 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                                    />
                                                 )}
                                                 {/* Right Handle (End Time) */}
                                                 {!isCustomerMode && (
-                                                <div 
-                                                    onMouseDown={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedElementId(el.id);
-                                                        const container = e.currentTarget.parentElement?.parentElement;
-                                                        if (!container) return;
-                                                        const rect = container.getBoundingClientRect();
-                                                        let currentTimeValue = el.endTime;
-                                                        
-                                                        const handleMouseMove = (moveEvent: MouseEvent) => {
-                                                            let newX = moveEvent.clientX - rect.left;
-                                                            newX = Math.max(0, Math.min(newX, rect.width));
-                                                            let newTime = (newX / rect.width) * duration;
-                                                            newTime = Math.max(newTime, el.startTime + 0.5); // Constraint
-                                                            currentTimeValue = newTime;
-                                                            setTimelineDrag({ id: el.id, type: 'end', time: newTime });
-                                                        };
+                                                    <div
+                                                        onMouseDown={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedElementId(el.id);
+                                                            const container = e.currentTarget.parentElement?.parentElement;
+                                                            if (!container) return;
+                                                            const rect = container.getBoundingClientRect();
+                                                            let currentTimeValue = el.endTime;
 
-                                                        const handleMouseUp = () => {
-                                                            document.removeEventListener('mousemove', handleMouseMove);
-                                                            document.removeEventListener('mouseup', handleMouseUp);
-                                                            setTimelineDrag(null);
-                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, endTime: parseFloat(currentTimeValue.toFixed(1)) } : x);
-                                                            updateConfig(newEls);
-                                                        };
+                                                            const handleMouseMove = (moveEvent: MouseEvent) => {
+                                                                let newX = moveEvent.clientX - rect.left;
+                                                                newX = Math.max(0, Math.min(newX, rect.width));
+                                                                let newTime = (newX / rect.width) * duration;
+                                                                newTime = Math.max(newTime, el.startTime + 0.5); // Constraint
+                                                                currentTimeValue = newTime;
+                                                                setTimelineDrag({ id: el.id, type: 'end', time: newTime });
+                                                            };
 
-                                                        document.addEventListener('mousemove', handleMouseMove);
-                                                        document.addEventListener('mouseup', handleMouseUp);
-                                                    }}
-                                                    className="absolute right-0 top-0 bottom-0 w-3 cursor-col-resize hover:bg-white/50 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                                />
+                                                            const handleMouseUp = () => {
+                                                                document.removeEventListener('mousemove', handleMouseMove);
+                                                                document.removeEventListener('mouseup', handleMouseUp);
+                                                                setTimelineDrag(null);
+                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, endTime: parseFloat(currentTimeValue.toFixed(1)) } : x);
+                                                                updateConfig(newEls);
+                                                            };
+
+                                                            document.addEventListener('mousemove', handleMouseMove);
+                                                            document.addEventListener('mouseup', handleMouseUp);
+                                                        }}
+                                                        className="absolute right-0 top-0 bottom-0 w-3 cursor-col-resize hover:bg-white/50 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                                    />
                                                 )}
                                             </div>
                                         </div>
@@ -777,6 +846,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                         fontSize: el.fontSize,
                                         fontWeight: el.fontWeight || 'normal',
                                         color: el.color,
+                                        textShadow: el.textShadow && el.textShadow !== 'none' ? el.textShadow : undefined,
                                     } : {}),
                                     transform: 'translate(-50%, -50%)',
                                     animation: el.animationIn === 'fade' ? 'fadeIn 0.5s ease'
@@ -786,11 +856,11 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                 }}
                             >
                                 {el.type === 'image' ? (
-                                    <img 
-                                        src={el.src} 
-                                        alt="" 
-                                        style={{ width: el.width || 100, height: el.height || 100 }} 
-                                        className="object-contain pointer-events-none" 
+                                    <img
+                                        src={el.src}
+                                        alt=""
+                                        style={{ width: el.width || 100, height: el.height || 100 }}
+                                        className="object-contain pointer-events-none"
                                     />
                                 ) : (
                                     el.content

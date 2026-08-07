@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Users, Layers, Mail, Globe, CreditCard, Receipt, Briefcase, Share2, Wallet, ShoppingBag, History, Settings, FileSignature } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, Users, Layers, Mail, Globe, CreditCard, Receipt, Briefcase, Share2, Wallet, ShoppingBag, History, Settings, FileSignature, Ticket } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -76,6 +76,11 @@ export function AppSidebar() {
                 title: 'Payment Settings',
                 href: '/super-admin/payment-settings',
                 icon: CreditCard,
+            },
+            {
+                title: 'Coupons',
+                href: '/super-admin/coupons',
+                icon: Ticket,
             },
             {
                 title: 'Transactions',

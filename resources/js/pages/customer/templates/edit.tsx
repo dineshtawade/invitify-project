@@ -383,7 +383,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                 <title>{`Customize ${template.name}`}</title>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&family=Dancing+Script:wght@400..700&family=Alex+Brush&family=Outfit:wght@100..900&family=Parisienne&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Pinyon+Script&display=swap" rel="stylesheet" />
+                <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&family=Dancing+Script:wght@400..700&family=Alex+Brush&family=Outfit:wght@100..900&family=Parisienne&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Pinyon+Script&family=Lora:ital,wght@0,400..700;1,400..700&family=Merriweather:ital,wght@0,300..900;1,300..900&family=Poppins:ital,wght@0,100..900;1,100..900&family=Pacifico&family=Sacramento&display=swap" rel="stylesheet" />
             </Head>
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6 bg-neutral-50/40 dark:bg-neutral-950/10">
 
@@ -646,13 +646,16 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                             fontSize: elem.fontSize ? `${elem.fontSize * scaleRatio}px` : undefined,
                                             fontWeight: elem.fontWeight || 'normal',
                                             fontStyle: elem.isItalic ? 'italic' : 'normal',
+                                            textShadow: elem.type === 'text' && elem.textShadow && elem.textShadow !== 'none' ? elem.textShadow : undefined,
+                                            opacity: elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1,
+                                            zIndex: elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25,
                                         };
 
                                         return (
                                             <div
                                                 key={elem.id}
                                                 style={style}
-                                                className="transition-all duration-75 relative p-0.5 leading-tight select-none break-words overflow-hidden border border-transparent"
+                                                className={`transition-all duration-75 relative overflow-hidden rounded-lg border border-transparent ${elem.animation && elem.animation !== 'none' ? elem.animation : ''}`}
                                             >
                                                 {elem.type === 'text' && (
                                                     <span className="w-full pointer-events-none">{elem.content}</span>

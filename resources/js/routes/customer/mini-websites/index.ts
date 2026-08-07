@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:351
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:375
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
 export const downloadZip = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ downloadZip.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:351
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:375
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
 downloadZip.url = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ downloadZip.url = (args: { mini_website: number | { id: number } } | [mini_websi
 
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:351
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:375
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
 downloadZip.get = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -58,7 +58,7 @@ downloadZip.get = (args: { mini_website: number | { id: number } } | [mini_websi
 })
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:351
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:375
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
 downloadZip.head = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -68,7 +68,7 @@ downloadZip.head = (args: { mini_website: number | { id: number } } | [mini_webs
 
     /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:351
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:375
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
     const downloadZipForm = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -78,7 +78,7 @@ downloadZip.head = (args: { mini_website: number | { id: number } } | [mini_webs
 
             /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:351
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:375
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
         downloadZipForm.get = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -87,7 +87,7 @@ downloadZip.head = (args: { mini_website: number | { id: number } } | [mini_webs
         })
             /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:351
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:375
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
         downloadZipForm.head = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -890,7 +890,7 @@ createOrder.post = (args: { mini_website: number | { id: number } } | [mini_webs
     createOrder.form = createOrderForm
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::verifyPayment
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:237
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:259
  * @route '/customer/mini-websites/{mini_website}/verify-payment'
  */
 export const verifyPayment = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -905,7 +905,7 @@ verifyPayment.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::verifyPayment
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:237
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:259
  * @route '/customer/mini-websites/{mini_website}/verify-payment'
  */
 verifyPayment.url = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -938,7 +938,7 @@ verifyPayment.url = (args: { mini_website: number | { id: number } } | [mini_web
 
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::verifyPayment
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:237
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:259
  * @route '/customer/mini-websites/{mini_website}/verify-payment'
  */
 verifyPayment.post = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -948,7 +948,7 @@ verifyPayment.post = (args: { mini_website: number | { id: number } } | [mini_we
 
     /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::verifyPayment
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:237
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:259
  * @route '/customer/mini-websites/{mini_website}/verify-payment'
  */
     const verifyPaymentForm = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -958,7 +958,7 @@ verifyPayment.post = (args: { mini_website: number | { id: number } } | [mini_we
 
             /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::verifyPayment
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:237
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:259
  * @route '/customer/mini-websites/{mini_website}/verify-payment'
  */
         verifyPaymentForm.post = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

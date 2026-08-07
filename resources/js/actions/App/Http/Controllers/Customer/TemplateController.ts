@@ -609,7 +609,7 @@ createRazorpayOrder.post = (args: { userTemplate: number | { id: number } } | [u
     createRazorpayOrder.form = createRazorpayOrderForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyRazorpayPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:345
+ * @see app/Http/Controllers/Customer/TemplateController.php:363
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
 export const verifyRazorpayPayment = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -624,7 +624,7 @@ verifyRazorpayPayment.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyRazorpayPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:345
+ * @see app/Http/Controllers/Customer/TemplateController.php:363
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
 verifyRazorpayPayment.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -657,7 +657,7 @@ verifyRazorpayPayment.url = (args: { userTemplate: number | { id: number } } | [
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyRazorpayPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:345
+ * @see app/Http/Controllers/Customer/TemplateController.php:363
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
 verifyRazorpayPayment.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -667,7 +667,7 @@ verifyRazorpayPayment.post = (args: { userTemplate: number | { id: number } } | 
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyRazorpayPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:345
+ * @see app/Http/Controllers/Customer/TemplateController.php:363
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
     const verifyRazorpayPaymentForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -677,7 +677,7 @@ verifyRazorpayPayment.post = (args: { userTemplate: number | { id: number } } | 
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyRazorpayPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:345
+ * @see app/Http/Controllers/Customer/TemplateController.php:363
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
         verifyRazorpayPaymentForm.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

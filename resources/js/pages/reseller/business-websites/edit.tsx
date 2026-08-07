@@ -142,7 +142,8 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
     };
 
     const currentBlocks = data.pages[activeTab]?.blocks || [];
-    const handleBlocksChange = (newBlocks: Block[]) => {
+    const handleBlocksChange = (newConfig: any) => {
+        const newBlocks = newConfig?.pages?.[0]?.blocks ?? (Array.isArray(newConfig) ? newConfig : []);
         setData('pages', {
             ...data.pages,
             [activeTab]: { ...data.pages[activeTab], blocks: newBlocks }

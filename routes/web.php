@@ -69,7 +69,8 @@ Route::get('/storage/media/{filename}', function ($filename) {
 });
 
 Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::class])->group(function () {
-    // Media Upload
+    // Media Upload & Library
+    Route::get('/media', [\App\Http\Controllers\MediaUploadController::class, 'index'])->name('media.index');
     Route::post('/media/upload', [\App\Http\Controllers\MediaUploadController::class, 'upload'])->name('media.upload');
 
     // Referral Code Validation
@@ -139,11 +140,27 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
         Route::delete('super-admin/templates/{template}', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'destroy'])
             ->name('super-admin.templates.destroy');
 
+        // Custom Icons
+        Route::post('super-admin/custom-icons', [\App\Http\Controllers\SuperAdmin\CustomIconController::class, 'store'])
+            ->name('super-admin.custom-icons.store');
+        Route::delete('super-admin/custom-icons/{customIcon}', [\App\Http\Controllers\SuperAdmin\CustomIconController::class, 'destroy'])
+            ->name('super-admin.custom-icons.destroy');
+
         // Payment Settings
         Route::get('super-admin/payment-settings', [\App\Http\Controllers\SuperAdmin\PaymentSettingsController::class, 'index'])
             ->name('super-admin.payment-settings.index');
         Route::post('super-admin/payment-settings', [\App\Http\Controllers\SuperAdmin\PaymentSettingsController::class, 'update'])
             ->name('super-admin.payment-settings.update');
+
+        // Coupons
+        Route::get('super-admin/coupons', [\App\Http\Controllers\SuperAdmin\CouponController::class, 'index'])
+            ->name('super-admin.coupons.index');
+        Route::post('super-admin/coupons', [\App\Http\Controllers\SuperAdmin\CouponController::class, 'store'])
+            ->name('super-admin.coupons.store');
+        Route::put('super-admin/coupons/{coupon}', [\App\Http\Controllers\SuperAdmin\CouponController::class, 'update'])
+            ->name('super-admin.coupons.update');
+        Route::delete('super-admin/coupons/{coupon}', [\App\Http\Controllers\SuperAdmin\CouponController::class, 'destroy'])
+            ->name('super-admin.coupons.destroy');
 
         // System Settings
         Route::get('super-admin/settings', [\App\Http\Controllers\SuperAdmin\SettingsController::class, 'index'])
@@ -296,13 +313,19 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
     // Customer Routes
     Route::middleware([\App\Http\Middleware\EnsureCustomer::class])->group(function () {
         Route::get('customer/dashboard', function () {
+            $user = auth()->user();
+            $invitationsCount = $user->userTemplates()->where('is_purchased', true)->count();
+            $notificationsCount = 0; // Temporarily set to 0 to fix SQL error since the notifications table doesn't exist yet
+
             return Inertia::render('customer/dashboard', [
                 'templates' => \App\Models\Template::all(),
-                'miniWebsites' => \App\Models\MiniWebsite::where('user_id', auth()->id())
+                'miniWebsites' => \App\Models\MiniWebsite::where('user_id', $user->id)
                     ->withCount(['rsvps', 'contactSubmissions'])
                     ->orderBy('created_at', 'desc')
                     ->take(5)
                     ->get(),
+                'invitationsCount' => $invitationsCount,
+                'notificationsCount' => $notificationsCount,
             ]);
         })->name('customer.dashboard');
 

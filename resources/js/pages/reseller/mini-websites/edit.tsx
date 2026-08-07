@@ -10,7 +10,7 @@ import {
     AlertCircle, Loader2, Calendar, ShieldAlert, Sparkles
 } from 'lucide-react';
 import { SharedEditor } from '@/components/design-editor/SharedEditor';
-import type { Block } from '@/components/design-editor/types';
+import type { Block, WebsiteConfig } from '@/components/design-editor/types';
 
 interface PageProps {
     wallet: {
@@ -26,7 +26,7 @@ interface PageProps {
         reseller_price: number;
         expires_at: string | null;
         is_expired: boolean;
-        config: Block[];
+        config: Block[] | WebsiteConfig;
     };
     customBlocks?: any[];
 }
@@ -36,7 +36,9 @@ export default function ResellerMiniWebsiteEdit({ wallet, website, customBlocks 
         title: website.title,
         theme: website.theme,
         is_published: website.is_published,
-        config: website.config || ([] as Block[]),
+        config: (website.config && !Array.isArray(website.config) && (website.config as any).pages)
+            ? website.config as unknown as WebsiteConfig
+            : { pages: [{ id: 'home', name: 'Home', blocks: Array.isArray(website.config) ? website.config : [] }] } as WebsiteConfig,
     });
 
     // Checkout Modal States
@@ -233,8 +235,8 @@ export default function ResellerMiniWebsiteEdit({ wallet, website, customBlocks 
 
                 {/* Editor Body */}
                 <SharedEditor
-                    blocks={data.config}
-                    onChange={(blocks) => setData('config', blocks)}
+                    config={data.config as unknown as WebsiteConfig}
+                    onChange={(newConfig) => setData('config', newConfig as unknown as Block[] | WebsiteConfig)}
                     isInvitation={true}
                     title={data.title}
                     slug={website.slug}

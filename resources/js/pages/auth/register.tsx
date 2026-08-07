@@ -151,7 +151,7 @@ export default function Register() {
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="reseller_business_name" className="text-[10px] font-extrabold text-[#4a4238] uppercase tracking-wider pl-1">Business Name</Label>
                                         <Input
-                                    className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
+                                            className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
                                             id="reseller_business_name"
                                             type="text"
                                             required={roleType === 'reseller'}
@@ -164,7 +164,7 @@ export default function Register() {
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="reseller_mobile_number" className="text-[10px] font-extrabold text-[#4a4238] uppercase tracking-wider pl-1">Mobile Number</Label>
                                         <Input
-                                    className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
+                                            className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
                                             id="reseller_mobile_number"
                                             type="text"
                                             required={roleType === 'reseller'}
@@ -177,7 +177,7 @@ export default function Register() {
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="reseller_email" className="text-[10px] font-extrabold text-[#4a4238] uppercase tracking-wider pl-1">Business Email Address</Label>
                                         <Input
-                                    className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
+                                            className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
                                             id="reseller_email"
                                             type="email"
                                             required={roleType === 'reseller'}
@@ -190,7 +190,7 @@ export default function Register() {
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="reseller_gst_number" className="text-[10px] font-extrabold text-[#4a4238] uppercase tracking-wider pl-1">GST Number</Label>
                                         <Input
-                                    className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
+                                            className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
                                             id="reseller_gst_number"
                                             type="text"
                                             required={roleType === 'reseller'}
@@ -207,7 +207,7 @@ export default function Register() {
                                             name="reseller_business_address"
                                             rows={2}
                                             placeholder="123 Creative Studio St, Mumbai, India"
-                                            className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-[#4a4238]/80 font-medium focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 dark:bg-neutral-950"
+                                            className="flex min-h-[60px] w-full bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
                                         />
                                         <InputError message={errors.reseller_business_address} />
                                     </div>
@@ -225,7 +225,7 @@ export default function Register() {
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="referral_city" className="text-[10px] font-extrabold text-[#4a4238] uppercase tracking-wider pl-1">City</Label>
                                         <Input
-                                    className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
+                                            className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
                                             id="referral_city"
                                             type="text"
                                             required={roleType === 'referral_partner'}
@@ -238,7 +238,7 @@ export default function Register() {
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="referral_email" className="text-[10px] font-extrabold text-[#4a4238] uppercase tracking-wider pl-1">Contact Email Address</Label>
                                         <Input
-                                    className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
+                                            className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
                                             id="referral_email"
                                             type="email"
                                             required={roleType === 'referral_partner'}
@@ -251,7 +251,7 @@ export default function Register() {
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="referral_phone_number" className="text-[10px] font-extrabold text-[#4a4238] uppercase tracking-wider pl-1">Phone Number</Label>
                                         <Input
-                                    className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
+                                            className="bg-white/60 backdrop-blur-md border-[#ebd9c1]/80 rounded-xl px-4 py-5 text-[#3e3832] focus-visible:ring-[#3d5644]/20 focus-visible:border-[#3d5644] placeholder:text-[#4a4238]/40 shadow-sm transition-all hover:bg-white/80"
                                             id="referral_phone_number"
                                             type="text"
                                             required={roleType === 'referral_partner'}
@@ -264,7 +264,7 @@ export default function Register() {
                                     {/* Social Media Section */}
                                     <div className="grid gap-3 mt-1">
                                         <Label className="font-extrabold text-neutral-800 dark:text-neutral-300">Social Media Accounts</Label>
-                                        
+
                                         <div className="space-y-3">
                                             {socialAccounts.map((acc, index) => (
                                                 <div key={acc.id} className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white/50 dark:bg-neutral-950/30 relative animate-fade-in">
@@ -274,14 +274,14 @@ export default function Register() {
                                                             name={`referral_social_media[${index}][platform]`}
                                                             value={acc.platform}
                                                             onChange={(e) => handleSocialChange(acc.id, 'platform', e.target.value)}
-                                                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring dark:bg-neutral-950"
+                                                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring dark:bg-blue-400"
                                                         >
-                                                            <option value="Instagram" className="dark:bg-neutral-950">Instagram</option>
-                                                            <option value="Facebook" className="dark:bg-neutral-950">Facebook</option>
-                                                            <option value="YouTube" className="dark:bg-neutral-950">YouTube</option>
-                                                            <option value="Twitter" className="dark:bg-neutral-950">Twitter / X</option>
-                                                            <option value="TikTok" className="dark:bg-neutral-950">TikTok</option>
-                                                            <option value="Other" className="dark:bg-neutral-950">Other</option>
+                                                            <option value="Instagram" className="dark:bg-blue-600 text-white">Instagram</option>
+                                                            <option value="Facebook" className="dark:bg-blue-600 text-white">Facebook</option>
+                                                            <option value="YouTube" className="dark:bg-blue-600 text-white">YouTube</option>
+                                                            <option value="Twitter" className="dark:bg-blue-600 text-white">Twitter / X</option>
+                                                            <option value="TikTok" className="dark:bg-blue-600 text-white">TikTok</option>
+                                                            <option value="Other" className="dark:bg-blue-600 text-white">Other</option>
                                                         </select>
                                                     </div>
                                                     <div className="grid gap-1">
@@ -327,7 +327,7 @@ export default function Register() {
                                             variant="outline"
                                             size="sm"
                                             onClick={() => setSocialAccounts(prev => [...prev, { id: Date.now(), platform: 'Instagram', username: '', followers: '' }])}
-                                            className="h-8 text-xs font-bold rounded-lg border-dashed w-full border-neutral-300 dark:border-neutral-850 mt-1 cursor-pointer"
+                                            className="h-8 text-xs font-bold rounded-lg border-dashed w-full border-neutral-300 dark:border-neutral-850 bg-blue-400 mt-1 cursor-pointer"
                                         >
                                             + Add Another Social Account
                                         </Button>

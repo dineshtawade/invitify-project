@@ -170,7 +170,7 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
             <Head title={userTemplate.template.name}>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&family=Dancing+Script:wght@400..700&family=Alex+Brush&family=Outfit:wght@100..900&family=Parisienne&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Pinyon+Script&display=swap" rel="stylesheet" />
+                <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&family=Dancing+Script:wght@400..700&family=Alex+Brush&family=Outfit:wght@100..900&family=Parisienne&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Pinyon+Script&family=Lora:ital,wght@0,400..700;1,400..700&family=Merriweather:ital,wght@0,300..900;1,300..900&family=Poppins:ital,wght@0,100..900;1,100..900&family=Pacifico&family=Sacramento&display=swap" rel="stylesheet" />
             </Head>
             <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-4 md:p-6 text-neutral-100">
                 {/* Main Card Frame */}
@@ -281,11 +281,14 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
                                 fontSize: elem.fontSize ? `${elem.fontSize * scaleRatio}px` : undefined,
                                 fontWeight: elem.fontWeight || 'normal',
                                 fontStyle: elem.isItalic ? 'italic' : 'normal',
+                                textShadow: elem.type === 'text' && elem.textShadow && elem.textShadow !== 'none' ? elem.textShadow : undefined,
+                                opacity: elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1,
+                                zIndex: elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25,
                             };
 
                             if (elem.type === 'text') {
                                 return (
-                                    <div key={elem.id} style={style} className="p-1 break-words leading-tight overflow-hidden">
+                                    <div key={elem.id} style={style} className={`p-1 break-words leading-tight overflow-hidden ${elem.animation && elem.animation !== 'none' ? elem.animation : ''}`}>
                                         {elem.content}
                                     </div>
                                 );
@@ -293,7 +296,7 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
 
                             if (elem.type === 'image') {
                                 return (
-                                    <div key={elem.id} style={style} className="overflow-hidden rounded-lg">
+                                    <div key={elem.id} style={style} className={`overflow-hidden rounded-lg ${elem.animation && elem.animation !== 'none' ? elem.animation : ''}`}>
                                         {elem.url ? (
                                             <img 
                                                 src={elem.url} 
@@ -322,7 +325,7 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
 
                             if (elem.type === 'divider') {
                                 return (
-                                    <div key={elem.id} style={style} className="flex items-center justify-center px-2">
+                                    <div key={elem.id} style={style} className={`p-1 flex items-center justify-center overflow-hidden ${elem.animation && elem.animation !== 'none' ? elem.animation : ''}`}>
                                         <hr className="w-full border-t" style={{ borderColor: elem.color || '#1f2937', borderWidth: `${scaleRatio * 1.5}px` }} />
                                     </div>
                                 );
