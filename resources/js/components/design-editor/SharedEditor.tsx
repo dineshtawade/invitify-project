@@ -4,7 +4,9 @@ import { BlockSettings } from './BlockSettings';
 import { getNewElementDefaults, type Block, type WebsiteConfig } from './types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import * as LucideIcons from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
@@ -50,6 +52,7 @@ export function SharedEditor(props: SharedEditorProps) {
     const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('mobile');
     const containerRef = useRef<HTMLDivElement>(null);
     const [dragPos, setDragPos] = useState<{ id: string, x: number, y: number } | null>(null);
+    const [isUploadingImage, setIsUploadingImage] = useState<Record<string, boolean>>({});
 
     const activePage = config?.pages?.find(p => p.id === activePageId) || config?.pages?.[0];
     const blocks = activePage?.blocks || [];
@@ -82,6 +85,37 @@ export function SharedEditor(props: SharedEditorProps) {
     const handleDeleteElement = (id: string) => {
         handleUpdateBlocks(blocks.filter(b => b.id !== id));
         if (selectedElementId === id) setSelectedElementId(null);
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, elementId: string) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setIsUploadingImage(prev => ({ ...prev, [elementId]: true }));
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/media/upload', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error('Upload failed');
+                }
+
+                const result = await response.json();
+                handleUpdateElement(elementId, { src: result.url });
+            } catch (err) {
+                console.error(err);
+                alert('Failed to upload file. Please check format (PNG, JPG, JPEG, MP4, WEBM) and try again.');
+            } finally {
+                setIsUploadingImage(prev => ({ ...prev, [elementId]: false }));
+            }
+        }
     };
 
     const getDeviceWidth = () => {
@@ -191,12 +225,35 @@ export function SharedEditor(props: SharedEditorProps) {
                                 );
                             } else if (el.type === 'image' || el.type === 'video' || el.type === 'background') {
                                 return (
-                                    <div key={el.id} className="space-y-2 pb-4 border-b border-neutral-100 dark:border-neutral-800 last:border-0">
-                                        <label className="text-xs uppercase tracking-widest text-neutral-500 font-bold capitalize block">{el.type} URL {idx + 1}</label>
+                                    <div key={el.id} className="space-y-3 pb-4 border-b border-neutral-100 dark:border-neutral-800 last:border-0">
+                                        <label className="text-xs uppercase tracking-widest text-neutral-500 font-bold capitalize block">{el.type} File {idx + 1}</label>
+                                        <div className="flex flex-col gap-2">
+                                            <Label className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold">Upload Local File</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    type="file"
+                                                    accept={el.type === 'video' ? 'video/mp4,video/webm' : 'image/*'}
+                                                    onChange={(e) => handleImageUpload(e, el.id)}
+                                                    disabled={isUploadingImage[el.id]}
+                                                    className="cursor-pointer file:text-[10px] text-[10px] h-8 bg-white pr-8"
+                                                />
+                                                {isUploadingImage[el.id] && (
+                                                    <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                                        <Loader2 className="size-3 animate-spin text-indigo-500" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <hr className="flex-1" />
+                                            <span className="text-[9px] text-neutral-400 font-medium uppercase">OR Paste URL</span>
+                                            <hr className="flex-1" />
+                                        </div>
                                         <Input 
                                             value={el.src || ''}
                                             onChange={e => handleUpdateElement(el.id, { src: e.target.value })}
                                             placeholder={`https://example.com/your-${el.type}.jpg`}
+                                            className="h-8 text-xs bg-white dark:bg-neutral-950"
                                         />
                                         {el.src && (el.type === 'image' || el.type === 'background') && (
                                             <div className="mt-2 h-24 rounded overflow-hidden border border-neutral-200">
@@ -317,7 +374,8 @@ export function SharedEditor(props: SharedEditorProps) {
                             else if (el.type === 'video') innerContent = <video src={el.src} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: pxToCqw(el.borderRadius), pointerEvents: 'none' }} autoPlay loop muted playsInline />;
                             else if (el.type === 'button') innerContent = <button style={{ width: '100%', height: '100%', backgroundColor: el.bgColor, color: el.color, borderRadius: pxToCqw(el.borderRadius), fontSize: pxToCqw(el.fontSize, 16), fontWeight: el.fontWeight }} className="flex items-center justify-center pointer-events-none">{el.content}</button>;
                             else if (el.type === 'icon') {
-                                const IconComp = (LucideIcons as any)[el.iconName || 'Star'] || LucideIcons.Star;
+                                const iconKey = el.iconName || (el as any).iconType || (el as any).icon || 'Star';
+                                const IconComp = (LucideIcons as any)[iconKey] || LucideIcons.Star;
                                 innerContent = <IconComp style={{ width: '100%', height: '100%', color: el.color }} />;
                             } else if (el.type === 'map') innerContent = <iframe src={el.src} style={{ width: '100%', height: '100%', borderRadius: pxToCqw(el.borderRadius), pointerEvents: isSelected ? 'none' : 'auto' }} frameBorder="0" />;
                             else if (el.type === 'carousel') {

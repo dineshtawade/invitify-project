@@ -357,13 +357,13 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="My Mini Websites" />
-            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 p-6 bg-white">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex flex-col gap-2">
-                        <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                            My Mini Websites <Globe className="size-6 text-blue-500" />
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+                            My Mini Websites <Globe className="size-6 text-blue-600" />
                         </h1>
-                        <p className="text-neutral-500 dark:text-neutral-400">
+                        <p className="text-gray-500">
                             Build, customize and host single-page invitations or multi-page business websites.
                         </p>
                     </div>
@@ -373,10 +373,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                 </div>
 
                 {/* Listing Grid */}
-                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
                     <div className="overflow-x-auto">
-                        <table className="w-full border-collapse text-left text-sm text-neutral-500 dark:text-neutral-400">
-                            <thead className="bg-neutral-50 text-xs font-semibold uppercase text-neutral-700 dark:bg-neutral-800/50 dark:text-neutral-300">
+                        <table className="w-full border-collapse text-left text-sm text-gray-500">
+                            <thead className="bg-gray-50 text-xs font-semibold uppercase text-gray-600">
                                 <tr>
                                     <th scope="col" className="px-6 py-4">Title & Slug</th>
                                     <th scope="col" className="px-6 py-4">Type</th>
@@ -386,42 +386,42 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                     <th scope="col" className="px-6 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                            <tbody className="divide-y divide-gray-200">
                                 {websites.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-12 text-center text-neutral-400">
+                                        <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
                                             No mini-websites created yet. Click "Create Website" to launch your first site.
                                         </td>
                                     </tr>
                                 ) : (
                                     websites.map((w) => (
-                                        <tr key={w.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20">
+                                        <tr key={w.id} className="hover:bg-gray-50/50 transition-colors">
                                             <td className="px-6 py-4">
-                                                <div className="font-bold text-neutral-900 dark:text-neutral-100">{w.title}</div>
-                                                <div className="text-xs text-neutral-400 font-mono mt-0.5 select-all">
+                                                <div className="font-bold text-gray-900">{w.title}</div>
+                                                <div className="text-xs text-gray-400 font-mono mt-0.5 select-all">
                                                     /mini-website/{w.slug}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold uppercase tracking-wider ${w.type === 'invitation'
-                                                    ? 'bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-400'
-                                                    : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400'
+                                                    ? 'bg-pink-50 text-pink-700 border border-pink-200'
+                                                    : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
                                                     }`}>
                                                     {w.type}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${w.is_published
-                                                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
-                                                    : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'
+                                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                                    : 'bg-gray-100 text-gray-600 border border-gray-200'
                                                     }`}>
-                                                    <span className={`size-1.5 rounded-full ${w.is_published ? 'bg-emerald-500' : 'bg-neutral-400'}`} />
+                                                    <span className={`size-1.5 rounded-full ${w.is_published ? 'bg-emerald-500' : 'bg-gray-400'}`} />
                                                     {w.is_published ? 'Live' : 'Draft'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
                                                 {w.template && parseFloat(String(w.template.price)) === 0 ? (
-                                                    <span className="inline-flex items-center rounded-md bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-950/30 dark:text-green-400">
+                                                    <span className="inline-flex items-center rounded-md bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 border border-green-200">
                                                         Lifetime Free
                                                     </span>
                                                 ) : (
@@ -430,19 +430,19 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                         return (
                                                             <div className="flex flex-col gap-1.5 items-start">
                                                                 {isExpired ? (
-                                                                    <span className="inline-flex items-center gap-1 rounded-md bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 ring-1 ring-inset ring-rose-600/10 dark:bg-rose-950/30 dark:text-rose-455">
-                                                                        <ShieldAlert className="size-3.5 text-rose-500" /> Expired
+                                                                    <span className="inline-flex items-center gap-1 rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 border border-red-200">
+                                                                        <ShieldAlert className="size-3.5 text-red-500" /> Expired
                                                                     </span>
                                                                 ) : (
                                                                     <div className="flex flex-col">
-                                                                        <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Active</span>
-                                                                        <span className="text-[10px] text-neutral-400">Expires: {new Date(w.expires_at!).toLocaleDateString()}</span>
+                                                                        <span className="text-xs font-semibold text-gray-700">Active</span>
+                                                                        <span className="text-[10px] text-gray-400">Expires: {new Date(w.expires_at!).toLocaleDateString()}</span>
                                                                     </div>
                                                                 )}
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => handleOpenCheckout(w)}
-                                                                    className="text-[10px] h-6 px-2 py-0.5 bg-blue-600 text-white hover:bg-blue-700 rounded-md font-extrabold flex items-center justify-center transition-colors shadow-xs"
+                                                                    className="text-[10px] h-6 px-2 py-0.5 bg-blue-600 text-white hover:bg-blue-700 rounded-md font-extrabold flex items-center justify-center transition-colors shadow-sm"
                                                                 >
                                                                     {isExpired ? 'Purchase Hosting' : 'Renew Hosting'}
                                                                 </button>
@@ -454,7 +454,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             <td className="px-6 py-4">
                                                 <Link
                                                     href={`/customer/mini-websites/${w.id}/submissions`}
-                                                    className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium hover:underline"
+                                                    className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-medium hover:underline"
                                                 >
                                                     <MessageSquare className="size-4" />
                                                     {w.type === 'invitation'
@@ -470,7 +470,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                             href={`/mini-website/${w.slug}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 shadow-xs hover:bg-neutral-50 dark:border-red-800 dark:bg-neutral-900 dark:text-blue-800 dark:hover:bg-neutral-800 transition-colors"
+                                                            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-colors"
                                                             title="View live site"
                                                         >
                                                             <ExternalLink className="size-3.5" /> View
@@ -481,7 +481,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                             type="button"
                                                             onClick={() => handleDownloadZip(w.id)}
                                                             disabled={downloadingId === w.id}
-                                                            className="inline-flex items-center gap-1 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 shadow-xs hover:bg-violet-100 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-400 dark:hover:bg-violet-900 transition-all disabled:opacity-60 disabled:cursor-wait"
+                                                            className="inline-flex items-center gap-1 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 shadow-sm hover:bg-violet-100 hover:border-violet-300 transition-all disabled:opacity-60 disabled:cursor-wait"
                                                             title="Download ZIP package with QR code & invite card"
                                                         >
                                                             {downloadingId === w.id ? (
@@ -497,7 +497,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                     )}
                                                     <Link
                                                         href={`/customer/mini-websites/${w.id}/edit`}
-                                                        className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-700 shadow-xs hover:bg-neutral-50 dark:border-red-800 dark:bg-neutral-900 dark:text-blue-800 dark:hover:bg-neutral-800 transition-colors"
+                                                        className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-colors"
                                                     >
                                                         <Pencil className="size-3.5" /> Edit
                                                     </Link>
@@ -506,7 +506,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                         onClick={() => handleDelete(w.id)}
                                                         variant="destructive"
                                                         size="sm"
-                                                        className="flex items-center gap-1 text-xs px-3 py-1.5"
+                                                        className="flex items-center gap-1 text-xs px-3 py-1.5 bg-red-600 hover:bg-red-700"
                                                     >
                                                         <Trash className="size-3.5" /> Delete
                                                     </Button>
@@ -523,36 +523,37 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
 
             {/* Creation Dialog */}
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogContent className="max-w-md bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                <DialogContent className="max-w-md bg-white border border-gray-200 shadow-xl">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                        <DialogTitle className="text-xl font-bold flex items-center gap-2 text-gray-900">
                             Create Mini Website
                         </DialogTitle>
                     </DialogHeader>
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-3">
                         <div className="grid gap-2">
-                            <Label htmlFor="title">Website Title</Label>
+                            <Label htmlFor="title" className="text-gray-700 font-semibold">Website Title</Label>
                             <Input
                                 id="title"
                                 value={data.title}
                                 onChange={(e) => handleTitleChange(e.target.value)}
                                 placeholder="E.g., Alexander & Sophia Wedding or Alpha Tech Consultancy"
                                 required
+                                className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                             />
                             {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title}</p>}
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="template_id">Choose Design Layout Template</Label>
+                            <Label htmlFor="template_id" className="text-gray-700 font-semibold">Choose Design Layout Template</Label>
                             <select
                                 id="template_id"
                                 value={data.template_id}
                                 onChange={(e) => setData('template_id', e.target.value)}
-                                className="flex h-9 w-full rounded-md border border-neutral-200 bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring dark:border-neutral-800 dark:bg-neutral-950"
+                                className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900"
                             >
                                 {templates.map((tpl) => (
-                                    <option key={tpl.id} value={tpl.id} className="dark:bg-neutral-950">
+                                    <option key={tpl.id} value={tpl.id}>
                                         {tpl.name} ({tpl.type === 'invitation' ? 'Event RSVP' : 'Business'})
                                     </option>
                                 ))}
@@ -561,9 +562,9 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="slug">Desired URL Slug</Label>
+                            <Label htmlFor="slug" className="text-gray-700 font-semibold">Desired URL Slug</Label>
                             <div className="flex items-center gap-2">
-                                <span className="text-xs font-mono text-neutral-400 bg-neutral-50 px-2 py-2.5 rounded-md border border-neutral-150 dark:bg-neutral-950 dark:border-neutral-850">
+                                <span className="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-2.5 rounded-md border border-gray-200">
                                     /mini-website/
                                 </span>
                                 <Input
@@ -572,17 +573,17 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                     onChange={(e) => setData('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                                     placeholder="alex-sophia-wedding"
                                     required
-                                    className="font-mono"
+                                    className="font-mono border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                                 />
                             </div>
                             {errors.slug && <p className="text-xs text-red-500 mt-1">{errors.slug}</p>}
-                            <p className="text-[11px] text-neutral-400">
+                            <p className="text-[11px] text-gray-400">
                                 Slugs should only contain letters, numbers, and dashes. E.g. `/mini-website/wedding-invitation-2026`.
                             </p>
                         </div>
 
                         <DialogFooter className="mt-4 gap-2">
-                            <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+                            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="border-gray-200 text-gray-700 hover:bg-gray-50">
                                 Cancel
                             </Button>
                             <Button type="submit" disabled={processing} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold">
@@ -595,9 +596,9 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
 
             {/* Hosting Checkout Dialog */}
             <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-                <DialogContent className="w-[95%] sm:max-w-md max-h-[90vh] overflow-y-auto bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                <DialogContent className="w-[95%] sm:max-w-md max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-xl">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-bold flex items-center gap-2 text-neutral-900 dark:text-neutral-100">
+                        <DialogTitle className="text-xl font-bold flex items-center gap-2 text-gray-900">
                             <CreditCard className="size-5 text-blue-600" />
                             Hosting Subscription Checkout
                         </DialogTitle>
@@ -605,22 +606,22 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
 
                     {checkoutWebsite && (
                         <div className="flex flex-col gap-5 py-3 text-sm">
-                            <div className="rounded-xl bg-neutral-50 dark:bg-neutral-950 p-4 border border-neutral-150 dark:border-neutral-850 flex flex-col gap-1">
-                                <span className="text-xs text-neutral-400 uppercase font-bold">Hosting Website</span>
-                                <span className="font-bold text-neutral-800 dark:text-neutral-200">{checkoutWebsite.title}</span>
-                                <span className="text-xs text-neutral-500 font-mono">/mini-website/{checkoutWebsite.slug}</span>
+                            <div className="rounded-xl bg-gray-50 p-4 border border-gray-200 flex flex-col gap-1">
+                                <span className="text-xs text-gray-400 uppercase font-bold">Hosting Website</span>
+                                <span className="font-bold text-gray-800">{checkoutWebsite.title}</span>
+                                <span className="text-xs text-gray-500 font-mono">/mini-website/{checkoutWebsite.slug}</span>
                             </div>
 
                             {/* Duration Unit Selector */}
                             <div className="flex flex-col gap-2">
-                                <Label className="text-xs text-neutral-500 uppercase font-bold">Select Billing Cycle</Label>
-                                <div className="flex bg-neutral-100 dark:bg-neutral-950 p-1 rounded-lg border">
+                                <Label className="text-xs text-gray-500 uppercase font-bold">Select Billing Cycle</Label>
+                                <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
                                     <button
                                         type="button"
                                         onClick={() => handleUnitChange('days')}
                                         className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${durationUnit === 'days'
-                                            ? 'bg-white dark:bg-neutral-800 text-blue-600 shadow-sm border border-neutral-200/50 dark:border-neutral-700'
-                                            : 'text-neutral-500 hover:text-neutral-850'
+                                            ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
+                                            : 'text-gray-500 hover:text-gray-700'
                                             }`}
                                     >
                                         Daily Billing (Days)
@@ -629,8 +630,8 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                         type="button"
                                         onClick={() => handleUnitChange('weeks')}
                                         className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${durationUnit === 'weeks'
-                                            ? 'bg-white dark:bg-neutral-800 text-blue-600 shadow-sm border border-neutral-200/50 dark:border-neutral-700'
-                                            : 'text-neutral-500 hover:text-neutral-850'
+                                            ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
+                                            : 'text-gray-500 hover:text-gray-700'
                                             }`}
                                     >
                                         Weekly Billing (Weeks)
@@ -640,164 +641,71 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
 
                             {/* Duration Selection */}
                             <div className="flex flex-col gap-2">
-                                <Label className="text-xs text-neutral-500 uppercase font-bold">Select Hosting Duration</Label>
+                                <Label className="text-xs text-gray-500 uppercase font-bold">Select Hosting Duration</Label>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                     {durationUnit === 'days' ? (
                                         <>
-                                            <button
-                                                type="button"
-                                                onClick={() => setDurationMode('1')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '1'
-                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                    }`}
-                                            >
-                                                <span className="text-sm">1 Day</span>
-                                                <span className="text-[10px] opacity-70">₹{1 * dailyPrice}</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setDurationMode('2')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '2'
-                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                    }`}
-                                            >
-                                                <span className="text-sm">2 Days</span>
-                                                <span className="text-[10px] opacity-70">₹{2 * dailyPrice}</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setDurationMode('3')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '3'
-                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                    }`}
-                                            >
-                                                <span className="text-sm">3 Days</span>
-                                                <span className="text-[10px] opacity-70">₹{3 * dailyPrice}</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setDurationMode('7')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '7'
-                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                    }`}
-                                            >
-                                                <span className="text-sm">7 Days</span>
-                                                <span className="text-[10px] opacity-70">₹{7 * dailyPrice}</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setDurationMode('30')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '30'
-                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                    }`}
-                                            >
-                                                <span className="text-sm">30 Days</span>
-                                                <span className="text-[10px] opacity-70">₹{30 * dailyPrice}</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setDurationMode('90')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '90'
-                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                    }`}
-                                            >
-                                                <span className="text-sm">90 Days</span>
-                                                <span className="text-[10px] opacity-70">₹{90 * dailyPrice}</span>
-                                            </button>
+                                            {[1, 2, 3, 7, 30, 90].map((day) => (
+                                                <button
+                                                    key={day}
+                                                    type="button"
+                                                    onClick={() => setDurationMode(String(day))}
+                                                    className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === String(day)
+                                                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                                                        : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                                                        }`}
+                                                >
+                                                    <span className="text-sm">{day} Day{day > 1 ? 's' : ''}</span>
+                                                    <span className="text-[10px] opacity-70 text-gray-500">₹{day * dailyPrice}</span>
+                                                </button>
+                                            ))}
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('custom')}
                                                 className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === 'custom'
-                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    ? 'border-blue-600 bg-blue-50 text-blue-700'
+                                                    : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                                                     }`}
                                             >
                                                 <span className="text-sm">Custom Days</span>
-                                                <span className="text-[10px] opacity-70">Flexible duration</span>
+                                                <span className="text-[10px] opacity-70 text-gray-500">Flexible</span>
                                             </button>
                                         </>
                                     ) : (
                                         <>
-                                            <button
-                                                type="button"
-                                                onClick={() => setDurationMode('1')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '1'
-                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                    }`}
-                                            >
-                                                <span className="text-sm">1 Week</span>
-                                                <span className="text-[10px] opacity-70">₹{1 * 7 * dailyPrice}</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setDurationMode('2')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '2'
-                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                    }`}
-                                            >
-                                                <span className="text-sm">2 Weeks</span>
-                                                <span className="text-[10px] opacity-70">₹{2 * 7 * dailyPrice}</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setDurationMode('4')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '4'
-                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                    }`}
-                                            >
-                                                <span className="text-sm">4 Weeks</span>
-                                                <span className="text-[10px] opacity-70">₹{4 * 7 * dailyPrice}</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setDurationMode('12')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '12'
-                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                    }`}
-                                            >
-                                                <span className="text-sm">12 Weeks</span>
-                                                <span className="text-[10px] opacity-70">₹{12 * 7 * dailyPrice}</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setDurationMode('26')}
-                                                className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === '26'
-                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
-                                                    }`}
-                                            >
-                                                <span className="text-sm">26 Weeks</span>
-                                                <span className="text-[10px] opacity-70">₹{26 * 7 * dailyPrice}</span>
-                                            </button>
+                                            {[1, 2, 4, 12, 26, 52].map((week) => (
+                                                <button
+                                                    key={week}
+                                                    type="button"
+                                                    onClick={() => setDurationMode(String(week))}
+                                                    className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === String(week)
+                                                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                                                        : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                                                        }`}
+                                                >
+                                                    <span className="text-sm">{week} Week{week > 1 ? 's' : ''}</span>
+                                                    <span className="text-[10px] opacity-70 text-gray-500">₹{week * 7 * dailyPrice}</span>
+                                                </button>
+                                            ))}
                                             <button
                                                 type="button"
                                                 onClick={() => setDurationMode('custom')}
                                                 className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === 'custom'
-                                                    ? 'border-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20'
-                                                    : 'border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800'
+                                                    ? 'border-blue-600 bg-blue-50 text-blue-700'
+                                                    : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                                                     }`}
                                             >
                                                 <span className="text-sm">Custom Weeks</span>
-                                                <span className="text-[10px] opacity-70">Flexible duration</span>
+                                                <span className="text-[10px] opacity-70 text-gray-500">Flexible</span>
                                             </button>
                                         </>
                                     )}
                                 </div>
-                                <div className="mt-3 flex flex-col gap-2 bg-neutral-50 dark:bg-neutral-950 p-3 rounded-lg border border-neutral-200 dark:border-neutral-800 animate-fadeIn">
+                                <div className="mt-3 flex flex-col gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200 animate-fadeIn">
                                     <div className="flex items-center justify-between">
-                                        <Label className="text-xs text-neutral-505 dark:text-neutral-400 font-bold uppercase">Or enter manually ({durationUnit === 'days' ? 'Days' : 'Weeks'})</Label>
+                                        <Label className="text-xs text-gray-500 font-bold uppercase">Or enter manually ({durationUnit === 'days' ? 'Days' : 'Weeks'})</Label>
                                         {durationMode !== 'custom' && (
-                                            <span className="text-[10px] text-neutral-400 font-semibold">
+                                            <span className="text-[10px] text-gray-400 font-semibold">
                                                 (Currently using preset)
                                             </span>
                                         )}
@@ -814,13 +722,13 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                 }
                                                 setDurationMode('custom');
                                             }}
-                                            className="flex h-9 w-full rounded-md border border-neutral-200 bg-white dark:bg-neutral-900 px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 font-semibold cursor-pointer"
+                                            className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900 font-semibold cursor-pointer"
                                         >
                                             {durationUnit === 'days' ? (
                                                 Array.from({ length: 30 }, (_, i) => i + 1)
                                                     .concat([45, 60, 90, 120, 180, 270, 365])
                                                     .map(d => (
-                                                        <option key={d} value={d} className="dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
+                                                        <option key={d} value={d}>
                                                             {d} {d === 1 ? 'Day' : 'Days'}
                                                         </option>
                                                     ))
@@ -828,7 +736,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                 Array.from({ length: 12 }, (_, i) => i + 1)
                                                     .concat([16, 20, 24, 26, 36, 52])
                                                     .map(w => (
-                                                        <option key={w} value={w} className="dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
+                                                        <option key={w} value={w}>
                                                             {w} {w === 1 ? 'Week' : 'Weeks'}
                                                         </option>
                                                     ))
@@ -849,9 +757,9 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             }}
                                             placeholder={durationMode === 'custom' ? "Custom" : "Type manual..."}
                                             min={1}
-                                            className={`h-9 w-32 shrink-0 font-semibold bg-white dark:bg-neutral-900 transition-all ${durationMode === 'custom'
-                                                ? 'border-blue-500 bg-blue-50/10 text-blue-700 dark:text-blue-400'
-                                                : 'border-neutral-200'
+                                            className={`h-9 w-32 shrink-0 font-semibold bg-white transition-all ${durationMode === 'custom'
+                                                ? 'border-blue-500 bg-blue-50/10 text-blue-700 focus:ring-blue-500'
+                                                : 'border-gray-200'
                                                 }`}
                                         />
                                     </div>
@@ -860,7 +768,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
 
                             {/* Coupon Section */}
                             <div className="flex flex-col gap-2">
-                                <Label className="text-xs text-neutral-500 uppercase font-bold flex items-center gap-1">
+                                <Label className="text-xs text-gray-500 uppercase font-bold flex items-center gap-1">
                                     <Ticket className="size-3.5" /> Apply Referral/Coupon Code
                                 </Label>
                                 <div className="flex gap-2">
@@ -874,19 +782,19 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             setAppliedDiscount(0);
                                         }}
                                         placeholder="E.g., MYCOUPON10"
-                                        className="h-9 font-bold uppercase tracking-wider"
+                                        className="h-9 font-bold uppercase tracking-wider border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                                     />
                                     <Button
                                         type="button"
                                         onClick={handleApplyCoupon}
                                         disabled={isApplyingCode || !referralCode.trim()}
-                                        className="h-9 px-4 shrink-0 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-neutral-100 dark:text-neutral-900"
+                                        className="h-9 px-4 shrink-0 bg-gray-900 text-white hover:bg-gray-800 transition-colors"
                                     >
                                         {isApplyingCode ? <Loader2 className="size-4 animate-spin" /> : 'Apply'}
                                     </Button>
                                 </div>
                                 {couponMessage && (
-                                    <p className={`text-xs font-semibold flex items-center gap-1 mt-1 ${isValidCoupon ? 'text-emerald-600 dark:text-emerald-450' : 'text-red-500'
+                                    <p className={`text-xs font-semibold flex items-center gap-1 mt-1 ${isValidCoupon ? 'text-emerald-600' : 'text-red-500'
                                         }`}>
                                         {isValidCoupon ? <Check className="size-3.5" /> : <AlertCircle className="size-3.5" />}
                                         {couponMessage}
@@ -895,29 +803,29 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                             </div>
 
                             {/* Cost breakdown invoice */}
-                            <div className="border-t pt-4 mt-2 flex flex-col gap-2.5">
-                                <div className="flex justify-between items-center text-neutral-500">
+                            <div className="border-t border-gray-200 pt-4 mt-2 flex flex-col gap-2.5">
+                                <div className="flex justify-between items-center text-gray-500">
                                     <span>Daily Hosting Fee</span>
-                                    <span className="font-semibold text-neutral-700 dark:text-neutral-300">₹{dailyPrice} / day</span>
+                                    <span className="font-semibold text-gray-700">₹{dailyPrice} / day</span>
                                 </div>
-                                <div className="flex justify-between items-center text-neutral-500">
+                                <div className="flex justify-between items-center text-gray-500">
                                     <span>Subtotal ({durationUnit === 'weeks' ? `${days / 7} Weeks (${days} Days)` : `${days} Days`})</span>
-                                    <span className="font-semibold text-neutral-700 dark:text-neutral-300">₹{subtotal}</span>
+                                    <span className="font-semibold text-gray-700">₹{subtotal}</span>
                                 </div>
                                 {discountDeduction > 0 && (
-                                    <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-450">
+                                    <div className="flex justify-between items-center text-emerald-600">
                                         <span className="flex items-center gap-1"><Ticket className="size-3.5" /> Referral Discount ({appliedDiscount}%)</span>
                                         <span className="font-bold">-₹{discountDeduction}</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between items-center border-t border-dashed pt-3 text-base font-extrabold text-neutral-900 dark:text-neutral-100">
+                                <div className="flex justify-between items-center border-t border-dashed border-gray-300 pt-3 text-base font-extrabold text-gray-900">
                                     <span>Total Payable</span>
                                     <span>₹{finalAmount}</span>
                                 </div>
                             </div>
 
-                            <DialogFooter className="mt-4 gap-2 border-t pt-4">
-                                <Button type="button" variant="outline" onClick={() => setIsCheckoutOpen(false)} disabled={isCheckingOut}>
+                            <DialogFooter className="mt-4 gap-2 border-t border-gray-200 pt-4">
+                                <Button type="button" variant="outline" onClick={() => setIsCheckoutOpen(false)} disabled={isCheckingOut} className="border-gray-200 text-gray-700 hover:bg-gray-50">
                                     Cancel
                                 </Button>
                                 <Button

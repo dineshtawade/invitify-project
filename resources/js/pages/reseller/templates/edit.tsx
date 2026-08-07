@@ -18,6 +18,7 @@ import {
     ImageIcon, Star, Compass, Gift, Calendar, Clock,
     Music, Wine, Bell, XCircle, Smile
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 import { getCsrfHeaders } from '@/lib/utils';
 import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
@@ -131,38 +132,24 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
 
     const renderDecorIcon = (iconName: string, color: string = 'currentColor') => {
         const iconClasses = "size-full object-contain pointer-events-none";
-        switch (iconName) {
-            case 'heart':
-                return <Heart className={iconClasses} style={{ color }} />;
-            case 'sparkle':
-            case 'sparkles':
-                return <Sparkles className={iconClasses} style={{ color }} />;
-            case 'cake':
-                return <Cake className={iconClasses} style={{ color }} />;
-            case 'baby':
-                return <Baby className={iconClasses} style={{ color }} />;
-            case 'gift':
-                return <Gift className={iconClasses} style={{ color }} />;
-            case 'calendar':
-                return <Calendar className={iconClasses} style={{ color }} />;
-            case 'clock':
-                return <Clock className={iconClasses} style={{ color }} />;
-            case 'music':
-                return <Music className={iconClasses} style={{ color }} />;
-            case 'wine':
-                return <Wine className={iconClasses} style={{ color }} />;
-            case 'star':
-                return <Star className={iconClasses} style={{ color }} />;
-            case 'bell':
-                return <Bell className={iconClasses} style={{ color }} />;
-            case 'compass':
-                return <Compass className={iconClasses} style={{ color }} />;
-            case 'flower':
-                return <Smile className={iconClasses} style={{ color }} />;
-            case 'ring':
-            default:
-                return <Award className={iconClasses} style={{ color }} />;
+
+        // Legacy fallback map
+        const legacyMap: Record<string, any> = {
+            'heart': Heart, 'sparkle': Sparkles, 'sparkles': Sparkles,
+            'cake': Cake, 'baby': Baby, 'gift': Gift, 'calendar': Calendar,
+            'clock': Clock, 'music': Music, 'wine': Wine, 'star': Star,
+            'bell': Bell, 'compass': Compass, 'flower': Smile, 'ring': Award
+        };
+
+        if (legacyMap[iconName]) {
+            const LegacyIcon = legacyMap[iconName];
+            return <LegacyIcon className={iconClasses} style={{ color }} />;
         }
+
+        const normalizedName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
+        const IconComponent = (LucideIcons as any)[normalizedName] || (LucideIcons as any)[iconName] || Award;
+
+        return <IconComponent className={iconClasses} style={{ color }} />;
     };
 
     const handleSaveDraft = (e: React.FormEvent) => {
@@ -615,12 +602,12 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                                 )}
 
                                                 {elem.type === 'image' && (
-                                                    <div className="w-full h-full rounded-md overflow-hidden bg-neutral-255/50 pointer-events-none">
+                                                    <div className="w-full h-full rounded-md overflow-hidden bg-neutral-200/50 pointer-events-none">
                                                         {elem.url ? (
                                                             elem.url === 'uploading' ? (
                                                                 <span className="text-[10px] text-indigo-500 flex items-center justify-center h-full animate-pulse font-extrabold">Uploading...</span>
                                                             ) : (
-                                                                <img src={elem.url} alt="Graphic Frame" className="w-full h-full object-cover pointer-events-none" />
+                                                                <img src={elem.url} alt="Graphic Frame" className="w-full h-full object-contain pointer-events-none" />
                                                             )
                                                         ) : (
                                                             <span className="text-[9px] text-neutral-400 flex items-center justify-center h-full">No image uploaded</span>

@@ -378,7 +378,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
 
                                                             {elem.type === 'image' && elem.url && (
                                                                 <div className="w-full h-full rounded overflow-hidden">
-                                                                    <img src={elem.url} alt="Image Layer" className="w-full h-full object-cover" />
+                                                                    <img src={elem.url} alt="Image Layer" className="w-full h-full object-contain" />
                                                                 </div>
                                                             )}
 

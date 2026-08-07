@@ -18,6 +18,7 @@ import {
     ImageIcon, Star, Compass, Gift, Calendar, Clock,
     Music, Wine, Bell, XCircle, Smile
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 import { getCsrfHeaders } from '@/lib/utils';
 import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
@@ -131,38 +132,24 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
 
     const renderDecorIcon = (iconName: string, color: string = 'currentColor') => {
         const iconClasses = "size-full object-contain pointer-events-none";
-        switch (iconName) {
-            case 'heart':
-                return <Heart className={iconClasses} style={{ color }} />;
-            case 'sparkle':
-            case 'sparkles':
-                return <Sparkles className={iconClasses} style={{ color }} />;
-            case 'cake':
-                return <Cake className={iconClasses} style={{ color }} />;
-            case 'baby':
-                return <Baby className={iconClasses} style={{ color }} />;
-            case 'gift':
-                return <Gift className={iconClasses} style={{ color }} />;
-            case 'calendar':
-                return <Calendar className={iconClasses} style={{ color }} />;
-            case 'clock':
-                return <Clock className={iconClasses} style={{ color }} />;
-            case 'music':
-                return <Music className={iconClasses} style={{ color }} />;
-            case 'wine':
-                return <Wine className={iconClasses} style={{ color }} />;
-            case 'star':
-                return <Star className={iconClasses} style={{ color }} />;
-            case 'bell':
-                return <Bell className={iconClasses} style={{ color }} />;
-            case 'compass':
-                return <Compass className={iconClasses} style={{ color }} />;
-            case 'flower':
-                return <Smile className={iconClasses} style={{ color }} />;
-            case 'ring':
-            default:
-                return <Award className={iconClasses} style={{ color }} />;
+
+        // Legacy fallback map
+        const legacyMap: Record<string, any> = {
+            'heart': Heart, 'sparkle': Sparkles, 'sparkles': Sparkles,
+            'cake': Cake, 'baby': Baby, 'gift': Gift, 'calendar': Calendar,
+            'clock': Clock, 'music': Music, 'wine': Wine, 'star': Star,
+            'bell': Bell, 'compass': Compass, 'flower': Smile, 'ring': Award
+        };
+
+        if (legacyMap[iconName]) {
+            const LegacyIcon = legacyMap[iconName];
+            return <LegacyIcon className={iconClasses} style={{ color }} />;
         }
+
+        const normalizedName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
+        const IconComponent = (LucideIcons as any)[normalizedName] || (LucideIcons as any)[iconName] || Award;
+
+        return <IconComponent className={iconClasses} style={{ color }} />;
     };
 
     const handleSaveDraft = (e: React.FormEvent) => {
@@ -401,9 +388,9 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                             onClick={handleSaveDraft}
                             disabled={processing}
                             variant="outline"
-                            className="flex items-center gap-1.5 border-neutral-200 dark:border-neutral-800 rounded-xl text-xs font-bold"
+                            className="flex items-center gap-1.5 border-neutral-200 dark:border-neutral-800 text-white rounded-xl text-xs font-bold"
                         >
-                            <Save className="size-4" /> Save Draft
+                            <Save className="size-4 text-white" /> Save Draft
                         </Button>
                         <Button
                             onClick={handleBuyClick}
@@ -429,7 +416,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                     <div className="grid gap-6 lg:grid-cols-[1fr_1fr] flex-1">
 
                         {/* Left side Personalization form ONLY (All layouts and styling locked) */}
-                        <div className="rounded-2xl border border-neutral-200 bg-white shadow-2xs dark:border-neutral-800 dark:bg-neutral-900 flex flex-col min-h-[500px] overflow-hidden">
+                        <div className="rounded-2xl border border-neutral-200 bg-white shadow-2xs dark:border-neutral-800 flex flex-col min-h-[500px] overflow-hidden">
                             <div className="p-5 border-b bg-neutral-50 dark:bg-neutral-950/20">
                                 <h2 className="text-md font-bold flex items-center gap-2 text-neutral-900 dark:text-neutral-50">
                                     <Sparkles className="size-5 text-indigo-700 dark:text-indigo-400" />
@@ -462,7 +449,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                             return (
                                                 <div key={element.id} className="grid gap-1.5 bg-neutral-50/50 dark:bg-neutral-950/20 p-3.5 rounded-xl border">
                                                     <Label htmlFor={element.id} className="text-xs font-bold text-white dark:text-neutral-200 flex items-center justify-between">
-                                                        <span className='dark:text-neutral-100'>{element.editableLabel || 'Text Field'}</span>
+                                                        <span className='dark:text-neutral-600'>{element.editableLabel || 'Text Field'}</span>
                                                         <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-800">Page {pageIndex + 1}</span>
                                                     </Label>
                                                     {element.multiline ? (
@@ -488,7 +475,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                         if (element.type === 'image') {
                                             return (
                                                 <div key={element.id} className="grid gap-2 bg-neutral-50/50 dark:bg-neutral-950/20 p-3.5 rounded-xl border">
-                                                    <Label className="text-xs font-bold text-neutral-805 dark:text-neutral-200 dark:text-neutral-100 flex items-center justify-between">
+                                                    <Label className="text-xs font-bold text-neutral-805 dark:text-neutral-200 dark:text-neutral-600 flex items-center justify-between">
                                                         <span>{element.editableLabel || 'Upload Image'}</span>
                                                         <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-400">Page {pageIndex + 1}</span>
                                                     </Label>
@@ -662,12 +649,12 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                                 )}
 
                                                 {elem.type === 'image' && (
-                                                    <div className="w-full h-full rounded-md overflow-hidden bg-neutral-255/50 pointer-events-none">
+                                                    <div className="w-full h-full rounded-md overflow-hidden bg-neutral-200/50 pointer-events-none">
                                                         {elem.url ? (
                                                             elem.url === 'uploading' ? (
                                                                 <span className="text-[10px] text-indigo-500 flex items-center justify-center h-full animate-pulse font-extrabold">Uploading...</span>
                                                             ) : (
-                                                                <img src={elem.url} alt="Graphic Frame" className="w-full h-full object-cover pointer-events-none" />
+                                                                <img src={elem.url} alt="Graphic Frame" className="w-full h-full object-contain pointer-events-none" />
                                                             )
                                                         ) : (
                                                             <span className="text-[9px] text-neutral-400 flex items-center justify-center h-full">No image uploaded</span>

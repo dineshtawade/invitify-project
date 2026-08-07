@@ -115,7 +115,8 @@ export default function SiteViewer({ website, previewMode }: PageProps) {
                             }
                         }
                         else if (el.type === 'icon') {
-                            const IconComp = (LucideIcons as any)[el.iconName || 'Star'] || Star;
+                            const iconKey = el.iconName || (el as any).iconType || (el as any).icon || 'Star';
+                            const IconComp = (LucideIcons as any)[iconKey] || Star;
                             innerContent = <IconComp style={{ width: '100%', height: '100%', color: el.color }} />;
                         } else if (el.type === 'map') innerContent = <iframe src={el.src} style={{ width: '100%', height: '100%', borderRadius: pxToCqw(el.borderRadius) }} frameBorder="0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />;
                         else if (el.type === 'carousel') {

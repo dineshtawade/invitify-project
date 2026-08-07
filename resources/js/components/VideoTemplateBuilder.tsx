@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Upload, Plus, SkipBack, Trash, Type, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Play, Pause, Upload, Plus, SkipBack, Trash, Type, Image as ImageIcon, Loader2, X, Check, Grid, List, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import axios from 'axios';
@@ -32,6 +32,9 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
     const [isUploading, setIsUploading] = useState(false);
     const [mediaLibrary, setMediaLibrary] = useState<any[]>([]);
     const [isLoadingMedia, setIsLoadingMedia] = useState(false);
+    const [mediaViewMode, setMediaViewMode] = useState<'grid' | 'list'>('grid');
+    const [mediaSearch, setMediaSearch] = useState('');
+    const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!videoUrl && !isCustomerMode) {
@@ -68,6 +71,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                 const url = response.data.url;
                 setVideoUrl(url);
                 setData('default_config', { ...data.default_config, video_url: url });
+                await fetchMediaLibrary();
             } catch (error) {
                 console.error("Failed to upload video:", error);
                 alert("Failed to upload video. Please ensure it is under 50MB and a valid format.");
@@ -106,68 +110,196 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
         }
     };
 
+    const filteredMedia = mediaLibrary.filter(media =>
+        media.filename?.toLowerCase().includes(mediaSearch.toLowerCase()) ||
+        media.title?.toLowerCase().includes(mediaSearch.toLowerCase())
+    );
+
+    // Upload Section Component
+    const UploadSection = () => (
+        <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-8 bg-white">
+            <div className="w-full max-w-md space-y-6">
+                <div className="text-center space-y-2">
+                    <div className="size-16 bg-indigo-100 text-indigo-600 rounded-2xl mx-auto flex items-center justify-center">
+                        <Upload className="size-8" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">Upload Video</h3>
+                    <p className="text-gray-500 text-sm">Upload your background video or choose from library</p>
+                </div>
+
+                <div className="space-y-3">
+                    <label className={`flex items-center justify-center gap-3 w-full py-4 px-4 font-semibold rounded-xl transition-all cursor-pointer ${isUploading ? 'bg-indigo-400 cursor-not-allowed opacity-50' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200'}`}>
+                        {isUploading ? (
+                            <><Loader2 className="size-5 animate-spin" /> Uploading Video...</>
+                        ) : (
+                            <><Upload className="size-5" /> Upload MP4 Video</>
+                        )}
+                        <input type="file" accept="video/mp4,video/webm" className="hidden" onChange={handleVideoUpload} disabled={isUploading} />
+                    </label>
+
+                    <div className="relative flex items-center py-2">
+                        <div className="flex-grow border-t border-gray-200"></div>
+                        <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-bold uppercase">OR</span>
+                        <div className="flex-grow border-t border-gray-200"></div>
+                    </div>
+
+                    <Button type="button" onClick={handleSelectDemo} variant="outline" className="w-full h-12 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 rounded-xl font-semibold transition-all">
+                        Use Demo Video
+                    </Button>
+                </div>
+
+                <div className="pt-4 border-t border-gray-200">
+                    <p className="text-xs text-gray-400 text-center">
+                        Supported formats: MP4, WebM • Max size: 50MB
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+
+    // Media Library Section Component
+    const MediaLibrarySection = () => (
+        <div className="flex-1 flex flex-col border-t lg:border-t-0 lg:border-l border-gray-200 bg-gray-50">
+            {/* Library Header */}
+            <div className="p-4 border-b border-gray-200 bg-white">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-gray-900 text-sm">Media Library</h4>
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                            {mediaLibrary.length}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Search media..."
+                                value={mediaSearch}
+                                onChange={(e) => setMediaSearch(e.target.value)}
+                                className="w-32 lg:w-40 h-8 bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 text-xs text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            />
+                        </div>
+                        <div className="flex rounded-lg border border-gray-200 overflow-hidden bg-white">
+                            <button
+                                onClick={() => setMediaViewMode('grid')}
+                                className={`p-1.5 transition-colors ${mediaViewMode === 'grid' ? 'bg-indigo-100 text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
+                            >
+                                <Grid className="size-3.5" />
+                            </button>
+                            <button
+                                onClick={() => setMediaViewMode('list')}
+                                className={`p-1.5 transition-colors ${mediaViewMode === 'list' ? 'bg-indigo-100 text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
+                            >
+                                <List className="size-3.5" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Library Content */}
+            <div className="flex-1 overflow-y-auto p-3 bg-gray-50">
+                {isLoadingMedia ? (
+                    <div className="flex items-center justify-center h-32">
+                        <Loader2 className="size-6 text-indigo-600 animate-spin" />
+                    </div>
+                ) : filteredMedia.length === 0 ? (
+                    <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+                        <div className="size-12 bg-gray-100 rounded-full mx-auto flex items-center justify-center">
+                            <ImageIcon className="size-6 text-gray-400" />
+                        </div>
+                        <p className="text-sm text-gray-600 mt-3">
+                            {mediaSearch ? 'No matching videos found' : 'No videos in library'}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                            Upload your first video to get started
+                        </p>
+                    </div>
+                ) : mediaViewMode === 'grid' ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {filteredMedia.map((media) => (
+                            <div
+                                key={media.id}
+                                onClick={() => {
+                                    setVideoUrl(media.url);
+                                    setData?.('default_config', { ...data.default_config, video_url: media.url });
+                                    setSelectedMediaId(media.id);
+                                }}
+                                className={`relative aspect-[9/16] bg-gray-100 rounded-xl overflow-hidden cursor-pointer transition-all group ${selectedMediaId === media.id ? 'ring-2 ring-indigo-600 shadow-lg' : 'hover:ring-1 hover:ring-gray-300 shadow-sm'}`}
+                            >
+                                {media.thumbnail ? (
+                                    <img src={media.thumbnail} alt={media.filename} className="w-full h-full object-cover" />
+                                ) : (
+                                    <video src={media.url} className="w-full h-full object-cover" />
+                                )}
+                                <div className={`absolute inset-0 flex items-center justify-center bg-black/30 transition-all ${selectedMediaId === media.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                                    {selectedMediaId === media.id ? (
+                                        <Check className="size-6 text-white drop-shadow-lg" />
+                                    ) : (
+                                        <Play className="size-6 text-white drop-shadow-lg" />
+                                    )}
+                                </div>
+                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                                    <p className="text-[10px] text-white truncate font-medium">{media.filename || 'Untitled'}</p>
+                                    {media.duration && (
+                                        <p className="text-[9px] text-gray-300">{Math.round(media.duration)}s</p>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="space-y-2">
+                        {filteredMedia.map((media) => (
+                            <div
+                                key={media.id}
+                                onClick={() => {
+                                    setVideoUrl(media.url);
+                                    setData?.('default_config', { ...data.default_config, video_url: media.url });
+                                    setSelectedMediaId(media.id);
+                                }}
+                                className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all bg-white border ${selectedMediaId === media.id ? 'border-indigo-600 shadow-md ring-1 ring-indigo-600' : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                            >
+                                <div className="size-12 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                                    {media.thumbnail ? (
+                                        <img src={media.thumbnail} alt={media.filename} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <video src={media.url} className="w-full h-full object-cover" />
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-gray-900 truncate font-medium">{media.filename || 'Untitled'}</p>
+                                    <p className="text-xs text-gray-500">
+                                        {media.duration ? `${Math.round(media.duration)}s` : 'Unknown duration'}
+                                    </p>
+                                </div>
+                                {selectedMediaId === media.id && (
+                                    <Check className="size-4 text-indigo-600 shrink-0" />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
     if (!videoUrl) {
         if (isCustomerMode) {
             return (
-                <div className="flex-1 flex items-center justify-center bg-neutral-950 text-neutral-400 p-8 text-center rounded-2xl">
+                <div className="flex-1 flex items-center justify-center bg-white text-gray-500 p-8 text-center rounded-2xl">
                     <p>No video background has been configured for this template.</p>
                 </div>
             );
         }
         return (
-            <div className="flex-1 flex flex-col items-center justify-center
-             text-white p-8">
-                <div className="max-w-md w-full bg-neutral-900 rounded-[2rem] p-10 text-center space-y-6 shadow-2xl border border-neutral-800">
-                    <div className="size-20 bg-indigo-500/20 text-indigo-400 rounded-3xl mx-auto flex items-center justify-center">
-                        <Upload className="size-10" />
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-bold mb-2">Start Video Project</h2>
-                        <p className="text-neutral-400 text-sm">Upload a background video or start with our beautiful default template.</p>
-                    </div>
-                    <div className="space-y-4 pt-4">
-                        <label className={`flex items-center justify-center gap-2 w-full py-4 px-4 font-semibold rounded-2xl transition-colors shadow-lg shadow-indigo-900/20 ${isUploading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 cursor-pointer text-white'}`}>
-                            {isUploading ? (
-                                <><Loader2 className="size-5 animate-spin" /> Uploading Video...</>
-                            ) : (
-                                <><Upload className="size-5" /> Upload MP4 Video</>
-                            )}
-                            <input type="file" accept="video/mp4" className="hidden" onChange={handleVideoUpload} disabled={isUploading} />
-                        </label>
-                        <div className="relative flex items-center py-2">
-                            <div className="flex-grow border-t border-neutral-800"></div>
-                            <span className="flex-shrink-0 mx-4 text-neutral-600 text-xs font-bold uppercase">OR</span>
-                            <div className="flex-grow border-t border-neutral-800"></div>
-                        </div>
-                        <Button type="button" onClick={handleSelectDemo} variant="outline" className="w-full h-14 border-2 border-neutral-700 text-neutral-300 hover:bg-neutral-800 hover:border-neutral-600 hover:text-white rounded-2xl font-semibold transition-all">
-                            Use Demo Video
-                        </Button>
-                    </div>
+            <div className="flex-1 flex flex-col lg:flex-row bg-white overflow-hidden">
+                {/* Upload Section - Half Screen */}
+                <UploadSection />
 
-                    {mediaLibrary.length > 0 && (
-                        <div className="pt-6 border-t border-neutral-800 text-left">
-                            <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-3">Your Media Library</h3>
-                            <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-                                {mediaLibrary.map((media) => (
-                                    <div
-                                        key={media.id}
-                                        onClick={() => {
-                                            setVideoUrl(media.url);
-                                            setData?.('default_config', { ...data.default_config, video_url: media.url });
-                                        }}
-                                        className="relative aspect-[9/16] bg-neutral-800 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-indigo-500 transition-all group"
-                                        title={media.filename}
-                                    >
-                                        <video src={media.url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
-                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 transition-all">
-                                            <Play className="size-6 text-white drop-shadow-md" />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
+                {/* Media Library Section - Half Screen */}
+                <MediaLibrarySection />
             </div>
         );
     }
@@ -270,18 +402,18 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
     }
 
     return (
-        <div className="flex-1 grid lg:grid-cols-2 h-full bg-neutral-950 text-neutral-200 overflow-hidden relative">
+        <div className="flex-1 grid lg:grid-cols-2 h-full bg-white text-gray-900 overflow-hidden relative">
             {/* Left Column: Tools + Timeline */}
-            <div className="w-full border-r border-neutral-800 bg-neutral-900/50 flex flex-col overflow-hidden min-h-0">
+            <div className="w-full border-r border-gray-200 bg-gray-50/50 flex flex-col overflow-hidden min-h-0">
 
                 {/* Tools & Properties (Scrollable) */}
                 <div className="flex-1 flex flex-col overflow-y-auto">
-                    <div className="p-5 border-b border-neutral-800 shrink-0">
-                        <h3 className="font-bold text-white text-lg">
+                    <div className="p-5 border-b border-gray-200 shrink-0 bg-white">
+                        <h3 className="font-bold text-gray-900 text-lg">
                             {isCustomerMode ? "Personalize Content" : "Video Elements"}
                         </h3>
                         {isCustomerMode && (
-                            <p className="text-[11px] text-neutral-400 mt-1">Replace placeholder contents. Overall styling and timings are secured.</p>
+                            <p className="text-[11px] text-gray-500 mt-1">Replace placeholder contents. Overall styling and timings are secured.</p>
                         )}
                     </div>
                     <div className="p-5 space-y-4">
@@ -307,7 +439,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                         updateConfig([...elements, newElement]);
                                         setSelectedElementId(newId);
                                     }}
-                                    className="w-full bg-white text-black hover:bg-neutral-200 font-bold gap-2 h-12 rounded-xl text-xs px-2"
+                                    className="w-full bg-gray-900 text-white hover:bg-gray-800 font-bold gap-2 h-12 rounded-xl text-xs px-2"
                                 >
                                     <Type className="size-4 shrink-0" /> Add Text
                                 </Button>
@@ -338,7 +470,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                         type: 'image',
                                                         src: response.data.url,
                                                         x: 50, y: 50,
-                                                        width: 100, height: 100, // starting size in px
+                                                        width: 100, height: 100,
                                                         startTime: 0,
                                                         endTime: duration > 0 ? duration : 5,
                                                         animationIn: 'fade',
@@ -351,7 +483,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                     alert("Failed to upload image. Please check format and size.");
                                                 }
                                             }
-                                            e.target.value = ''; // reset
+                                            e.target.value = '';
                                         }}
                                     />
                                 </label>
@@ -362,18 +494,18 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                         {isCustomerMode ? (
                             <div className="space-y-4">
                                 {elements.map((el: any, idx: number) => (
-                                    <div key={el.id} className="grid gap-2 bg-neutral-800/50 p-3.5 rounded-xl border border-neutral-700 cursor-pointer" onClick={() => setSelectedElementId(el.id)}>
-                                        <label className="text-xs font-bold text-neutral-300 flex items-center justify-between">
+                                    <div key={el.id} className="grid gap-2 bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:border-gray-300" onClick={() => setSelectedElementId(el.id)}>
+                                        <label className="text-xs font-bold text-gray-700 flex items-center justify-between">
                                             <span>{el.type === 'image' ? 'Upload Image' : 'Text Content'}</span>
-                                            <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-500">Layer {idx + 1}</span>
+                                            <span className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Layer {idx + 1}</span>
                                         </label>
                                         {el.type === 'image' ? (
                                             <div className="flex gap-4 items-center mt-1">
-                                                <div className="size-16 rounded-xl border border-neutral-600 bg-neutral-900 overflow-hidden flex items-center justify-center shrink-0">
+                                                <div className="size-16 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center shrink-0">
                                                     {el.src ? (
                                                         <img src={el.src} alt="Custom" className="size-full object-cover" />
                                                     ) : (
-                                                        <ImageIcon className="size-6 text-neutral-500" />
+                                                        <ImageIcon className="size-6 text-gray-400" />
                                                     )}
                                                 </div>
                                                 <div className="flex-1 flex flex-col gap-1.5">
@@ -401,7 +533,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                 }
                                                             }
                                                         }}
-                                                        className="flex h-9 w-full rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-1 text-xs text-neutral-300 file:border-0 file:bg-transparent file:text-xs file:font-semibold file:text-neutral-400 file:cursor-pointer"
+                                                        className="flex h-9 w-full rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs text-gray-900 file:border-0 file:bg-transparent file:text-xs file:font-semibold file:text-gray-600 file:cursor-pointer"
                                                     />
                                                 </div>
                                             </div>
@@ -412,18 +544,18 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                     const newEls = elements.map((x: any) => x.id === el.id ? { ...x, content: e.target.value } : x);
                                                     updateConfig(newEls);
                                                 }}
-                                                className="bg-neutral-900 border-neutral-700 h-9.5 text-xs text-white rounded-lg"
+                                                className="bg-white border-gray-200 h-9.5 text-xs text-gray-900 rounded-lg"
                                             />
                                         )}
                                     </div>
                                 ))}
                                 {elements.length === 0 && (
-                                    <p className="text-xs text-neutral-500 italic text-center py-12">No personalization layers found.</p>
+                                    <p className="text-xs text-gray-400 italic text-center py-12">No personalization layers found.</p>
                                 )}
                             </div>
                         ) : selectedElementId && (
-                            <div className="space-y-4 pt-4 border-t border-neutral-800">
-                                <h4 className="text-sm font-bold text-neutral-400 uppercase tracking-wider">Properties</h4>
+                            <div className="space-y-4 pt-4 border-t border-gray-200">
+                                <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Properties</h4>
                                 {(() => {
                                     const el = elements.find((e: any) => e.id === selectedElementId);
                                     if (!el) return null;
@@ -436,13 +568,13 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                         const newEls = elements.map((x: any) => x.id === el.id ? { ...x, content: e.target.value } : x);
                                                         updateConfig(newEls);
                                                     }}
-                                                    className="bg-neutral-900 border-neutral-700"
+                                                    className="bg-white border-gray-200"
                                                     placeholder="Text content"
                                                 />
                                             )}
                                             <div className="grid grid-cols-2 gap-2">
                                                 <div>
-                                                    <label className="text-xs text-neutral-500 mb-1 block">Start Time (s)</label>
+                                                    <label className="text-xs text-gray-500 mb-1 block">Start Time (s)</label>
                                                     <Input
                                                         type="number" step="0.1"
                                                         value={el.startTime}
@@ -450,11 +582,11 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                             const newEls = elements.map((x: any) => x.id === el.id ? { ...x, startTime: parseFloat(e.target.value) } : x);
                                                             updateConfig(newEls);
                                                         }}
-                                                        className="bg-neutral-900 border-neutral-700"
+                                                        className="bg-white border-gray-200"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="text-xs text-neutral-500 mb-1 block">End Time (s)</label>
+                                                    <label className="text-xs text-gray-500 mb-1 block">End Time (s)</label>
                                                     <Input
                                                         type="number" step="0.1"
                                                         value={el.endTime}
@@ -462,7 +594,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                             const newEls = elements.map((x: any) => x.id === el.id ? { ...x, endTime: parseFloat(e.target.value) } : x);
                                                             updateConfig(newEls);
                                                         }}
-                                                        className="bg-neutral-900 border-neutral-700 h-9"
+                                                        className="bg-white border-gray-200 h-9"
                                                     />
                                                 </div>
                                             </div>
@@ -470,14 +602,14 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                             {el.type !== 'image' ? (
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <div>
-                                                        <label className="text-xs text-neutral-500 mb-1 block">Font</label>
+                                                        <label className="text-xs text-gray-500 mb-1 block">Font</label>
                                                         <select
                                                             value={el.fontFamily}
                                                             onChange={(e) => {
                                                                 const newEls = elements.map((x: any) => x.id === el.id ? { ...x, fontFamily: e.target.value } : x);
                                                                 updateConfig(newEls);
                                                             }}
-                                                            className="flex h-9 w-full rounded-md border border-neutral-700 bg-neutral-900 px-2 py-1 text-xs shadow-sm transition-colors focus:border-indigo-500"
+                                                            className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                                         >
                                                             <option value="Playfair Display">Playfair Display</option>
                                                             <option value="Great Vibes">Great Vibes</option>
@@ -487,7 +619,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                         </select>
                                                     </div>
                                                     <div>
-                                                        <label className="text-xs text-neutral-500 mb-1 block">Color & Size</label>
+                                                        <label className="text-xs text-gray-500 mb-1 block">Color & Size</label>
                                                         <div className="flex gap-2">
                                                             <Input
                                                                 type="color"
@@ -496,7 +628,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                     const newEls = elements.map((x: any) => x.id === el.id ? { ...x, color: e.target.value } : x);
                                                                     updateConfig(newEls);
                                                                 }}
-                                                                className="w-10 h-9 p-0.5 bg-neutral-900 border-neutral-700 cursor-pointer rounded-md"
+                                                                className="w-10 h-9 p-0.5 bg-white border-gray-200 cursor-pointer rounded-md"
                                                             />
                                                             <Input
                                                                 type="text"
@@ -507,7 +639,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                 }}
                                                                 placeholder="Size (24px)"
                                                                 title="Font Size"
-                                                                className="w-16 bg-neutral-900 border-neutral-700 text-xs h-9"
+                                                                className="w-16 bg-white border-gray-200 text-xs h-9"
                                                             />
                                                             <select
                                                                 value={el.fontWeight || 'normal'}
@@ -516,7 +648,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                     updateConfig(newEls);
                                                                 }}
                                                                 title="Font Weight"
-                                                                className="flex-1 rounded-md border border-neutral-700 bg-neutral-900 px-2 py-1 text-xs shadow-sm focus:border-indigo-500"
+                                                                className="flex-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                                             >
                                                                 <option value="normal">Normal</option>
                                                                 <option value="bold">Bold</option>
@@ -528,7 +660,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                             ) : (
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <div>
-                                                        <label className="text-xs text-neutral-500 mb-1 block">Width (px)</label>
+                                                        <label className="text-xs text-gray-500 mb-1 block">Width (px)</label>
                                                         <Input
                                                             type="number"
                                                             value={el.width || 100}
@@ -536,11 +668,11 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                 const newEls = elements.map((x: any) => x.id === el.id ? { ...x, width: parseFloat(e.target.value) } : x);
                                                                 updateConfig(newEls);
                                                             }}
-                                                            className="bg-neutral-900 border-neutral-700"
+                                                            className="bg-white border-gray-200"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="text-xs text-neutral-500 mb-1 block">Height (px)</label>
+                                                        <label className="text-xs text-gray-500 mb-1 block">Height (px)</label>
                                                         <Input
                                                             type="number"
                                                             value={el.height || 100}
@@ -548,7 +680,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                 const newEls = elements.map((x: any) => x.id === el.id ? { ...x, height: parseFloat(e.target.value) } : x);
                                                                 updateConfig(newEls);
                                                             }}
-                                                            className="bg-neutral-900 border-neutral-700"
+                                                            className="bg-white border-gray-200"
                                                         />
                                                     </div>
                                                 </div>
@@ -557,14 +689,14 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                             <div className="grid grid-cols-2 gap-2">
                                                 <div className="grid gap-2">
                                                     <div>
-                                                        <label className="text-xs text-neutral-500 mb-1 block">Animation</label>
+                                                        <label className="text-xs text-gray-500 mb-1 block">Animation</label>
                                                         <select
                                                             value={el.animationIn}
                                                             onChange={(e) => {
                                                                 const newEls = elements.map((x: any) => x.id === el.id ? { ...x, animationIn: e.target.value, animationOut: e.target.value } : x);
                                                                 updateConfig(newEls);
                                                             }}
-                                                            className="flex h-9 w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-1 text-sm shadow-sm transition-colors focus:border-indigo-500"
+                                                            className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                                         >
                                                             <option value="none">None</option>
                                                             <option value="fade">Fade In/Out</option>
@@ -574,14 +706,14 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                     </div>
                                                     {el.type === 'text' && (
                                                         <div>
-                                                            <label className="text-xs text-neutral-500 mb-1 block">Text Shadow</label>
+                                                            <label className="text-xs text-gray-500 mb-1 block">Text Shadow</label>
                                                             <select
                                                                 value={el.textShadow || 'none'}
                                                                 onChange={(e) => {
                                                                     const newEls = elements.map((x: any) => x.id === el.id ? { ...x, textShadow: e.target.value } : x);
                                                                     updateConfig(newEls);
                                                                 }}
-                                                                className="flex h-9 w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-1 text-sm shadow-sm transition-colors focus:border-indigo-500"
+                                                                className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                                             >
                                                                 <option value="none">None</option>
                                                                 <option value="1px 1px 2px rgba(0,0,0,0.8)">Soft Shadow</option>
@@ -590,13 +722,13 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                 <option value="0px 0px 8px rgba(0,0,0,0.8)">Dark Glow</option>
                                                                 <option value="0 0 5px #fff, 0 0 10px #fff, 0 0 20px #0ff, 0 0 30px #0ff">Neon Glow</option>
                                                                 <option value="1px 1px 0 #999, 2px 2px 0 #888, 3px 3px 0 #777">3D Block</option>
-                                                            </select> 
+                                                            </select>
                                                         </div>
                                                     )}
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <div>
-                                                        <label className="text-xs text-neutral-500 mb-1 block">X (%)</label>
+                                                        <label className="text-xs text-gray-500 mb-1 block">X (%)</label>
                                                         <Input
                                                             type="number"
                                                             value={el.x}
@@ -604,11 +736,11 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                 const newEls = elements.map((x: any) => x.id === el.id ? { ...x, x: parseFloat(e.target.value) } : x);
                                                                 updateConfig(newEls);
                                                             }}
-                                                            className="bg-neutral-900 border-neutral-700"
+                                                            className="bg-white border-gray-200"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="text-xs text-neutral-500 mb-1 block">Y (%)</label>
+                                                        <label className="text-xs text-gray-500 mb-1 block">Y (%)</label>
                                                         <Input
                                                             type="number"
                                                             value={el.y}
@@ -616,7 +748,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                 const newEls = elements.map((x: any) => x.id === el.id ? { ...x, y: parseFloat(e.target.value) } : x);
                                                                 updateConfig(newEls);
                                                             }}
-                                                            className="bg-neutral-900 border-neutral-700"
+                                                            className="bg-white border-gray-200"
                                                         />
                                                     </div>
                                                 </div>
@@ -629,7 +761,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                     updateConfig(elements.filter((x: any) => x.id !== el.id));
                                                     setSelectedElementId(null);
                                                 }}
-                                                className="w-full gap-2"
+                                                className="w-full gap-2 bg-red-600 hover:bg-red-700 text-white"
                                             >
                                                 <Trash className="size-4" /> Delete Layer
                                             </Button>
@@ -642,17 +774,17 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                 </div>
 
                 {/* Bottom Timeline (inside Left Column) */}
-                <div className="h-56 border-t border-neutral-800 bg-neutral-900 flex flex-col shrink-0 relative z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                <div className="h-56 border-t border-gray-200 bg-white flex flex-col shrink-0 relative z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
                     {/* Timeline Controls */}
-                    <div className="flex items-center gap-4 p-3 border-b border-neutral-800 px-6 bg-neutral-950/50">
-                        <Button type="button" onClick={() => { if (videoRef.current) { videoRef.current.currentTime = 0; } }} variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full hover:bg-neutral-800">
+                    <div className="flex items-center gap-4 p-3 border-b border-gray-200 px-6 bg-gray-50/50">
+                        <Button type="button" onClick={() => { if (videoRef.current) { videoRef.current.currentTime = 0; } }} variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full hover:bg-gray-100 text-gray-700">
                             <SkipBack className="size-4" />
                         </Button>
-                        <Button type="button" onClick={togglePlay} variant="ghost" size="sm" className="h-11 w-11 p-0 rounded-full bg-white text-black hover:bg-neutral-200">
+                        <Button type="button" onClick={togglePlay} variant="ghost" size="sm" className="h-11 w-11 p-0 rounded-full bg-gray-900 text-white hover:bg-gray-800">
                             {isPlaying ? <Pause className="size-5" /> : <Play className="size-5 ml-1" />}
                         </Button>
-                        <div className="font-mono text-sm text-neutral-400 tracking-wider">
-                            <span className="text-white font-medium">{currentTime.toFixed(1)}s</span> / {duration.toFixed(1)}s
+                        <div className="font-mono text-sm text-gray-400 tracking-wider">
+                            <span className="text-gray-900 font-medium">{currentTime.toFixed(1)}s</span> / {duration.toFixed(1)}s
                         </div>
                     </div>
 
@@ -661,14 +793,14 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                         <div className="space-y-3 min-w-[500px]">
                             {/* Main Video Track */}
                             <div className="flex items-center gap-4">
-                                <div className="w-24 text-xs font-bold text-neutral-500 uppercase tracking-wider shrink-0">Background</div>
-                                <div className="flex-1 h-14 bg-indigo-900/30 rounded-xl border border-indigo-500/20 overflow-hidden relative">
+                                <div className="w-24 text-xs font-bold text-gray-400 uppercase tracking-wider shrink-0">Background</div>
+                                <div className="flex-1 h-14 bg-indigo-50 rounded-xl border border-indigo-200 overflow-hidden relative">
                                     <div
-                                        className="absolute top-0 left-0 bottom-0 bg-indigo-500/20 border-r-2 border-indigo-400"
+                                        className="absolute top-0 left-0 bottom-0 bg-indigo-200/50 border-r-2 border-indigo-400"
                                         style={{ width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%' }}
                                     />
                                     <div className="absolute inset-0 flex items-center px-4">
-                                        <span className="text-xs font-mono text-indigo-300">video-template.mp4</span>
+                                        <span className="text-xs font-mono text-indigo-600">video-template.mp4</span>
                                     </div>
                                 </div>
                             </div>
@@ -679,12 +811,12 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
 
                                 return (
                                     <div key={el.id} className="flex items-center gap-4" onClick={() => setSelectedElementId(el.id)}>
-                                        <div className={`w-24 text-xs font-bold truncate tracking-wider shrink-0 cursor-pointer transition-colors ${selectedElementId === el.id ? 'text-indigo-400' : 'text-neutral-500'}`}>
+                                        <div className={`w-24 text-xs font-bold truncate tracking-wider shrink-0 cursor-pointer transition-colors ${selectedElementId === el.id ? 'text-indigo-600' : 'text-gray-400'}`}>
                                             {el.type === 'image' ? 'Image Layer' : (el.content || 'Text Layer')}
                                         </div>
-                                        <div className="flex-1 h-10 bg-neutral-800/50 rounded-xl overflow-hidden relative border border-neutral-700 cursor-pointer hover:border-neutral-500">
+                                        <div className="flex-1 h-10 bg-gray-100 rounded-xl overflow-hidden relative border border-gray-200 cursor-pointer hover:border-gray-300">
                                             <div
-                                                className={`absolute top-0 bottom-0 rounded-lg group ${selectedElementId === el.id ? 'bg-indigo-500' : 'bg-neutral-600'}`}
+                                                className={`absolute top-0 bottom-0 rounded-lg group ${selectedElementId === el.id ? 'bg-indigo-500' : 'bg-gray-400'}`}
                                                 style={{
                                                     left: duration > 0 ? `${(currentStartTime / duration) * 100}%` : '0%',
                                                     width: duration > 0 ? `${((currentEndTime - currentStartTime) / duration) * 100}%` : '0%',
@@ -705,7 +837,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                 let newX = moveEvent.clientX - rect.left;
                                                                 newX = Math.max(0, Math.min(newX, rect.width));
                                                                 let newTime = (newX / rect.width) * duration;
-                                                                newTime = Math.min(newTime, el.endTime - 0.5); // Constraint
+                                                                newTime = Math.min(newTime, el.endTime - 0.5);
                                                                 currentTimeValue = newTime;
                                                                 setTimelineDrag({ id: el.id, type: 'start', time: newTime });
                                                             };
@@ -739,7 +871,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                 let newX = moveEvent.clientX - rect.left;
                                                                 newX = Math.max(0, Math.min(newX, rect.width));
                                                                 let newTime = (newX / rect.width) * duration;
-                                                                newTime = Math.max(newTime, el.startTime + 0.5); // Constraint
+                                                                newTime = Math.max(newTime, el.startTime + 0.5);
                                                                 currentTimeValue = newTime;
                                                                 setTimelineDrag({ id: el.id, type: 'end', time: newTime });
                                                             };
@@ -769,8 +901,8 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
             </div>
 
             {/* Right Side - Live Preview */}
-            <div className="flex-1 flex items-center justify-center bg-black relative p-4 lg:p-8 overflow-hidden">
-                <div ref={containerRef} className="video-template-preview-container relative rounded-2xl overflow-hidden shadow-2xl border border-neutral-800 aspect-[9/16] h-full bg-neutral-900 max-h-full">
+            <div className="flex-1 flex items-center justify-center relative p-4 lg:p-8 overflow-hidden">
+                <div ref={containerRef} className="video-template-preview-container relative rounded-2xl overflow-hidden shadow-2xl border border-gray-800 aspect-[9/16] h-full bg-neutral-900 max-h-full">
                     <video
                         ref={videoRef}
                         src={videoUrl}
@@ -790,9 +922,8 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                     )}
                     {/* Overlay elements */}
                     {elements.map((el: any) => {
-                        // Determine if element should be visible based on current time
                         const isVisible = currentTime >= el.startTime && currentTime <= el.endTime;
-                        if (!isVisible) return null; // Strictly respect timeline duration
+                        if (!isVisible) return null;
 
                         const displayX = dragPos?.id === el.id ? dragPos.x : el.x;
                         const displayY = dragPos?.id === el.id ? dragPos.y : el.y;
@@ -829,7 +960,6 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                         document.removeEventListener('mousemove', handleMouseMove);
                                         document.removeEventListener('mouseup', handleMouseUp);
                                         setDragPos(null);
-                                        // Final save to config
                                         const newEls = elements.map((x: any) => x.id === el.id ? { ...x, x: currentX, y: currentY } : x);
                                         updateConfig(newEls);
                                     };

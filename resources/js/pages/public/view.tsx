@@ -6,6 +6,7 @@ import {
     Star, Compass, Gift, Calendar, Clock, Music, Wine, Bell, Smile,
     Download
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 
 interface PageProps {
@@ -119,38 +120,24 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
 
     const renderDecorIcon = (iconName: string, color: string = 'currentColor') => {
         const iconClasses = "size-full object-contain pointer-events-none";
-        switch (iconName) {
-            case 'heart':
-                return <Heart className={iconClasses} style={{ color }} />;
-            case 'sparkle':
-            case 'sparkles':
-                return <Sparkles className={iconClasses} style={{ color }} />;
-            case 'cake':
-                return <Cake className={iconClasses} style={{ color }} />;
-            case 'baby':
-                return <Baby className={iconClasses} style={{ color }} />;
-            case 'gift':
-                return <Gift className={iconClasses} style={{ color }} />;
-            case 'calendar':
-                return <Calendar className={iconClasses} style={{ color }} />;
-            case 'clock':
-                return <Clock className={iconClasses} style={{ color }} />;
-            case 'music':
-                return <Music className={iconClasses} style={{ color }} />;
-            case 'wine':
-                return <Wine className={iconClasses} style={{ color }} />;
-            case 'star':
-                return <Star className={iconClasses} style={{ color }} />;
-            case 'bell':
-                return <Bell className={iconClasses} style={{ color }} />;
-            case 'compass':
-                return <Compass className={iconClasses} style={{ color }} />;
-            case 'flower':
-                return <Smile className={iconClasses} style={{ color }} />;
-            case 'ring':
-            default:
-                return <Award className={iconClasses} style={{ color }} />;
+
+        // Legacy fallback map
+        const legacyMap: Record<string, any> = {
+            'heart': Heart, 'sparkle': Sparkles, 'sparkles': Sparkles,
+            'cake': Cake, 'baby': Baby, 'gift': Gift, 'calendar': Calendar,
+            'clock': Clock, 'music': Music, 'wine': Wine, 'star': Star,
+            'bell': Bell, 'compass': Compass, 'flower': Smile, 'ring': Award
+        };
+
+        if (legacyMap[iconName]) {
+            const LegacyIcon = legacyMap[iconName];
+            return <LegacyIcon className={iconClasses} style={{ color }} />;
         }
+
+        const normalizedName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
+        const IconComponent = (LucideIcons as any)[normalizedName] || (LucideIcons as any)[iconName] || Award;
+
+        return <IconComponent className={iconClasses} style={{ color }} />;
     };
 
     const handleNextPage = () => {
@@ -301,7 +288,7 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
                                             <img 
                                                 src={elem.url} 
                                                 alt="Element Graphic" 
-                                                className="w-full h-full object-cover pointer-events-none" 
+                                                className="w-full h-full object-contain pointer-events-none" 
                                                 onError={(e) => {
                                                     e.currentTarget.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
                                                 }}
