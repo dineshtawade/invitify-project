@@ -11,6 +11,7 @@ class MiniWebsiteTemplate extends Model
 
     protected $fillable = [
         'name',
+        'status',
         'type',
         'price',
         'reseller_price',

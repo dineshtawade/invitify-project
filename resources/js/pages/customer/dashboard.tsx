@@ -34,9 +34,11 @@ interface DashboardMiniWebsite {
 interface PageProps {
     templates?: Template[];
     miniWebsites?: DashboardMiniWebsite[];
+    invitationsCount?: number;
+    notificationsCount?: number;
 }
 
-export default function CustomerDashboard({ templates = [], miniWebsites = [] }: PageProps) {
+export default function CustomerDashboard({ templates = [], miniWebsites = [], invitationsCount = 0, notificationsCount = 0 }: PageProps) {
     useEffect(() => {
         const guestDraft = localStorage.getItem('guest_draft');
         if (guestDraft) {
@@ -69,7 +71,7 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [] }:
                         <div className="flex items-center justify-between gap-4">
                             <div>
                                 <p className="text-sm font-medium text-[#706557] font-serif">My Invitations</p>
-                                <h3 className="mt-2 text-2xl font-bold text-[#3e3832]">2</h3>
+                                <h3 className="mt-2 text-2xl font-bold text-[#3e3832]">{invitationsCount}</h3>
                             </div>
                             <div className="rounded-lg bg-[#ebd9c1] p-3 text-[#3d5644]">
                                 <Mail className="size-6" />
@@ -93,7 +95,7 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [] }:
                         <div className="flex items-center justify-between gap-4">
                             <div>
                                 <p className="text-sm font-medium text-[#706557] font-serif">Notifications</p>
-                                <h3 className="mt-2 text-2xl font-bold text-[#3e3832]">3</h3>
+                                <h3 className="mt-2 text-2xl font-bold text-[#3e3832]">{notificationsCount}</h3>
                             </div>
                             <div className="rounded-lg bg-[#ebd9c1] p-3 text-[#3d5644]">
                                 <Bell className="size-6" />

@@ -12,6 +12,7 @@ class ReferralCode extends Model
         'discount_percentage',
         'commission_percentage',
         'is_active',
+        'start_date',
         'expires_at',
         'usage_count',
     ];
@@ -22,6 +23,7 @@ class ReferralCode extends Model
             'discount_percentage' => 'decimal:2',
             'commission_percentage' => 'decimal:2',
             'is_active' => 'boolean',
+            'start_date' => 'datetime',
             'expires_at' => 'datetime',
         ];
     }
@@ -51,7 +53,11 @@ class ReferralCode extends Model
             return false;
         }
 
-        if ($this->expires_at && $this->expires_at->isPast()) {
+        if ($this->start_date && $this->start_date->startOfDay()->isFuture()) {
+            return false;
+        }
+
+        if ($this->expires_at && $this->expires_at->endOfDay()->isPast()) {
             return false;
         }
 

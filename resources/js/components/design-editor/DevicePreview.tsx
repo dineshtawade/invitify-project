@@ -66,6 +66,8 @@ export function DevicePreview({ blocks, activeSectionId, deviceType, title, slug
         const style: React.CSSProperties = {};
         if (block.font_family) style.fontFamily = block.font_family;
         if (block.font_color) style.color = block.font_color;
+        if (block.font_size_px) style.fontSize = `${block.font_size_px}px`;
+        if (block.text_shadow) style.textShadow = block.text_shadow;
         
         if (block.bg_color) {
             const bg = block.bg_color.trim();

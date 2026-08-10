@@ -24,6 +24,7 @@ class WalletController extends Controller
             'account_number' => SystemSetting::get('reseller_account_number', ''),
             'ifsc_code' => SystemSetting::get('reseller_ifsc_code', ''),
             'upi_id' => SystemSetting::get('reseller_upi_id', ''),
+            'qr_code' => SystemSetting::get('reseller_qr_code', ''),
             'default_bonus' => floatval(SystemSetting::get('reseller_default_bonus_percentage', '0')),
         ];
 

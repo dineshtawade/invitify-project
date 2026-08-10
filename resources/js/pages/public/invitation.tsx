@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
 import { Mail, Sparkles, MapPin, Calendar, Users, MessageSquare, CheckCircle, Heart, Cake, Baby, Award, AlertCircle } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -131,21 +132,25 @@ export default function PublicInvitationSite({ website, flash, previewMode = nul
     };
 
     const renderDecorIcon = (iconName: string, color: string = 'currentColor') => {
-        switch (iconName) {
-            case 'heart':
-                return <Heart className="size-8 shrink-0" style={{ color }} />;
-            case 'balloon':
-                return <Sparkles className="size-8 shrink-0" style={{ color }} />;
-            case 'cake':
-                return <Cake className="size-8 shrink-0" style={{ color }} />;
-            case 'baby':
-                return <Baby className="size-8 shrink-0" style={{ color }} />;
-            case 'sparkle':
-                return <Sparkles className="size-8 shrink-0" style={{ color }} />;
-            case 'ring':
-            default:
-                return <Award className="size-8 shrink-0" style={{ color }} />;
+        const iconClasses = "size-8 shrink-0";
+
+        // Legacy fallback map
+        const legacyMap: Record<string, any> = {
+            'heart': Heart, 'sparkle': Sparkles, 'sparkles': Sparkles,
+            'cake': Cake, 'baby': Baby, 'gift': LucideIcons.Gift, 'calendar': Calendar,
+            'clock': LucideIcons.Clock, 'music': LucideIcons.Music, 'wine': LucideIcons.Wine, 'star': LucideIcons.Star,
+            'bell': LucideIcons.Bell, 'compass': LucideIcons.Compass, 'flower': LucideIcons.Smile, 'ring': Award
+        };
+
+        if (legacyMap[iconName]) {
+            const LegacyIcon = legacyMap[iconName];
+            return <LegacyIcon className={iconClasses} style={{ color }} />;
         }
+
+        const normalizedName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
+        const IconComponent = (LucideIcons as any)[normalizedName] || (LucideIcons as any)[iconName] || Award;
+
+        return <IconComponent className={iconClasses} style={{ color }} />;
     };
 
     const { 

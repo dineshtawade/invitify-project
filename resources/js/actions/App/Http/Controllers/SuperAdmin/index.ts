@@ -7,7 +7,9 @@ import CategoryController from './CategoryController'
 import CustomBlockController from './CustomBlockController'
 import EditorActionRequestController from './EditorActionRequestController'
 import TemplateController from './TemplateController'
+import CustomIconController from './CustomIconController'
 import PaymentSettingsController from './PaymentSettingsController'
+import CouponController from './CouponController'
 import SettingsController from './SettingsController'
 import BusinessCardPlanController from './BusinessCardPlanController'
 import ReferralController from './ReferralController'
@@ -23,7 +25,9 @@ CategoryController: Object.assign(CategoryController, CategoryController),
 CustomBlockController: Object.assign(CustomBlockController, CustomBlockController),
 EditorActionRequestController: Object.assign(EditorActionRequestController, EditorActionRequestController),
 TemplateController: Object.assign(TemplateController, TemplateController),
+CustomIconController: Object.assign(CustomIconController, CustomIconController),
 PaymentSettingsController: Object.assign(PaymentSettingsController, PaymentSettingsController),
+CouponController: Object.assign(CouponController, CouponController),
 SettingsController: Object.assign(SettingsController, SettingsController),
 BusinessCardPlanController: Object.assign(BusinessCardPlanController, BusinessCardPlanController),
 ReferralController: Object.assign(ReferralController, ReferralController),

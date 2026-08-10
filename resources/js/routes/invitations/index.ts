@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::view
- * @see app/Http/Controllers/Customer/TemplateController.php:224
+ * @see app/Http/Controllers/Customer/TemplateController.php:242
  * @route '/invitations/view/{userTemplate}'
  */
 export const view = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ view.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::view
- * @see app/Http/Controllers/Customer/TemplateController.php:224
+ * @see app/Http/Controllers/Customer/TemplateController.php:242
  * @route '/invitations/view/{userTemplate}'
  */
 view.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ view.url = (args: { userTemplate: number | { id: number } } | [userTemplate: num
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::view
- * @see app/Http/Controllers/Customer/TemplateController.php:224
+ * @see app/Http/Controllers/Customer/TemplateController.php:242
  * @route '/invitations/view/{userTemplate}'
  */
 view.get = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -58,7 +58,7 @@ view.get = (args: { userTemplate: number | { id: number } } | [userTemplate: num
 })
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::view
- * @see app/Http/Controllers/Customer/TemplateController.php:224
+ * @see app/Http/Controllers/Customer/TemplateController.php:242
  * @route '/invitations/view/{userTemplate}'
  */
 view.head = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -68,7 +68,7 @@ view.head = (args: { userTemplate: number | { id: number } } | [userTemplate: nu
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::view
- * @see app/Http/Controllers/Customer/TemplateController.php:224
+ * @see app/Http/Controllers/Customer/TemplateController.php:242
  * @route '/invitations/view/{userTemplate}'
  */
     const viewForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -78,7 +78,7 @@ view.head = (args: { userTemplate: number | { id: number } } | [userTemplate: nu
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::view
- * @see app/Http/Controllers/Customer/TemplateController.php:224
+ * @see app/Http/Controllers/Customer/TemplateController.php:242
  * @route '/invitations/view/{userTemplate}'
  */
         viewForm.get = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -87,7 +87,7 @@ view.head = (args: { userTemplate: number | { id: number } } | [userTemplate: nu
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::view
- * @see app/Http/Controllers/Customer/TemplateController.php:224
+ * @see app/Http/Controllers/Customer/TemplateController.php:242
  * @route '/invitations/view/{userTemplate}'
  */
         viewForm.head = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
