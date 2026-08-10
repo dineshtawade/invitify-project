@@ -28,6 +28,11 @@ interface PageProps {
     auth: { user: { name: string; email: string; } };
     website: any;
     customBlocks?: any[];
+    coupons?: Array<{
+        id: number;
+        code: string;
+        discount: number;
+    }>;
 }
 
 const pxToCqw = (px?: number | string | null, defaultPx: number = 0) => {
@@ -162,7 +167,7 @@ function getElementIcon(el: Block) {
     return <FileText className="size-4 text-gray-500 shrink-0" />;
 }
 
-export default function MiniWebsiteEdit({ auth, website, customBlocks = [] }: PageProps) {
+export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coupons = [] }: PageProps) {
     const normalizedConfig = useMemo(() => normalizeConfig(website.config), [website.config]);
 
     const [config, setConfig] = useState<WebsiteConfig>(normalizedConfig);
@@ -326,34 +331,52 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [] }: Pa
     const discountDeduction = appliedDiscount > 0 ? Math.round(subtotal * (appliedDiscount / 100) * 100) / 100 : 0;
     const finalAmount = Math.max(0, subtotal - discountDeduction);
 
-    const handleApplyCoupon = async () => {
-        if (!referralCode.trim()) return;
+    const handleApplyCoupon = async (code?: string) => {
+        const codeToApply = code || referralCode;
+        if (!codeToApply) return;
         setIsApplyingCode(true);
         setCouponMessage('');
+        
+        // First check locally if it's one of the listed coupons
+        const localCoupon = coupons.find(c => c.code.toUpperCase() === codeToApply.toUpperCase());
+        if (localCoupon) {
+            setAppliedDiscount(parseFloat(String(localCoupon.discount)));
+            setIsValidCoupon(true);
+            setReferralCode(localCoupon.code);
+            setCouponMessage(`Discount of ${parseFloat(String(localCoupon.discount))}% applied!`);
+            setIsApplyingCode(false);
+            return;
+        }
+
         try {
-            const response = await fetch('/apply-referral', {
+            const res = await fetch(`/customer/mini-websites/${website.id}/verify-referral`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    ...getCsrfHeaders()
                 },
-                body: JSON.stringify({ code: referralCode.trim() })
+                body: JSON.stringify({ referral_code: codeToApply, is_global: true })
             });
-            const resData = await response.json();
-            if (response.ok && resData.valid) {
-                setAppliedDiscount(parseFloat(String(resData.discount_percentage)));
-                setCouponMessage(`Success! Code ${resData.code} applied. (${resData.discount_percentage}% discount)`);
-                setIsValidCoupon(true);
-            } else {
-                setAppliedDiscount(0);
-                setCouponMessage(resData.message || 'Invalid or expired code.');
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
                 setIsValidCoupon(false);
+                setAppliedDiscount(0);
+                setCouponMessage(err.error || 'Invalid or expired code.');
+                setIsApplyingCode(false);
+                return;
             }
-        } catch (e) {
-            setAppliedDiscount(0);
-            setCouponMessage('Error validating code.');
+
+            const data = await res.json();
+            setAppliedDiscount(data.discount_percentage);
+            setIsValidCoupon(true);
+            setReferralCode(codeToApply);
+            setCouponMessage(`Discount of ${data.discount_percentage}% applied!`);
+        } catch (e: any) {
             setIsValidCoupon(false);
+            setAppliedDiscount(0);
+            setCouponMessage(e.message || 'Error verifying code.');
         } finally {
             setIsApplyingCode(false);
         }
@@ -908,11 +931,49 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [] }: Pa
                                     onChange={(e) => { setReferralCode(e.target.value); setCouponMessage(''); setIsValidCoupon(false); setAppliedDiscount(0); }}
                                     placeholder="E.g., MYCOUPON10"
                                     className="h-9 font-bold uppercase tracking-wider border-gray-200 focus:ring-blue-400 focus:border-blue-400"
+                                    disabled={isValidCoupon || isCheckingOut}
                                 />
-                                <Button type="button" onClick={handleApplyCoupon} disabled={isApplyingCode || !referralCode.trim()} className="h-9 px-4 shrink-0 bg-gray-900 text-white hover:bg-gray-800">
-                                    {isApplyingCode ? <Loader2 className="size-4 animate-spin" /> : 'Apply'}
-                                </Button>
+                                {!isValidCoupon ? (
+                                    <Button type="button" onClick={() => handleApplyCoupon()} disabled={isApplyingCode || !referralCode.trim()} className="h-9 px-4 shrink-0 bg-gray-900 text-white hover:bg-gray-800">
+                                        {isApplyingCode ? <Loader2 className="size-4 animate-spin" /> : 'Apply'}
+                                    </Button>
+                                ) : (
+                                    <Button 
+                                        type="button" 
+                                        variant="outline"
+                                        onClick={() => {
+                                            setReferralCode('');
+                                            setIsValidCoupon(false);
+                                            setAppliedDiscount(0);
+                                            setCouponMessage('');
+                                        }} 
+                                        className="h-9 px-4 shrink-0 border-red-200 text-red-600 hover:bg-red-50"
+                                        disabled={isCheckingOut}
+                                    >
+                                        Remove
+                                    </Button>
+                                )}
                             </div>
+                            
+                            {/* Available Coupons List */}
+                            {coupons && coupons.length > 0 && !isValidCoupon && (
+                                <div className="mt-2 text-xs flex flex-col gap-1.5 border-t border-gray-200 pt-2">
+                                    <span className="font-bold text-gray-500">Available Coupons:</span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {coupons.map((c) => (
+                                            <button 
+                                                key={c.id} 
+                                                type="button"
+                                                onClick={() => handleApplyCoupon(c.code)}
+                                                className="border border-blue-200 bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md text-[10px] font-bold hover:bg-blue-100 transition-colors"
+                                            >
+                                                {c.code} ({parseFloat(String(c.discount))}% OFF)
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {couponMessage && (
                                 <p className={`text-xs font-semibold flex items-center gap-1 mt-1 ${isValidCoupon ? 'text-emerald-600' : 'text-red-500'}`}>
                                     {isValidCoupon ? <Check className="size-3.5" /> : <AlertCircle className="size-3.5" />}

@@ -29,7 +29,7 @@ class PaymentSettingsController extends Controller
                 'reseller_account_number'          => SystemSetting::get('reseller_account_number', ''),
                 'reseller_ifsc_code'               => SystemSetting::get('reseller_ifsc_code', ''),
                 'reseller_upi_id'                  => SystemSetting::get('reseller_upi_id', ''),
-                'reseller_upi_id'                  => SystemSetting::get('reseller_upi_id', ''),
+                'reseller_qr_code'                 => SystemSetting::get('reseller_qr_code', ''),
                 'reseller_default_bonus_percentage' => SystemSetting::get('reseller_default_bonus_percentage', '0'),
             ],
         ]);
@@ -48,8 +48,14 @@ class PaymentSettingsController extends Controller
             'reseller_account_number' => 'nullable|string|max:255',
             'reseller_ifsc_code' => 'nullable|string|max:255',
             'reseller_upi_id' => 'nullable|string|max:255',
+            'reseller_qr_code_file' => 'nullable|image|max:2048',
             'reseller_default_bonus_percentage' => 'nullable|numeric|min:0|max:100',
         ]);
+
+        if ($request->hasFile('reseller_qr_code_file')) {
+            $path = $request->file('reseller_qr_code_file')->store('settings', 'public');
+            SystemSetting::set('reseller_qr_code', '/storage/' . $path);
+        }
 
         if (array_key_exists('razorpay_key_id', $validated)) {
             SystemSetting::set('razorpay_key_id', $validated['razorpay_key_id']);

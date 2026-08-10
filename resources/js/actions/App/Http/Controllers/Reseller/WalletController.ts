@@ -79,7 +79,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::createRazorpayOrder
- * @see app/Http/Controllers/Reseller/WalletController.php:46
+ * @see app/Http/Controllers/Reseller/WalletController.php:47
  * @route '/reseller/recharge/razorpay'
  */
 export const createRazorpayOrder = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -94,7 +94,7 @@ createRazorpayOrder.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::createRazorpayOrder
- * @see app/Http/Controllers/Reseller/WalletController.php:46
+ * @see app/Http/Controllers/Reseller/WalletController.php:47
  * @route '/reseller/recharge/razorpay'
  */
 createRazorpayOrder.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ createRazorpayOrder.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::createRazorpayOrder
- * @see app/Http/Controllers/Reseller/WalletController.php:46
+ * @see app/Http/Controllers/Reseller/WalletController.php:47
  * @route '/reseller/recharge/razorpay'
  */
 createRazorpayOrder.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -113,7 +113,7 @@ createRazorpayOrder.post = (options?: RouteQueryOptions): RouteDefinition<'post'
 
     /**
 * @see \App\Http\Controllers\Reseller\WalletController::createRazorpayOrder
- * @see app/Http/Controllers/Reseller/WalletController.php:46
+ * @see app/Http/Controllers/Reseller/WalletController.php:47
  * @route '/reseller/recharge/razorpay'
  */
     const createRazorpayOrderForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -123,7 +123,7 @@ createRazorpayOrder.post = (options?: RouteQueryOptions): RouteDefinition<'post'
 
             /**
 * @see \App\Http\Controllers\Reseller\WalletController::createRazorpayOrder
- * @see app/Http/Controllers/Reseller/WalletController.php:46
+ * @see app/Http/Controllers/Reseller/WalletController.php:47
  * @route '/reseller/recharge/razorpay'
  */
         createRazorpayOrderForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -134,7 +134,7 @@ createRazorpayOrder.post = (options?: RouteQueryOptions): RouteDefinition<'post'
     createRazorpayOrder.form = createRazorpayOrderForm
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::verifyRazorpayPayment
- * @see app/Http/Controllers/Reseller/WalletController.php:108
+ * @see app/Http/Controllers/Reseller/WalletController.php:109
  * @route '/reseller/recharge/verify'
  */
 export const verifyRazorpayPayment = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -149,7 +149,7 @@ verifyRazorpayPayment.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::verifyRazorpayPayment
- * @see app/Http/Controllers/Reseller/WalletController.php:108
+ * @see app/Http/Controllers/Reseller/WalletController.php:109
  * @route '/reseller/recharge/verify'
  */
 verifyRazorpayPayment.url = (options?: RouteQueryOptions) => {
@@ -158,7 +158,7 @@ verifyRazorpayPayment.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::verifyRazorpayPayment
- * @see app/Http/Controllers/Reseller/WalletController.php:108
+ * @see app/Http/Controllers/Reseller/WalletController.php:109
  * @route '/reseller/recharge/verify'
  */
 verifyRazorpayPayment.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -168,7 +168,7 @@ verifyRazorpayPayment.post = (options?: RouteQueryOptions): RouteDefinition<'pos
 
     /**
 * @see \App\Http\Controllers\Reseller\WalletController::verifyRazorpayPayment
- * @see app/Http/Controllers/Reseller/WalletController.php:108
+ * @see app/Http/Controllers/Reseller/WalletController.php:109
  * @route '/reseller/recharge/verify'
  */
     const verifyRazorpayPaymentForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -178,7 +178,7 @@ verifyRazorpayPayment.post = (options?: RouteQueryOptions): RouteDefinition<'pos
 
             /**
 * @see \App\Http\Controllers\Reseller\WalletController::verifyRazorpayPayment
- * @see app/Http/Controllers/Reseller/WalletController.php:108
+ * @see app/Http/Controllers/Reseller/WalletController.php:109
  * @route '/reseller/recharge/verify'
  */
         verifyRazorpayPaymentForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -189,7 +189,7 @@ verifyRazorpayPayment.post = (options?: RouteQueryOptions): RouteDefinition<'pos
     verifyRazorpayPayment.form = verifyRazorpayPaymentForm
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::submitManualDeposit
- * @see app/Http/Controllers/Reseller/WalletController.php:159
+ * @see app/Http/Controllers/Reseller/WalletController.php:160
  * @route '/reseller/recharge/manual'
  */
 export const submitManualDeposit = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -204,7 +204,7 @@ submitManualDeposit.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::submitManualDeposit
- * @see app/Http/Controllers/Reseller/WalletController.php:159
+ * @see app/Http/Controllers/Reseller/WalletController.php:160
  * @route '/reseller/recharge/manual'
  */
 submitManualDeposit.url = (options?: RouteQueryOptions) => {
@@ -213,7 +213,7 @@ submitManualDeposit.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::submitManualDeposit
- * @see app/Http/Controllers/Reseller/WalletController.php:159
+ * @see app/Http/Controllers/Reseller/WalletController.php:160
  * @route '/reseller/recharge/manual'
  */
 submitManualDeposit.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -223,7 +223,7 @@ submitManualDeposit.post = (options?: RouteQueryOptions): RouteDefinition<'post'
 
     /**
 * @see \App\Http\Controllers\Reseller\WalletController::submitManualDeposit
- * @see app/Http/Controllers/Reseller/WalletController.php:159
+ * @see app/Http/Controllers/Reseller/WalletController.php:160
  * @route '/reseller/recharge/manual'
  */
     const submitManualDepositForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -233,7 +233,7 @@ submitManualDeposit.post = (options?: RouteQueryOptions): RouteDefinition<'post'
 
             /**
 * @see \App\Http\Controllers\Reseller\WalletController::submitManualDeposit
- * @see app/Http/Controllers/Reseller/WalletController.php:159
+ * @see app/Http/Controllers/Reseller/WalletController.php:160
  * @route '/reseller/recharge/manual'
  */
         submitManualDepositForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

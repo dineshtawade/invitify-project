@@ -38,6 +38,7 @@ interface BankDetails {
     account_number: string;
     ifsc_code: string;
     upi_id: string;
+    qr_code?: string;
     default_bonus: number;
 }
 
@@ -239,28 +240,35 @@ export default function ResellerWallet({ wallet, pendingDeposits = [], bankDetai
                         </div>
 
                         {bankDetails.bank_name ? (
-                            <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 rounded-xl p-4">
-                                {[
-                                    { label: 'Bank Name', value: bankDetails.bank_name },
-                                    { label: 'Account Holder', value: bankDetails.account_holder },
-                                    { label: 'Account Number', value: bankDetails.account_number },
-                                    { label: 'IFSC Code', value: bankDetails.ifsc_code },
-                                ].map(item => (
-                                    <div key={item.label}>
-                                        <p className="text-xs text-neutral-400 mb-0.5">{item.label}</p>
-                                        <p className="font-bold text-neutral-800 dark:text-neutral-200 flex items-center">
-                                            {item.value}
-                                            <CopyButton value={item.value} />
-                                        </p>
-                                    </div>
-                                ))}
-                                {bankDetails.upi_id && (
-                                    <div className="col-span-2">
-                                        <p className="text-xs text-neutral-400 mb-0.5">UPI ID</p>
-                                        <p className="font-bold text-neutral-800 dark:text-neutral-200 flex items-center">
-                                            {bankDetails.upi_id}
-                                            <CopyButton value={bankDetails.upi_id} />
-                                        </p>
+                            <div className="flex flex-col sm:flex-row gap-6 bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 rounded-xl p-4">
+                                <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm flex-1">
+                                    {[
+                                        { label: 'Bank Name', value: bankDetails.bank_name },
+                                        { label: 'Account Holder', value: bankDetails.account_holder },
+                                        { label: 'Account Number', value: bankDetails.account_number },
+                                        { label: 'IFSC Code', value: bankDetails.ifsc_code },
+                                    ].map(item => (
+                                        <div key={item.label}>
+                                            <p className="text-xs text-neutral-400 mb-0.5">{item.label}</p>
+                                            <p className="font-bold text-neutral-800 dark:text-neutral-200 flex items-center">
+                                                {item.value}
+                                                <CopyButton value={item.value} />
+                                            </p>
+                                        </div>
+                                    ))}
+                                    {bankDetails.upi_id && (
+                                        <div className="col-span-2">
+                                            <p className="text-xs text-neutral-400 mb-0.5">UPI ID</p>
+                                            <p className="font-bold text-neutral-800 dark:text-neutral-200 flex items-center">
+                                                {bankDetails.upi_id}
+                                                <CopyButton value={bankDetails.upi_id} />
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                                {bankDetails.qr_code && (
+                                    <div className="shrink-0 self-center sm:self-start bg-white dark:bg-neutral-900 p-2 rounded-xl border border-emerald-100 dark:border-emerald-900/40 shadow-sm">
+                                        <img src={bankDetails.qr_code} alt="Payment QR" className="w-28 h-28 object-contain" />
                                     </div>
                                 )}
                             </div>
@@ -445,27 +453,34 @@ export default function ResellerWallet({ wallet, pendingDeposits = [], bankDetai
                             <form onSubmit={handleManualRecharge} className="flex flex-col gap-4 max-h-[65vh] overflow-y-auto pr-1">
                                 {/* Bank details reference */}
                                 {bankDetails.bank_name && (
-                                    <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 rounded-xl p-4 text-xs text-emerald-800 dark:text-emerald-300 flex flex-col gap-2">
-                                        <p className="font-bold text-sm text-emerald-900 dark:text-emerald-200 mb-1">Transfer To:</p>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {[
-                                                { k: 'Bank', v: bankDetails.bank_name },
-                                                { k: 'Holder', v: bankDetails.account_holder },
-                                                { k: 'A/C No.', v: bankDetails.account_number },
-                                                { k: 'IFSC', v: bankDetails.ifsc_code },
-                                            ].map(item => (
-                                                <div key={item.k}>
-                                                    <span className="opacity-60">{item.k}: </span>
-                                                    <span className="font-bold">{item.v || 'N/A'}</span>
-                                                </div>
-                                            ))}
-                                            {bankDetails.upi_id && (
-                                                <div className="col-span-2">
-                                                    <span className="opacity-60">UPI: </span>
-                                                    <span className="font-bold">{bankDetails.upi_id}</span>
-                                                </div>
-                                            )}
+                                    <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 rounded-xl p-4 text-xs text-emerald-800 dark:text-emerald-300 flex flex-col sm:flex-row gap-4 items-start">
+                                        <div className="flex-1 flex flex-col gap-2">
+                                            <p className="font-bold text-sm text-emerald-900 dark:text-emerald-200 mb-1">Transfer To:</p>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {[
+                                                    { k: 'Bank', v: bankDetails.bank_name },
+                                                    { k: 'Holder', v: bankDetails.account_holder },
+                                                    { k: 'A/C No.', v: bankDetails.account_number },
+                                                    { k: 'IFSC', v: bankDetails.ifsc_code },
+                                                ].map(item => (
+                                                    <div key={item.k}>
+                                                        <span className="opacity-60">{item.k}: </span>
+                                                        <span className="font-bold">{item.v || 'N/A'}</span>
+                                                    </div>
+                                                ))}
+                                                {bankDetails.upi_id && (
+                                                    <div className="col-span-2">
+                                                        <span className="opacity-60">UPI: </span>
+                                                        <span className="font-bold">{bankDetails.upi_id}</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
+                                        {bankDetails.qr_code && (
+                                            <div className="shrink-0 p-2 bg-white rounded-xl shadow-sm border border-emerald-100 dark:border-emerald-900">
+                                                <img src={bankDetails.qr_code} alt="Payment QR" className="w-24 h-24 object-contain" />
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 

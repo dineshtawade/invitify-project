@@ -1,4 +1,5 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../wayfinder'
+import templatesD41748 from './templates'
 import userTemplates from './user-templates'
 import subscriptionsF46e2f from './subscriptions'
 import miniWebsites from './mini-websites'
@@ -156,7 +157,7 @@ templates.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     templates.form = templatesForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::myInvitations
- * @see app/Http/Controllers/Customer/TemplateController.php:180
+ * @see app/Http/Controllers/Customer/TemplateController.php:198
  * @route '/customer/my-invitations'
  */
 export const myInvitations = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -171,7 +172,7 @@ myInvitations.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::myInvitations
- * @see app/Http/Controllers/Customer/TemplateController.php:180
+ * @see app/Http/Controllers/Customer/TemplateController.php:198
  * @route '/customer/my-invitations'
  */
 myInvitations.url = (options?: RouteQueryOptions) => {
@@ -180,7 +181,7 @@ myInvitations.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::myInvitations
- * @see app/Http/Controllers/Customer/TemplateController.php:180
+ * @see app/Http/Controllers/Customer/TemplateController.php:198
  * @route '/customer/my-invitations'
  */
 myInvitations.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -189,7 +190,7 @@ myInvitations.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::myInvitations
- * @see app/Http/Controllers/Customer/TemplateController.php:180
+ * @see app/Http/Controllers/Customer/TemplateController.php:198
  * @route '/customer/my-invitations'
  */
 myInvitations.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -199,7 +200,7 @@ myInvitations.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::myInvitations
- * @see app/Http/Controllers/Customer/TemplateController.php:180
+ * @see app/Http/Controllers/Customer/TemplateController.php:198
  * @route '/customer/my-invitations'
  */
     const myInvitationsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -209,7 +210,7 @@ myInvitations.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::myInvitations
- * @see app/Http/Controllers/Customer/TemplateController.php:180
+ * @see app/Http/Controllers/Customer/TemplateController.php:198
  * @route '/customer/my-invitations'
  */
         myInvitationsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -218,7 +219,7 @@ myInvitations.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::myInvitations
- * @see app/Http/Controllers/Customer/TemplateController.php:180
+ * @see app/Http/Controllers/Customer/TemplateController.php:198
  * @route '/customer/my-invitations'
  */
         myInvitationsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -312,7 +313,7 @@ subscriptions.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
     subscriptions.form = subscriptionsForm
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::businessCardPlans
- * @see app/Http/Controllers/Customer/BusinessCardController.php:90
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:108
  * @route '/customer/business-card-plans'
  */
 export const businessCardPlans = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -327,7 +328,7 @@ businessCardPlans.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::businessCardPlans
- * @see app/Http/Controllers/Customer/BusinessCardController.php:90
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:108
  * @route '/customer/business-card-plans'
  */
 businessCardPlans.url = (options?: RouteQueryOptions) => {
@@ -336,7 +337,7 @@ businessCardPlans.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::businessCardPlans
- * @see app/Http/Controllers/Customer/BusinessCardController.php:90
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:108
  * @route '/customer/business-card-plans'
  */
 businessCardPlans.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -345,7 +346,7 @@ businessCardPlans.get = (options?: RouteQueryOptions): RouteDefinition<'get'> =>
 })
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::businessCardPlans
- * @see app/Http/Controllers/Customer/BusinessCardController.php:90
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:108
  * @route '/customer/business-card-plans'
  */
 businessCardPlans.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -355,7 +356,7 @@ businessCardPlans.head = (options?: RouteQueryOptions): RouteDefinition<'head'> 
 
     /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::businessCardPlans
- * @see app/Http/Controllers/Customer/BusinessCardController.php:90
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:108
  * @route '/customer/business-card-plans'
  */
     const businessCardPlansForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -365,7 +366,7 @@ businessCardPlans.head = (options?: RouteQueryOptions): RouteDefinition<'head'> 
 
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::businessCardPlans
- * @see app/Http/Controllers/Customer/BusinessCardController.php:90
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:108
  * @route '/customer/business-card-plans'
  */
         businessCardPlansForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -374,7 +375,7 @@ businessCardPlans.head = (options?: RouteQueryOptions): RouteDefinition<'head'> 
         })
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::businessCardPlans
- * @see app/Http/Controllers/Customer/BusinessCardController.php:90
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:108
  * @route '/customer/business-card-plans'
  */
         businessCardPlansForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -389,7 +390,7 @@ businessCardPlans.head = (options?: RouteQueryOptions): RouteDefinition<'head'> 
     
     businessCardPlans.form = businessCardPlansForm
 const customer = {
-    templates: Object.assign(templates, templates),
+    templates: Object.assign(templates, templatesD41748),
 dashboard: Object.assign(dashboard, dashboard),
 userTemplates: Object.assign(userTemplates, userTemplates),
 myInvitations: Object.assign(myInvitations, myInvitations),

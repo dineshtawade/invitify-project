@@ -344,6 +344,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('customer.user-templates.create-order');
         Route::post('customer/user-templates/{userTemplate}/verify-payment', [\App\Http\Controllers\Customer\TemplateController::class, 'verifyRazorpayPayment'])
             ->name('customer.user-templates.verify-payment');
+        Route::post('customer/templates/{template}/verify-referral', [\App\Http\Controllers\Customer\TemplateController::class, 'verifyReferral'])
+            ->name('customer.templates.verify-referral');
 
         Route::post('customer/user-templates/claim', [\App\Http\Controllers\Customer\TemplateController::class, 'claim'])
             ->name('customer.user-templates.claim');
@@ -411,6 +413,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('customer.mini-websites.create-order');
         Route::post('customer/mini-websites/{mini_website}/verify-payment', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'verifyRenewalPayment'])
             ->name('customer.mini-websites.verify-payment');
+        Route::post('customer/mini-websites/{mini_website}/verify-referral', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'verifyReferral'])
+            ->name('customer.mini-websites.verify-referral');
     });
 });
 

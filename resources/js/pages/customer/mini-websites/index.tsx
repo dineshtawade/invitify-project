@@ -583,7 +583,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                         </div>
 
                         <DialogFooter className="mt-4 gap-2">
-                            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="border-gray-200 text-gray-700 hover:bg-gray-50">
+                            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="bg-gray-500 hover:bg-gray-600 text-white">
                                 Cancel
                             </Button>
                             <Button type="submit" disabled={processing} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold">
@@ -825,7 +825,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                             </div>
 
                             <DialogFooter className="mt-4 gap-2 border-t border-gray-200 pt-4">
-                                <Button type="button" variant="outline" onClick={() => setIsCheckoutOpen(false)} disabled={isCheckingOut} className="border-gray-200 text-gray-700 hover:bg-gray-50">
+                                <Button type="button" variant="outline" onClick={() => setIsCheckoutOpen(false)} disabled={isCheckingOut} className="border-gray-200 text-white hover:bg-gray-50">
                                     Cancel
                                 </Button>
                                 <Button

@@ -27,6 +27,7 @@ interface PaymentSettingsProps {
         reseller_account_number: string;
         reseller_ifsc_code: string;
         reseller_upi_id: string;
+        reseller_qr_code: string;
         reseller_default_bonus_percentage: string;
     };
 }
@@ -46,6 +47,7 @@ export default function PaymentSettings({ settings }: PaymentSettingsProps) {
         reseller_account_number: settings.reseller_account_number || '',
         reseller_ifsc_code: settings.reseller_ifsc_code || '',
         reseller_upi_id: settings.reseller_upi_id || '',
+        reseller_qr_code_file: null as File | null,
         reseller_default_bonus_percentage: settings.reseller_default_bonus_percentage || '0',
     });
 
@@ -178,6 +180,24 @@ export default function PaymentSettings({ settings }: PaymentSettingsProps) {
                                     value={configData.reseller_default_bonus_percentage}
                                     onChange={(e) => setConfigData('reseller_default_bonus_percentage', e.target.value)}
                                 />
+                            </div>
+                            <div className="flex flex-col gap-2 col-span-1 md:col-span-2">
+                                <Label htmlFor="reseller_qr_code_file">Bank Payment QR Code</Label>
+                                <div className="flex items-center gap-4">
+                                    {settings.reseller_qr_code && (
+                                        <div className="shrink-0 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-950 p-2">
+                                            <img src={settings.reseller_qr_code} alt="QR Code" className="w-20 h-20 object-contain" />
+                                        </div>
+                                    )}
+                                    <Input
+                                        id="reseller_qr_code_file"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setConfigData('reseller_qr_code_file', e.target.files?.[0] || null)}
+                                        className="h-11"
+                                    />
+                                </div>
+                                <p className="text-xs text-neutral-400">Upload a QR code (UPI/Bank) for resellers to scan and pay.</p>
                             </div>
                         </div>
                     </div>

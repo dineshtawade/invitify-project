@@ -29,7 +29,7 @@ class CouponController extends Controller
     {
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:coupons',
-            'discount' => 'required|numeric|min:0|max:100',
+            'discount' => 'required|numeric|min:0|max:99',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'target_type' => 'required|string|in:all,templates,image_templates,mini_websites,virtual_cards',
@@ -49,7 +49,7 @@ class CouponController extends Controller
     {
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:coupons,code,' . $coupon->id,
-            'discount' => 'required|numeric|min:0|max:100',
+            'discount' => 'required|numeric|min:0|max:99',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'target_type' => 'required|string|in:all,templates,image_templates,mini_websites,virtual_cards',

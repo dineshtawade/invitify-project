@@ -101,3 +101,87 @@ customize.head = (args: { template: number | { id: number } } | [template: numbe
         })
     
     customize.form = customizeForm
+/**
+* @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
+ * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @route '/customer/templates/{template}/verify-referral'
+ */
+export const verifyReferral = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: verifyReferral.url(args, options),
+    method: 'post',
+})
+
+verifyReferral.definition = {
+    methods: ["post"],
+    url: '/customer/templates/{template}/verify-referral',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
+ * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @route '/customer/templates/{template}/verify-referral'
+ */
+verifyReferral.url = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { template: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { template: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    template: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        template: typeof args.template === 'object'
+                ? args.template.id
+                : args.template,
+                }
+
+    return verifyReferral.definition.url
+            .replace('{template}', parsedArgs.template.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
+ * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @route '/customer/templates/{template}/verify-referral'
+ */
+verifyReferral.post = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: verifyReferral.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
+ * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @route '/customer/templates/{template}/verify-referral'
+ */
+    const verifyReferralForm = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: verifyReferral.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
+ * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @route '/customer/templates/{template}/verify-referral'
+ */
+        verifyReferralForm.post = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: verifyReferral.url(args, options),
+            method: 'post',
+        })
+    
+    verifyReferral.form = verifyReferralForm
+const templates = {
+    verifyReferral: Object.assign(verifyReferral, verifyReferral),
+}
+
+export default templates

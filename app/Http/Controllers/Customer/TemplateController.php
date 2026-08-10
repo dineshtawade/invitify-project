@@ -76,9 +76,27 @@ class TemplateController extends Controller
             ];
         }
 
+        $now = now();
+        $coupons = \App\Models\Coupon::where('is_active', true)
+            ->where(function ($q) use ($now) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
+            })
+            ->where(function ($q) use ($now) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
+            })
+            ->whereIn('target_type', ['all', 'templates', 'image_templates'])
+            ->get()
+            ->filter(function ($coupon) use ($template) {
+                if (empty($coupon->target_ids)) {
+                    return true;
+                }
+                return in_array($template->id, $coupon->target_ids);
+            })->values();
+
         return Inertia::render('customer/templates/edit', [
             'template' => $template,
             'userTemplate' => $userTemplate,
+            'coupons' => $coupons,
         ]);
     }
 
@@ -231,6 +249,64 @@ class TemplateController extends Controller
     }
 
     /**
+     * Verify a referral code or coupon for a template.
+     */
+    public function verifyReferral(Request $request, \App\Models\Template $template)
+    {
+        $code = strtoupper($request->input('referral_code'));
+        if (!$code) {
+            return response()->json(['error' => 'No code provided.'], 400);
+        }
+
+        // First check Referral Code
+        $referralCode = ReferralCode::where('code', $code)->first();
+        if ($referralCode && $referralCode->isValid()) {
+            return response()->json([
+                'valid' => true,
+                'discount_percentage' => $referralCode->discount_percentage,
+                'type' => 'referral'
+            ]);
+        }
+
+        // Then check Standard Coupon
+        $coupon = \App\Models\Coupon::where('code', $code)
+            ->where('is_active', true)
+            ->first();
+
+        if ($coupon) {
+            $now = \Carbon\Carbon::now();
+            $isValidDate = true;
+            if ($coupon->start_date && $now->lt($coupon->start_date)) $isValidDate = false;
+            if ($coupon->end_date && $now->gt($coupon->end_date)) $isValidDate = false;
+
+            $isValidTarget = in_array($coupon->target_type, ['all', 'templates', 'image_templates']);
+            if ($isValidTarget && !empty($coupon->target_ids) && !in_array($template->id, $coupon->target_ids)) {
+                $isValidTarget = false;
+            }
+
+            if ($isValidDate && $isValidTarget) {
+                // Check if user already used this coupon
+                $hasUsed = \App\Models\Transaction::where('user_id', auth()->id())
+                    ->where('global_coupon_code', $coupon->code)
+                    ->where('status', 'completed')
+                    ->exists();
+
+                if (!$hasUsed) {
+                    return response()->json([
+                        'valid' => true,
+                        'discount_percentage' => $coupon->discount,
+                        'type' => 'coupon'
+                    ]);
+                } else {
+                    return response()->json(['error' => 'You have already used this coupon.'], 400);
+                }
+            }
+        }
+
+        return response()->json(['error' => 'Invalid or expired code.'], 400);
+    }
+
+    /**
      * Create a Razorpay order or fallback to mock order if credentials are not configured.
      */
     public function createRazorpayOrder(Request $request, UserTemplate $userTemplate)
@@ -288,6 +364,42 @@ class TemplateController extends Controller
                 if ($referralCode && $referralCode->isValid()) {
                     $discountAmount = round($originalPrice * ($referralCode->discount_percentage / 100), 2);
                     $referralCodeId = $referralCode->id;
+                } else {
+                    // Check standard Coupon table
+                    $coupon = \App\Models\Coupon::where('code', strtoupper($referralCodeInput))
+                        ->where('is_active', true)
+                        ->first();
+                    
+                    if ($coupon) {
+                        $isValidDate = true;
+                        if ($coupon->start_date && $now->lt($coupon->start_date)) $isValidDate = false;
+                        if ($coupon->end_date && $now->gt($coupon->end_date)) $isValidDate = false;
+                        
+                        $isValidTarget = in_array($coupon->target_type, ['all', 'templates', 'image_templates']);
+                        if ($isValidTarget && !empty($coupon->target_ids) && !in_array($userTemplate->template_id, $coupon->target_ids)) {
+                            $isValidTarget = false;
+                        }
+
+                        if ($isValidDate && $isValidTarget) {
+                            // Check if user already used this coupon
+                            $hasUsed = \App\Models\Transaction::where('user_id', auth()->id())
+                                ->where('global_coupon_code', strtoupper($coupon->code))
+                                ->where('status', 'completed')
+                                ->exists();
+
+                            if (!$hasUsed) {
+                                // Assume discount is a percentage
+                                $discountAmount = round($originalPrice * ($coupon->discount / 100), 2);
+                                $globalCouponUsed = strtoupper($coupon->code);
+                            } else {
+                                return response()->json(['error' => 'You have already used this coupon.'], 400);
+                            }
+                        } else {
+                            return response()->json(['error' => 'This coupon is expired, not yet active, or not applicable to this template.'], 400);
+                        }
+                    } else {
+                        return response()->json(['error' => 'Invalid coupon or referral code.'], 400);
+                    }
                 }
             }
         }

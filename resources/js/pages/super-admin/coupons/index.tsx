@@ -98,12 +98,20 @@ export default function CouponsIndex({ coupons, templates, imageTemplates, miniW
     };
 
     const toggleTargetId = (id: number) => {
-        const currentIds = data.target_ids;
+        const currentIds = data.target_ids || [];
         if (currentIds.includes(id)) {
-            setData('target_ids', currentIds.filter(targetId => targetId !== id));
+            setData('target_ids', currentIds.filter(i => i !== id));
         } else {
             setData('target_ids', [...currentIds, id]);
         }
+    };
+
+    const handleSelectAll = (items: any[]) => {
+        setData('target_ids', items.map((item: any) => item.id));
+    };
+
+    const handleClearAll = () => {
+        setData('target_ids', []);
     };
 
     return (
@@ -194,7 +202,7 @@ export default function CouponsIndex({ coupons, templates, imageTemplates, miniW
                                     id="discount"
                                     type="number"
                                     min="0"
-                                    max="100"
+                                    max="99"
                                     value={data.discount}
                                     onChange={e => setData('discount', e.target.value)}
                                     required
@@ -246,7 +254,13 @@ export default function CouponsIndex({ coupons, templates, imageTemplates, miniW
 
                             {data.target_type === 'templates' && (
                                 <div className="space-y-2 md:col-span-2 bg-muted/30 p-4 rounded-lg">
-                                    <Label>Select Video Templates (Leave empty to apply to all video templates)</Label>
+                                    <div className="flex items-center justify-between">
+                                        <Label>Select Video Templates (Leave empty to apply to all video templates)</Label>
+                                        <div className="flex gap-2">
+                                            <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleSelectAll(templates)}>Select All</Button>
+                                            <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={handleClearAll}>Clear</Button>
+                                        </div>
+                                    </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 max-h-48 overflow-y-auto">
                                         {templates.map(item => (
                                             <Label key={item.id} className="flex items-center gap-2 p-2 border rounded hover:bg-muted cursor-pointer">
@@ -265,7 +279,13 @@ export default function CouponsIndex({ coupons, templates, imageTemplates, miniW
 
                             {data.target_type === 'image_templates' && (
                                 <div className="space-y-2 md:col-span-2 bg-muted/30 p-4 rounded-lg">
-                                    <Label>Select Image Templates (Leave empty to apply to all image templates)</Label>
+                                    <div className="flex items-center justify-between">
+                                        <Label>Select Image Templates (Leave empty to apply to all image templates)</Label>
+                                        <div className="flex gap-2">
+                                            <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleSelectAll(imageTemplates)}>Select All</Button>
+                                            <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={handleClearAll}>Clear</Button>
+                                        </div>
+                                    </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 max-h-48 overflow-y-auto">
                                         {imageTemplates.map(item => (
                                             <Label key={item.id} className="flex items-center gap-2 p-2 border rounded hover:bg-muted cursor-pointer">
@@ -284,7 +304,13 @@ export default function CouponsIndex({ coupons, templates, imageTemplates, miniW
 
                             {data.target_type === 'mini_websites' && (
                                 <div className="space-y-2 md:col-span-2 bg-muted/30 p-4 rounded-lg">
-                                    <Label>Select Mini Websites (Leave empty to apply to all mini websites)</Label>
+                                    <div className="flex items-center justify-between">
+                                        <Label>Select Mini Websites (Leave empty to apply to all mini websites)</Label>
+                                        <div className="flex gap-2">
+                                            <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleSelectAll(miniWebsites)}>Select All</Button>
+                                            <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={handleClearAll}>Clear</Button>
+                                        </div>
+                                    </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 max-h-48 overflow-y-auto">
                                         {miniWebsites.map(item => (
                                             <Label key={item.id} className="flex items-center gap-2 p-2 border rounded hover:bg-muted cursor-pointer">
@@ -303,7 +329,13 @@ export default function CouponsIndex({ coupons, templates, imageTemplates, miniW
 
                             {data.target_type === 'virtual_cards' && (
                                 <div className="space-y-2 md:col-span-2 bg-muted/30 p-4 rounded-lg">
-                                    <Label>Select Virtual Card Plans (Leave empty to apply to all plans)</Label>
+                                    <div className="flex items-center justify-between">
+                                        <Label>Select Virtual Cards (Leave empty to apply to all virtual cards)</Label>
+                                        <div className="flex gap-2">
+                                            <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleSelectAll(virtualCards)}>Select All</Button>
+                                            <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={handleClearAll}>Clear</Button>
+                                        </div>
+                                    </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 max-h-48 overflow-y-auto">
                                         {virtualCards.map(item => (
                                             <Label key={item.id} className="flex items-center gap-2 p-2 border rounded hover:bg-muted cursor-pointer">

@@ -32,10 +32,28 @@ class BusinessCardController extends Controller
     {
         $card = BusinessCard::where('user_id', auth()->id())->findOrFail($id);
 
+        $now = now();
+        $coupons = \App\Models\Coupon::where('is_active', true)
+            ->where(function ($q) use ($now) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
+            })
+            ->where(function ($q) use ($now) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
+            })
+            ->whereIn('target_type', ['all', 'virtual_cards'])
+            ->get()
+            ->filter(function ($coupon) use ($card) {
+                if (empty($coupon->target_ids)) {
+                    return true;
+                }
+                return in_array($card->plan_id, $coupon->target_ids);
+            })->values();
+
         return Inertia::render('customer/business-cards/edit', [
             'card'          => $card,
             'templates'     => $this->getTemplatesList(),
-            'razorpayKeyId' => SystemSetting::get('razorpay_key_id', '')
+            'razorpayKeyId' => SystemSetting::get('razorpay_key_id', ''),
+            'coupons'       => $coupons,
         ]);
     }
 

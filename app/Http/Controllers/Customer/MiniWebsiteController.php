@@ -77,9 +77,27 @@ class MiniWebsiteController extends Controller
 
         $mini_website->load('template');
 
+        $now = now();
+        $coupons = \App\Models\Coupon::where('is_active', true)
+            ->where(function ($q) use ($now) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
+            })
+            ->where(function ($q) use ($now) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
+            })
+            ->whereIn('target_type', ['all', 'mini_websites'])
+            ->get()
+            ->filter(function ($coupon) use ($mini_website) {
+                if (empty($coupon->target_ids)) {
+                    return true;
+                }
+                return in_array($mini_website->template_id, $coupon->target_ids);
+            })->values();
+
         return Inertia::render('customer/mini-websites/edit', [
             'website' => $mini_website,
             'customBlocks' => \App\Models\CustomBlock::orderBy('name')->get(),
+            'coupons' => $coupons,
         ]);
     }
 
@@ -110,6 +128,64 @@ class MiniWebsiteController extends Controller
         $mini_website->delete();
 
         return redirect()->route('customer.mini-websites.index')->with('status', 'Website deleted successfully.');
+    }
+
+    /**
+     * Verify a referral code or coupon for a mini-website.
+     */
+    public function verifyReferral(Request $request, MiniWebsite $mini_website)
+    {
+        $code = strtoupper($request->input('referral_code'));
+        if (!$code) {
+            return response()->json(['error' => 'No code provided.'], 400);
+        }
+
+        // First check Referral Code
+        $referralCode = \App\Models\ReferralCode::where('code', $code)->first();
+        if ($referralCode && $referralCode->isValid()) {
+            return response()->json([
+                'valid' => true,
+                'discount_percentage' => $referralCode->discount_percentage,
+                'type' => 'referral'
+            ]);
+        }
+
+        // Then check Standard Coupon
+        $coupon = \App\Models\Coupon::where('code', $code)
+            ->where('is_active', true)
+            ->first();
+
+        if ($coupon) {
+            $now = \Carbon\Carbon::now();
+            $isValidDate = true;
+            if ($coupon->start_date && $now->lt($coupon->start_date)) $isValidDate = false;
+            if ($coupon->end_date && $now->gt($coupon->end_date)) $isValidDate = false;
+
+            $isValidTarget = in_array($coupon->target_type, ['all', 'mini_websites']);
+            if ($isValidTarget && !empty($coupon->target_ids) && !in_array($mini_website->id, $coupon->target_ids)) {
+                $isValidTarget = false;
+            }
+
+            if ($isValidDate && $isValidTarget) {
+                // Check if user already used this coupon
+                $hasUsed = \App\Models\Transaction::where('user_id', auth()->id())
+                    ->where('global_coupon_code', $coupon->code)
+                    ->where('status', 'completed')
+                    ->exists();
+
+                if (!$hasUsed) {
+                    return response()->json([
+                        'valid' => true,
+                        'discount_percentage' => $coupon->discount,
+                        'type' => 'coupon'
+                    ]);
+                } else {
+                    return response()->json(['error' => 'You have already used this coupon.'], 400);
+                }
+            }
+        }
+
+        return response()->json(['error' => 'Invalid or expired code.'], 400);
     }
 
     /**
