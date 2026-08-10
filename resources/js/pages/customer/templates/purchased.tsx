@@ -530,17 +530,20 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                         fontSize: elem.fontSize ? `${elem.fontSize * 0.95}px` : '12px',
                                                         fontWeight: elem.fontWeight || 'normal',
                                                         fontStyle: elem.isItalic ? 'italic' : 'normal',
+                                                        textShadow: elem.type === 'text' && elem.textShadow && elem.textShadow !== 'none' ? elem.textShadow : undefined,
+                                                opacity: elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1,
+                                                        zIndex: elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25,
                                                     };
 
                                                     return (
-                                                        <div key={elem.id} style={style} className="leading-tight select-none break-words overflow-hidden">
+                                                        <div key={elem.id} style={style} className={`p-1 leading-tight select-none break-words overflow-hidden ${elem.animation && elem.animation !== 'none' ? elem.animation : ''}`}>
                                                             {elem.type === 'text' && (
                                                                 <span className="w-full">{elem.content}</span>
                                                             )}
 
                                                             {elem.type === 'image' && elem.url && (
                                                                 <div className="w-full h-full rounded overflow-hidden">
-                                                                    <img src={elem.url} alt="Image Layer" className="w-full h-full object-cover" />
+                                                                    <img src={elem.url} alt="Image Layer" className="w-full h-full object-contain" />
                                                                 </div>
                                                             )}
 

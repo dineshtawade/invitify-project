@@ -38,7 +38,7 @@ class MiniWebsiteController extends Controller
 
         return Inertia::render('customer/mini-websites/index', [
             'websites' => $websites,
-            'templates' => MiniWebsiteTemplate::all(),
+            'templates' => MiniWebsiteTemplate::where('status', 'published')->get(),
         ]);
     }
 
@@ -77,9 +77,27 @@ class MiniWebsiteController extends Controller
 
         $mini_website->load('template');
 
+        $now = now();
+        $coupons = \App\Models\Coupon::where('is_active', true)
+            ->where(function ($q) use ($now) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
+            })
+            ->where(function ($q) use ($now) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
+            })
+            ->whereIn('target_type', ['all', 'mini_websites'])
+            ->get()
+            ->filter(function ($coupon) use ($mini_website) {
+                if (empty($coupon->target_ids)) {
+                    return true;
+                }
+                return in_array($mini_website->template_id, $coupon->target_ids);
+            })->values();
+
         return Inertia::render('customer/mini-websites/edit', [
             'website' => $mini_website,
             'customBlocks' => \App\Models\CustomBlock::orderBy('name')->get(),
+            'coupons' => $coupons,
         ]);
     }
 
@@ -93,7 +111,7 @@ class MiniWebsiteController extends Controller
             'title' => 'required|string|max:255',
             'theme' => 'required|string|in:cozy,clean,royal,ocean',
             'is_published' => 'required|boolean',
-            'config' => 'required|array',
+            'config' => 'required',
         ]);
 
         $mini_website->update($validated);
@@ -113,6 +131,64 @@ class MiniWebsiteController extends Controller
     }
 
     /**
+     * Verify a referral code or coupon for a mini-website.
+     */
+    public function verifyReferral(Request $request, MiniWebsite $mini_website)
+    {
+        $code = strtoupper($request->input('referral_code'));
+        if (!$code) {
+            return response()->json(['error' => 'No code provided.'], 400);
+        }
+
+        // First check Referral Code
+        $referralCode = \App\Models\ReferralCode::where('code', $code)->first();
+        if ($referralCode && $referralCode->isValid()) {
+            return response()->json([
+                'valid' => true,
+                'discount_percentage' => $referralCode->discount_percentage,
+                'type' => 'referral'
+            ]);
+        }
+
+        // Then check Standard Coupon
+        $coupon = \App\Models\Coupon::where('code', $code)
+            ->where('is_active', true)
+            ->first();
+
+        if ($coupon) {
+            $now = \Carbon\Carbon::now();
+            $isValidDate = true;
+            if ($coupon->start_date && $now->lt($coupon->start_date)) $isValidDate = false;
+            if ($coupon->end_date && $now->gt($coupon->end_date)) $isValidDate = false;
+
+            $isValidTarget = in_array($coupon->target_type, ['all', 'mini_websites']);
+            if ($isValidTarget && !empty($coupon->target_ids) && !in_array($mini_website->id, $coupon->target_ids)) {
+                $isValidTarget = false;
+            }
+
+            if ($isValidDate && $isValidTarget) {
+                // Check if user already used this coupon
+                $hasUsed = \App\Models\Transaction::where('user_id', auth()->id())
+                    ->where('global_coupon_code', $coupon->code)
+                    ->where('status', 'completed')
+                    ->exists();
+
+                if (!$hasUsed) {
+                    return response()->json([
+                        'valid' => true,
+                        'discount_percentage' => $coupon->discount,
+                        'type' => 'coupon'
+                    ]);
+                } else {
+                    return response()->json(['error' => 'You have already used this coupon.'], 400);
+                }
+            }
+        }
+
+        return response()->json(['error' => 'Invalid or expired code.'], 400);
+    }
+
+    /**
      * Create a renewal order.
      */
     public function createRenewalOrder(Request $request, MiniWebsite $mini_website)
@@ -129,8 +205,12 @@ class MiniWebsiteController extends Controller
         $days = (int) $request->input('days');
         $mini_website->load('template');
         
-        $dailyPrice = $mini_website->template ? floatval($mini_website->template->price) : 0.0;
-        $originalPrice = $dailyPrice * $days;
+        // End Customers: Template Price (one-time) + Hosting Price (fixed per day)
+        $templatePrice = !$mini_website->is_purchased && $mini_website->template ? floatval($mini_website->template->price) : 0.0;
+        $dailyHostingRate = floatval(SystemSetting::get('mini_website_hosting_price_customer', '5'));
+        $hostingPrice = $dailyHostingRate * $days;
+        
+        $originalPrice = $templatePrice + $hostingPrice;
         $discountAmount = 0;
         $referralCodeId = null;
         $globalCouponUsed = null;
@@ -140,8 +220,26 @@ class MiniWebsiteController extends Controller
         if ($referralCodeInput) {
             $globalCouponActive = SystemSetting::get('global_coupon_active', '0');
             $globalCouponCode = SystemSetting::get('global_coupon_code', '');
+            $startDateStr = SystemSetting::get('global_coupon_start_date', '');
+            $endDateStr = SystemSetting::get('global_coupon_end_date', '');
+
+            $isDateValid = true;
+            $now = \Carbon\Carbon::now();
+
+            if (!empty($startDateStr)) {
+                $startDate = \Carbon\Carbon::parse($startDateStr);
+                if ($now->lt($startDate)) $isDateValid = false;
+            }
+            if (!empty($endDateStr)) {
+                $endDate = \Carbon\Carbon::parse($endDateStr);
+                if ($now->gt($endDate)) $isDateValid = false;
+            }
 
             if ($globalCouponActive === '1' && !empty($globalCouponCode) && strtoupper($referralCodeInput) === strtoupper($globalCouponCode)) {
+                if (!$isDateValid) {
+                    return response()->json(['error' => 'This coupon is expired or not yet active.'], 400);
+                }
+
                 // Check if user already used the global coupon
                 $hasUsed = \App\Models\Transaction::where('user_id', auth()->id())
                     ->where('global_coupon_code', strtoupper($globalCouponCode))
@@ -299,7 +397,8 @@ class MiniWebsiteController extends Controller
             // Credit commission to referral partner's wallet
             $this->creditReferralCommission($referralCodeId, $commissionAmount, $transaction);
 
-            return redirect()->route('customer.mini-websites.index')->with('status', 'Hosting renewed successfully! (Mock checkout)');
+            return redirect('/mini-website/' . $mini_website->slug)
+                ->with('status', '🎉 Your website is now live! (Mock checkout)');
         }
 
         // Verify Razorpay Payment Signature
@@ -336,7 +435,8 @@ class MiniWebsiteController extends Controller
             // Credit commission to referral partner's wallet
             $this->creditReferralCommission($referralCodeId, $commissionAmount, $transaction);
 
-            return redirect()->route('customer.mini-websites.index')->with('status', 'Hosting renewed successfully!');
+            return redirect('/mini-website/' . $mini_website->slug)
+                ->with('status', '🎉 Payment successful! Your website is now live.');
         }
 
         abort(400, 'Payment signature verification failed.');
@@ -428,11 +528,15 @@ class MiniWebsiteController extends Controller
     {
         $currentExpiry = $mini_website->expires_at;
         if ($currentExpiry && $currentExpiry->isFuture()) {
-            $newExpiry = $currentExpiry->addDays($days);
+            $newExpiresAt = $currentExpiry->addDays($days);
         } else {
-            $newExpiry = now()->addDays($days);
+            $newExpiresAt = now()->addDays($days);
         }
-        $mini_website->update(['expires_at' => $newExpiry]);
+        $mini_website->update([
+            'is_purchased'   => true,
+            'is_published'   => true,  // Auto-publish on payment
+            'expires_at'     => $newExpiresAt
+        ]);
     }
 
     private function creditReferralCommission(?int $referralCodeId, float $commissionAmount, Transaction $transaction): void

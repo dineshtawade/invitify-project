@@ -448,7 +448,9 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                                                         fontSize: elem.fontSize ? `${elem.fontSize}px` : '12px',
                                                         fontWeight: elem.fontWeight || 'normal',
                                                         fontStyle: elem.isItalic ? 'italic' : 'normal',
-                                                        zIndex: 10,
+                                                        textShadow: elem.type === 'text' && elem.textShadow && elem.textShadow !== 'none' ? elem.textShadow : undefined,
+                                                        opacity: elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1,
+                                                        zIndex: elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25,
                                                     };
 
                                                     return (
@@ -459,7 +461,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
 
                                                             {elem.type === 'image' && elem.url && (
                                                                 <div className="w-full h-full rounded overflow-hidden">
-                                                                    <img src={elem.url} alt="Image Layer" className="w-full h-full object-cover" />
+                                                                    <img src={elem.url} alt="Image Layer" className="w-full h-full object-contain" />
                                                                 </div>
                                                             )}
 

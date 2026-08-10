@@ -152,6 +152,8 @@ class DashboardController extends Controller
         $validated = $request->validate([
             'code' => 'nullable|string|alpha_num|max:32|unique:referral_codes,code',
             'discount_percentage' => 'required|numeric|min:0|max:' . floatval($user->referral_discount_percentage),
+            'start_date' => 'nullable|date',
+            'expires_at' => 'nullable|date|after_or_equal:start_date',
         ]);
 
         $codeStr = strtoupper($validated['code'] ?? '');
@@ -171,6 +173,8 @@ class DashboardController extends Controller
             'discount_percentage' => $discount,
             'commission_percentage' => $commission,
             'is_active' => true,
+            'start_date' => $validated['start_date'] ?? null,
+            'expires_at' => $validated['expires_at'] ?? null,
         ]);
 
         return redirect()->back()->with('status', 'Referral code created successfully.');

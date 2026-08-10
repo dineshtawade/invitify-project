@@ -158,7 +158,7 @@ export default function BusinessWebsitesIndex({ websites, templates }: { website
                             </div>
 
                             <DialogFooter className="mt-4">
-                                <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
+                                <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)} className="bg-gray-500 hover:bg-gray-600 text-white">Cancel</Button>
                                 <Button type="submit" disabled={processing} className="bg-blue-600 hover:bg-blue-700 text-white">Create Website</Button>
                             </DialogFooter>
                         </form>

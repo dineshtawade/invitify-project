@@ -100,7 +100,7 @@ show.head = (args: { slug: string | number, page?: string | number } | [slug: st
     show.form = showForm
 /**
 * @see \App\Http\Controllers\PublicSiteController::rsvp
- * @see app/Http/Controllers/PublicSiteController.php:79
+ * @see app/Http/Controllers/PublicSiteController.php:82
  * @route '/mini-website/{slug}/rsvp'
  */
 export const rsvp = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -115,7 +115,7 @@ rsvp.definition = {
 
 /**
 * @see \App\Http\Controllers\PublicSiteController::rsvp
- * @see app/Http/Controllers/PublicSiteController.php:79
+ * @see app/Http/Controllers/PublicSiteController.php:82
  * @route '/mini-website/{slug}/rsvp'
  */
 rsvp.url = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -143,7 +143,7 @@ rsvp.url = (args: { slug: string | number } | [slug: string | number ] | string 
 
 /**
 * @see \App\Http\Controllers\PublicSiteController::rsvp
- * @see app/Http/Controllers/PublicSiteController.php:79
+ * @see app/Http/Controllers/PublicSiteController.php:82
  * @route '/mini-website/{slug}/rsvp'
  */
 rsvp.post = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -153,7 +153,7 @@ rsvp.post = (args: { slug: string | number } | [slug: string | number ] | string
 
     /**
 * @see \App\Http\Controllers\PublicSiteController::rsvp
- * @see app/Http/Controllers/PublicSiteController.php:79
+ * @see app/Http/Controllers/PublicSiteController.php:82
  * @route '/mini-website/{slug}/rsvp'
  */
     const rsvpForm = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -163,7 +163,7 @@ rsvp.post = (args: { slug: string | number } | [slug: string | number ] | string
 
             /**
 * @see \App\Http\Controllers\PublicSiteController::rsvp
- * @see app/Http/Controllers/PublicSiteController.php:79
+ * @see app/Http/Controllers/PublicSiteController.php:82
  * @route '/mini-website/{slug}/rsvp'
  */
         rsvpForm.post = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -174,7 +174,7 @@ rsvp.post = (args: { slug: string | number } | [slug: string | number ] | string
     rsvp.form = rsvpForm
 /**
 * @see \App\Http\Controllers\PublicSiteController::contact
- * @see app/Http/Controllers/PublicSiteController.php:99
+ * @see app/Http/Controllers/PublicSiteController.php:102
  * @route '/mini-website/{slug}/contact'
  */
 export const contact = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -189,7 +189,7 @@ contact.definition = {
 
 /**
 * @see \App\Http\Controllers\PublicSiteController::contact
- * @see app/Http/Controllers/PublicSiteController.php:99
+ * @see app/Http/Controllers/PublicSiteController.php:102
  * @route '/mini-website/{slug}/contact'
  */
 contact.url = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -217,7 +217,7 @@ contact.url = (args: { slug: string | number } | [slug: string | number ] | stri
 
 /**
 * @see \App\Http\Controllers\PublicSiteController::contact
- * @see app/Http/Controllers/PublicSiteController.php:99
+ * @see app/Http/Controllers/PublicSiteController.php:102
  * @route '/mini-website/{slug}/contact'
  */
 contact.post = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -227,7 +227,7 @@ contact.post = (args: { slug: string | number } | [slug: string | number ] | str
 
     /**
 * @see \App\Http\Controllers\PublicSiteController::contact
- * @see app/Http/Controllers/PublicSiteController.php:99
+ * @see app/Http/Controllers/PublicSiteController.php:102
  * @route '/mini-website/{slug}/contact'
  */
     const contactForm = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -237,7 +237,7 @@ contact.post = (args: { slug: string | number } | [slug: string | number ] | str
 
             /**
 * @see \App\Http\Controllers\PublicSiteController::contact
- * @see app/Http/Controllers/PublicSiteController.php:99
+ * @see app/Http/Controllers/PublicSiteController.php:102
  * @route '/mini-website/{slug}/contact'
  */
         contactForm.post = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

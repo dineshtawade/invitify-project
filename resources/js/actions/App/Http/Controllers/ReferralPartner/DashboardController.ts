@@ -79,7 +79,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\ReferralPartner\DashboardController::wallet
- * @see app/Http/Controllers/ReferralPartner/DashboardController.php:179
+ * @see app/Http/Controllers/ReferralPartner/DashboardController.php:183
  * @route '/referral-partner/wallet'
  */
 export const wallet = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ wallet.definition = {
 
 /**
 * @see \App\Http\Controllers\ReferralPartner\DashboardController::wallet
- * @see app/Http/Controllers/ReferralPartner/DashboardController.php:179
+ * @see app/Http/Controllers/ReferralPartner/DashboardController.php:183
  * @route '/referral-partner/wallet'
  */
 wallet.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ wallet.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ReferralPartner\DashboardController::wallet
- * @see app/Http/Controllers/ReferralPartner/DashboardController.php:179
+ * @see app/Http/Controllers/ReferralPartner/DashboardController.php:183
  * @route '/referral-partner/wallet'
  */
 wallet.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ wallet.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\ReferralPartner\DashboardController::wallet
- * @see app/Http/Controllers/ReferralPartner/DashboardController.php:179
+ * @see app/Http/Controllers/ReferralPartner/DashboardController.php:183
  * @route '/referral-partner/wallet'
  */
 wallet.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ wallet.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\ReferralPartner\DashboardController::wallet
- * @see app/Http/Controllers/ReferralPartner/DashboardController.php:179
+ * @see app/Http/Controllers/ReferralPartner/DashboardController.php:183
  * @route '/referral-partner/wallet'
  */
     const walletForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ wallet.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\ReferralPartner\DashboardController::wallet
- * @see app/Http/Controllers/ReferralPartner/DashboardController.php:179
+ * @see app/Http/Controllers/ReferralPartner/DashboardController.php:183
  * @route '/referral-partner/wallet'
  */
         walletForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ wallet.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\ReferralPartner\DashboardController::wallet
- * @see app/Http/Controllers/ReferralPartner/DashboardController.php:179
+ * @see app/Http/Controllers/ReferralPartner/DashboardController.php:183
  * @route '/referral-partner/wallet'
  */
         walletForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -157,7 +157,7 @@ wallet.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     wallet.form = walletForm
 /**
 * @see \App\Http\Controllers\ReferralPartner\DashboardController::paymentDetails
- * @see app/Http/Controllers/ReferralPartner/DashboardController.php:201
+ * @see app/Http/Controllers/ReferralPartner/DashboardController.php:205
  * @route '/referral-partner/payment-details'
  */
 export const paymentDetails = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -172,7 +172,7 @@ paymentDetails.definition = {
 
 /**
 * @see \App\Http\Controllers\ReferralPartner\DashboardController::paymentDetails
- * @see app/Http/Controllers/ReferralPartner/DashboardController.php:201
+ * @see app/Http/Controllers/ReferralPartner/DashboardController.php:205
  * @route '/referral-partner/payment-details'
  */
 paymentDetails.url = (options?: RouteQueryOptions) => {
@@ -181,7 +181,7 @@ paymentDetails.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ReferralPartner\DashboardController::paymentDetails
- * @see app/Http/Controllers/ReferralPartner/DashboardController.php:201
+ * @see app/Http/Controllers/ReferralPartner/DashboardController.php:205
  * @route '/referral-partner/payment-details'
  */
 paymentDetails.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -190,7 +190,7 @@ paymentDetails.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\ReferralPartner\DashboardController::paymentDetails
- * @see app/Http/Controllers/ReferralPartner/DashboardController.php:201
+ * @see app/Http/Controllers/ReferralPartner/DashboardController.php:205
  * @route '/referral-partner/payment-details'
  */
 paymentDetails.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -200,7 +200,7 @@ paymentDetails.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => 
 
     /**
 * @see \App\Http\Controllers\ReferralPartner\DashboardController::paymentDetails
- * @see app/Http/Controllers/ReferralPartner/DashboardController.php:201
+ * @see app/Http/Controllers/ReferralPartner/DashboardController.php:205
  * @route '/referral-partner/payment-details'
  */
     const paymentDetailsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -210,7 +210,7 @@ paymentDetails.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => 
 
             /**
 * @see \App\Http\Controllers\ReferralPartner\DashboardController::paymentDetails
- * @see app/Http/Controllers/ReferralPartner/DashboardController.php:201
+ * @see app/Http/Controllers/ReferralPartner/DashboardController.php:205
  * @route '/referral-partner/payment-details'
  */
         paymentDetailsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -219,7 +219,7 @@ paymentDetails.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => 
         })
             /**
 * @see \App\Http\Controllers\ReferralPartner\DashboardController::paymentDetails
- * @see app/Http/Controllers/ReferralPartner/DashboardController.php:201
+ * @see app/Http/Controllers/ReferralPartner/DashboardController.php:205
  * @route '/referral-partner/payment-details'
  */
         paymentDetailsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

@@ -38,9 +38,10 @@ class MiniWebsiteTemplateController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'status' => 'required|string|in:published,draft',
             'price' => 'required|numeric|min:0',
             'preview_image' => 'nullable|string',
-            'config' => 'required|array',
+            'config' => 'nullable|array',
         ]);
 
         $validated['type'] = 'invitation'; // legacy fallback
@@ -69,9 +70,10 @@ class MiniWebsiteTemplateController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'status' => 'required|string|in:published,draft',
             'price' => 'required|numeric|min:0',
             'preview_image' => 'nullable|string',
-            'config' => 'required|array',
+            'config' => 'nullable|array',
         ]);
 
         $miniWebsiteTemplate->update($validated);

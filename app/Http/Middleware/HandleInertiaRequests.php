@@ -40,6 +40,20 @@ class HandleInertiaRequests extends Middleware
         if ($globalCouponActive === '1') {
             $code = \App\Models\SystemSetting::get('global_coupon_code', '');
             $discount = \App\Models\SystemSetting::get('global_coupon_discount', '0');
+            $startDateStr = \App\Models\SystemSetting::get('global_coupon_start_date', '');
+            $endDateStr = \App\Models\SystemSetting::get('global_coupon_end_date', '');
+
+            $isDateValid = true;
+            $now = \Carbon\Carbon::now();
+
+            if (!empty($startDateStr)) {
+                $startDate = \Carbon\Carbon::parse($startDateStr);
+                if ($now->lt($startDate)) $isDateValid = false;
+            }
+            if (!empty($endDateStr)) {
+                $endDate = \Carbon\Carbon::parse($endDateStr);
+                if ($now->gt($endDate)) $isDateValid = false;
+            }
             
             $hasUsed = false;
             if ($request->user() && !empty($code)) {
@@ -49,7 +63,7 @@ class HandleInertiaRequests extends Middleware
                     ->exists();
             }
 
-            if (!empty($code) && !$hasUsed) {
+            if (!empty($code) && !$hasUsed && $isDateValid) {
                 $globalCoupon = [
                     'code' => $code,
                     'discount' => $discount,
