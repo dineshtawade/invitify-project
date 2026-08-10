@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::razorpay
- * @see app/Http/Controllers/Reseller/WalletController.php:46
+ * @see app/Http/Controllers/Reseller/WalletController.php:47
  * @route '/reseller/recharge/razorpay'
  */
 export const razorpay = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ razorpay.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::razorpay
- * @see app/Http/Controllers/Reseller/WalletController.php:46
+ * @see app/Http/Controllers/Reseller/WalletController.php:47
  * @route '/reseller/recharge/razorpay'
  */
 razorpay.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ razorpay.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::razorpay
- * @see app/Http/Controllers/Reseller/WalletController.php:46
+ * @see app/Http/Controllers/Reseller/WalletController.php:47
  * @route '/reseller/recharge/razorpay'
  */
 razorpay.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ razorpay.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Reseller\WalletController::razorpay
- * @see app/Http/Controllers/Reseller/WalletController.php:46
+ * @see app/Http/Controllers/Reseller/WalletController.php:47
  * @route '/reseller/recharge/razorpay'
  */
     const razorpayForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ razorpay.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Reseller\WalletController::razorpay
- * @see app/Http/Controllers/Reseller/WalletController.php:46
+ * @see app/Http/Controllers/Reseller/WalletController.php:47
  * @route '/reseller/recharge/razorpay'
  */
         razorpayForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -56,7 +56,7 @@ razorpay.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     razorpay.form = razorpayForm
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::verify
- * @see app/Http/Controllers/Reseller/WalletController.php:108
+ * @see app/Http/Controllers/Reseller/WalletController.php:109
  * @route '/reseller/recharge/verify'
  */
 export const verify = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -71,7 +71,7 @@ verify.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::verify
- * @see app/Http/Controllers/Reseller/WalletController.php:108
+ * @see app/Http/Controllers/Reseller/WalletController.php:109
  * @route '/reseller/recharge/verify'
  */
 verify.url = (options?: RouteQueryOptions) => {
@@ -80,7 +80,7 @@ verify.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::verify
- * @see app/Http/Controllers/Reseller/WalletController.php:108
+ * @see app/Http/Controllers/Reseller/WalletController.php:109
  * @route '/reseller/recharge/verify'
  */
 verify.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -90,7 +90,7 @@ verify.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Reseller\WalletController::verify
- * @see app/Http/Controllers/Reseller/WalletController.php:108
+ * @see app/Http/Controllers/Reseller/WalletController.php:109
  * @route '/reseller/recharge/verify'
  */
     const verifyForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -100,7 +100,7 @@ verify.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Reseller\WalletController::verify
- * @see app/Http/Controllers/Reseller/WalletController.php:108
+ * @see app/Http/Controllers/Reseller/WalletController.php:109
  * @route '/reseller/recharge/verify'
  */
         verifyForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -111,7 +111,7 @@ verify.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     verify.form = verifyForm
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::manual
- * @see app/Http/Controllers/Reseller/WalletController.php:159
+ * @see app/Http/Controllers/Reseller/WalletController.php:160
  * @route '/reseller/recharge/manual'
  */
 export const manual = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -126,7 +126,7 @@ manual.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::manual
- * @see app/Http/Controllers/Reseller/WalletController.php:159
+ * @see app/Http/Controllers/Reseller/WalletController.php:160
  * @route '/reseller/recharge/manual'
  */
 manual.url = (options?: RouteQueryOptions) => {
@@ -135,7 +135,7 @@ manual.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::manual
- * @see app/Http/Controllers/Reseller/WalletController.php:159
+ * @see app/Http/Controllers/Reseller/WalletController.php:160
  * @route '/reseller/recharge/manual'
  */
 manual.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -145,7 +145,7 @@ manual.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Reseller\WalletController::manual
- * @see app/Http/Controllers/Reseller/WalletController.php:159
+ * @see app/Http/Controllers/Reseller/WalletController.php:160
  * @route '/reseller/recharge/manual'
  */
     const manualForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -155,7 +155,7 @@ manual.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Reseller\WalletController::manual
- * @see app/Http/Controllers/Reseller/WalletController.php:159
+ * @see app/Http/Controllers/Reseller/WalletController.php:160
  * @route '/reseller/recharge/manual'
  */
         manualForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

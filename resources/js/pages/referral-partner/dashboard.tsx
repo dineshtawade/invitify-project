@@ -100,7 +100,9 @@ export default function ReferralPartnerDashboard({
 
     const codeForm = useForm({
         code: '',
-        discount_percentage: '',
+        discount_percentage: '0',
+        start_date: '',
+        expires_at: '',
     });
 
     const handleRedemption = (e: React.FormEvent) => {
@@ -305,6 +307,28 @@ export default function ReferralPartnerDashboard({
                                     <div>
                                         <div className="text-xs text-neutral-500 font-bold uppercase">You Earn</div>
                                         <div className="text-xl font-black text-indigo-700">{remainingCommission}% Comm</div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 mt-2">
+                                    <div className="grid gap-2">
+                                        <Label>Start Date (Optional)</Label>
+                                        <Input
+                                            type="date"
+                                            value={codeForm.data.start_date}
+                                            onChange={e => codeForm.setData('start_date', e.target.value)}
+                                        />
+                                        {codeForm.errors.start_date && <p className="text-red-500 text-xs">{codeForm.errors.start_date}</p>}
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label>End Date (Optional)</Label>
+                                        <Input
+                                            type="date"
+                                            value={codeForm.data.expires_at}
+                                            onChange={e => codeForm.setData('expires_at', e.target.value)}
+                                            min={codeForm.data.start_date || undefined}
+                                        />
+                                        {codeForm.errors.expires_at && <p className="text-red-500 text-xs">{codeForm.errors.expires_at}</p>}
                                     </div>
                                 </div>
 

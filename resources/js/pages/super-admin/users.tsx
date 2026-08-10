@@ -46,6 +46,7 @@ interface UserDetail {
     id: number;
     name: string;
     email: string;
+    mobile?: string | null;
     role: string;
     is_approved: boolean;
     created_at: string;
@@ -107,6 +108,7 @@ export default function UsersList({ users, filters }: UsersPageProps) {
     const { data: createData, setData: setCreateData, post: submitCreate, processing: createProcessing, errors: createErrors, reset: resetCreate } = useForm({
         name: '',
         email: '',
+        mobile: '',
         password: '',
         role: 'editor',
     });
@@ -259,6 +261,9 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                                                     <div>
                                                         <div className="font-bold text-neutral-900 dark:text-neutral-100">{u.name}</div>
                                                         <div className="text-xs text-neutral-450 dark:text-neutral-400 font-medium">{u.email}</div>
+                                                        {u.mobile && (
+                                                            <div className="text-xs text-neutral-450 dark:text-neutral-400 font-medium">{u.mobile}</div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </td>
@@ -370,6 +375,9 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                                         {selectedUser.name}
                                     </h2>
                                     <p className="text-xs font-medium text-neutral-450 dark:text-neutral-400">{selectedUser.email}</p>
+                                    {selectedUser.mobile && (
+                                        <p className="text-xs font-medium text-neutral-450 dark:text-neutral-400 mt-0.5">{selectedUser.mobile}</p>
+                                    )}
                                 </div>
                             </div>
                             <Button
@@ -667,6 +675,16 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                                     required
                                 />
                                 {createErrors.email && <div className="text-red-500 text-xs mt-1">{createErrors.email}</div>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1">Mobile Number</label>
+                                <Input 
+                                    type="text"
+                                    value={createData.mobile}
+                                    onChange={e => setCreateData('mobile', e.target.value)}
+                                    className="rounded-xl"
+                                />
+                                {createErrors.mobile && <div className="text-red-500 text-xs mt-1">{createErrors.mobile}</div>}
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-1">Password</label>

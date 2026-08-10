@@ -51,8 +51,11 @@ class PublicSiteController extends Controller
             ]);
         }
 
-        // 3. Render block-based design (invitations/legacy)
-        if (is_array($website->config) && !empty($website->config) && isset($website->config[0]['type'])) {
+        // 3. Render block-based design (invitations/legacy/new config)
+        $isLegacyBlocks = is_array($website->config) && !empty($website->config) && isset($website->config[0]['type']);
+        $isNewConfig = is_array($website->config) && isset($website->config['pages']);
+        
+        if ($isLegacyBlocks || $isNewConfig) {
             return Inertia::render('public/site-viewer', [
                 'website' => $website,
                 'customBlocks' => \App\Models\CustomBlock::all(),

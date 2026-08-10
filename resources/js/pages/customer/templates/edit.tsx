@@ -16,8 +16,11 @@ import {
     Sparkles, Save, CreditCard, ChevronLeft, Heart,
     Cake, Baby, Award, Link, MapPin, ChevronRight,
     ImageIcon, Star, Compass, Gift, Calendar, Clock,
-    Music, Wine, Bell, XCircle, Smile
+    Music, Wine, Bell, XCircle, Smile, Shield,
+    Layers, Palette, PenTool, Eye, CheckCircle2,
+    Loader2, Copy, Share2, Download, Crown
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 import { getCsrfHeaders } from '@/lib/utils';
 import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
@@ -42,6 +45,11 @@ interface UserTemplate {
 interface PageProps {
     template: Template;
     userTemplate: UserTemplate;
+    coupons?: Array<{
+        id: number;
+        code: string;
+        discount: number;
+    }>;
 }
 
 const fontStyles: Record<string, string> = {
@@ -57,13 +65,56 @@ const fontStyles: Record<string, string> = {
     pinyon: "'Pinyon Script', cursive",
 };
 
-export default function TemplateCustomize({ template, userTemplate }: PageProps) {
+export default function TemplateCustomize({ template, userTemplate, coupons = [] }: PageProps) {
     const { auth } = usePage().props;
     const isGuest = !auth.user;
 
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+    const [couponError, setCouponError] = useState('');
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
     const [isGuestAlertOpen, setIsGuestAlertOpen] = useState(false);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [activePageIndex, setActivePageIndex] = useState(0);
+    const [cardWidth, setCardWidth] = useState(350);
+    const [isSaved, setIsSaved] = useState(false);
+    const [saveAnimation, setSaveAnimation] = useState(false);
+
+    const cardRef = useRef<HTMLDivElement>(null);
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Browse Templates', href: '/customer/templates' },
+        { title: `Customize ${template.name}`, href: `/templates/${template.id}/customize` },
+    ];
+
+    const initialConfig = template.type === 'video'
+        ? (userTemplate.custom_config || template.default_config || { video_url: null, elements: [] })
+        : normalizeConfig(userTemplate.custom_config, template.bg_gradient);
+
+    const { data, setData, put, processing } = useForm({
+        custom_config: initialConfig,
+    });
+
+    const activePage = data.custom_config.pages[activePageIndex] || data.custom_config.pages[0];
+    const ratioData = ASPECT_RATIOS[data.custom_config.aspectRatio] || ASPECT_RATIOS.standard;
+
+    useEffect(() => {
+        if (!cardRef.current) return;
+        const observer = new ResizeObserver((entries) => {
+            if (entries[0]) {
+                setCardWidth(entries[0].contentRect.width);
+            }
+        });
+        observer.observe(cardRef.current);
+        setCardWidth(cardRef.current.clientWidth);
+        return () => observer.disconnect();
+    }, [activePageIndex]);
+
+    const targetWidth = data.custom_config.aspectRatio === 'custom'
+        ? (data.custom_config.width || 350)
+        : (ratioData.targetWidth || 350);
+
+    const scaleRatio = cardWidth / targetWidth;
 
     const loadRazorpayScript = () => {
         return new Promise((resolve) => {
@@ -80,89 +131,40 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
         });
     };
 
-    const cardRef = useRef<HTMLDivElement>(null);
-    const [activePageIndex, setActivePageIndex] = useState(0);
-    const [cardWidth, setCardWidth] = useState(350);
-
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: 'Browse Templates',
-            href: '/customer/templates',
-        },
-        {
-            title: `Customize ${template.name}`,
-            href: `/templates/${template.id}/customize`,
-        },
-    ];
-
-    // Normalize initial state with fallback for old layouts
-    const initialConfig = template.type === 'video'
-        ? (userTemplate.custom_config || template.default_config || { video_url: null, elements: [] })
-        : normalizeConfig(userTemplate.custom_config, template.bg_gradient);
-
-    const { data, setData, put, processing } = useForm({
-        custom_config: initialConfig,
-    });
-
-    const activePage = data.custom_config.pages[activePageIndex] || data.custom_config.pages[0];
-    const ratioData = ASPECT_RATIOS[data.custom_config.aspectRatio] || ASPECT_RATIOS.standard;
-
-    // Track card dimensions dynamically for font scaling
-    useEffect(() => {
-        if (!cardRef.current) return;
-        const observer = new ResizeObserver((entries) => {
-            if (entries[0]) {
-                setCardWidth(entries[0].contentRect.width);
-            }
-        });
-        observer.observe(cardRef.current);
-
-        // Initial measurement
-        setCardWidth(cardRef.current.clientWidth);
-
-        return () => observer.disconnect();
-    }, [activePageIndex]);
-
-    const targetWidth = data.custom_config.aspectRatio === 'custom'
-        ? (data.custom_config.width || 350)
-        : (ratioData.targetWidth || 350);
-
-    const scaleRatio = cardWidth / targetWidth;
-
     const renderDecorIcon = (iconName: string, color: string = 'currentColor') => {
         const iconClasses = "size-full object-contain pointer-events-none";
-        switch (iconName) {
-            case 'heart':
-                return <Heart className={iconClasses} style={{ color }} />;
-            case 'sparkle':
-            case 'sparkles':
-                return <Sparkles className={iconClasses} style={{ color }} />;
-            case 'cake':
-                return <Cake className={iconClasses} style={{ color }} />;
-            case 'baby':
-                return <Baby className={iconClasses} style={{ color }} />;
-            case 'gift':
-                return <Gift className={iconClasses} style={{ color }} />;
-            case 'calendar':
-                return <Calendar className={iconClasses} style={{ color }} />;
-            case 'clock':
-                return <Clock className={iconClasses} style={{ color }} />;
-            case 'music':
-                return <Music className={iconClasses} style={{ color }} />;
-            case 'wine':
-                return <Wine className={iconClasses} style={{ color }} />;
-            case 'star':
-                return <Star className={iconClasses} style={{ color }} />;
-            case 'bell':
-                return <Bell className={iconClasses} style={{ color }} />;
-            case 'compass':
-                return <Compass className={iconClasses} style={{ color }} />;
-            case 'flower':
-                return <Smile className={iconClasses} style={{ color }} />;
-            case 'ring':
-            default:
-                return <Award className={iconClasses} style={{ color }} />;
+        const legacyMap: Record<string, any> = {
+            'heart': Heart, 'sparkle': Sparkles, 'sparkles': Sparkles,
+            'cake': Cake, 'baby': Baby, 'gift': Gift, 'calendar': Calendar,
+            'clock': Clock, 'music': Music, 'wine': Wine, 'star': Star,
+            'bell': Bell, 'compass': Compass, 'flower': Smile, 'ring': Award
+        };
+
+        if (legacyMap[iconName]) {
+            const LegacyIcon = legacyMap[iconName];
+            return <LegacyIcon className={iconClasses} style={{ color }} />;
         }
+
+        const normalizedName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
+        const IconComponent = (LucideIcons as any)[normalizedName] || (LucideIcons as any)[iconName] || Award;
+        return <IconComponent className={iconClasses} style={{ color }} />;
+    };
+
+    const handleApplyCoupon = (code: string) => {
+        const found = coupons.find(c => c.code.toUpperCase() === code.toUpperCase());
+        if (found) {
+            setAppliedCoupon(found);
+            setCouponCode(found.code);
+            setCouponError('');
+        } else {
+            setCouponError('Invalid or inapplicable coupon code.');
+        }
+    };
+
+    const handleRemoveCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponCode('');
+        setCouponError('');
     };
 
     const handleSaveDraft = (e: React.FormEvent) => {
@@ -171,7 +173,15 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
             setIsGuestAlertOpen(true);
             return;
         }
-        put(`/customer/user-templates/${userTemplate.id}/save-draft`);
+        setSaveAnimation(true);
+        put(`/customer/user-templates/${userTemplate.id}/save-draft`, {
+            onSuccess: () => {
+                setIsSaved(true);
+                setSaveAnimation(false);
+                setTimeout(() => setIsSaved(false), 3000);
+            },
+            onError: () => setSaveAnimation(false)
+        });
     };
 
     const handleBuyClick = () => {
@@ -193,7 +203,10 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
                             ...getCsrfHeaders()
-                        }
+                        },
+                        body: JSON.stringify({
+                            referral_code: couponCode || undefined,
+                        })
                     });
 
                     if (!response.ok) {
@@ -251,7 +264,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                 email: auth.user?.email || '',
                             },
                             theme: {
-                                color: '#2563eb',
+                                color: '#000000',
                             },
                             modal: {
                                 ondismiss: function () {
@@ -284,7 +297,6 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
         window.location.href = targetPath;
     };
 
-    // Client personalization updates
     const handlePersonalizeText = (pageIndex: number, elementId: string, value: string) => {
         const updatedPages = [...data.custom_config.pages];
         updatedPages[pageIndex] = {
@@ -306,7 +318,6 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
             formData.append('file', file);
 
             try {
-                // Set to uploading status
                 setData(prev => {
                     const updatedPages = [...prev.custom_config.pages];
                     updatedPages[pageIndex] = {
@@ -326,16 +337,11 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
 
                 const response = await fetch('/media/upload', {
                     method: 'POST',
-                    headers: {
-                        ...getCsrfHeaders()
-                    },
+                    headers: { ...getCsrfHeaders() },
                     body: formData,
                 });
 
-                if (!response.ok) {
-                    throw new Error('Upload failed');
-                }
-
+                if (!response.ok) throw new Error('Upload failed');
                 const result = await response.json();
 
                 setData(prev => {
@@ -383,40 +389,79 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                 <title>{`Customize ${template.name}`}</title>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&family=Dancing+Script:wght@400..700&family=Alex+Brush&family=Outfit:wght@100..900&family=Parisienne&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Pinyon+Script&display=swap" rel="stylesheet" />
+                <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&family=Dancing+Script:wght@400..700&family=Alex+Brush&family=Outfit:wght@100..900&family=Parisienne&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Pinyon+Script&family=Lora:ital,wght@0,400..700;1,400..700&family=Merriweather:ital,wght@0,300..900;1,300..900&family=Poppins:ital,wght@0,100..900;1,100..900&family=Pacifico&family=Sacramento&display=swap" rel="stylesheet" />
             </Head>
-            <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6 bg-neutral-50/40 dark:bg-neutral-950/10">
 
-                {/* Actions Header bar */}
-                <div className="flex items-center justify-between gap-4 border-b pb-4">
-                    <a
-                        href="/customer/templates"
-                        className="flex items-center gap-1 text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:text-neutral-450 dark:hover:text-neutral-50"
-                    >
-                        <ChevronLeft className="size-4" /> Back to Templates
-                    </a>
+            <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-8 bg-white">
 
-                    <div className="flex items-center gap-3.5">
+                {/* Header Bar */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-200 pb-6">
+                    <div className="flex items-center gap-4">
+                        <a
+                            href="/customer/templates"
+                            className="group flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-black transition-all duration-200"
+                        >
+                            <div className="p-1.5 rounded-full bg-gray-100 group-hover:bg-gray-200 transition-colors">
+                                <ChevronLeft className="size-4" />
+                            </div>
+                            <span className="hidden sm:inline">Back to Templates</span>
+                        </a>
+
+                        <div className="flex items-center gap-3">
+                            <div className="h-8 w-px bg-gray-200" />
+                            <div className="flex items-center gap-2">
+                                <div className="p-1.5 rounded-lg bg-gray-100 border border-gray-200">
+                                    <Crown className="size-4 text-black" />
+                                </div>
+                                <div>
+                                    <h1 className="text-lg font-bold tracking-tight text-black">
+                                        {template.name}
+                                    </h1>
+                                    <p className="text-xs text-gray-500">
+                                        {template.category}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 border border-gray-200">
+                            <Shield className="size-3.5 text-gray-600" />
+                            <span className="text-xs font-medium text-gray-700">Design Locked</span>
+                        </div>
+
                         <Button
                             onClick={handleSaveDraft}
-                            disabled={processing}
+                            disabled={processing || saveAnimation}
                             variant="outline"
-                            className="flex items-center gap-1.5 border-neutral-200 dark:border-neutral-800 rounded-xl text-xs font-bold"
+                            className={`group relative flex items-center gap-2 border-gray-300  rounded-xl text-sm font-semibold px-4 py-2.5 transition-all duration-300 text-black ${isSaved ? 'border-green-400 bg-green-50' : ''
+                                }`}
                         >
-                            <Save className="size-4" /> Save Draft
+                            {saveAnimation ? (
+                                <Loader2 className="size-4 animate-spin text-white" />
+                            ) : isSaved ? (
+                                <CheckCircle2 className="size-4 text-green-600 text-white" />
+                            ) : (
+                                <Save className="size-4 group-hover:scale-110 transition-transform text-white" />
+                            )}
+                            <span className='text-white'>{isSaved ? 'Saved!' : 'Save Draft'}</span>
                         </Button>
+
                         <Button
                             onClick={handleBuyClick}
-                            className="flex items-center gap-1.5 shadow-sm rounded-xl text-xs font-bold px-5"
+                            className="group relative flex items-center gap-2 bg-black hover:bg-gray-800 shadow-lg shadow-black/20 hover:shadow-black/30 rounded-xl text-sm font-semibold px-5 py-2.5 transition-all duration-300 text-white"
                         >
-                            <CreditCard className="size-4" /> Purchase Design Card
+                            <CreditCard className="size-4 group-hover:scale-110 transition-transform" />
+                            <span>Purchase</span>
+                            <span className="ml-1 text-xs opacity-80">₹{parseFloat(String(template.price)).toFixed(0)}</span>
                         </Button>
                     </div>
                 </div>
 
-                {/* Editor Split Personalized Panel */}
+                {/* Editor Section */}
                 {template.type === 'video' ? (
-                    <div className="flex-1 overflow-hidden h-[800px] border border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col">
+                    <div className="flex-1 overflow-hidden h-[800px] border border-gray-200 rounded-2xl bg-white shadow-lg">
                         <VideoTemplateBuilder
                             data={{ default_config: data.custom_config }}
                             setData={(field, value) => {
@@ -426,19 +471,28 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                         />
                     </div>
                 ) : (
-                    <div className="grid gap-6 lg:grid-cols-[1fr_1fr] flex-1">
+                    <div className="grid gap-6 lg:grid-cols-[380px_1fr] xl:grid-cols-[420px_1fr] flex-1">
 
-                        {/* Left side Personalization form ONLY (All layouts and styling locked) */}
-                        <div className="rounded-2xl border border-neutral-200 bg-white shadow-2xs dark:border-neutral-800 dark:bg-neutral-900 flex flex-col min-h-[500px] overflow-hidden">
-                            <div className="p-5 border-b bg-neutral-50 dark:bg-neutral-950/20">
-                                <h2 className="text-md font-bold flex items-center gap-2 text-neutral-900 dark:text-neutral-50">
-                                    <Sparkles className="size-5 text-indigo-700 dark:text-indigo-400" />
-                                    Personalize Invitation Content
-                                </h2>
-                                <p className="text-[11px] text-neutral-450 mt-1">Replace placeholder contents inside editable text and photo frames. Overall card structures, themes, borders, and layouts are secured.</p>
+                        {/* Left Panel - Personalization Form */}
+                        <div className="rounded-2xl bg-white border border-gray-200 shadow-lg flex flex-col min-h-[600px] overflow-hidden">
+                            <div className="p-5 border-b border-gray-200 bg-gray-50">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-xl bg-gray-100 border border-gray-200">
+                                        <PenTool className="size-5 text-black" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-base font-bold text-black flex items-center gap-2">
+                                            Personalize Content
+                                            <Sparkles className="size-4 text-black" />
+                                        </h2>
+                                        <p className="text-[11px] text-gray-500 mt-0.5">
+                                            Customize editable fields below
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="p-5 flex-1 overflow-y-auto flex flex-col gap-5">
+                            <div className="p-5 flex-1 overflow-y-auto space-y-4">
                                 {(() => {
                                     const editableElements: { pageIndex: number; element: ElementConfig }[] = [];
                                     data.custom_config.pages.forEach((page: PageConfig, pageIdx: number) => {
@@ -451,27 +505,41 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
 
                                     if (editableElements.length === 0) {
                                         return (
-                                            <p className="text-xs text-neutral-450 italic text-center py-12">
-                                                This card design template has no personalized text/image fields configured by the admin.
-                                            </p>
+                                            <div className="flex flex-col items-center justify-center py-16 text-center">
+                                                <div className="p-4 rounded-full bg-gray-100">
+                                                    <Layers className="size-8 text-gray-400" />
+                                                </div>
+                                                <p className="text-sm text-gray-500 mt-4 font-medium">
+                                                    No editable fields configured
+                                                </p>
+                                                <p className="text-xs text-gray-400 mt-1">
+                                                    This template has no customizable content
+                                                </p>
+                                            </div>
                                         );
                                     }
 
                                     return editableElements.map(({ pageIndex, element }) => {
                                         if (element.type === 'text') {
                                             return (
-                                                <div key={element.id} className="grid gap-1.5 bg-neutral-50/50 dark:bg-neutral-950/20 p-3.5 rounded-xl border">
-                                                    <Label htmlFor={element.id} className="text-xs font-bold text-white dark:text-neutral-200 flex items-center justify-between">
-                                                        <span className='dark:text-neutral-100'>{element.editableLabel || 'Text Field'}</span>
-                                                        <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-800">Page {pageIndex + 1}</span>
-                                                    </Label>
+                                                <div key={element.id} className="group space-y-2 p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-gray-400 transition-all duration-200">
+                                                    <div className="flex items-center justify-between">
+                                                        <Label className="text-xs font-semibold text-black flex items-center gap-2">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-black" />
+                                                            {element.editableLabel || 'Text Field'}
+                                                        </Label>
+                                                        <span className="text-[10px] font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                                                            Page {pageIndex + 1}
+                                                        </span>
+                                                    </div>
                                                     {element.multiline ? (
                                                         <textarea
                                                             id={element.id}
                                                             value={element.content || ''}
                                                             onChange={(e) => handlePersonalizeText(pageIndex, element.id, e.target.value)}
                                                             rows={3}
-                                                            className="w-full rounded-lg border border-neutral-200 px-3 py-1.5 text-xs shadow-2xs focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                                                            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-black shadow-sm focus:ring-2 focus:ring-black/20 focus:border-black transition-all duration-200 resize-none"
+                                                            placeholder="Enter text..."
                                                         />
                                                     ) : (
                                                         <Input
@@ -479,7 +547,8 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                                             type="text"
                                                             value={element.content || ''}
                                                             onChange={(e) => handlePersonalizeText(pageIndex, element.id, e.target.value)}
-                                                            className="h-9.5 text-xs rounded-lg"
+                                                            className="h-10 text-sm text-black rounded-lg focus:ring-2 focus:ring-black/20 focus:border-black transition-all duration-200"
+                                                            placeholder="Enter text..."
                                                         />
                                                     )}
                                                 </div>
@@ -487,31 +556,44 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                         }
                                         if (element.type === 'image') {
                                             return (
-                                                <div key={element.id} className="grid gap-2 bg-neutral-50/50 dark:bg-neutral-950/20 p-3.5 rounded-xl border">
-                                                    <Label className="text-xs font-bold text-neutral-805 dark:text-neutral-200 dark:text-neutral-100 flex items-center justify-between">
-                                                        <span>{element.editableLabel || 'Upload Image'}</span>
-                                                        <span className="text-[9px] uppercase font-bold tracking-widest text-neutral-400">Page {pageIndex + 1}</span>
-                                                    </Label>
-                                                    <div className="flex gap-4 items-center mt-1">
-                                                        <div className="size-16 rounded-xl border bg-white overflow-hidden flex items-center justify-center shrink-0">
+                                                <div key={element.id} className="group space-y-3 p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-gray-400 transition-all duration-200">
+                                                    <div className="flex items-center justify-between">
+                                                        <Label className="text-xs font-semibold text-black flex items-center gap-2">
+                                                            <ImageIcon className="size-3.5" />
+                                                            {element.editableLabel || 'Upload Image'}
+                                                        </Label>
+                                                        <span className="text-[10px] font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                                                            Page {pageIndex + 1}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex gap-4 items-start">
+                                                        <div className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 bg-white overflow-hidden flex items-center justify-center shrink-0 transition-all duration-200 group-hover:border-black">
                                                             {element.url ? (
                                                                 element.url === 'uploading' ? (
-                                                                    <span className="text-[9px] text-indigo-500 font-extrabold animate-pulse">Uploading</span>
+                                                                    <div className="flex flex-col items-center gap-1">
+                                                                        <Loader2 className="size-6 text-black animate-spin" />
+                                                                        <span className="text-[8px] text-black font-semibold">Uploading</span>
+                                                                    </div>
                                                                 ) : (
-                                                                    <img src={element.url} alt="Custom Preview" className="size-full object-cover" />
+                                                                    <img src={element.url} alt="Custom Preview" className="w-full h-full object-cover" />
                                                                 )
                                                             ) : (
-                                                                <ImageIcon className="size-6 text-neutral-300" />
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <ImageIcon className="size-6 text-gray-300" />
+                                                                    <span className="text-[8px] text-gray-400">No image</span>
+                                                                </div>
                                                             )}
                                                         </div>
-                                                        <div className="flex-1 flex flex-col gap-1.5">
+                                                        <div className="flex-1 min-w-0">
                                                             <input
                                                                 type="file"
                                                                 accept="image/*"
                                                                 onChange={(e) => handlePersonalizeImage(pageIndex, element.id, e)}
-                                                                className="flex h-9 w-full rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs shadow-2xs file:border-0 file:bg-transparent file:text-xs file:font-semibold text-neutral-500 file:cursor-pointer"
+                                                                className="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-black shadow-sm file:border-0 file:bg-transparent file:text-sm file:font-semibold file:text-black file:cursor-pointer focus:ring-2 focus:ring-black/20 focus:border-black transition-all duration-200"
                                                             />
-                                                            <p className="text-[9px] text-neutral-450 font-medium">PNG, JPG, JPEG formats accepted.</p>
+                                                            <p className="text-[10px] text-gray-400 mt-1.5">
+                                                                PNG, JPG, JPEG • Max 5MB
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -520,36 +602,49 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                         return null;
                                     });
                                 })()}
+
+                                <div className="pt-2 text-center">
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 border border-gray-200">
+                                        <Palette className="size-3.5 text-gray-600" />
+                                        <span className="text-[10px] font-medium text-gray-700">
+                                            Design elements are locked
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Right side locked Live Card Preview (Zero Selection Outline or resizing handles) */}
-                        <div className="flex flex-col items-center justify-start p-6 rounded-2xl border border-neutral-200 bg-neutral-100/50 dark:border-neutral-800 dark:bg-neutral-950/20 min-h-[500px]">
+                        {/* Right Panel - Live Preview */}
+                        <div className="flex flex-col items-center justify-start p-6 rounded-2xl bg-white border border-gray-200 shadow-lg min-h-[600px]">
 
-                            {/* Page Selector Tabs */}
-                            <div className="flex items-center gap-2.5 mb-5 w-full justify-center">
+                            {/* Page Selector */}
+                            <div className="flex items-center gap-2 mb-6 w-full justify-center">
                                 {data.custom_config.pages.map((_, idx) => (
                                     <button
                                         key={idx}
                                         type="button"
                                         onClick={() => setActivePageIndex(idx)}
-                                        className={`px-3.5 py-1 text-xs font-bold rounded-full border transition-all ${activePageIndex === idx
-                                            ? 'bg-indigo-700 text-white border-indigo-700'
-                                            : 'bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-600 dark:bg-neutral-900 dark:border-neutral-850 dark:text-neutral-400'
+                                        className={`group relative px-4 py-2 text-xs font-semibold rounded-full border transition-all duration-300 ${activePageIndex === idx
+                                            ? 'bg-black text-white border-black shadow-lg shadow-black/25 scale-105'
+                                            : 'bg-white hover:bg-gray-50 border-gray-300 text-gray-600 hover:border-black'
                                             }`}
                                     >
-                                        Page {idx + 1}
+                                        <span className="relative z-10 flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
+                                            Page {idx + 1}
+                                        </span>
                                     </button>
                                 ))}
                             </div>
 
-                            {/* Card frame simulator wrapper */}
-                            <div className="w-full max-w-[310px] flex flex-col gap-3.5 relative">
-                                <span className="text-[10px] font-bold text-neutral-450 dark:text-neutral-500 uppercase tracking-widest text-center mb-1 flex items-center justify-center gap-1.5">
-                                    <Star className="size-3.5 text-amber-500" /> Personalized Live view
-                                </span>
+                            {/* Preview Card */}
+                            <div className="w-full max-w-[340px] flex flex-col gap-4">
+                                <div className="flex items-center justify-center gap-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                                    <Eye className="size-3.5" />
+                                    <span>Live Preview</span>
+                                    <Star className="size-3 text-black" />
+                                </div>
 
-                                {/* Canvas body (Securely locked: No element outlines, click selections, or drags) */}
                                 <div
                                     ref={cardRef}
                                     style={{
@@ -561,9 +656,12 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                             ? activePage.bg_gradient
                                             : undefined,
                                     }}
-                                    className={`w-full ${data.custom_config.aspectRatio !== 'custom' ? ratioData.class : ''} rounded-3xl shadow-xl border border-neutral-300 dark:border-neutral-850 relative select-none cursor-default overflow-hidden transition-all duration-300 ${!activePage?.bg_gradient?.startsWith('linear-gradient') ? `bg-gradient-to-tr ${activePage?.bg_gradient || 'from-stone-100 to-rose-50 text-neutral-800'}` : ''}`}
+                                    className={`w-full ${data.custom_config.aspectRatio !== 'custom' ? ratioData.class : ''} rounded-3xl shadow-2xl border-2 border-gray-200 relative select-none cursor-default overflow-hidden transition-all duration-500 hover:shadow-3xl ${!activePage?.bg_gradient?.startsWith('linear-gradient')
+                                        ? `bg-gradient-to-br ${activePage?.bg_gradient || 'from-gray-100 to-gray-50 text-black'}`
+                                        : ''
+                                        }`}
                                 >
-                                    {/* Decorative border overlays */}
+                                    {/* Decorative border */}
                                     {activePage?.borderStyle && activePage.borderStyle !== 'none' && (
                                         <div
                                             className="absolute pointer-events-none rounded-2xl"
@@ -580,56 +678,16 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                         >
                                             {(activePage.borderStyle === 'floral' || activePage.borderStyle === 'classic') && (
                                                 <>
-                                                    <div
-                                                        className="absolute size-5 border-t border-l"
-                                                        style={{
-                                                            top: '-1px',
-                                                            left: '-1px',
-                                                            borderColor: activePage.borderColor || '#d4af37',
-                                                            borderTopWidth: `${2 * scaleRatio}px`,
-                                                            borderLeftWidth: `${2 * scaleRatio}px`,
-                                                            borderTopLeftRadius: '4px',
-                                                        }}
-                                                    />
-                                                    <div
-                                                        className="absolute size-5 border-t border-r"
-                                                        style={{
-                                                            top: '-1px',
-                                                            right: '-1px',
-                                                            borderColor: activePage.borderColor || '#d4af37',
-                                                            borderTopWidth: `${2 * scaleRatio}px`,
-                                                            borderRightWidth: `${2 * scaleRatio}px`,
-                                                            borderTopRightRadius: '4px',
-                                                        }}
-                                                    />
-                                                    <div
-                                                        className="absolute size-5 border-b border-l"
-                                                        style={{
-                                                            bottom: '-1px',
-                                                            left: '-1px',
-                                                            borderColor: activePage.borderColor || '#d4af37',
-                                                            borderBottomWidth: `${2 * scaleRatio}px`,
-                                                            borderLeftWidth: `${2 * scaleRatio}px`,
-                                                            borderBottomLeftRadius: '4px',
-                                                        }}
-                                                    />
-                                                    <div
-                                                        className="absolute size-5 border-b border-r"
-                                                        style={{
-                                                            bottom: '-1px',
-                                                            right: '-1px',
-                                                            borderColor: activePage.borderColor || '#d4af37',
-                                                            borderBottomWidth: `${2 * scaleRatio}px`,
-                                                            borderRightWidth: `${2 * scaleRatio}px`,
-                                                            borderBottomRightRadius: '4px',
-                                                        }}
-                                                    />
+                                                    <div className="absolute size-5 border-t border-l" style={{ top: '-1px', left: '-1px', borderColor: activePage.borderColor || '#d4af37', borderTopWidth: `${2 * scaleRatio}px`, borderLeftWidth: `${2 * scaleRatio}px`, borderTopLeftRadius: '4px' }} />
+                                                    <div className="absolute size-5 border-t border-r" style={{ top: '-1px', right: '-1px', borderColor: activePage.borderColor || '#d4af37', borderTopWidth: `${2 * scaleRatio}px`, borderRightWidth: `${2 * scaleRatio}px`, borderTopRightRadius: '4px' }} />
+                                                    <div className="absolute size-5 border-b border-l" style={{ bottom: '-1px', left: '-1px', borderColor: activePage.borderColor || '#d4af37', borderBottomWidth: `${2 * scaleRatio}px`, borderLeftWidth: `${2 * scaleRatio}px`, borderBottomLeftRadius: '4px' }} />
+                                                    <div className="absolute size-5 border-b border-r" style={{ bottom: '-1px', right: '-1px', borderColor: activePage.borderColor || '#d4af37', borderBottomWidth: `${2 * scaleRatio}px`, borderRightWidth: `${2 * scaleRatio}px`, borderBottomRightRadius: '4px' }} />
                                                 </>
                                             )}
                                         </div>
                                     )}
 
-                                    {/* Renders elements in canvas (Locked preview) */}
+                                    {/* Elements */}
                                     {activePage?.elements.map((elem) => {
                                         const style: React.CSSProperties = {
                                             position: 'absolute',
@@ -646,48 +704,52 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                             fontSize: elem.fontSize ? `${elem.fontSize * scaleRatio}px` : undefined,
                                             fontWeight: elem.fontWeight || 'normal',
                                             fontStyle: elem.isItalic ? 'italic' : 'normal',
+                                            textShadow: elem.type === 'text' && elem.textShadow && elem.textShadow !== 'none' ? elem.textShadow : undefined,
+                                            opacity: elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1,
+                                            zIndex: elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25,
                                         };
 
                                         return (
                                             <div
                                                 key={elem.id}
                                                 style={style}
-                                                className="transition-all duration-75 relative p-0.5 leading-tight select-none break-words overflow-hidden border border-transparent"
+                                                className={`transition-all duration-300 relative overflow-hidden rounded-lg ${elem.animation && elem.animation !== 'none' ? elem.animation : ''
+                                                    }`}
                                             >
                                                 {elem.type === 'text' && (
-                                                    <span className="w-full pointer-events-none">{elem.content}</span>
+                                                    <span className="w-full pointer-events-none leading-tight">{elem.content}</span>
                                                 )}
-
                                                 {elem.type === 'image' && (
-                                                    <div className="w-full h-full rounded-md overflow-hidden bg-neutral-255/50 pointer-events-none">
+                                                    <div className="w-full h-full rounded-md overflow-hidden bg-gray-100 pointer-events-none">
                                                         {elem.url ? (
                                                             elem.url === 'uploading' ? (
-                                                                <span className="text-[10px] text-indigo-500 flex items-center justify-center h-full animate-pulse font-extrabold">Uploading...</span>
+                                                                <div className="flex items-center justify-center h-full">
+                                                                    <Loader2 className="size-5 text-black animate-spin" />
+                                                                </div>
                                                             ) : (
-                                                                <img src={elem.url} alt="Graphic Frame" className="w-full h-full object-cover pointer-events-none" />
+                                                                <img src={elem.url} alt="Graphic" className="w-full h-full object-contain pointer-events-none" />
                                                             )
                                                         ) : (
-                                                            <span className="text-[9px] text-neutral-400 flex items-center justify-center h-full">No image uploaded</span>
+                                                            <div className="flex items-center justify-center h-full">
+                                                                <span className="text-[8px] text-gray-400">No image</span>
+                                                            </div>
                                                         )}
                                                     </div>
                                                 )}
-
                                                 {elem.type === 'icon' && (
                                                     <span className="w-full h-full pointer-events-none flex items-center justify-center p-0.5">
                                                         {renderDecorIcon(elem.iconType || 'ring', elem.color || elem.textColor)}
                                                     </span>
                                                 )}
-
                                                 {elem.type === 'divider' && (
                                                     <div className="w-full h-full pointer-events-none flex items-center justify-center px-1">
                                                         <hr className="w-full border-t" style={{ borderColor: elem.color || '#1f2937', borderWidth: `${scaleRatio * 1.5}px` }} />
                                                     </div>
                                                 )}
-
                                                 {elem.type === 'link' && (
                                                     <button
                                                         type="button"
-                                                        className="px-3 py-1.5 bg-neutral-900/10 border pointer-events-none rounded-full flex items-center justify-center gap-1 shrink-0"
+                                                        className="px-3 py-1.5 bg-black/5 border pointer-events-none rounded-full flex items-center justify-center gap-1 shrink-0"
                                                         style={{
                                                             borderColor: elem.textColor || '#1f2937',
                                                             color: elem.textColor || '#1f2937',
@@ -704,95 +766,197 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                     })}
                                 </div>
 
-                                {/* Help tips */}
-                                <span className="text-[9px] text-center text-neutral-400">
-                                    🔒 Invitation layout and design styling parameters are secured by Invitify.
-                                </span>
+                                <div className="flex items-center justify-center gap-4 text-[10px] text-gray-500">
+                                    <span className="flex items-center gap-1">
+                                        <Shield className="size-3" />
+                                        Secured Layout
+                                    </span>
+                                    <span className="w-px h-3 bg-gray-300" />
+                                    <span className="flex items-center gap-1">
+                                        <Copy className="size-3" />
+                                        Design Locked
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Checkout Confirmation Dialog */}
+            {/* Checkout Dialog */}
             <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-                <DialogContent className="max-w-sm bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
-                    <DialogHeader>
-                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                            Checkout Confirmation <Sparkles className="size-5 text-amber-500" />
-                        </DialogTitle>
-                    </DialogHeader>
+                <DialogContent className="max-w-md bg-white border border-gray-200 rounded-2xl shadow-2xl p-0 overflow-hidden">
+                    <div className="p-6 border-b border-gray-200 bg-gray-50">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-black">
+                                <CreditCard className="size-5 text-black" />
+                                Checkout
+                            </DialogTitle>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Complete your purchase of <span className="font-semibold text-black">{template.name}</span>
+                            </p>
+                        </DialogHeader>
+                    </div>
 
-                    <div className="py-4 flex flex-col gap-4 text-sm text-neutral-600 dark:text-neutral-400">
-                        <p>You are about to purchase the invitation card: <strong className="text-neutral-950 dark:text-neutral-50">{template.name}</strong>.</p>
-
-                        <div className="rounded-xl bg-neutral-50 p-4 dark:bg-neutral-950 flex flex-col gap-2 border border-neutral-150 dark:border-neutral-850">
-                            <div className="flex justify-between font-bold">
-                                <span>Template Price</span>
-                                <span className="text-neutral-950 dark:text-neutral-50">₹{parseFloat(String(template.price)).toFixed(2)}</span>
+                    <div className="p-6 space-y-5">
+                        <div className="rounded-xl bg-gray-50 p-5 border border-gray-200 space-y-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">Template Price</span>
+                                <span className={`text-sm font-bold ${appliedCoupon ? 'line-through text-gray-400' : 'text-black'}`}>
+                                    ₹{parseFloat(String(template.price)).toFixed(2)}
+                                </span>
                             </div>
-                            <div className="flex justify-between text-xs text-neutral-400 border-t border-neutral-200 dark:border-neutral-800 pt-2">
-                                <span>Access</span>
-                                <span>Lifetime edits & shares</span>
+
+                            {/* Coupon */}
+                            <div className="space-y-2">
+                                <div className="flex gap-2">
+                                    <Input
+                                        placeholder="Enter Coupon Code"
+                                        value={couponCode}
+                                        onChange={(e) => setCouponCode(e.target.value)}
+                                        className="h-9 text-sm rounded-lg flex-1 text-black focus:ring-2 focus:ring-black/20 focus:border-black"
+                                        disabled={!!appliedCoupon || isCheckingOut}
+                                    />
+                                    {!appliedCoupon ? (
+                                        <Button
+                                            type="button"
+                                            onClick={() => handleApplyCoupon(couponCode)}
+                                            className="h-9 text-sm px-4 rounded-lg bg-black hover:bg-gray-800 text-white font-semibold"
+                                            disabled={!couponCode || isCheckingOut}
+                                        >
+                                            Apply
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={handleRemoveCoupon}
+                                            className="h-9 text-sm px-4 rounded-lg border-red-200 text-red-600 hover:bg-red-50"
+                                            disabled={isCheckingOut}
+                                        >
+                                            Remove
+                                        </Button>
+                                    )}
+                                </div>
+                                {couponError && <p className="text-xs text-red-500">{couponError}</p>}
+                            </div>
+
+                            {coupons && coupons.length > 0 && !appliedCoupon && (
+                                <div className="space-y-2 pt-2 border-t border-gray-200">
+                                    <span className="text-xs font-semibold text-gray-500">Available Coupons</span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {coupons.map((c) => (
+                                            <button
+                                                key={c.id}
+                                                type="button"
+                                                onClick={() => handleApplyCoupon(c.code)}
+                                                className="border border-gray-300 bg-gray-50 text-black px-3 py-1 rounded-lg text-xs font-semibold hover:bg-gray-100 transition-colors"
+                                            >
+                                                {c.code} ({parseFloat(String(c.discount))}% OFF)
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {appliedCoupon && (
+                                <div className="flex justify-between text-green-600 font-semibold text-sm border-t border-green-200 pt-2">
+                                    <span>Discount ({parseFloat(String(appliedCoupon.discount))}%)</span>
+                                    <span>-₹{(parseFloat(String(template.price)) * parseFloat(String(appliedCoupon.discount)) / 100).toFixed(2)}</span>
+                                </div>
+                            )}
+
+                            <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                                <span className="text-base font-bold text-black">Total</span>
+                                <span className="text-xl font-extrabold text-black">
+                                    ₹{appliedCoupon
+                                        ? (parseFloat(String(template.price)) - (parseFloat(String(template.price)) * parseFloat(String(appliedCoupon.discount)) / 100)).toFixed(2)
+                                        : parseFloat(String(template.price)).toFixed(2)}
+                                </span>
                             </div>
                         </div>
 
-                        <p className="text-xs text-neutral-400 leading-normal">
-                            *Clicking confirm will launch the payment gateway or process the checkout to register your purchase and unlock downloads.
-                        </p>
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                            <Shield className="size-3.5" />
+                            <span>Secure payment • Lifetime access</span>
+                        </div>
                     </div>
 
-                    <DialogFooter className="gap-2">
-                        <Button type="button" variant="outline" onClick={() => setIsCheckoutOpen(false)} disabled={isCheckingOut} className="rounded-xl">
+                    <DialogFooter className="p-6 pt-0 gap-3">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsCheckoutOpen(false)}
+                            disabled={isCheckingOut}
+                            className="rounded-xl text-sm font-medium border-gray-300 text-white"
+                        >
                             Cancel
                         </Button>
                         <Button
                             type="button"
                             onClick={handleConfirmPurchase}
                             disabled={isCheckingOut}
-                            className="font-bold rounded-xl px-5"
+                            className="rounded-xl text-sm font-semibold px-6 bg-black hover:bg-gray-800 shadow-lg shadow-black/25 text-white"
                         >
-                            {isCheckingOut ? 'Processing...' : 'Confirm Checkout'}
+                            {isCheckingOut ? (
+                                <>
+                                    <Loader2 className="size-4 animate-spin mr-2" />
+                                    Processing...
+                                </>
+                            ) : (
+                                'Confirm Purchase'
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            {/* Guest Action Dialog */}
+            {/* Guest Dialog */}
             <Dialog open={isGuestAlertOpen} onOpenChange={setIsGuestAlertOpen}>
-                <DialogContent className="max-w-sm bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl">
-                    <DialogHeader>
-                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                            Save Your Invitation <Sparkles className="size-5 text-amber-500" />
-                        </DialogTitle>
-                    </DialogHeader>
-
-                    <div className="py-4 flex flex-col gap-4 text-sm text-neutral-600 dark:text-neutral-400">
-                        <p>
-                            To save your progress or purchase this template, you'll need to create an account or log in.
-                        </p>
-                        <p className="font-semibold text-emerald-600 dark:text-emerald-450">
-                            Don't worry! We will automatically save your customized edits so you don't lose them.
-                        </p>
+                <DialogContent className="max-w-md bg-white border border-gray-200 rounded-2xl shadow-2xl p-0 overflow-hidden">
+                    <div className="p-6 border-b border-gray-200 bg-gray-50">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-black">
+                                <Save className="size-5 text-black" />
+                                Save Your Invitation
+                            </DialogTitle>
+                        </DialogHeader>
                     </div>
 
-                    <DialogFooter className="flex flex-col sm:flex-row gap-2">
-                        <Button type="button" variant="outline" className="w-full sm:w-auto rounded-xl" onClick={() => setIsGuestAlertOpen(false)}>
+                    <div className="p-6 space-y-4">
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                            To save your progress or purchase this template, you'll need to create an account or log in.
+                        </p>
+                        <div className="rounded-xl bg-green-50 p-4 border border-green-200 flex items-start gap-3">
+                            <CheckCircle2 className="size-5 text-green-600 mt-0.5 shrink-0" />
+                            <p className="text-sm font-medium text-green-700">
+                                Your customized edits will be automatically saved!
+                            </p>
+                        </div>
+                    </div>
+
+                    <DialogFooter className="p-6 pt-0 flex flex-col sm:flex-row gap-3">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full sm:w-auto rounded-xl text-sm font-medium border-gray-300 text-black hover:bg-gray-50"
+                            onClick={() => setIsGuestAlertOpen(false)}
+                        >
                             Cancel
                         </Button>
                         <Button
                             type="button"
                             onClick={() => handleGuestRedirect('/login')}
-                            className="w-full sm:w-auto border border-neutral-250 text-neutral-850 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-850 rounded-xl font-bold"
+                            className="w-full sm:w-auto rounded-xl text-sm font-medium border-2 border-gray-300 text-black hover:bg-gray-50"
                         >
                             Log In
                         </Button>
                         <Button
                             type="button"
                             onClick={() => handleGuestRedirect('/register')}
-                            className="w-full sm:w-auto bg-indigo-700 hover:bg-indigo-700 text-white font-bold rounded-xl px-5"
+                            className="w-full sm:w-auto rounded-xl text-sm font-semibold bg-black hover:bg-gray-800 shadow-lg shadow-black/25 text-white"
                         >
-                            Register
+                            Create Account
                         </Button>
                     </DialogFooter>
                 </DialogContent>

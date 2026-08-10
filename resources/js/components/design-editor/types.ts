@@ -1,315 +1,142 @@
 export interface Block {
-    [key: string]: any;
     id: string;
-    type: string;
-    title?: string;
-    subtitle?: string;
+    type: 'text' | 'image' | 'icon' | 'video' | 'button' | 'link' | 'map' | 'carousel' | 'background';
+    
+    // Positioning (Percentages 0-100)
+    x: number;
+    y: number;
+    w?: number;
+    h?: number;
+    
+    // Content
     content?: string;
-    bg_color?: string;
-    cta_text?: string;
-    cta_link?: string;
-    align?: string;
-    images?: string[];
-    video_url?: string;
-    links?: { label: string; url: string; icon: string }[];
-    features?: { title: string; desc: string; icon: string }[];
-    items?: any[];
-    form_type?: string;
+    src?: string; // Image or Video URL
+    url?: string; // External Link URL
+    actionType?: 'url' | 'page'; // For buttons/links
+    targetPageId?: string; // Internal page to navigate to
+    iconName?: string;
+    images?: string[]; // Multiple images for carousel
     
-    // --- New Layout Blocks ---
-    html_content?: string;
-    plans?: { name: string; price: string; features: string[]; button_text: string; button_link: string }[];
-    layout?: string; // e.g. "grid", "masonry"
-    profiles?: { name: string; role: string; image: string; social: string }[];
-    
-    // --- Dynamic Block Properties ---
-    bg_image?: string;
-    icon?: string;
-    text_lines?: { text: string; size: string; weight: string; color: string }[];
-    custom_image_url?: string;
-    title_color?: string;
-    subtitle_color?: string;
-    hero_text_lines?: { text: string; size: string; weight: string; color: string }[];
-    hero_elements?: any[];
+    // Styling
+    fontSize?: number;
+    fontWeight?: string;
+    fontFamily?: string;
+    color?: string;
+    textShadow?: string;
+    bgColor?: string;
+    borderRadius?: number;
+    opacity?: number;
+    zIndex?: number;
 
-    // --- Advanced Features ---
-    font_family?: string;
-    font_size?: string;
-    font_color?: string;
-    font_weight?: string;
-    font_style?: string;
-    padding_y?: string;
-    margin_y?: string;
-    is_hidden?: boolean;
-    grid_columns?: string; // e.g. "1", "2", "3", "4"
-    media_width?: string; // Percentage or exact px
-    media_height?: string; // Percentage or exact px
-    object_fit?: 'cover' | 'contain' | 'fill';
-    autoplay?: boolean; // For sliders/videos
-    show_arrows?: boolean; // For sliders
-
-    // --- Specific Block Type Features ---
-    event_date?: string; // Countdown target date/time
-    map_embed_url?: string; // Google Map iframe src
-    map_link?: string; // Clickable map URL
+    // Animations & Effects
+    animationType?: 'none' | 'fade-in' | 'slide-up' | 'slide-right' | 'zoom-in' | 'bounce';
+    celebrationType?: 'none' | 'confetti';
 }
 
-export const getNewBlockDefaults = (type: string, isInvitation = false): Block => {
-    const newBlock: Block = {
-        id: `block_${type}_${Math.random().toString(36).substr(2, 9)}`,
-        type
+export interface PageConfig {
+    id: string;
+    name: string;
+    blocks: Block[];
+}
+
+export interface WebsiteConfig {
+    pages: PageConfig[];
+}
+
+export const getNewElementDefaults = (type: string): Block => {
+    const base = {
+        id: `el_${Math.random().toString(36).substr(2, 9)}`,
+        type: type as Block['type'],
+        x: 10, // Default 10% from left
+        y: 10, // Default 10% from top
+        zIndex: 1,
     };
 
-    if (type === 'hero') {
-        newBlock.title = 'Welcome Message';
-        newBlock.subtitle = 'Introduce your brand or event.';
-        newBlock.bg_color = 'from-amber-100 via-orange-50 to-amber-200';
-        newBlock.cta_text = 'Learn More';
-        newBlock.cta_link = '#';
-        newBlock.title_color = '#1f2937';
-        newBlock.subtitle_color = '#4b5563';
-        newBlock.hero_text_lines = [];
-        newBlock.hero_elements = [
-            {
-                id: `el_${Math.random().toString(36).substr(2, 9)}`,
-                type: 'text',
-                content: 'You are Invited!',
-                font_family: '',
-                font_size_px: 36,
-                font_weight: '800',
+    switch (type) {
+        case 'text':
+            return {
+                ...base,
+                content: 'Click to select and edit in properties',
+                fontSize: 24,
+                fontWeight: 'bold',
                 color: '#1f2937',
-                align: 'center'
-            },
-            {
-                id: `el_${Math.random().toString(36).substr(2, 9)}`,
-                type: 'text',
-                content: 'Join us for a special celebration.',
-                font_family: '',
-                font_size_px: 14,
-                font_weight: '400',
-                color: '#4b5563',
-                align: 'center'
-            },
-            {
-                id: `el_${Math.random().toString(36).substr(2, 9)}`,
-                type: 'button',
-                btn_text: 'RSVP Now',
-                btn_url: '#rsvp',
-                btn_bg_color: '#ffffff',
-                btn_text_color: '#1f2937',
-                btn_radius: 'rounded-full',
-                btn_size: 'medium',
-                align: 'center'
-            }
-        ];
-    } else if (type === 'text') {
-        newBlock.title = 'Section Heading';
-        newBlock.content = 'Write your description here.';
-        newBlock.align = 'center';
-        newBlock.bg_color = 'bg-white';
-    } else if (type === 'swiper') {
-        newBlock.title = 'Photo Slideshow';
-        newBlock.images = [
-            'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80',
-            'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80'
-        ];
-    } else if (type === 'video') {
-        newBlock.title = 'Video Showcase';
-        newBlock.video_url = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-    } else if (type === 'links') {
-        newBlock.title = 'Important Links';
-        newBlock.links = [
-            { label: 'Google Maps Location', url: 'https://maps.google.com', icon: 'map-pin' },
-        ];
-    } else if (type === 'icons_grid') {
-        newBlock.title = 'Key Features';
-        newBlock.features = [
-            { icon: 'sparkles', title: 'Premium Design', desc: 'Crafted with rich visuals.' },
-            { icon: 'globe', title: 'Global Hosting', desc: 'Fast, secure networks.' }
-        ];
-    } else if (type === 'form') {
-        newBlock.title = isInvitation ? 'RSVP Response' : 'Contact Us';
-        newBlock.form_type = isInvitation ? 'rsvp' : 'contact';
-    } else if (type === 'faq') {
-        newBlock.title = 'Frequently Asked Questions';
-        newBlock.items = [
-            { question: 'What services do you offer?', answer: 'We offer a variety of professional services tailored to your needs.' },
-            { question: 'How can I get started?', answer: 'Simply reach out through our contact page and we will guide you through the process.' },
-        ];
-    } else if (type === 'testimonials') {
-        newBlock.title = 'What Our Clients Say';
-        newBlock.items = [
-            { name: 'John Doe', role: 'CEO, TechCorp', quote: 'Excellent service and outstanding results!', rating: 5 },
-            { name: 'Jane Smith', role: 'Founder, DesignCo', quote: 'Professional team that delivers on every promise.', rating: 5 },
-        ];
-    } else if (type === 'countdown') {
-        newBlock.title = 'Event Begins In';
-        const futureDate = new Date();
-        futureDate.setDate(futureDate.getDate() + 7);
-        newBlock.event_date = futureDate.toISOString().slice(0, 16); // e.g. "2026-06-18T12:00"
-        newBlock.bg_color = 'from-neutral-900 to-neutral-800 text-white';
-    } else if (type === 'map') {
-        newBlock.title = 'Location Venue Map';
-        newBlock.map_link = 'https://maps.google.com';
-        newBlock.map_embed_url = '';
-    } else if (type === 'timeline') {
-        newBlock.title = 'Event Schedule';
-        newBlock.items = [
-            { time: '10:00 AM', title: 'Welcoming Guests', desc: 'Guests arrive and receive refreshers.' },
-            { time: '11:30 AM', title: 'Main Ceremony', desc: 'The holy rituals and vows.' },
-            { time: '01:00 PM', title: 'Grand Lunch Feast', desc: 'Delicious food served at the main hall.' }
-        ];
-    } else if (type === 'gallery') {
-        newBlock.title = 'Photo Gallery';
-        newBlock.layout = 'masonry';
-        newBlock.images = [
-            'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80',
-            'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=400&q=80',
-            'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=400&q=80'
-        ];
-    } else if (type === 'pricing') {
-        newBlock.title = 'Select Your Plan';
-        newBlock.plans = [
-            { name: 'Basic', price: '₹999', features: ['1 Mini Website', 'Basic Templates', 'Email Support'], button_text: 'Get Basic', button_link: '#' },
-            { name: 'Premium', price: '₹1999', features: ['5 Mini Websites', 'Premium Templates', 'Priority Support', 'Custom Domain'], button_text: 'Get Premium', button_link: '#' },
-        ];
-    } else if (type === 'cta') {
-        newBlock.title = 'Ready to elevate your event?';
-        newBlock.content = 'Join thousands of happy customers who have successfully crafted their perfect invitation.';
-        newBlock.cta_text = 'Start Now';
-        newBlock.cta_link = '#';
-        newBlock.image_url = 'https://images.unsplash.com/photo-1507290439931-a861b5a38200?auto=format&fit=crop&w=800&q=80';
-        newBlock.align = 'left';
-    } else if (type === 'html') {
-        newBlock.title = 'Custom Code Block';
-        newBlock.html_content = '<div class="p-4 bg-gray-100 rounded-lg text-center">\n  <h3 class="font-bold">Custom HTML</h3>\n  <p>Write your own markup here.</p>\n</div>';
-    } else if (type === 'freeform') {
-        newBlock.title = 'Freeform Canvas';
-        newBlock.items = [
-            { type: 'text', content: 'Double click to edit', x: 20, y: 20, w: 200, h: 50, color: '#333333', fontSize: 24, fontWeight: 'bold' }
-        ];
-    } else if (type === 'profile') {
-        newBlock.title = 'Meet The Team';
-        newBlock.profiles = [
-            { name: 'Alice Walker', role: 'Event Coordinator', image: 'https://i.pravatar.cc/150?img=1', social: '#' },
-            { name: 'Bob Smith', role: 'Lead Designer', image: 'https://i.pravatar.cc/150?img=3', social: '#' }
-        ];
-    } else if (type === 'advanced_section') {
-        newBlock.bg_type = 'color';
-        newBlock.bg_color = '#ffffff';
-        newBlock.bg_gradient = 'from-indigo-500 via-purple-500 to-pink-500';
-        newBlock.bg_image = '';
-        newBlock.bg_overlay_color = '#000000';
-        newBlock.bg_overlay_opacity = '0.4';
-        
-        newBlock.section_width = 'max-w-4xl';
-        newBlock.section_height = 'auto';
-        newBlock.padding_top = 'py-12';
-        newBlock.padding_bottom = '';
-        newBlock.padding_left = 'px-6';
-        newBlock.padding_right = '';
-        newBlock.margin_top = 'my-4';
-        newBlock.margin_bottom = '';
-        newBlock.border_color = '#e5e7eb';
-        newBlock.border_width = 'border-0';
-        newBlock.border_style = 'solid';
-        newBlock.border_radius = 'rounded-2xl';
-        newBlock.box_shadow = 'shadow-md';
-        
-        newBlock.header_text = 'Fully Customizable Section';
-        newBlock.header_tag = 'h2';
-        newBlock.header_font_family = 'Outfit';
-        newBlock.header_font_size = 'text-3xl';
-        newBlock.header_font_weight = 'font-bold';
-        newBlock.header_color = '#111827';
-        newBlock.header_align = 'center';
-        
-        newBlock.desc_text = 'This section block provides absolute visual design controls over every element including background, typography, button, custom animation, responsive displays, and custom CSS injections. Customize it to fit your brand identity.';
-        newBlock.desc_font_family = 'Inter';
-        newBlock.desc_font_size = 'text-sm';
-        newBlock.desc_font_weight = 'font-normal';
-        newBlock.desc_color = '#4b5563';
-        newBlock.desc_line_height = 'leading-relaxed';
-        newBlock.desc_align = 'center';
-        
-        newBlock.btn_text = 'Get Started Now';
-        newBlock.btn_url = '#';
-        newBlock.btn_bg_color = '#2563eb';
-        newBlock.btn_text_color = '#ffffff';
-        newBlock.btn_hover_effect = 'scale';
-        newBlock.btn_border_color = '';
-        newBlock.btn_border_width = 'border-0';
-        newBlock.btn_border_radius = 'rounded-full';
-        newBlock.btn_font_size = 'text-xs';
-        newBlock.btn_padding_x = 'px-6';
-        newBlock.btn_padding_y = 'py-2.5';
-        newBlock.btn_icon = 'arrow-right';
-        
-        newBlock.image_url = 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80';
-        newBlock.image_alt = 'Advanced design illustration';
-        newBlock.image_size = 'medium';
-        newBlock.image_radius = 'rounded-xl';
-        
-        newBlock.content_align = 'flex-col items-center';
-        newBlock.animation_type = 'slide-up';
-        
-        newBlock.visibility_desktop = true;
-        newBlock.visibility_tablet = true;
-        newBlock.visibility_mobile = true;
-        
-        newBlock.custom_class = '';
-        newBlock.custom_id = `sec_${Math.random().toString(36).substring(2, 9)}`;
-        newBlock.custom_css = '';
-        newBlock.z_index = 'z-0';
-        newBlock.positioning = 'relative';
-    } else if (type === 'dynamic_layout') {
-        newBlock.title = 'Dynamic Layout Block';
-        newBlock.bg_color = '#ffffff';
-        newBlock.bg_image = '';
-        newBlock.icon = 'Sparkles';
-        newBlock.custom_image_url = '';
-        newBlock.text_lines = [
-            { text: 'Dynamic line one (Edit this text)', size: 'text-base', weight: 'bold', color: '#1f2937' },
-            { text: 'Dynamic line two (Try adding more lines)', size: 'text-sm', weight: 'normal', color: '#4b5563' }
-        ];
-    } else if (type === 'flexible_layout') {
-        newBlock.title = 'Flexible Section';
-        newBlock.bg_color = '#ffffff';
-        newBlock.bg_image = '';
-        newBlock.items = [
-            {
-                id: `item_${Math.random().toString(36).substr(2, 9)}`,
-                type: 'text',
-                text: 'Welcome to our custom layout!',
-                font_family: '',
-                font_size: 'text-2xl',
-                color: '#1f2937',
-                align: 'center',
-                weight: 'bold'
-            },
-            {
-                id: `item_${Math.random().toString(36).substr(2, 9)}`,
-                type: 'text',
-                text: 'You can fully customize every text element, add images/videos, and buttons here.',
-                font_family: '',
-                font_size: 'text-sm',
-                color: '#4b5563',
-                align: 'center',
-                weight: 'normal'
-            },
-            {
-                id: `item_${Math.random().toString(36).substr(2, 9)}`,
-                type: 'button',
-                btn_text: 'Get Started',
-                btn_url: '#',
-                btn_bg_color: '#2563eb',
-                btn_text_color: '#ffffff',
-                btn_radius: 'rounded-full',
-                btn_size: 'medium',
-                align: 'center'
-            }
-        ];
+                fontFamily: "'Inter', sans-serif"
+            };
+        case 'image':
+            return {
+                ...base,
+                src: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80',
+                w: 200,
+                h: 200,
+                borderRadius: 8
+            };
+        case 'icon':
+            return {
+                ...base,
+                iconName: 'Star',
+                color: '#ec4899',
+                fontSize: 48 // Icon size
+            };
+        case 'video':
+            return {
+                ...base,
+                src: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                w: 300,
+                h: 200,
+                borderRadius: 12
+            };
+        case 'button':
+            return {
+                ...base,
+                content: 'Click Here',
+                actionType: 'url',
+                url: '#',
+                bgColor: '#2563eb',
+                color: '#ffffff',
+                fontSize: 16,
+                fontWeight: 'bold',
+                borderRadius: 9999, // fully rounded
+                w: 150,
+                h: 48
+            };
+        case 'link':
+            return {
+                ...base,
+                content: 'Learn More',
+                actionType: 'url',
+                url: '#',
+                color: '#2563eb',
+                fontSize: 16,
+                fontWeight: 'normal',
+                textShadow: 'none'
+            };
+        case 'map':
+            return {
+                ...base,
+                src: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14008.114827184854!2d77.20239255!3d28.6138954!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd3d63b08e21%3A0x889a7146a48d4c!2sIndia%20Gate!5e0!3m2!1sen!2sin!4v1683226466904!5m2!1sen!2sin',
+                w: 300,
+                h: 200,
+                borderRadius: 12
+            };
+        case 'carousel':
+            return {
+                ...base,
+                images: [
+                    'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80',
+                    'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=400&q=80',
+                    'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=400&q=80'
+                ],
+                w: 300,
+                h: 200,
+                borderRadius: 12
+            };
+        case 'background':
+            return {
+                ...base,
+                content: 'Canvas Background',
+                bgColor: 'linear-gradient(to bottom right, #ff7e5f, #feb47b)',
+            };
+        default:
+            return { ...base, type: 'text', content: 'Unknown' };
     }
-
-    return newBlock;
 };

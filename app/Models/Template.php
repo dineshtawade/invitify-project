@@ -18,6 +18,7 @@ class Template extends Model
         'bg_gradient',
         'thumbnail',
         'default_config',
+        'status',
     ];
 
     protected function casts(): array

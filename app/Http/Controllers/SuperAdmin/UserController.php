@@ -59,6 +59,7 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
+            'mobile' => 'nullable|string|max:20',
             'password' => 'required|string|min:8',
             'role' => 'required|in:editor,reseller,referral_partner,customer',
         ]);
@@ -66,6 +67,7 @@ class UserController extends Controller
         User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'mobile' => $request->mobile,
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'is_approved' => true,

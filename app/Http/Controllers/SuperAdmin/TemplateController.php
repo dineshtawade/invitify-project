@@ -18,8 +18,14 @@ class TemplateController extends Controller
 
         if ($request->has('search') && !empty($request->search)) {
             $search = $request->search;
-            $query->where('name', 'like', '%' . $search . '%')
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
                   ->orWhere('category', 'like', '%' . $search . '%');
+            });
+        }
+
+        if ($request->has('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
         }
 
         $templates = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
@@ -30,11 +36,14 @@ class TemplateController extends Controller
                 ->get() 
             : collect([]);
 
+        $customIcons = \App\Models\CustomIcon::where('user_id', auth()->id())->latest()->get();
+
         return Inertia::render('super-admin/templates/index', [
             'templates' => $templates,
             'categories' => \App\Models\Category::orderBy('name')->get(),
             'editorRequests' => $editorRequests,
-            'filters' => $request->only('search'),
+            'customIcons' => $customIcons,
+            'filters' => $request->only(['search', 'status']),
         ]);
     }
 
@@ -51,6 +60,7 @@ class TemplateController extends Controller
             'bg_gradient' => 'required|string',
             'thumbnail' => 'nullable|string',
             'default_config' => 'required|array',
+            'status' => 'required|string|in:published,draft',
         ]);
 
         Template::create($validated);
@@ -86,6 +96,7 @@ class TemplateController extends Controller
             'bg_gradient' => 'required|string',
             'thumbnail' => 'nullable|string',
             'default_config' => 'required|array',
+            'status' => 'required|string|in:published,draft',
         ]);
 
         $template->update($validated);

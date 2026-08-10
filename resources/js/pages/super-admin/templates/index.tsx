@@ -19,6 +19,7 @@ import {
     Music, Wine, Star, Bell, ZoomIn, ZoomOut, Check, ArrowRight,
     Laptop, Tablet, Smartphone, Settings, PlayCircle, Play, ShieldAlert, Search
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
 import html2canvas from 'html2canvas';
@@ -79,6 +80,7 @@ interface PageProps {
     templates: PaginationData<Template>;
     categories: Category[];
     editorRequests?: EditorRequest[];
+    customIcons?: { id: number; url: string }[];
     filters?: { search: string };
 }
 
@@ -93,6 +95,11 @@ const fontStyles: Record<string, string> = {
     parisienne: "'Parisienne', cursive",
     cormorant: "'Cormorant Garamond', serif",
     pinyon: "'Pinyon Script', cursive",
+    lora: "'Lora', serif",
+    merriweather: "'Merriweather', serif",
+    poppins: "'Poppins', sans-serif",
+    pacifico: "'Pacifico', cursive",
+    sacramento: "'Sacramento', cursive",
 };
 
 const fontLabels: Record<string, string> = {
@@ -106,6 +113,11 @@ const fontLabels: Record<string, string> = {
     parisienne: "Parisienne (Romantic Cursive)",
     cormorant: "Cormorant Garamond (Fine Serif)",
     pinyon: "Pinyon Script (Traditional Script)",
+    lora: "Lora (Elegant Serif)",
+    merriweather: "Merriweather (Classic Serif)",
+    poppins: "Poppins (Modern Sans)",
+    pacifico: "Pacifico (Fun Cursive)",
+    sacramento: "Sacramento (Delicate Script)",
 };
 
 const gradientPresets = [
@@ -116,18 +128,25 @@ const gradientPresets = [
     { name: 'Classic Gold', value: 'from-amber-100 via-yellow-50 to-amber-200 text-neutral-800' },
 ];
 
-export default function TemplatesIndex({ templates, categories = [], editorRequests = [], filters = { search: '' } }: PageProps) {
-    const { auth } = usePage().props as any;
+const validIconNames = Object.keys(LucideIcons).filter(
+    key => key !== 'createLucideIcon' && key !== 'default' && key !== 'Icon' && key === key.charAt(0).toUpperCase() + key.slice(1)
+);
+
+export default function TemplatesIndex({ templates, categories, editorRequests = [], customIcons = [], filters }: PageProps) {
+    const auth = usePage().props.auth as any;
     const isEditor = auth?.user?.role === 'editor';
-    const [searchVal, setSearchVal] = useState(filters.search || '');
+    const [searchVal, setSearchVal] = useState(filters?.search || '');
+    const [statusVal, setStatusVal] = useState(filters?.status || 'all');
+    const [myIcons, setMyIcons] = useState(customIcons);
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        router.get('/super-admin/templates', { search: searchVal }, { preserveState: true });
+        router.get('/super-admin/templates', { search: searchVal, status: statusVal }, { preserveState: true });
     };
 
     const handleReset = () => {
         setSearchVal('');
+        setStatusVal('all');
         router.get('/super-admin/templates', {}, { preserveState: true });
     };
 
@@ -135,6 +154,11 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
     const [templateMode, setTemplateMode] = useState<'select' | 'editor'>('select');
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
     const [activeTab, setActiveTab] = useState<'pages' | 'text' | 'image' | 'icon' | 'link'>('pages');
+    const [iconSearch, setIconSearch] = useState('');
+
+    const filteredIcons = validIconNames.filter(name =>
+        name.toLowerCase().includes(iconSearch.toLowerCase())
+    ).slice(0, 50);
 
     const handleRequestAction = (target_id: number, action: 'edit' | 'delete') => {
         router.post('/super-admin/editor-requests', {
@@ -153,6 +177,7 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
     // Viewport size simulator
     const [previewViewport, setPreviewViewport] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
     const [cardWidth, setCardWidth] = useState(350);
+    const submitStatusRef = useRef<'published' | 'draft'>('published');
 
     // Custom background gradient state
     const [customGradStart, setCustomGradStart] = useState('#fff5f5');
@@ -168,6 +193,7 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
         bg_gradient: 'from-stone-100 to-rose-50 text-neutral-800',
         thumbnail: '' as string | null,
         default_config: normalizeConfig(null),
+        status: 'published' as 'published' | 'draft',
     });
 
     const activePage = data.default_config.pages[activePageIndex] || data.default_config.pages[0];
@@ -199,38 +225,24 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
 
     const renderDecorIcon = (iconName: string, color: string = 'currentColor') => {
         const iconClasses = "size-full object-contain pointer-events-none";
-        switch (iconName) {
-            case 'heart':
-                return <Heart className={iconClasses} style={{ color }} />;
-            case 'sparkle':
-            case 'sparkles':
-                return <Sparkles className={iconClasses} style={{ color }} />;
-            case 'cake':
-                return <Cake className={iconClasses} style={{ color }} />;
-            case 'baby':
-                return <Baby className={iconClasses} style={{ color }} />;
-            case 'gift':
-                return <Gift className={iconClasses} style={{ color }} />;
-            case 'calendar':
-                return <Calendar className={iconClasses} style={{ color }} />;
-            case 'clock':
-                return <Clock className={iconClasses} style={{ color }} />;
-            case 'music':
-                return <Music className={iconClasses} style={{ color }} />;
-            case 'wine':
-                return <Wine className={iconClasses} style={{ color }} />;
-            case 'star':
-                return <Star className={iconClasses} style={{ color }} />;
-            case 'bell':
-                return <Bell className={iconClasses} style={{ color }} />;
-            case 'compass':
-                return <Compass className={iconClasses} style={{ color }} />;
-            case 'flower':
-                return <Smile className={iconClasses} style={{ color }} />;
-            case 'ring':
-            default:
-                return <Award className={iconClasses} style={{ color }} />;
+
+        // Legacy fallback map
+        const legacyMap: Record<string, any> = {
+            'heart': Heart, 'sparkle': Sparkles, 'sparkles': Sparkles,
+            'cake': Cake, 'baby': Baby, 'gift': Gift, 'calendar': Calendar,
+            'clock': Clock, 'music': Music, 'wine': Wine, 'star': Star,
+            'bell': Bell, 'compass': Compass, 'flower': Smile, 'ring': Award
+        };
+
+        if (legacyMap[iconName]) {
+            const LegacyIcon = legacyMap[iconName];
+            return <LegacyIcon className={iconClasses} style={{ color }} />;
         }
+
+        const normalizedName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
+        const IconComponent = (LucideIcons as any)[normalizedName] || (LucideIcons as any)[iconName] || Award;
+
+        return <IconComponent className={iconClasses} style={{ color }} />;
     };
 
     const handleOpenAdd = () => {
@@ -351,7 +363,8 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
 
         const payload = {
             ...data,
-            thumbnail: thumbnailUrl
+            thumbnail: thumbnailUrl,
+            status: submitStatusRef.current
         };
 
         if (editingTemplate) {
@@ -433,6 +446,54 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
             ...data.default_config,
             pages: updated
         });
+    };
+
+    const handlePageBgImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const response = await fetch('/media/upload', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                    },
+                    body: formData,
+                });
+                if (!response.ok) throw new Error('Upload failed');
+                const result = await response.json();
+
+                const updated = [...data.default_config.pages];
+                const newBgId = `bg-${Math.random().toString(36).substr(2, 9)}`;
+                updated[activePageIndex] = {
+                    ...updated[activePageIndex],
+                    elements: [
+                        {
+                            id: newBgId,
+                            type: 'image',
+                            url: result.url,
+                            x: 0,
+                            y: 0,
+                            w: 100,
+                            h: 100,
+                            isBackground: true,
+                            opacity: 100,
+                        },
+                        ...updated[activePageIndex].elements
+                    ]
+                };
+                setData('default_config', {
+                    ...data.default_config,
+                    pages: updated
+                });
+                setSelectedElementId(newBgId);
+                setActiveTab('image'); // Switch to image tab so they can control opacity/position easily
+            } catch (err) {
+                console.error(err);
+                alert('Failed to upload background image. Please check format (PNG, JPG, SVG) and try again.');
+            }
+        }
     };
 
     const applyCustomGradient = () => {
@@ -542,8 +603,62 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
             } catch (err) {
                 console.error(err);
                 alert('Failed to upload image. Please check format (PNG, JPG, JPEG, SVG) and try again.');
-                handleUpdateElement(elementId, { url: '' });
             }
+        }
+    };
+
+    const [isUploadingIcon, setIsUploadingIcon] = useState(false);
+
+    const handleCustomIconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setIsUploadingIcon(true);
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/super-admin/custom-icons', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error('Upload failed');
+                }
+
+                const result = await response.json();
+                if (result.success && result.icon) {
+                    setMyIcons(prev => [result.icon, ...prev]);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Failed to upload custom icon. Please try again.');
+            } finally {
+                setIsUploadingIcon(false);
+            }
+        }
+    };
+
+    const handleDeleteCustomIcon = async (id: number) => {
+        if (!confirm('Are you sure you want to delete this custom icon?')) return;
+
+        try {
+            const response = await fetch(`/super-admin/custom-icons/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                }
+            });
+
+            if (response.ok) {
+                setMyIcons(prev => prev.filter(icon => icon.id !== id));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Failed to delete custom icon.');
         }
     };
 
@@ -621,7 +736,7 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
             <Head title="Manage Templates">
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&family=Dancing+Script:wght@400..700&family=Alex+Brush&family=Outfit:wght@100..900&family=Parisienne&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Pinyon+Script&display=swap" rel="stylesheet" />
+                <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&family=Dancing+Script:wght@400..700&family=Alex+Brush&family=Outfit:wght@100..900&family=Parisienne&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Pinyon+Script&family=Lora:ital,wght@0,400..700;1,400..700&family=Merriweather:ital,wght@0,300..900;1,300..900&family=Poppins:ital,wght@0,100..900;1,100..900&family=Pacifico&family=Sacramento&display=swap" rel="stylesheet" />
             </Head>
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
                 <div className="flex items-center justify-between gap-4 border-b pb-4">
@@ -646,11 +761,22 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                             className="pl-10 h-10 w-full bg-neutral-50/50 dark:bg-neutral-950/20 border-neutral-200 dark:border-neutral-800 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500"
                         />
                     </div>
+                    <div className="w-full sm:w-[180px]">
+                        <select
+                            value={statusVal}
+                            onChange={(e) => setStatusVal(e.target.value)}
+                            className="h-10 w-full rounded-xl border border-neutral-200 bg-neutral-50/50 px-3 py-2 text-sm text-neutral-700 shadow-2xs focus:ring-2 focus:ring-indigo-500 dark:border-neutral-800 dark:bg-neutral-950/20 dark:text-neutral-300"
+                        >
+                            <option value="all">All Statuses</option>
+                            <option value="published">Published</option>
+                            <option value="draft">Drafts</option>
+                        </select>
+                    </div>
                     <div className="flex items-center gap-2">
                         <Button type="submit" size="sm" className="h-10 rounded-xl px-5">
                             Filter
                         </Button>
-                        {filters.search && (
+                        {(filters.search || (filters.status && filters.status !== 'all')) && (
                             <Button type="button" onClick={handleReset} variant="outline" size="sm" className="h-10 rounded-xl px-4">
                                 Clear
                             </Button>
@@ -683,7 +809,13 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                                         return (
                                             <tr key={t.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/15 transition-colors">
                                                 <td className="px-6 py-4 font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                                                    <Layers className="size-4.5 text-neutral-400" /> {t.name}
+                                                    <Layers className="size-4.5 text-neutral-400" /> 
+                                                    {t.name}
+                                                    {t.status === 'draft' && (
+                                                        <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] uppercase font-bold rounded-full">
+                                                            Draft
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4 capitalize">{t.category.replace('_', ' ')}</td>
                                                 <td className="px-6 py-4 font-bold text-emerald-600 dark:text-emerald-450">
@@ -868,96 +1000,20 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
 
                             <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
 
-                                {/* Meta controls panel row */}
-                                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-5 pb-3 border-b bg-neutral-50 dark:bg-neutral-950/20 shrink-0">
-                                    <div className="grid gap-1">
-                                        <Label htmlFor="name" className="text-xs font-semibold">Template Name</Label>
-                                        <Input
-                                            id="name"
-                                            value={data.name}
-                                            onChange={(e) => setData('name', e.target.value)}
-                                            placeholder="Autumn Wedding Invite"
-                                            required
-                                            className="h-8.5 rounded-lg text-xs"
-                                        />
-                                        {errors.name && <p className="text-[10px] text-red-500 mt-0.5">{errors.name}</p>}
-                                    </div>
-
-                                    <div className="grid gap-1">
-                                        <Label htmlFor="type" className="text-xs font-semibold flex items-center gap-1 text-indigo-600">Template Type <Sparkles className="size-3" /></Label>
-                                        <select
-                                            id="type"
-                                            value={data.type}
-                                            onChange={(e) => setData('type', e.target.value as 'image' | 'video')}
-                                            className="flex h-8.5 w-full rounded-lg border border-indigo-200 bg-indigo-50/50 px-3 py-1 text-xs font-semibold shadow-2xs transition-colors dark:border-indigo-900/50 dark:bg-indigo-950/20 dark:text-indigo-300 focus:ring-1 focus:ring-indigo-500"
-                                        >
-                                            <option value="image">Image Template (Static)</option>
-                                            <option value="video">Video Template (Animated)</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="grid gap-1">
-                                        <Label htmlFor="category" className="text-xs font-semibold">Category</Label>
-                                        <select
-                                            id="category"
-                                            value={data.category}
-                                            onChange={(e) => setData('category', e.target.value)}
-                                            className="flex h-8.5 w-full rounded-lg border border-neutral-200 bg-white px-3 py-1 text-xs shadow-2xs transition-colors dark:border-neutral-800 dark:bg-neutral-950 focus:ring-1 focus:ring-indigo-500"
-                                        >
-                                            {categories.map((cat) => (
-                                                <option key={cat.id} value={cat.slug}>{cat.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div className="grid gap-1">
-                                        <Label htmlFor="price" className="text-xs font-semibold">Standard Price (₹)</Label>
-                                        <Input
-                                            id="price"
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            value={data.price}
-                                            onChange={(e) => setData('price', e.target.value)}
-                                            required
-                                            className="h-8.5 rounded-lg text-xs"
-                                        />
-                                    </div>
-
-                                    <div className="grid gap-1">
-                                        <Label htmlFor="bg_gradient_type" className="text-xs font-semibold">Background Mode</Label>
-                                        <div className="flex gap-2">
-                                            <select
-                                                id="bg_gradient_type"
-                                                value={bgType}
-                                                onChange={(e) => {
-                                                    const type = e.target.value as 'preset' | 'custom';
-                                                    setBgType(type);
-                                                    if (type === 'preset') {
-                                                        setData('bg_gradient', gradientPresets[0].value);
-                                                        handlePageBgChange(gradientPresets[0].value);
-                                                    } else {
-                                                        applyCustomGradient();
-                                                    }
-                                                }}
-                                                className="flex h-8.5 w-full rounded-lg border border-neutral-200 bg-white px-3 py-1 text-xs shadow-2xs transition-colors dark:border-neutral-800 dark:bg-neutral-950 focus:ring-1 focus:ring-indigo-500"
-                                            >
-                                                <option value="preset">Presets</option>
-                                                <option value="custom">Custom Gradients</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
+                                {/* We will render meta controls differently based on template type */}
 
                                 {/* Workspace logic based on type */}
                                 {data.type === 'video' ? (
-                                    <VideoTemplateBuilder data={data} setData={setData} />
+                                    <div className="flex flex-col h-full overflow-hidden">
+                                        <VideoTemplateBuilder data={data} setData={setData} />
+                                    </div>
                                 ) : (
                                     /* Split panel workspace for Image Templates */
-                                    <div className="flex-1 grid lg:grid-cols-[1fr_1.1fr] overflow-hidden min-h-0">
+                                    <div className="flex-1 grid lg:grid-cols-2 overflow-hidden min-h-0">
 
                                         {/* Left Panel: Controls Form */}
                                         <div className="flex flex-col border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden h-full">
+                                            
                                             {/* Tab Selectors */}
                                             <div className="flex border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/20 shrink-0">
                                                 {[
@@ -1086,6 +1142,21 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                                                                 </select>
                                                             </div>
                                                         )}
+
+                                                        {/* Background Image Upload */}
+                                                        <div className="flex flex-col gap-2 border-t pt-4 border-neutral-100 dark:border-neutral-800">
+                                                            <div className="flex justify-between items-center">
+                                                                <Label className="text-xs font-semibold">Background Image</Label>
+                                                            </div>
+                                                            <div className="grid gap-2">
+                                                                <Input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    onChange={handlePageBgImageUpload}
+                                                                    className="cursor-pointer bg-white file:text-xs rounded-lg text-xs"
+                                                                />
+                                                            </div>
+                                                        </div>
 
                                                         {/* Border Customizer options */}
                                                         <div className="flex flex-col gap-3.5 border-t pt-4 border-neutral-100 dark:border-neutral-800">
@@ -1290,6 +1361,42 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                                                                     </label>
                                                                 </div>
 
+                                                                <div className="grid grid-cols-2 gap-2 mt-1">
+                                                                    <div className="grid gap-1">
+                                                                        <Label htmlFor="textShadow" className="text-[10px] uppercase font-bold text-neutral-450">Text Shadow Effect</Label>
+                                                                        <select
+                                                                            id="textShadow"
+                                                                            value={selectedElement.textShadow || 'none'}
+                                                                            onChange={(e) => handleUpdateElement(selectedElement.id, { textShadow: e.target.value })}
+                                                                            className="h-8 rounded-md border text-xs bg-white px-2"
+                                                                        >
+                                                                            <option value="none">None</option>
+                                                                            <option value="1px 1px 2px rgba(0,0,0,0.5)">Soft Drop Shadow</option>
+                                                                            <option value="2px 2px 4px rgba(0,0,0,0.7)">Strong Drop Shadow</option>
+                                                                            <option value="0px 0px 8px rgba(255,255,255,0.8)">White Glow</option>
+                                                                            <option value="0px 0px 8px rgba(0,0,0,0.8)">Dark Glow</option>
+                                                                            <option value="0 0 5px #fff, 0 0 10px #fff, 0 0 20px #0ff, 0 0 30px #0ff">Neon Glow</option>
+                                                                            <option value="1px 1px 0 #999, 2px 2px 0 #888, 3px 3px 0 #777">3D Block</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div className="grid gap-1">
+                                                                        <Label htmlFor="animation" className="text-[10px] uppercase font-bold text-neutral-450">Entrance Animation</Label>
+                                                                        <select
+                                                                            id="animation"
+                                                                            value={selectedElement.animation || 'none'}
+                                                                            onChange={(e) => handleUpdateElement(selectedElement.id, { animation: e.target.value })}
+                                                                            className="h-8 rounded-md border text-xs bg-white px-2"
+                                                                        >
+                                                                            <option value="none">None</option>
+                                                                            <option value="animate-fadeIn">Fade In</option>
+                                                                            <option value="animate-slideInUp">Slide Up</option>
+                                                                            <option value="animate-zoomIn">Zoom In</option>
+                                                                            <option value="animate-pulse">Pulse</option>
+                                                                            <option value="animate-bounce">Bounce</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+
                                                                 <div className="border-t pt-3 flex flex-col gap-2.5">
                                                                     <label className="flex items-center gap-1.5 text-xs font-bold cursor-pointer text-indigo-700 dark:text-indigo-400">
                                                                         <input
@@ -1404,6 +1511,21 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                                                                     />
                                                                 </div>
 
+                                                                <div className="grid gap-1">
+                                                                    <div className="flex justify-between items-center">
+                                                                        <Label className="text-xs font-semibold">Image Opacity</Label>
+                                                                        <span className="text-[10px] font-bold text-neutral-450">{selectedElement.opacity ?? 100}%</span>
+                                                                    </div>
+                                                                    <input
+                                                                        type="range"
+                                                                        min="0"
+                                                                        max="100"
+                                                                        value={selectedElement.opacity ?? 100}
+                                                                        onChange={(e) => handleUpdateElement(selectedElement.id, { opacity: parseInt(e.target.value) })}
+                                                                        className="w-full accent-indigo-600"
+                                                                    />
+                                                                </div>
+
                                                                 <div className="border-t pt-3 mt-1 flex flex-col gap-2.5">
                                                                     <label className="flex items-center gap-1.5 text-xs font-bold cursor-pointer text-indigo-700 dark:text-indigo-400">
                                                                         <input
@@ -1494,29 +1616,45 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                                                         {selectedElement && (selectedElement.type === 'icon' || selectedElement.type === 'divider') ? (
                                                             <div className="border border-neutral-200 rounded-xl p-4 bg-neutral-50/50 dark:border-neutral-800 dark:bg-neutral-950/20 flex flex-col gap-4">
                                                                 {selectedElement.type === 'icon' && (
-                                                                    <div className="grid gap-1.5">
-                                                                        <Label htmlFor="iconType" className="text-xs font-semibold">Select Icon Glyphs</Label>
-                                                                        <select
-                                                                            id="iconType"
-                                                                            value={selectedElement.iconType || 'ring'}
-                                                                            onChange={(e) => handleUpdateElement(selectedElement.id, { iconType: e.target.value })}
-                                                                            className="h-8.5 rounded-md border text-xs bg-white dark:bg-neutral-950 px-2"
-                                                                        >
-                                                                            <option value="ring">Wedding Rings (Award)</option>
-                                                                            <option value="heart">Heart Shape</option>
-                                                                            <option value="sparkles">Sparkles Glow</option>
-                                                                            <option value="cake">Birthday Cake</option>
-                                                                            <option value="baby">Baby Carriage</option>
-                                                                            <option value="gift">Gift Box</option>
-                                                                            <option value="calendar">Calendar Date</option>
-                                                                            <option value="clock">Clock Time</option>
-                                                                            <option value="music">Music Note</option>
-                                                                            <option value="wine">Wine Glasses Cheers</option>
-                                                                            <option value="star">Shining Star</option>
-                                                                            <option value="bell">Wedding Bell</option>
-                                                                            <option value="compass">Compass Navigation</option>
-                                                                            <option value="flower">Leaf Outline</option>
-                                                                        </select>
+                                                                    <div className="grid gap-2">
+                                                                        <Label className="text-xs font-semibold flex items-center justify-between">
+                                                                            Select Icon / Shape
+                                                                            <span className="text-[10px] text-neutral-400 font-normal">Showing top 50</span>
+                                                                        </Label>
+                                                                        <div className="relative">
+                                                                            <Search className="absolute left-2.5 top-2.5 size-4 text-neutral-400" />
+                                                                            <Input
+                                                                                type="text"
+                                                                                placeholder="Search icons (e.g. star, heart)..."
+                                                                                value={iconSearch}
+                                                                                onChange={(e) => setIconSearch(e.target.value)}
+                                                                                className="pl-9 h-9 text-xs bg-white dark:bg-neutral-950"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 mt-2 h-40 overflow-y-auto pr-2 border rounded-xl p-2 bg-white dark:bg-neutral-950">
+                                                                            {filteredIcons.map(iconName => {
+                                                                                const IconComponent = (LucideIcons as any)[iconName];
+                                                                                return (
+                                                                                    <button
+                                                                                        key={iconName}
+                                                                                        type="button"
+                                                                                        onClick={() => handleUpdateElement(selectedElement.id, { iconType: iconName })}
+                                                                                        className={`p-2 border rounded-lg flex items-center justify-center transition-colors ${selectedElement.iconType === iconName
+                                                                                                ? 'bg-indigo-100 border-indigo-500 text-indigo-700 dark:bg-indigo-900/50 dark:border-indigo-400'
+                                                                                                : 'border-neutral-100 hover:border-indigo-300 hover:bg-indigo-50 dark:border-neutral-800'
+                                                                                            }`}
+                                                                                        title={iconName}
+                                                                                    >
+                                                                                        <IconComponent className="size-5" />
+                                                                                    </button>
+                                                                                )
+                                                                            })}
+                                                                            {filteredIcons.length === 0 && (
+                                                                                <div className="col-span-full py-4 text-center text-xs text-neutral-400">
+                                                                                    No icons found.
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
                                                                     </div>
                                                                 )}
 
@@ -1574,6 +1712,65 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                                                                 Select an icon or line on the canvas or click "Add Icon"/"Add Line" above.
                                                             </p>
                                                         )}
+
+                                                        {/* Custom Icons Section */}
+                                                        <div className="border-t pt-4 mt-2">
+                                                            <div className="flex justify-between items-center mb-3">
+                                                                <Label className="text-sm font-bold text-neutral-800 dark:text-neutral-200">My Custom Icons</Label>
+                                                                <Label className="cursor-pointer bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-[10px] px-2 py-1 rounded-md font-bold transition-colors">
+                                                                    {isUploadingIcon ? 'Uploading...' : 'Upload PNG/SVG'}
+                                                                    <input type="file" accept="image/png, image/svg+xml" className="hidden" onChange={handleCustomIconUpload} disabled={isUploadingIcon} />
+                                                                </Label>
+                                                            </div>
+
+                                                            {myIcons.length === 0 ? (
+                                                                <p className="text-[11px] text-neutral-450 italic bg-neutral-50 dark:bg-neutral-950 p-3 rounded-lg border border-dashed text-center">
+                                                                    Upload your own transparent PNGs or SVGs to use them across templates.
+                                                                </p>
+                                                            ) : (
+                                                                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 h-40 overflow-y-auto pr-1 bg-neutral-50/50 dark:bg-neutral-950/50 p-2 rounded-xl border border-neutral-200 dark:border-neutral-800">
+                                                                    {myIcons.map(icon => (
+                                                                        <div key={icon.id} className="relative group">
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => {
+                                                                                    const newElement: ElementConfig = {
+                                                                                        id: `elem-${Math.random().toString(36).substr(2, 9)}`,
+                                                                                        type: 'image',
+                                                                                        x: 40,
+                                                                                        y: 40,
+                                                                                        w: 20,
+                                                                                        h: 20,
+                                                                                        url: icon.url,
+                                                                                        isEditable: false,
+                                                                                    };
+                                                                                    const updatedPages = [...data.default_config.pages];
+                                                                                    updatedPages[activePageIndex] = {
+                                                                                        ...activePage,
+                                                                                        elements: [...activePage.elements, newElement]
+                                                                                    };
+                                                                                    setData('default_config', { ...data.default_config, pages: updatedPages });
+                                                                                    setSelectedElementId(newElement.id);
+                                                                                    setActiveTab('image'); // Switch to image tab so they can edit opacity etc
+                                                                                }}
+                                                                                className="w-full aspect-square p-1.5 border rounded-lg flex items-center justify-center bg-white hover:border-indigo-400 transition-colors shadow-sm"
+                                                                                title="Click to add to canvas"
+                                                                            >
+                                                                                <img src={icon.url} className="w-full h-full object-contain" alt="Custom icon" />
+                                                                            </button>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleDeleteCustomIcon(icon.id)}
+                                                                                className="absolute -top-1.5 -right-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                                                                                title="Delete Custom Icon"
+                                                                            >
+                                                                                <Trash className="size-2.5" />
+                                                                            </button>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 )}
 
@@ -1677,20 +1874,20 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                                         </div>
 
                                         {/* Right Panel: Bounding Live Preview Canvas */}
-                                        <div className="flex flex-col items-center justify-start py-6 p-4 md:p-6 bg-neutral-100/50 dark:bg-neutral-950/20 overflow-y-auto overflow-x-auto h-full">
-
-                                            {/* Canvas actions toolbar */}
-                                            <div className="flex flex-col sm:flex-row items-center gap-4 mb-5 justify-between w-full max-w-lg shrink-0 bg-white dark:bg-neutral-900 p-3 rounded-2xl border">
+                                        <div className="relative flex flex-col h-full overflow-hidden bg-neutral-100/50 dark:bg-neutral-950/20">
+                                            
+                                            {/* Canvas actions toolbar (Floating Right) */}
+                                            <div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col items-center gap-5 z-40 bg-white/90 backdrop-blur-md dark:bg-neutral-900/90 p-2 py-4 rounded-2xl border shadow-lg">
                                                 {/* Page navigation */}
-                                                <div className="flex items-center gap-1">
+                                                <div className="flex flex-col items-center gap-2">
                                                     {data.default_config.pages.map((_, idx) => (
                                                         <button
                                                             key={idx}
                                                             type="button"
                                                             onClick={() => { setActivePageIndex(idx); setSelectedElementId(null); }}
-                                                            className={`size-7 text-[10px] font-bold rounded-full border transition-all ${activePageIndex === idx
+                                                            className={`size-8 text-[11px] font-bold rounded-full border transition-all shadow-sm ${activePageIndex === idx
                                                                 ? 'bg-indigo-600 text-white border-indigo-600'
-                                                                : 'bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-600 dark:bg-neutral-900 dark:border-neutral-850 dark:text-neutral-400'
+                                                                : 'bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-400'
                                                                 }`}
                                                         >
                                                             P{idx + 1}
@@ -1698,63 +1895,73 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                                                     ))}
                                                 </div>
 
+                                                <div className="w-8 h-px bg-neutral-200 dark:bg-neutral-700"></div>
+
                                                 {/* Device Responsive selectors */}
-                                                <div className="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-950 p-1 rounded-lg border">
+                                                <div className="flex flex-col items-center gap-2">
                                                     <button
                                                         type="button"
                                                         onClick={() => setPreviewViewport('mobile')}
-                                                        className={`p-1 rounded-md transition-all ${previewViewport === 'mobile' ? 'bg-white text-indigo-600 shadow-2xs' : 'text-neutral-450 hover:text-neutral-800'}`}
+                                                        className={`p-2 rounded-xl transition-all ${previewViewport === 'mobile' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-400' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
                                                         title="Mobile View"
                                                     >
-                                                        <Smartphone className="size-4" />
+                                                        <Smartphone className="size-5" />
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => setPreviewViewport('tablet')}
-                                                        className={`p-1 rounded-md transition-all ${previewViewport === 'tablet' ? 'bg-white text-indigo-600 shadow-2xs' : 'text-neutral-450 hover:text-neutral-800'}`}
+                                                        className={`p-2 rounded-xl transition-all ${previewViewport === 'tablet' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-400' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
                                                         title="Tablet View"
                                                     >
-                                                        <Tablet className="size-4" />
+                                                        <Tablet className="size-5" />
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => setPreviewViewport('desktop')}
-                                                        className={`p-1 rounded-md transition-all ${previewViewport === 'desktop' ? 'bg-white text-indigo-600 shadow-2xs' : 'text-neutral-450 hover:text-neutral-800'}`}
+                                                        className={`p-2 rounded-xl transition-all ${previewViewport === 'desktop' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-400' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
                                                         title="Large Frame View"
                                                     >
-                                                        <Laptop className="size-4" />
+                                                        <Laptop className="size-5" />
                                                     </button>
                                                 </div>
 
+                                                <div className="w-8 h-px bg-neutral-200 dark:bg-neutral-700"></div>
+
                                                 {/* Zoom controls */}
-                                                <div className="flex items-center gap-1 bg-neutral-50 dark:bg-neutral-950 border rounded-lg px-2 py-0.5 text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setZoom(prev => Math.max(0.5, prev - 0.1))}
-                                                        className="px-1 py-0.5 hover:bg-neutral-100 rounded dark:hover:bg-neutral-850 text-sm font-bold"
-                                                    >
-                                                        －
-                                                    </button>
-                                                    <span className="w-8 text-center font-mono text-[9px]">{Math.round(zoom * 100)}%</span>
+                                                <div className="flex flex-col items-center gap-1.5 text-xs font-semibold text-neutral-600 dark:text-neutral-400">
                                                     <button
                                                         type="button"
                                                         onClick={() => setZoom(prev => Math.min(2.0, prev + 0.1))}
-                                                        className="px-1 py-0.5 hover:bg-neutral-100 rounded dark:hover:bg-neutral-850 text-sm font-bold"
+                                                        className="size-7 hover:bg-neutral-100 rounded-lg dark:hover:bg-neutral-800 flex items-center justify-center font-bold text-lg"
+                                                        title="Zoom In"
                                                     >
                                                         ＋
+                                                    </button>
+                                                    <span className="w-8 text-center font-mono text-[10px] py-1">{Math.round(zoom * 100)}%</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setZoom(prev => Math.max(0.5, prev - 0.1))}
+                                                        className="size-7 hover:bg-neutral-100 rounded-lg dark:hover:bg-neutral-800 flex items-center justify-center font-bold text-lg"
+                                                        title="Zoom Out"
+                                                    >
+                                                        －
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => setZoom(1)}
-                                                        className="px-1.5 py-0.5 hover:bg-neutral-100 rounded dark:hover:bg-neutral-850 text-[9px] text-indigo-600"
+                                                        className="mt-1 px-2 py-1 hover:bg-neutral-100 rounded-lg dark:hover:bg-neutral-800 text-[10px] text-indigo-600 font-bold"
+                                                        title="Reset Zoom"
                                                     >
                                                         Rst
                                                     </button>
                                                 </div>
                                             </div>
 
-                                            {/* Bounding canvas with viewport widths simulator */}
-                                            <div className={`w-full ${getViewportWrapperClass()} flex flex-col gap-3 items-center justify-start transition-all duration-300`}>
+                                            {/* Scrollable Canvas Area */}
+                                            <div className="flex-1 flex flex-col items-center justify-start py-8 p-4 md:p-6 overflow-y-auto overflow-x-auto w-full">
+                                                
+                                                {/* Bounding canvas with viewport widths simulator */}
+                                                <div className={`w-full ${getViewportWrapperClass()} flex flex-col gap-3 items-center justify-start transition-all duration-300`}>
                                                 <div
                                                     ref={cardRef}
                                                     onClick={() => setSelectedElementId(null)}
@@ -1773,6 +1980,8 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                                                     // Set tailwind background gradient classes if not custom
                                                     className={`w-full ${data.default_config.aspectRatio !== 'custom' ? ratioData.class : ''} rounded-3xl shadow-xl border border-neutral-300 dark:border-neutral-850 relative select-none cursor-default overflow-hidden transition-all duration-200 ${!activePage?.bg_gradient?.startsWith('linear-gradient') ? `bg-gradient-to-tr ${activePage?.bg_gradient || 'from-stone-100 to-rose-50 text-neutral-800'}` : ''}`}
                                                 >
+
+
                                                     {/* Decorative Border Overlay */}
                                                     {activePage?.borderStyle && activePage.borderStyle !== 'none' && (
                                                         <div
@@ -1857,6 +2066,9 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                                                             fontSize: elem.fontSize ? `${elem.fontSize * scaleRatio}px` : undefined,
                                                             fontWeight: elem.fontWeight || 'normal',
                                                             fontStyle: elem.isItalic ? 'italic' : 'normal',
+                                                            textShadow: elem.type === 'text' && elem.textShadow && elem.textShadow !== 'none' ? elem.textShadow : undefined,
+                                                            opacity: elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1,
+                                                            zIndex: isSelected ? 50 : (elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25),
                                                         };
 
                                                         return (
@@ -1868,19 +2080,19 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                                                                 className={`transition-all duration-75 relative group border p-0.5 leading-tight select-none break-words overflow-hidden ${isSelected
                                                                     ? 'border-indigo-700 bg-indigo-500/10 shadow-xs z-30'
                                                                     : 'border-transparent hover:border-dashed hover:border-neutral-400 hover:z-20 cursor-move'
-                                                                    }`}
+                                                                    } ${elem.animation && elem.animation !== 'none' ? elem.animation : ''}`}
                                                             >
                                                                 {elem.type === 'text' && (
-                                                                    <span className="w-full pointer-events-none">{elem.content}</span>
+                                                                    <span className="w-full pointer-events-none whitespace-pre-wrap">{elem.content}</span>
                                                                 )}
 
                                                                 {elem.type === 'image' && (
-                                                                    <div className="w-full h-full rounded-md overflow-hidden bg-neutral-200/50 pointer-events-none">
+                                                                    <div className={`w-full h-full rounded-md overflow-hidden pointer-events-none ${!elem.url ? 'bg-neutral-200/50' : ''}`}>
                                                                         {elem.url ? (
                                                                             elem.url === 'uploading' ? (
-                                                                                <span className="text-[10px] text-indigo-500 flex items-center justify-center h-full animate-pulse">Uploading...</span>
+                                                                                <span className="text-[10px] text-indigo-500 flex items-center justify-center h-full animate-pulse bg-neutral-200/50">Uploading...</span>
                                                                             ) : (
-                                                                                <img src={elem.url} alt="Uploaded Layer" className="w-full h-full object-cover" />
+                                                                                <img src={elem.url} alt="Uploaded Layer" className="w-full h-full object-contain" />
                                                                             )
                                                                         ) : (
                                                                             <span className="text-[10px] text-neutral-400 flex items-center justify-center h-full">Click to upload photo</span>
@@ -1940,16 +2152,77 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                                             </div>
                                         </div>
                                     </div>
+                                </div>
                                 )}
 
                                 {/* Save Actions Footer */}
-                                <DialogFooter className="px-6 py-4 border-t gap-2 bg-neutral-50 dark:bg-neutral-950/20 shrink-0">
-                                    <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl">
-                                        Cancel
-                                    </Button>
-                                    <Button type="submit" disabled={processing} className="font-bold rounded-xl px-5">
-                                        {editingTemplate ? 'Save Layout Modifications' : 'Publish Design Template'}
-                                    </Button>
+                                <DialogFooter className="px-6 py-4 border-t flex flex-row flex-wrap justify-between items-end gap-6 bg-neutral-50 dark:bg-neutral-950/20 shrink-0 w-full">
+                                    <div className="flex flex-1 flex-wrap items-end gap-4 mr-4">
+                                        <div className="grid gap-1 min-w-[180px] flex-1">
+                                            <Label htmlFor="name_footer" className="text-[10px] uppercase font-bold text-neutral-500">Template Name</Label>
+                                            <Input id="name_footer" value={data.name} onChange={(e) => setData('name', e.target.value)} placeholder="Autumn Wedding Invite" required className="h-8.5 rounded-lg text-xs bg-white dark:bg-neutral-950" />
+                                            {errors.name && <p className="text-[10px] text-red-500 absolute -mt-4">{errors.name}</p>}
+                                        </div>
+                                        <div className="grid gap-1 w-[140px]">
+                                            <Label htmlFor="type_footer" className="text-[10px] uppercase font-bold flex items-center gap-1 text-indigo-600">Template Type <Sparkles className="size-2.5" /></Label>
+                                            <select id="type_footer" value={data.type} onChange={(e) => setData('type', e.target.value as 'image' | 'video')} className="flex h-8.5 w-full rounded-lg border border-indigo-200 bg-indigo-50/50 px-2 py-1 text-xs font-semibold shadow-2xs transition-colors dark:border-indigo-900/50 dark:bg-indigo-950/20 dark:text-indigo-300">
+                                                <option value="image">Image Template</option>
+                                                <option value="video">Video Template</option>
+                                            </select>
+                                        </div>
+                                        <div className="grid gap-1 w-[130px]">
+                                            <Label htmlFor="category_footer" className="text-[10px] uppercase font-bold text-neutral-500">Category</Label>
+                                            <select id="category_footer" value={data.category} onChange={(e) => setData('category', e.target.value)} className="flex h-8.5 w-full rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs shadow-2xs transition-colors dark:border-neutral-800 dark:bg-neutral-950">
+                                                {categories.map((cat) => (
+                                                    <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="grid gap-1 w-[100px]">
+                                            <Label htmlFor="price_footer" className="text-[10px] uppercase font-bold text-neutral-500">Price (₹)</Label>
+                                            <Input id="price_footer" type="number" step="0.01" min="0" value={data.price} onChange={(e) => setData('price', e.target.value)} required className="h-8.5 rounded-lg text-xs bg-white dark:bg-neutral-950" />
+                                        </div>
+                                        {data.type !== 'video' && (
+                                            <div className="grid gap-1 w-[130px]">
+                                                <Label htmlFor="bg_footer" className="text-[10px] uppercase font-bold text-neutral-500">Bg Mode</Label>
+                                                <select id="bg_footer" value={bgType} onChange={(e) => {
+                                                    const type = e.target.value as 'preset' | 'custom';
+                                                    setBgType(type);
+                                                    if (type === 'preset') {
+                                                        setData('bg_gradient', gradientPresets[0].value);
+                                                        handlePageBgChange(gradientPresets[0].value);
+                                                    } else {
+                                                        applyCustomGradient();
+                                                    }
+                                                }} className="flex h-8.5 w-full rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs shadow-2xs transition-colors dark:border-neutral-800 dark:bg-neutral-950">
+                                                    <option value="preset">Presets</option>
+                                                    <option value="custom">Custom</option>
+                                                </select>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl h-9">
+                                            Cancel
+                                        </Button>
+                                        <Button 
+                                            type="submit" 
+                                            variant="secondary"
+                                            disabled={processing} 
+                                            onClick={() => { submitStatusRef.current = 'draft'; }}
+                                            className="font-bold rounded-xl px-4 h-9 bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200"
+                                        >
+                                            Save Draft
+                                        </Button>
+                                        <Button 
+                                            type="submit" 
+                                            disabled={processing} 
+                                            onClick={() => { submitStatusRef.current = 'published'; }}
+                                            className="font-bold rounded-xl px-5 h-9"
+                                        >
+                                            {editingTemplate ? 'Save Layout' : 'Publish Template'}
+                                        </Button>
+                                    </div>
                                 </DialogFooter>
                             </form>
                         </>
