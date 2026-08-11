@@ -435,7 +435,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                     {/* Hero Left Content */}
                                     <div className="lg:col-span-7 flex flex-col gap-5 text-center items-center lg:text-left lg:items-start relative">
                                         <h1 className="text-5xl sm:text-7xl font-serif text-[#3e3832] leading-[1.1]">
-                                            <span className="font-bold">Create Stunning Digital Invitations Website</span>
+                                            <span className="font-bold">Digital Visiting Cards with </span> <br /> <span className="font-light">Mini Website</span>
                                         </h1>
                                         <p className="max-w-md mx-auto lg:mx-0 text-[#706557] font-serif text-lg sm:text-xl leading-relaxed mt-2 border-b border-[#ebd9c1] pb-6">
                                             Elegant Designs for Every Occasion
@@ -541,7 +541,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
 
                                     <div className="lg:col-span-5 flex flex-col gap-5 text-center items-center lg:text-left lg:items-start relative order-1 lg:order-2">
                                         <h2 className="text-4xl sm:text-5xl font-serif text-[#3e3832] leading-[1.2] font-bold">
-                                            Digital Visiting Cards with <br className="hidden lg:block" /><span className="italic font-light">Mini Website</span>
+                                            Create Stunning Digital Invitations Website<br className="hidden lg:block" />
                                         </h2>
                                         <p className="text-[#706557] font-serif text-lg leading-relaxed mt-2 pb-6 border-b border-[#ebd9c1]/50">
                                             Create a lasting impression with our fully responsive digital visiting cards. Includes a comprehensive mini website to showcase your portfolio, services, and contact details seamlessly on any device.
