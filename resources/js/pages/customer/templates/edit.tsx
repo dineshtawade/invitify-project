@@ -939,7 +939,7 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                         <Button
                             type="button"
                             variant="outline"
-                            className="w-full sm:w-auto rounded-xl text-sm font-medium border-gray-300 text-black hover:bg-gray-50"
+                            className="w-full sm:w-auto rounded-xl text-sm font-medium border-gray-300 text-white bg-black"
                             onClick={() => setIsGuestAlertOpen(false)}
                         >
                             Cancel
