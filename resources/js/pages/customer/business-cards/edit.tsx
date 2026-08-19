@@ -632,34 +632,34 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                 {/* Left Side Editing Wizard */}
                 <div className={`${currentStep === 8 ? 'w-full lg:w-1/2' : 'w-full'} flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200 bg-white h-auto lg:h-full min-h-[80vh] transition-all duration-500 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10`}>
                     {/* Header */}
-                    <div className="px-8 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-20">
-                        <div>
-                            <h2 className="text-2xl font-black text-slate-800 tracking-tight">{cardState.company_name || 'New Design'}</h2>
-                            <p className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">
-                                <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md text-xs font-bold">Step {currentStep} of {steps.length}</span>
-                                {steps[currentStep - 1].label}
+                    <div className="p-4 sm:px-8 sm:py-4 border-b border-slate-100 flex flex-wrap sm:flex-nowrap items-center justify-between gap-4 bg-white/80 backdrop-blur-md sticky top-0 z-20">
+                        <div className="w-full sm:w-auto">
+                            <h2 className="text-lg sm:text-2xl font-black text-slate-800 tracking-tight truncate">{cardState.company_name || 'New Design'}</h2>
+                            <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">
+                                <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-bold whitespace-nowrap">Step {currentStep} of {steps.length}</span>
+                                <span className="truncate">{steps[currentStep - 1].label}</span>
                             </p>
                         </div>
-                        <div className="flex items-center gap-3">
-                            {isSaving && <span className="text-xs font-medium text-slate-400 animate-pulse flex items-center gap-1"><div className="size-1.5 bg-slate-400 rounded-full animate-bounce"></div> Saving...</span>}
-                            {saveMessage && <span className="text-xs text-emerald-500 font-bold bg-emerald-50 px-2 py-1 rounded-md">{saveMessage}</span>}
+                        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                            {isSaving && <span className="text-xs font-medium text-slate-400 animate-pulse flex items-center gap-1 whitespace-nowrap"><div className="size-1.5 bg-slate-400 rounded-full animate-bounce"></div> Saving...</span>}
+                            {saveMessage && <span className="text-xs text-emerald-500 font-bold bg-emerald-50 px-2 py-1 rounded-md whitespace-nowrap">{saveMessage}</span>}
 
                             {cardState.payment_status === 'Pending' && (
                                 <button
                                     onClick={handlePayment}
                                     disabled={isSaving}
-                                    className="inline-flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md shadow-emerald-500/20 px-5 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 disabled:opacity-50"
+                                    className="inline-flex items-center justify-center gap-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md shadow-emerald-500/20 px-3 py-1.5 sm:px-5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap flex-shrink-0"
                                 >
-                                    <CreditCard className="size-4" /> Publish & Pay
+                                    <CreditCard className="size-3.5 sm:size-4" /> Publish & Pay
                                 </button>
                             )}
 
                             <button
                                 onClick={() => saveDraft()}
                                 disabled={isSaving}
-                                className="inline-flex items-center gap-1.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 transition-all active:scale-95 disabled:opacity-50"
+                                className="inline-flex items-center justify-center gap-1.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-slate-700 transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap flex-shrink-0"
                             >
-                                <Save className="size-4 text-slate-500" /> Save Draft
+                                <Save className="size-3.5 sm:size-4 text-slate-500" /> Save Draft
                             </button>
                         </div>
                     </div>
