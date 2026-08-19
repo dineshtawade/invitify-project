@@ -435,17 +435,17 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                             onClick={handleSaveDraft}
                             disabled={processing || saveAnimation}
                             variant="outline"
-                            className={`group relative flex items-center gap-2 border-gray-300  rounded-xl text-sm font-semibold px-4 py-2.5 transition-all duration-300 text-black ${isSaved ? 'border-green-400 bg-green-50' : ''
+                            className={`group relative flex items-center gap-2 border-gray-300  rounded-xl text-sm font-semibold px-4 py-2.5 transition-all duration-300 text-black  ${isSaved ? 'border-green-400 bg-green-50 text-white ' : 'bg-blue-500 text-white'
                                 }`}
                         >
                             {saveAnimation ? (
-                                <Loader2 className="size-4 animate-spin text-white" />
+                                <Loader2 className="size-4 animate-spin" />
                             ) : isSaved ? (
-                                <CheckCircle2 className="size-4 text-green-600 text-white" />
+                                <CheckCircle2 className="size-4 text-green-600" />
                             ) : (
-                                <Save className="size-4 group-hover:scale-110 transition-transform text-white" />
+                                <Save className="size-4 group-hover:scale-110 transition-transform" />
                             )}
-                            <span className='text-white'>{isSaved ? 'Saved!' : 'Save Draft'}</span>
+                            <span>{isSaved ? 'Saved!' : 'Save Draft'}</span>
                         </Button>
 
                         <Button
