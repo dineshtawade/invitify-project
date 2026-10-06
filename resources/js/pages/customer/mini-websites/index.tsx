@@ -31,6 +31,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface CustomerMiniWebsite {
     id: number;
+    uuid?: string;
     type: 'invitation' | 'business';
     title: string;
     slug: string;
@@ -39,6 +40,7 @@ interface CustomerMiniWebsite {
     expires_at: string | null;
     template?: {
         id: number;
+    uuid?: string;
         name: string;
         price: string | number;
     };
@@ -48,6 +50,7 @@ interface CustomerMiniWebsite {
 
 interface MiniWebTemplate {
     id: number;
+    uuid?: string;
     name: string;
     type: 'invitation' | 'business';
 }
@@ -134,13 +137,13 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
         });
     };
 
-    const handleDelete = (id: number) => {
+    const handleDelete = (id: string | number) => {
         if (confirm('Are you sure you want to delete this website? All submission data (RSVPs/Messages) will be permanently lost.')) {
             router.delete(`/customer/mini-websites/${id}`);
         }
     };
 
-    const handleDownloadZip = async (websiteId: number) => {
+    const handleDownloadZip = async (websiteId: string | number) => {
         setDownloadingId(websiteId);
         try {
             const link = document.createElement('a');
@@ -453,7 +456,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                             </td>
                                             <td className="px-6 py-4">
                                                 <Link
-                                                    href={`/customer/mini-websites/${w.id}/submissions`}
+                                                    href={`/customer/mini-websites/${w.uuid || w.id}/submissions`}
                                                     className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-medium hover:underline"
                                                 >
                                                     <MessageSquare className="size-4" />
@@ -479,7 +482,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                     {isWebsiteActive(w) && (
                                                         <button
                                                             type="button"
-                                                            onClick={() => handleDownloadZip(w.id)}
+                                                            onClick={() => handleDownloadZip(w.uuid || w.id)}
                                                             disabled={downloadingId === w.id}
                                                             className="inline-flex items-center gap-1 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 shadow-sm hover:bg-violet-100 hover:border-violet-300 transition-all disabled:opacity-60 disabled:cursor-wait"
                                                             title="Download ZIP package with QR code & invite card"
@@ -496,14 +499,14 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                         </button>
                                                     )}
                                                     <Link
-                                                        href={`/customer/mini-websites/${w.id}/edit`}
+                                                        href={`/customer/mini-websites/${w.uuid || w.id}/edit`}
                                                         className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-colors"
                                                     >
                                                         <Pencil className="size-3.5" /> Edit
                                                     </Link>
 
                                                     <Button
-                                                        onClick={() => handleDelete(w.id)}
+                                                        onClick={() => handleDelete(w.uuid || w.id)}
                                                         variant="destructive"
                                                         size="sm"
                                                         className="flex items-center gap-1 text-xs px-3 py-1.5 bg-red-600 hover:bg-red-700"

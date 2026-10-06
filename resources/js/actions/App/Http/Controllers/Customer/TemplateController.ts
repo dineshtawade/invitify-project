@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
- * @see app/Http/Controllers/Customer/TemplateController.php:56
+ * @see app/Http/Controllers/Customer/TemplateController.php:57
  * @route '/templates/{template}/customize'
  */
 export const edit = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ edit.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
- * @see app/Http/Controllers/Customer/TemplateController.php:56
+ * @see app/Http/Controllers/Customer/TemplateController.php:57
  * @route '/templates/{template}/customize'
  */
 edit.url = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ edit.url = (args: { template: number | { id: number } } | [template: number | { 
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
- * @see app/Http/Controllers/Customer/TemplateController.php:56
+ * @see app/Http/Controllers/Customer/TemplateController.php:57
  * @route '/templates/{template}/customize'
  */
 edit.get = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -58,7 +58,7 @@ edit.get = (args: { template: number | { id: number } } | [template: number | { 
 })
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
- * @see app/Http/Controllers/Customer/TemplateController.php:56
+ * @see app/Http/Controllers/Customer/TemplateController.php:57
  * @route '/templates/{template}/customize'
  */
 edit.head = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -68,7 +68,7 @@ edit.head = (args: { template: number | { id: number } } | [template: number | {
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
- * @see app/Http/Controllers/Customer/TemplateController.php:56
+ * @see app/Http/Controllers/Customer/TemplateController.php:57
  * @route '/templates/{template}/customize'
  */
     const editForm = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -78,7 +78,7 @@ edit.head = (args: { template: number | { id: number } } | [template: number | {
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
- * @see app/Http/Controllers/Customer/TemplateController.php:56
+ * @see app/Http/Controllers/Customer/TemplateController.php:57
  * @route '/templates/{template}/customize'
  */
         editForm.get = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -87,7 +87,7 @@ edit.head = (args: { template: number | { id: number } } | [template: number | {
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
- * @see app/Http/Controllers/Customer/TemplateController.php:56
+ * @see app/Http/Controllers/Customer/TemplateController.php:57
  * @route '/templates/{template}/customize'
  */
         editForm.head = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -103,7 +103,7 @@ edit.head = (args: { template: number | { id: number } } | [template: number | {
     edit.form = editForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::viewShared
- * @see app/Http/Controllers/Customer/TemplateController.php:242
+ * @see app/Http/Controllers/Customer/TemplateController.php:243
  * @route '/invitations/view/{userTemplate}'
  */
 export const viewShared = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -118,7 +118,7 @@ viewShared.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::viewShared
- * @see app/Http/Controllers/Customer/TemplateController.php:242
+ * @see app/Http/Controllers/Customer/TemplateController.php:243
  * @route '/invitations/view/{userTemplate}'
  */
 viewShared.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -151,7 +151,7 @@ viewShared.url = (args: { userTemplate: number | { id: number } } | [userTemplat
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::viewShared
- * @see app/Http/Controllers/Customer/TemplateController.php:242
+ * @see app/Http/Controllers/Customer/TemplateController.php:243
  * @route '/invitations/view/{userTemplate}'
  */
 viewShared.get = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -160,7 +160,7 @@ viewShared.get = (args: { userTemplate: number | { id: number } } | [userTemplat
 })
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::viewShared
- * @see app/Http/Controllers/Customer/TemplateController.php:242
+ * @see app/Http/Controllers/Customer/TemplateController.php:243
  * @route '/invitations/view/{userTemplate}'
  */
 viewShared.head = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -170,7 +170,7 @@ viewShared.head = (args: { userTemplate: number | { id: number } } | [userTempla
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::viewShared
- * @see app/Http/Controllers/Customer/TemplateController.php:242
+ * @see app/Http/Controllers/Customer/TemplateController.php:243
  * @route '/invitations/view/{userTemplate}'
  */
     const viewSharedForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -180,7 +180,7 @@ viewShared.head = (args: { userTemplate: number | { id: number } } | [userTempla
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::viewShared
- * @see app/Http/Controllers/Customer/TemplateController.php:242
+ * @see app/Http/Controllers/Customer/TemplateController.php:243
  * @route '/invitations/view/{userTemplate}'
  */
         viewSharedForm.get = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -189,7 +189,7 @@ viewShared.head = (args: { userTemplate: number | { id: number } } | [userTempla
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::viewShared
- * @see app/Http/Controllers/Customer/TemplateController.php:242
+ * @see app/Http/Controllers/Customer/TemplateController.php:243
  * @route '/invitations/view/{userTemplate}'
  */
         viewSharedForm.head = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -283,7 +283,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::saveDraft
- * @see app/Http/Controllers/Customer/TemplateController.php:106
+ * @see app/Http/Controllers/Customer/TemplateController.php:107
  * @route '/customer/user-templates/{userTemplate}/save-draft'
  */
 export const saveDraft = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -298,7 +298,7 @@ saveDraft.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::saveDraft
- * @see app/Http/Controllers/Customer/TemplateController.php:106
+ * @see app/Http/Controllers/Customer/TemplateController.php:107
  * @route '/customer/user-templates/{userTemplate}/save-draft'
  */
 saveDraft.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -331,7 +331,7 @@ saveDraft.url = (args: { userTemplate: number | { id: number } } | [userTemplate
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::saveDraft
- * @see app/Http/Controllers/Customer/TemplateController.php:106
+ * @see app/Http/Controllers/Customer/TemplateController.php:107
  * @route '/customer/user-templates/{userTemplate}/save-draft'
  */
 saveDraft.put = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -341,7 +341,7 @@ saveDraft.put = (args: { userTemplate: number | { id: number } } | [userTemplate
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::saveDraft
- * @see app/Http/Controllers/Customer/TemplateController.php:106
+ * @see app/Http/Controllers/Customer/TemplateController.php:107
  * @route '/customer/user-templates/{userTemplate}/save-draft'
  */
     const saveDraftForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -356,7 +356,7 @@ saveDraft.put = (args: { userTemplate: number | { id: number } } | [userTemplate
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::saveDraft
- * @see app/Http/Controllers/Customer/TemplateController.php:106
+ * @see app/Http/Controllers/Customer/TemplateController.php:107
  * @route '/customer/user-templates/{userTemplate}/save-draft'
  */
         saveDraftForm.put = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -372,7 +372,7 @@ saveDraft.put = (args: { userTemplate: number | { id: number } } | [userTemplate
     saveDraft.form = saveDraftForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::purchase
- * @see app/Http/Controllers/Customer/TemplateController.php:160
+ * @see app/Http/Controllers/Customer/TemplateController.php:161
  * @route '/customer/user-templates/{userTemplate}/purchase'
  */
 export const purchase = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -387,7 +387,7 @@ purchase.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::purchase
- * @see app/Http/Controllers/Customer/TemplateController.php:160
+ * @see app/Http/Controllers/Customer/TemplateController.php:161
  * @route '/customer/user-templates/{userTemplate}/purchase'
  */
 purchase.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -420,7 +420,7 @@ purchase.url = (args: { userTemplate: number | { id: number } } | [userTemplate:
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::purchase
- * @see app/Http/Controllers/Customer/TemplateController.php:160
+ * @see app/Http/Controllers/Customer/TemplateController.php:161
  * @route '/customer/user-templates/{userTemplate}/purchase'
  */
 purchase.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -430,7 +430,7 @@ purchase.post = (args: { userTemplate: number | { id: number } } | [userTemplate
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::purchase
- * @see app/Http/Controllers/Customer/TemplateController.php:160
+ * @see app/Http/Controllers/Customer/TemplateController.php:161
  * @route '/customer/user-templates/{userTemplate}/purchase'
  */
     const purchaseForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -440,7 +440,7 @@ purchase.post = (args: { userTemplate: number | { id: number } } | [userTemplate
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::purchase
- * @see app/Http/Controllers/Customer/TemplateController.php:160
+ * @see app/Http/Controllers/Customer/TemplateController.php:161
  * @route '/customer/user-templates/{userTemplate}/purchase'
  */
         purchaseForm.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -451,7 +451,7 @@ purchase.post = (args: { userTemplate: number | { id: number } } | [userTemplate
     purchase.form = purchaseForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::uploadVideo
- * @see app/Http/Controllers/Customer/TemplateController.php:126
+ * @see app/Http/Controllers/Customer/TemplateController.php:127
  * @route '/customer/user-templates/{userTemplate}/upload-video'
  */
 export const uploadVideo = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -466,7 +466,7 @@ uploadVideo.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::uploadVideo
- * @see app/Http/Controllers/Customer/TemplateController.php:126
+ * @see app/Http/Controllers/Customer/TemplateController.php:127
  * @route '/customer/user-templates/{userTemplate}/upload-video'
  */
 uploadVideo.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -499,7 +499,7 @@ uploadVideo.url = (args: { userTemplate: number | { id: number } } | [userTempla
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::uploadVideo
- * @see app/Http/Controllers/Customer/TemplateController.php:126
+ * @see app/Http/Controllers/Customer/TemplateController.php:127
  * @route '/customer/user-templates/{userTemplate}/upload-video'
  */
 uploadVideo.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -509,7 +509,7 @@ uploadVideo.post = (args: { userTemplate: number | { id: number } } | [userTempl
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::uploadVideo
- * @see app/Http/Controllers/Customer/TemplateController.php:126
+ * @see app/Http/Controllers/Customer/TemplateController.php:127
  * @route '/customer/user-templates/{userTemplate}/upload-video'
  */
     const uploadVideoForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -519,7 +519,7 @@ uploadVideo.post = (args: { userTemplate: number | { id: number } } | [userTempl
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::uploadVideo
- * @see app/Http/Controllers/Customer/TemplateController.php:126
+ * @see app/Http/Controllers/Customer/TemplateController.php:127
  * @route '/customer/user-templates/{userTemplate}/upload-video'
  */
         uploadVideoForm.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -530,7 +530,7 @@ uploadVideo.post = (args: { userTemplate: number | { id: number } } | [userTempl
     uploadVideo.form = uploadVideoForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::createRazorpayOrder
- * @see app/Http/Controllers/Customer/TemplateController.php:312
+ * @see app/Http/Controllers/Customer/TemplateController.php:313
  * @route '/customer/user-templates/{userTemplate}/create-order'
  */
 export const createRazorpayOrder = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -545,7 +545,7 @@ createRazorpayOrder.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::createRazorpayOrder
- * @see app/Http/Controllers/Customer/TemplateController.php:312
+ * @see app/Http/Controllers/Customer/TemplateController.php:313
  * @route '/customer/user-templates/{userTemplate}/create-order'
  */
 createRazorpayOrder.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -578,7 +578,7 @@ createRazorpayOrder.url = (args: { userTemplate: number | { id: number } } | [us
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::createRazorpayOrder
- * @see app/Http/Controllers/Customer/TemplateController.php:312
+ * @see app/Http/Controllers/Customer/TemplateController.php:313
  * @route '/customer/user-templates/{userTemplate}/create-order'
  */
 createRazorpayOrder.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -588,7 +588,7 @@ createRazorpayOrder.post = (args: { userTemplate: number | { id: number } } | [u
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::createRazorpayOrder
- * @see app/Http/Controllers/Customer/TemplateController.php:312
+ * @see app/Http/Controllers/Customer/TemplateController.php:313
  * @route '/customer/user-templates/{userTemplate}/create-order'
  */
     const createRazorpayOrderForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -598,7 +598,7 @@ createRazorpayOrder.post = (args: { userTemplate: number | { id: number } } | [u
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::createRazorpayOrder
- * @see app/Http/Controllers/Customer/TemplateController.php:312
+ * @see app/Http/Controllers/Customer/TemplateController.php:313
  * @route '/customer/user-templates/{userTemplate}/create-order'
  */
         createRazorpayOrderForm.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -609,7 +609,7 @@ createRazorpayOrder.post = (args: { userTemplate: number | { id: number } } | [u
     createRazorpayOrder.form = createRazorpayOrderForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyRazorpayPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:475
+ * @see app/Http/Controllers/Customer/TemplateController.php:476
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
 export const verifyRazorpayPayment = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -624,7 +624,7 @@ verifyRazorpayPayment.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyRazorpayPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:475
+ * @see app/Http/Controllers/Customer/TemplateController.php:476
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
 verifyRazorpayPayment.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -657,7 +657,7 @@ verifyRazorpayPayment.url = (args: { userTemplate: number | { id: number } } | [
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyRazorpayPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:475
+ * @see app/Http/Controllers/Customer/TemplateController.php:476
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
 verifyRazorpayPayment.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -667,7 +667,7 @@ verifyRazorpayPayment.post = (args: { userTemplate: number | { id: number } } | 
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyRazorpayPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:475
+ * @see app/Http/Controllers/Customer/TemplateController.php:476
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
     const verifyRazorpayPaymentForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -677,7 +677,7 @@ verifyRazorpayPayment.post = (args: { userTemplate: number | { id: number } } | 
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyRazorpayPayment
- * @see app/Http/Controllers/Customer/TemplateController.php:475
+ * @see app/Http/Controllers/Customer/TemplateController.php:476
  * @route '/customer/user-templates/{userTemplate}/verify-payment'
  */
         verifyRazorpayPaymentForm.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -688,7 +688,7 @@ verifyRazorpayPayment.post = (args: { userTemplate: number | { id: number } } | 
     verifyRazorpayPayment.form = verifyRazorpayPaymentForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @see app/Http/Controllers/Customer/TemplateController.php:255
  * @route '/customer/templates/{template}/verify-referral'
  */
 export const verifyReferral = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -703,7 +703,7 @@ verifyReferral.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @see app/Http/Controllers/Customer/TemplateController.php:255
  * @route '/customer/templates/{template}/verify-referral'
  */
 verifyReferral.url = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -736,7 +736,7 @@ verifyReferral.url = (args: { template: number | { id: number } } | [template: n
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @see app/Http/Controllers/Customer/TemplateController.php:255
  * @route '/customer/templates/{template}/verify-referral'
  */
 verifyReferral.post = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -746,7 +746,7 @@ verifyReferral.post = (args: { template: number | { id: number } } | [template: 
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @see app/Http/Controllers/Customer/TemplateController.php:255
  * @route '/customer/templates/{template}/verify-referral'
  */
     const verifyReferralForm = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -756,7 +756,7 @@ verifyReferral.post = (args: { template: number | { id: number } } | [template: 
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @see app/Http/Controllers/Customer/TemplateController.php:255
  * @route '/customer/templates/{template}/verify-referral'
  */
         verifyReferralForm.post = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -767,7 +767,7 @@ verifyReferral.post = (args: { template: number | { id: number } } | [template: 
     verifyReferral.form = verifyReferralForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::claim
- * @see app/Http/Controllers/Customer/TemplateController.php:176
+ * @see app/Http/Controllers/Customer/TemplateController.php:177
  * @route '/customer/user-templates/claim'
  */
 export const claim = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -782,7 +782,7 @@ claim.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::claim
- * @see app/Http/Controllers/Customer/TemplateController.php:176
+ * @see app/Http/Controllers/Customer/TemplateController.php:177
  * @route '/customer/user-templates/claim'
  */
 claim.url = (options?: RouteQueryOptions) => {
@@ -791,7 +791,7 @@ claim.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::claim
- * @see app/Http/Controllers/Customer/TemplateController.php:176
+ * @see app/Http/Controllers/Customer/TemplateController.php:177
  * @route '/customer/user-templates/claim'
  */
 claim.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -801,7 +801,7 @@ claim.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::claim
- * @see app/Http/Controllers/Customer/TemplateController.php:176
+ * @see app/Http/Controllers/Customer/TemplateController.php:177
  * @route '/customer/user-templates/claim'
  */
     const claimForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -811,7 +811,7 @@ claim.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::claim
- * @see app/Http/Controllers/Customer/TemplateController.php:176
+ * @see app/Http/Controllers/Customer/TemplateController.php:177
  * @route '/customer/user-templates/claim'
  */
         claimForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -822,7 +822,7 @@ claim.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     claim.form = claimForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::purchased
- * @see app/Http/Controllers/Customer/TemplateController.php:198
+ * @see app/Http/Controllers/Customer/TemplateController.php:199
  * @route '/customer/my-invitations'
  */
 export const purchased = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -837,7 +837,7 @@ purchased.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::purchased
- * @see app/Http/Controllers/Customer/TemplateController.php:198
+ * @see app/Http/Controllers/Customer/TemplateController.php:199
  * @route '/customer/my-invitations'
  */
 purchased.url = (options?: RouteQueryOptions) => {
@@ -846,7 +846,7 @@ purchased.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::purchased
- * @see app/Http/Controllers/Customer/TemplateController.php:198
+ * @see app/Http/Controllers/Customer/TemplateController.php:199
  * @route '/customer/my-invitations'
  */
 purchased.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -855,7 +855,7 @@ purchased.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::purchased
- * @see app/Http/Controllers/Customer/TemplateController.php:198
+ * @see app/Http/Controllers/Customer/TemplateController.php:199
  * @route '/customer/my-invitations'
  */
 purchased.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -865,7 +865,7 @@ purchased.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::purchased
- * @see app/Http/Controllers/Customer/TemplateController.php:198
+ * @see app/Http/Controllers/Customer/TemplateController.php:199
  * @route '/customer/my-invitations'
  */
     const purchasedForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -875,7 +875,7 @@ purchased.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::purchased
- * @see app/Http/Controllers/Customer/TemplateController.php:198
+ * @see app/Http/Controllers/Customer/TemplateController.php:199
  * @route '/customer/my-invitations'
  */
         purchasedForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -884,7 +884,7 @@ purchased.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::purchased
- * @see app/Http/Controllers/Customer/TemplateController.php:198
+ * @see app/Http/Controllers/Customer/TemplateController.php:199
  * @route '/customer/my-invitations'
  */
         purchasedForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:56
+ * @see app/Http/Controllers/Customer/TemplateController.php:57
  * @route '/templates/{template}/customize'
  */
 export const customize = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ customize.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:56
+ * @see app/Http/Controllers/Customer/TemplateController.php:57
  * @route '/templates/{template}/customize'
  */
 customize.url = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ customize.url = (args: { template: number | { id: number } } | [template: number
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:56
+ * @see app/Http/Controllers/Customer/TemplateController.php:57
  * @route '/templates/{template}/customize'
  */
 customize.get = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -58,7 +58,7 @@ customize.get = (args: { template: number | { id: number } } | [template: number
 })
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:56
+ * @see app/Http/Controllers/Customer/TemplateController.php:57
  * @route '/templates/{template}/customize'
  */
 customize.head = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -68,7 +68,7 @@ customize.head = (args: { template: number | { id: number } } | [template: numbe
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:56
+ * @see app/Http/Controllers/Customer/TemplateController.php:57
  * @route '/templates/{template}/customize'
  */
     const customizeForm = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -78,7 +78,7 @@ customize.head = (args: { template: number | { id: number } } | [template: numbe
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:56
+ * @see app/Http/Controllers/Customer/TemplateController.php:57
  * @route '/templates/{template}/customize'
  */
         customizeForm.get = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -87,7 +87,7 @@ customize.head = (args: { template: number | { id: number } } | [template: numbe
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:56
+ * @see app/Http/Controllers/Customer/TemplateController.php:57
  * @route '/templates/{template}/customize'
  */
         customizeForm.head = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -103,7 +103,7 @@ customize.head = (args: { template: number | { id: number } } | [template: numbe
     customize.form = customizeForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @see app/Http/Controllers/Customer/TemplateController.php:255
  * @route '/customer/templates/{template}/verify-referral'
  */
 export const verifyReferral = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -118,7 +118,7 @@ verifyReferral.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @see app/Http/Controllers/Customer/TemplateController.php:255
  * @route '/customer/templates/{template}/verify-referral'
  */
 verifyReferral.url = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -151,7 +151,7 @@ verifyReferral.url = (args: { template: number | { id: number } } | [template: n
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @see app/Http/Controllers/Customer/TemplateController.php:255
  * @route '/customer/templates/{template}/verify-referral'
  */
 verifyReferral.post = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -161,7 +161,7 @@ verifyReferral.post = (args: { template: number | { id: number } } | [template: 
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @see app/Http/Controllers/Customer/TemplateController.php:255
  * @route '/customer/templates/{template}/verify-referral'
  */
     const verifyReferralForm = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -171,7 +171,7 @@ verifyReferral.post = (args: { template: number | { id: number } } | [template: 
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:254
+ * @see app/Http/Controllers/Customer/TemplateController.php:255
  * @route '/customer/templates/{template}/verify-referral'
  */
         verifyReferralForm.post = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
+import MiniWebsitePreview from '@/Components/MiniWebsitePreview';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Sparkles, ArrowRight, Globe, Layers, Briefcase } from 'lucide-react';
@@ -271,6 +272,14 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                                                     alt={w.name}
                                                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                                                 />
+                                            ) : (typeof w.config === 'string' ? JSON.parse(w.config || '{}') : (w.config || {})).pages ? (
+                                                <div className="absolute top-0 left-0 w-full h-[600px] origin-top-left transition-transform duration-500 group-hover:scale-105 bg-white">
+                                                    <MiniWebsitePreview config={typeof w.config === 'string' ? JSON.parse(w.config) : w.config} />
+                                                </div>
+                                            ) : (typeof w.config === 'string' ? JSON.parse(w.config || '{}') : (w.config || {})).html ? (
+                                                <div className="absolute inset-0 w-[400%] h-[400%] origin-top-left scale-[0.25] transition-transform duration-500 group-hover:scale-[0.26]">
+                                                    <iframe srcDoc={(typeof w.config === 'string' ? JSON.parse(w.config) : w.config).html} className="w-full h-full border-none pointer-events-none bg-white" tabIndex={-1} scrolling="no" />
+                                                </div>
                                             ) : (
                                                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-blue-500/10 dark:from-indigo-950/20 dark:via-purple-950/10 dark:to-blue-950/20 flex flex-col items-center justify-center p-6 text-center select-none">
                                                     <Globe className="size-10 text-indigo-500/40 dark:text-indigo-400/40 mb-3 animate-pulse" />

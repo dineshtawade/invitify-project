@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Head, useForm, router, usePage, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import MiniWebsitePreview from '@/Components/MiniWebsitePreview';
 import type { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -190,7 +191,25 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                                     templates.data.map((t) => (
                                         <tr key={t.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/15 transition-colors">
                                             <td className="px-6 py-4 font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                                                <Globe className="size-4.5 text-pink-600" /> {t.name}
+                                                {t.preview_image ? (
+                                                    <img src={t.preview_image} alt={t.name} className="size-10 rounded-md object-cover border border-neutral-200" />
+                                                ) : (typeof t.config === 'string' ? JSON.parse(t.config || '{}') : (t.config || {})).pages ? (
+                                                    <div className="size-10 rounded-md overflow-hidden border border-neutral-200 relative bg-white shrink-0">
+                                                        <div className="absolute top-0 left-0 w-[40px] h-[600px] origin-top-left pointer-events-none">
+                                                            <MiniWebsitePreview config={typeof t.config === 'string' ? JSON.parse(t.config) : t.config} />
+                                                        </div>
+                                                    </div>
+                                                ) : (typeof t.config === 'string' ? JSON.parse(t.config || '{}') : (t.config || {})).html ? (
+                                                    <div className="size-10 rounded-md overflow-hidden border border-neutral-200 relative bg-white shrink-0">
+                                                        <div className="absolute inset-0 w-[400%] h-[400%] origin-top-left scale-[0.25] pointer-events-none">
+                                                            <iframe srcDoc={(typeof t.config === 'string' ? JSON.parse(t.config) : t.config).html} className="w-full h-full border-none pointer-events-none bg-white" tabIndex={-1} scrolling="no" />
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="size-10 rounded-md bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 flex items-center justify-center shrink-0">
+                                                        <Globe className="size-5 text-neutral-400" />
+                                                    </div>
+                                                )} {t.name}
                                                 {t.status === 'draft' && (
                                                     <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-300">
                                                         Draft

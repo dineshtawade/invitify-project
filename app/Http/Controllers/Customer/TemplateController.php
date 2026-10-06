@@ -33,6 +33,7 @@ class TemplateController extends Controller
             'type' => $t->type,
             'price' => floatval($t->price),
             'preview_image' => $t->preview_image,
+            'config' => $t->default_config,
         ]);
 
         $businessTemplates = \App\Models\BusinessWebsiteTemplate::all()->map(fn($t) => [
