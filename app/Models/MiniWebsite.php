@@ -10,6 +10,7 @@ class MiniWebsite extends Model
     use HasFactory;
 
     protected $fillable = [
+        'uuid',
         'user_id',
         'template_id',
         'type',
@@ -28,6 +29,20 @@ class MiniWebsite extends Model
         'is_purchased' => 'boolean',
         'expires_at' => 'datetime',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            if (empty($model->uuid)) {
+                $model->uuid = (string) \Illuminate\Support\Str::uuid();
+            }
+        });
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'uuid';
+    }
 
     public function user()
     {

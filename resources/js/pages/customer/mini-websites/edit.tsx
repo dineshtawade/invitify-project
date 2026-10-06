@@ -40,15 +40,17 @@ const pxToCqw = (px?: number | string | null, defaultPx: number = 0) => {
     return `${(val / 384) * 100}cqw`;
 };
 
-// Normalize config: ensure it's always a WebsiteConfig { pages: [...] }
-function normalizeConfig(rawConfig: any): WebsiteConfig {
+function normalizeConfig(rawConfig: any): any {
     if (!rawConfig) return { pages: [{ id: 'home', name: 'Home', blocks: [] }] };
+    if (rawConfig.html !== undefined) {
+        return rawConfig;
+    }
     if (Array.isArray(rawConfig)) {
         // Old format: flat array of blocks
         return { pages: [{ id: 'home', name: 'Home', blocks: rawConfig }] };
     }
     if (rawConfig.pages && Array.isArray(rawConfig.pages)) {
-        return rawConfig as WebsiteConfig;
+        return rawConfig;
     }
     return { pages: [{ id: 'home', name: 'Home', blocks: [] }] };
 }
@@ -157,6 +159,27 @@ function getElementLabel(el: Block, idx: number): string {
     return `${el.type} ${idx + 1}`;
 }
 
+function getCodeTemplateHtml(configData: any) {
+    if (!configData || !configData.html) return null;
+    let html = configData.html;
+    const values = configData.values || {};
+    (configData.variables || []).forEach((v: any) => {
+        const regex = new RegExp(`{{${v.key}}}`, 'g');
+        let val = values[v.key];
+        if (!val) {
+            if (v.type === 'image' || v.type === 'video') {
+                val = 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80';
+            } else if (v.key === 'wedding_date' || v.type === 'date') {
+                val = '2027-02-14T18:30:00';
+            } else {
+                val = `[${v.label || v.key}]`;
+            }
+        }
+        html = html.replace(regex, val);
+    });
+    return html;
+}
+
 function getElementIcon(el: Block) {
     if (el.type === 'text') return <Type className="size-4 text-blue-500 shrink-0" />;
     if (el.type === 'button') return <LinkIcon className="size-4 text-purple-500 shrink-0" />;
@@ -170,7 +193,7 @@ function getElementIcon(el: Block) {
 export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coupons = [] }: PageProps) {
     const normalizedConfig = useMemo(() => normalizeConfig(website.config), [website.config]);
 
-    const [config, setConfig] = useState<WebsiteConfig>(normalizedConfig);
+    const [config, setConfig] = useState<any>(normalizedConfig);
     const [activePageId, setActivePageId] = useState<string>(normalizedConfig.pages?.[0]?.id || 'home');
     const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('mobile');
     const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
@@ -192,6 +215,8 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
 
     const activePage = config.pages?.find(p => p.id === activePageId) || config.pages?.[0];
     const allBlocks = activePage?.blocks || [];
+
+    const isCodeTemplate = !!(config as any).html;
 
     // Filter only content-editable elements for the left panel
     const editableBlocks = allBlocks.filter(el =>
@@ -538,14 +563,99 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
 
                         {/* Editable Elements List */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                            {editableBlocks.length === 0 && (
+                            {!isCodeTemplate && editableBlocks.length === 0 && (
                                 <div className="text-center py-10 text-gray-400 text-sm">
                                     <Globe className="size-8 mx-auto mb-2 opacity-30" />
                                     <p>No editable elements found on this page.</p>
                                 </div>
                             )}
 
-                            {editableBlocks.map((el, idx) => {
+                            {isCodeTemplate ? (
+                                ((config as any).variables || []).map((v: any, idx: number) => (
+                                    <div key={idx} className="space-y-1 bg-white p-3 border border-gray-200 rounded-lg shadow-sm">
+                                        <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">{v.label || v.key}</Label>
+                                        
+                                        {v.type === 'textarea' ? (
+                                            <textarea
+                                                value={((config as any).values || {})[v.key] || ''}
+                                                onChange={e => {
+                                                    setConfig((prev: any) => ({
+                                                        ...prev,
+                                                        values: { ...(prev.values || {}), [v.key]: e.target.value }
+                                                    }));
+                                                }}
+                                                rows={3}
+                                                className="flex w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 resize-none text-gray-900 mt-1"
+                                                placeholder={`Enter ${v.label || v.key}`}
+                                            />
+                                        ) : v.type === 'image' || v.type === 'video' ? (
+                                             <div className="space-y-2 mt-1">
+                                                 <div className="relative">
+                                                     <Input 
+                                                        type="file" 
+                                                        accept={v.type === 'image' ? "image/*" : "video/*"}
+                                                        onChange={async (e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                const uploadKey = `var-${v.key}`;
+                                                                setIsUploadingImage(prev => ({ ...prev, [uploadKey]: true }));
+                                                                const formData = new FormData();
+                                                                formData.append('file', file);
+                                                                try {
+                                                                    const response = await fetch('/media/upload', {
+                                                                        method: 'POST',
+                                                                        headers: { 'Accept': 'application/json', ...getCsrfHeaders() },
+                                                                        body: formData
+                                                                    });
+                                                                    if (response.ok) {
+                                                                        const data = await response.json();
+                                                                        setConfig((prev: any) => ({
+                                                                            ...prev,
+                                                                            values: { ...(prev.values || {}), [v.key]: data.url }
+                                                                        }));
+                                                                    }
+                                                                } finally {
+                                                                    setIsUploadingImage(prev => ({ ...prev, [uploadKey]: false }));
+                                                                }
+                                                            }
+                                                        }} 
+                                                        className="cursor-pointer file:text-xs text-xs h-9 bg-white border-gray-200"
+                                                        disabled={isUploadingImage[`var-${v.key}`]}
+                                                     />
+                                                     {isUploadingImage[`var-${v.key}`] && (
+                                                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                             <Loader2 className="size-4 animate-spin text-blue-500" />
+                                                         </div>
+                                                     )}
+                                                 </div>
+                                                 { ((config as any).values || {})[v.key] && (
+                                                     <div className="h-24 rounded-md overflow-hidden border border-gray-200 bg-gray-100">
+                                                        {v.type === 'image' ? (
+                                                            <img src={((config as any).values || {})[v.key]} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <video src={((config as any).values || {})[v.key]} className="w-full h-full object-cover" controls />
+                                                        )}
+                                                     </div>
+                                                 ) }
+                                             </div>
+                                        ) : (
+                                            <Input
+                                                type={v.type === 'date' ? 'datetime-local' : 'text'}
+                                                value={((config as any).values || {})[v.key] || ''}
+                                                onChange={e => {
+                                                    setConfig((prev: any) => ({
+                                                        ...prev,
+                                                        values: { ...(prev.values || {}), [v.key]: e.target.value }
+                                                    }));
+                                                }}
+                                                className="focus-visible:ring-blue-400 border-gray-200 mt-1"
+                                                placeholder={`Enter ${v.label || v.key}`}
+                                            />
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                editableBlocks.map((el, idx) => {
                                 const isExpanded = selectedElementId === el.id;
 
                                 return (
@@ -766,7 +876,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                         )}
                                     </div>
                                 );
-                            })}
+                            }))}
                         </div>
 
                         {/* Bottom CTA */}
@@ -824,20 +934,30 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
 
                         {/* Canvas Area */}
                         <div className="flex-1 overflow-y-auto p-8 flex justify-center bg-gray-100/50">
-                            <div
-                                className={`relative w-full shadow-2xl transition-all duration-300 ${getDeviceWidth()} overflow-hidden rounded-md bg-white`}
-                                style={{
-                                    ...bgStyle,
-                                    containerType: 'inline-size' as any,
-                                    minHeight: pxToCqw(Math.max(800, allBlocks.filter(b => b.type !== 'background').reduce((max, b) => {
-                                        return Math.max(max, (b.y || 0) + (b.h || 100));
-                                    }, 0) + 200))
-                                }}
-                            >
-                                {allBlocks.filter(b => b.type !== 'background').map(el => (
-                                    <CanvasElement key={el.id} el={el} pxToCqwFn={pxToCqw} />
-                                ))}
-                            </div>
+                            {isCodeTemplate ? (
+                                <div className={`relative w-full shadow-2xl transition-all duration-300 ${getDeviceWidth()} overflow-hidden rounded-md bg-white border border-gray-200`} style={{ height: '800px' }}>
+                                    <iframe 
+                                        srcDoc={getCodeTemplateHtml(config) || ''}
+                                        className="w-full h-full border-none"
+                                        sandbox="allow-scripts allow-same-origin"
+                                    />
+                                </div>
+                            ) : (
+                                <div
+                                    className={`relative w-full shadow-2xl transition-all duration-300 ${getDeviceWidth()} overflow-hidden rounded-md bg-white`}
+                                    style={{
+                                        ...bgStyle,
+                                        containerType: 'inline-size' as any,
+                                        minHeight: pxToCqw(Math.max(800, allBlocks.filter(b => b.type !== 'background').reduce((max, b) => {
+                                            return Math.max(max, (b.y || 0) + (b.h || 100));
+                                        }, 0) + 200))
+                                    }}
+                                >
+                                    {allBlocks.filter(b => b.type !== 'background').map(el => (
+                                        <CanvasElement key={el.id} el={el} pxToCqwFn={pxToCqw} />
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

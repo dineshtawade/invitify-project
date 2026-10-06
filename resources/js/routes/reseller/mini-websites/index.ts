@@ -4,7 +4,7 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFo
  * @see app/Http/Controllers/Reseller/PurchaseController.php:114
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
-export const purchaseTemplate = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const purchaseTemplate = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: purchaseTemplate.url(args, options),
     method: 'post',
 })
@@ -19,13 +19,13 @@ purchaseTemplate.definition = {
  * @see app/Http/Controllers/Reseller/PurchaseController.php:114
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
-purchaseTemplate.url = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+purchaseTemplate.url = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { mini_website: args }
     }
 
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { mini_website: args.id }
+            if (typeof args === 'object' && !Array.isArray(args) && 'uuid' in args) {
+            args = { mini_website: args.uuid }
         }
     
     if (Array.isArray(args)) {
@@ -38,7 +38,7 @@ purchaseTemplate.url = (args: { mini_website: number | { id: number } } | [mini_
 
     const parsedArgs = {
                         mini_website: typeof args.mini_website === 'object'
-                ? args.mini_website.id
+                ? args.mini_website.uuid
                 : args.mini_website,
                 }
 
@@ -52,7 +52,7 @@ purchaseTemplate.url = (args: { mini_website: number | { id: number } } | [mini_
  * @see app/Http/Controllers/Reseller/PurchaseController.php:114
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
-purchaseTemplate.post = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+purchaseTemplate.post = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: purchaseTemplate.url(args, options),
     method: 'post',
 })
@@ -62,7 +62,7 @@ purchaseTemplate.post = (args: { mini_website: number | { id: number } } | [mini
  * @see app/Http/Controllers/Reseller/PurchaseController.php:114
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
-    const purchaseTemplateForm = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const purchaseTemplateForm = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: purchaseTemplate.url(args, options),
         method: 'post',
     })
@@ -72,7 +72,7 @@ purchaseTemplate.post = (args: { mini_website: number | { id: number } } | [mini
  * @see app/Http/Controllers/Reseller/PurchaseController.php:114
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
-        purchaseTemplateForm.post = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        purchaseTemplateForm.post = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: purchaseTemplate.url(args, options),
             method: 'post',
         })
@@ -83,7 +83,7 @@ purchaseTemplate.post = (args: { mini_website: number | { id: number } } | [mini
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:76
  * @route '/reseller/mini-websites/{mini_website}/download-zip'
  */
-export const downloadZip = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const downloadZip = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: downloadZip.url(args, options),
     method: 'get',
 })
@@ -98,13 +98,13 @@ downloadZip.definition = {
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:76
  * @route '/reseller/mini-websites/{mini_website}/download-zip'
  */
-downloadZip.url = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+downloadZip.url = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { mini_website: args }
     }
 
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { mini_website: args.id }
+            if (typeof args === 'object' && !Array.isArray(args) && 'uuid' in args) {
+            args = { mini_website: args.uuid }
         }
     
     if (Array.isArray(args)) {
@@ -117,7 +117,7 @@ downloadZip.url = (args: { mini_website: number | { id: number } } | [mini_websi
 
     const parsedArgs = {
                         mini_website: typeof args.mini_website === 'object'
-                ? args.mini_website.id
+                ? args.mini_website.uuid
                 : args.mini_website,
                 }
 
@@ -131,7 +131,7 @@ downloadZip.url = (args: { mini_website: number | { id: number } } | [mini_websi
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:76
  * @route '/reseller/mini-websites/{mini_website}/download-zip'
  */
-downloadZip.get = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+downloadZip.get = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: downloadZip.url(args, options),
     method: 'get',
 })
@@ -140,7 +140,7 @@ downloadZip.get = (args: { mini_website: number | { id: number } } | [mini_websi
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:76
  * @route '/reseller/mini-websites/{mini_website}/download-zip'
  */
-downloadZip.head = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+downloadZip.head = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: downloadZip.url(args, options),
     method: 'head',
 })
@@ -150,7 +150,7 @@ downloadZip.head = (args: { mini_website: number | { id: number } } | [mini_webs
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:76
  * @route '/reseller/mini-websites/{mini_website}/download-zip'
  */
-    const downloadZipForm = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const downloadZipForm = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: downloadZip.url(args, options),
         method: 'get',
     })
@@ -160,7 +160,7 @@ downloadZip.head = (args: { mini_website: number | { id: number } } | [mini_webs
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:76
  * @route '/reseller/mini-websites/{mini_website}/download-zip'
  */
-        downloadZipForm.get = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        downloadZipForm.get = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: downloadZip.url(args, options),
             method: 'get',
         })
@@ -169,7 +169,7 @@ downloadZip.head = (args: { mini_website: number | { id: number } } | [mini_webs
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:76
  * @route '/reseller/mini-websites/{mini_website}/download-zip'
  */
-        downloadZipForm.head = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        downloadZipForm.head = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: downloadZip.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -185,7 +185,7 @@ downloadZip.head = (args: { mini_website: number | { id: number } } | [mini_webs
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:12
  * @route '/reseller/mini-websites/{mini_website}/edit'
  */
-export const edit = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const edit = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -200,13 +200,13 @@ edit.definition = {
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:12
  * @route '/reseller/mini-websites/{mini_website}/edit'
  */
-edit.url = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+edit.url = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { mini_website: args }
     }
 
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { mini_website: args.id }
+            if (typeof args === 'object' && !Array.isArray(args) && 'uuid' in args) {
+            args = { mini_website: args.uuid }
         }
     
     if (Array.isArray(args)) {
@@ -219,7 +219,7 @@ edit.url = (args: { mini_website: number | { id: number } } | [mini_website: num
 
     const parsedArgs = {
                         mini_website: typeof args.mini_website === 'object'
-                ? args.mini_website.id
+                ? args.mini_website.uuid
                 : args.mini_website,
                 }
 
@@ -233,7 +233,7 @@ edit.url = (args: { mini_website: number | { id: number } } | [mini_website: num
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:12
  * @route '/reseller/mini-websites/{mini_website}/edit'
  */
-edit.get = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit.get = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -242,7 +242,7 @@ edit.get = (args: { mini_website: number | { id: number } } | [mini_website: num
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:12
  * @route '/reseller/mini-websites/{mini_website}/edit'
  */
-edit.head = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit.head = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit.url(args, options),
     method: 'head',
 })
@@ -252,7 +252,7 @@ edit.head = (args: { mini_website: number | { id: number } } | [mini_website: nu
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:12
  * @route '/reseller/mini-websites/{mini_website}/edit'
  */
-    const editForm = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const editForm = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit.url(args, options),
         method: 'get',
     })
@@ -262,7 +262,7 @@ edit.head = (args: { mini_website: number | { id: number } } | [mini_website: nu
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:12
  * @route '/reseller/mini-websites/{mini_website}/edit'
  */
-        editForm.get = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.get = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, options),
             method: 'get',
         })
@@ -271,7 +271,7 @@ edit.head = (args: { mini_website: number | { id: number } } | [mini_website: nu
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:12
  * @route '/reseller/mini-websites/{mini_website}/edit'
  */
-        editForm.head = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.head = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -287,7 +287,7 @@ edit.head = (args: { mini_website: number | { id: number } } | [mini_website: nu
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:41
  * @route '/reseller/mini-websites/{mini_website}'
  */
-export const update = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const update = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -302,13 +302,13 @@ update.definition = {
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:41
  * @route '/reseller/mini-websites/{mini_website}'
  */
-update.url = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+update.url = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { mini_website: args }
     }
 
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { mini_website: args.id }
+            if (typeof args === 'object' && !Array.isArray(args) && 'uuid' in args) {
+            args = { mini_website: args.uuid }
         }
     
     if (Array.isArray(args)) {
@@ -321,7 +321,7 @@ update.url = (args: { mini_website: number | { id: number } } | [mini_website: n
 
     const parsedArgs = {
                         mini_website: typeof args.mini_website === 'object'
-                ? args.mini_website.id
+                ? args.mini_website.uuid
                 : args.mini_website,
                 }
 
@@ -335,7 +335,7 @@ update.url = (args: { mini_website: number | { id: number } } | [mini_website: n
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:41
  * @route '/reseller/mini-websites/{mini_website}'
  */
-update.put = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update.put = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -345,7 +345,7 @@ update.put = (args: { mini_website: number | { id: number } } | [mini_website: n
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:41
  * @route '/reseller/mini-websites/{mini_website}'
  */
-    const updateForm = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const updateForm = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: update.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'PUT',
@@ -360,7 +360,7 @@ update.put = (args: { mini_website: number | { id: number } } | [mini_website: n
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:41
  * @route '/reseller/mini-websites/{mini_website}'
  */
-        updateForm.put = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        updateForm.put = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: update.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'PUT',
@@ -376,7 +376,7 @@ update.put = (args: { mini_website: number | { id: number } } | [mini_website: n
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:59
  * @route '/reseller/mini-websites/{mini_website}'
  */
-export const destroy = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -391,13 +391,13 @@ destroy.definition = {
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:59
  * @route '/reseller/mini-websites/{mini_website}'
  */
-destroy.url = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+destroy.url = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { mini_website: args }
     }
 
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { mini_website: args.id }
+            if (typeof args === 'object' && !Array.isArray(args) && 'uuid' in args) {
+            args = { mini_website: args.uuid }
         }
     
     if (Array.isArray(args)) {
@@ -410,7 +410,7 @@ destroy.url = (args: { mini_website: number | { id: number } } | [mini_website: 
 
     const parsedArgs = {
                         mini_website: typeof args.mini_website === 'object'
-                ? args.mini_website.id
+                ? args.mini_website.uuid
                 : args.mini_website,
                 }
 
@@ -424,7 +424,7 @@ destroy.url = (args: { mini_website: number | { id: number } } | [mini_website: 
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:59
  * @route '/reseller/mini-websites/{mini_website}'
  */
-destroy.delete = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -434,7 +434,7 @@ destroy.delete = (args: { mini_website: number | { id: number } } | [mini_websit
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:59
  * @route '/reseller/mini-websites/{mini_website}'
  */
-    const destroyForm = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const destroyForm = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: destroy.url(args, {
                     [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                         _method: 'DELETE',
@@ -449,7 +449,7 @@ destroy.delete = (args: { mini_website: number | { id: number } } | [mini_websit
  * @see app/Http/Controllers/Reseller/MiniWebsiteController.php:59
  * @route '/reseller/mini-websites/{mini_website}'
  */
-        destroyForm.delete = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        destroyForm.delete = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: destroy.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'DELETE',

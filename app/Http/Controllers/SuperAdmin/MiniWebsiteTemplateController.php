@@ -40,6 +40,7 @@ class MiniWebsiteTemplateController extends Controller
             'name' => 'required|string|max:255',
             'status' => 'required|string|in:published,draft',
             'price' => 'required|numeric|min:0',
+            'reseller_price' => 'required|numeric|min:0',
             'preview_image' => 'nullable|string',
             'config' => 'nullable|array',
         ]);
@@ -72,6 +73,7 @@ class MiniWebsiteTemplateController extends Controller
             'name' => 'required|string|max:255',
             'status' => 'required|string|in:published,draft',
             'price' => 'required|numeric|min:0',
+            'reseller_price' => 'required|numeric|min:0',
             'preview_image' => 'nullable|string',
             'config' => 'nullable|array',
         ]);

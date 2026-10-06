@@ -84,6 +84,12 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge'));
 
         Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
+
+        // Bind our custom rate limiter to override Fortify's default
+        $this->app->singleton(\Laravel\Fortify\LoginRateLimiter::class, \App\Auth\CustomLoginRateLimiter::class);
+
+        // Bind custom lockout response to use 422 status instead of 429
+        $this->app->singleton(\Laravel\Fortify\Contracts\LockoutResponse::class, \App\Http\Responses\LoginLockoutResponse::class);
     }
 
     /**

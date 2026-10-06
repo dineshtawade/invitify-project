@@ -169,7 +169,7 @@ purchaseBusinessWebsite.post = (options?: RouteQueryOptions): RouteDefinition<'p
  * @see app/Http/Controllers/Reseller/PurchaseController.php:114
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
-export const payMiniWebsiteTemplate = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const payMiniWebsiteTemplate = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: payMiniWebsiteTemplate.url(args, options),
     method: 'post',
 })
@@ -184,13 +184,13 @@ payMiniWebsiteTemplate.definition = {
  * @see app/Http/Controllers/Reseller/PurchaseController.php:114
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
-payMiniWebsiteTemplate.url = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+payMiniWebsiteTemplate.url = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { mini_website: args }
     }
 
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { mini_website: args.id }
+            if (typeof args === 'object' && !Array.isArray(args) && 'uuid' in args) {
+            args = { mini_website: args.uuid }
         }
     
     if (Array.isArray(args)) {
@@ -203,7 +203,7 @@ payMiniWebsiteTemplate.url = (args: { mini_website: number | { id: number } } | 
 
     const parsedArgs = {
                         mini_website: typeof args.mini_website === 'object'
-                ? args.mini_website.id
+                ? args.mini_website.uuid
                 : args.mini_website,
                 }
 
@@ -217,7 +217,7 @@ payMiniWebsiteTemplate.url = (args: { mini_website: number | { id: number } } | 
  * @see app/Http/Controllers/Reseller/PurchaseController.php:114
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
-payMiniWebsiteTemplate.post = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+payMiniWebsiteTemplate.post = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: payMiniWebsiteTemplate.url(args, options),
     method: 'post',
 })
@@ -227,7 +227,7 @@ payMiniWebsiteTemplate.post = (args: { mini_website: number | { id: number } } |
  * @see app/Http/Controllers/Reseller/PurchaseController.php:114
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
-    const payMiniWebsiteTemplateForm = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    const payMiniWebsiteTemplateForm = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
         action: payMiniWebsiteTemplate.url(args, options),
         method: 'post',
     })
@@ -237,7 +237,7 @@ payMiniWebsiteTemplate.post = (args: { mini_website: number | { id: number } } |
  * @see app/Http/Controllers/Reseller/PurchaseController.php:114
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
-        payMiniWebsiteTemplateForm.post = (args: { mini_website: number | { id: number } } | [mini_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        payMiniWebsiteTemplateForm.post = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
             action: payMiniWebsiteTemplate.url(args, options),
             method: 'post',
         })
