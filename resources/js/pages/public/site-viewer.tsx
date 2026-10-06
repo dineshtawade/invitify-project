@@ -46,6 +46,17 @@ const pxToCqw = (px?: number | string | null, defaultPx: number = 0) => {
 };
 
 export default function SiteViewer({ website, previewMode }: PageProps) {
+    // Check if this is an HTML code template
+    const htmlTemplate = (website.config as any)?.html;
+    if (htmlTemplate) {
+        return (
+            <>
+                <Head title={website.title} />
+                <div dangerouslySetInnerHTML={{ __html: htmlTemplate }} className="w-full min-h-screen" />
+            </>
+        );
+    }
+
     // Handle backward compatibility for old array-based config
     const configPages = Array.isArray(website.config) 
         ? [{ id: 'home', name: 'Home', blocks: website.config }]

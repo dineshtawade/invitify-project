@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Trash, Globe, Pencil, Save, ShieldAlert, Clock, Search } from 'lucide-react';
+import { Plus, Trash, Globe, Pencil, Save, ShieldAlert, Clock, Search, Monitor, Tablet, Smartphone } from 'lucide-react';
 import { SharedEditor } from '@/components/design-editor/SharedEditor';
 import type { Block } from '@/components/design-editor/types';
 
@@ -72,6 +72,7 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
     };
 
     const [isOpen, setIsOpen] = useState(false);
+    const [deviceType, setDeviceType] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
     const [editingTemplate, setEditingTemplate] = useState<MiniWebsiteTemplate | null>(null);
 
     const handleRequestAction = (target_id: number, action: 'edit' | 'delete') => {
@@ -85,8 +86,9 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
         name: '',
         status: 'published',
         price: '0.00',
+        reseller_price: '0.00',
         preview_image: '',
-        config: { pages: [] },
+        config: { html: '', variables: [] },
     });
 
     const handleOpenAdd = () => {
@@ -96,26 +98,11 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
             name: '',
             status: 'published',
             price: '0.00',
+            reseller_price: '0.00',
             preview_image: '',
             config: {
-                pages: [{
-                    id: 'home',
-                    name: 'Home',
-                    blocks: [
-                        {
-                            id: `el_${Math.random().toString(36).substr(2, 9)}`,
-                            type: 'text',
-                            x: 10,
-                            y: 10,
-                            zIndex: 1,
-                            content: 'Your new template',
-                            fontSize: 32,
-                            fontWeight: 'bold',
-                            color: '#1f2937',
-                            fontFamily: "'Inter', sans-serif"
-                        }
-                    ]
-                }]
+                html: '',
+                variables: []
             },
         });
         setIsOpen(true);
@@ -127,8 +114,9 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
             name: template.name,
             status: template.status || 'published',
             price: String(template.price),
+            reseller_price: String(template.reseller_price || '0.00'),
             preview_image: template.preview_image || '',
-            config: template.config ? (Array.isArray(template.config) ? { pages: [{ id: 'home', name: 'Home', blocks: template.config }] } : template.config) : { pages: [] },
+            config: template.config ? template.config : { html: '', variables: [] },
         });
         setIsOpen(true);
     };
@@ -302,25 +290,72 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                             </DialogTitle>
                         </DialogHeader>
 
-                        <div className="flex-1 overflow-hidden">
-                            <SharedEditor
-                                config={data.config}
-                                onChange={(config) => setData('config', config)}
-                                isInvitation={true}
-                                title={data.name}
-                                customBlocks={customBlocks}
-                            />
+                        <div className="flex-1 overflow-hidden flex bg-neutral-50 dark:bg-neutral-900">
+                            {/* Code Input Side */}
+                            <div className="w-1/5 min-w-[350px] flex flex-col border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 gap-4 overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+                                <div className="space-y-2 flex-1 flex flex-col">
+                                    <Label className="text-sm font-bold">HTML/CSS/JS Code</Label>
+                                    <textarea
+                                        className="w-full flex-1 p-4 font-mono text-sm border rounded-xl focus:ring-2 focus:ring-pink-500 dark:bg-neutral-900 dark:border-neutral-800 shadow-sm"
+                                        placeholder="Paste your complete HTML code here..."
+                                        value={data.config.html || ''}
+                                        onChange={e => setData('config', { ...data.config, html: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Preview Side */}
+                            <div className="flex-1 bg-neutral-100/50 dark:bg-neutral-900/50 flex flex-col items-center p-8 overflow-y-auto relative">
+                                {/* Device Toggle */}
+                                <div className="absolute top-4 bg-white dark:bg-neutral-800 p-1.5 rounded-xl flex gap-1 shadow-sm border border-neutral-200 dark:border-neutral-700 z-10">
+                                    <button
+                                        type="button"
+                                        onClick={() => setDeviceType('mobile')}
+                                        className={`p-2 rounded-lg transition-colors ${deviceType === 'mobile' ? 'bg-pink-100 text-pink-600 dark:bg-pink-900/30' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                                        title="Mobile Preview (375px)"
+                                    ><Smartphone className="size-4" /></button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setDeviceType('tablet')}
+                                        className={`p-2 rounded-lg transition-colors ${deviceType === 'tablet' ? 'bg-pink-100 text-pink-600 dark:bg-pink-900/30' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                                        title="Tablet Preview (768px)"
+                                    ><Tablet className="size-4" /></button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setDeviceType('desktop')}
+                                        className={`p-2 rounded-lg transition-colors ${deviceType === 'desktop' ? 'bg-pink-100 text-pink-600 dark:bg-pink-900/30' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                                        title="Desktop Preview (Full Width)"
+                                    ><Monitor className="size-4" /></button>
+                                </div>
+
+                                <div
+                                    className={`mt-10 h-[800px] bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden relative transition-all duration-300 ${deviceType === 'mobile' ? 'w-[375px] border border-neutral-200 dark:border-neutral-700' :
+                                        deviceType === 'tablet' ? 'w-[768px] rounded-2xl border border-neutral-200 dark:border-neutral-700' :
+                                            'w-full rounded-xl border border-neutral-200 dark:border-neutral-700'
+                                        }`}
+                                >
+                                    <iframe
+                                        srcDoc={data.config.html || '<div style="padding:20px;text-align:center;font-family:sans-serif;color:#888;">Preview will appear here</div>'}
+                                        className="w-full h-full border-0"
+                                        sandbox="allow-scripts allow-same-origin"
+                                    />
+                                </div>
+                            </div>
                         </div>
 
                         <DialogFooter className="p-4 border-t flex items-center justify-between">
                             <div className="flex gap-4">
                                 <div className="flex items-center gap-2">
                                     <Label className="text-xs whitespace-nowrap">Name</Label>
-                                    <Input value={data.name} onChange={e => setData('name', e.target.value)} className="h-9 w-64" placeholder="Template Name" />
+                                    <Input value={data.name} onChange={e => setData('name', e.target.value)} className="h-9 w-48" placeholder="Template Name" />
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Label className="text-xs whitespace-nowrap">Price / Day</Label>
-                                    <Input type="number" step="0.01" value={data.price} onChange={e => setData('price', e.target.value)} className="h-9 w-28" />
+                                    <Input type="number" step="0.01" value={data.price} onChange={e => setData('price', e.target.value)} className="h-9 w-24" />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Label className="text-xs whitespace-nowrap">Reseller Price</Label>
+                                    <Input type="number" step="0.01" value={data.reseller_price} onChange={e => setData('reseller_price', e.target.value)} className="h-9 w-24" />
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">

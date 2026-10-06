@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+﻿import { useState, useRef, useEffect, useMemo } from 'react';
 import { Head, useForm, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
@@ -40,17 +40,15 @@ const pxToCqw = (px?: number | string | null, defaultPx: number = 0) => {
     return `${(val / 384) * 100}cqw`;
 };
 
-function normalizeConfig(rawConfig: any): any {
+// Normalize config: ensure it's always a WebsiteConfig { pages: [...] }
+function normalizeConfig(rawConfig: any): WebsiteConfig {
     if (!rawConfig) return { pages: [{ id: 'home', name: 'Home', blocks: [] }] };
-    if (rawConfig.html !== undefined) {
-        return rawConfig;
-    }
     if (Array.isArray(rawConfig)) {
         // Old format: flat array of blocks
         return { pages: [{ id: 'home', name: 'Home', blocks: rawConfig }] };
     }
     if (rawConfig.pages && Array.isArray(rawConfig.pages)) {
-        return rawConfig;
+        return rawConfig as WebsiteConfig;
     }
     return { pages: [{ id: 'home', name: 'Home', blocks: [] }] };
 }
@@ -159,92 +157,6 @@ function getElementLabel(el: Block, idx: number): string {
     return `${el.type} ${idx + 1}`;
 }
 
-function getCodeTemplateHtml(configData: any) {
-    if (!configData || !configData.html) return null;
-    let html = configData.html;
-    
-    // Inject the script for extracting and updating elements
-    const scriptToInject = `
-    <script class="invitify-editor-script">
-        window.addEventListener('load', function() {
-            const items = [];
-            let idCounter = 0;
-            
-            // Store text nodes in memory to update them without altering DOM structure
-            window.__invitifyTextNodes = {};
-
-            // 1. Extract Text Nodes using TreeWalker
-            const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-            const textNodes = [];
-            let n;
-            while(n = walk.nextNode()) {
-                if(n.parentElement && !['SCRIPT','STYLE','NOSCRIPT'].includes(n.parentElement.tagName) && n.textContent.trim().length > 0) {
-                    textNodes.push(n);
-                }
-            }
-            
-            textNodes.forEach(node => {
-                const id = 'edit-text-' + idCounter++;
-                window.__invitifyTextNodes[id] = node;
-                let label = node.parentElement.tagName.toLowerCase();
-                if (['h1','h2','h3','h4','h5','h6'].includes(label)) label = 'Heading';
-                else if (label === 'p') label = 'Paragraph';
-                else if (label === 'a') label = 'Link';
-                else if (label === 'button') label = 'Button';
-                else label = 'Text';
-                
-                items.push({ id, type: 'text', label: label, text: node.textContent.trim() });
-            });
-
-            // 2. Extract Images
-            document.querySelectorAll('img').forEach(el => {
-                const id = 'edit-img-' + idCounter++;
-                el.setAttribute('data-editable-id', id);
-                items.push({ id, type: 'image', label: 'Image', src: el.src });
-            });
-
-            // 3. Extract Videos
-            document.querySelectorAll('video').forEach(el => {
-                const id = 'edit-vid-' + idCounter++;
-                el.setAttribute('data-editable-id', id);
-                items.push({ id, type: 'video', label: 'Video', src: el.src });
-            });
-
-            window.parent.postMessage({ type: 'INIT_EDITABLES', items }, '*');
-
-            window.addEventListener('message', function(e) {
-                if (e.data && e.data.type === 'UPDATE_EDITABLE') {
-                    if (e.data.elType === 'text') {
-                        const node = window.__invitifyTextNodes[e.data.id];
-                        if (node) {
-                            node.textContent = e.data.value;
-                        }
-                    } else if (e.data.elType === 'image' || e.data.elType === 'video') {
-                        const el = document.querySelector('[data-editable-id="' + e.data.id + '"]');
-                        if (el) {
-                            el.src = e.data.value;
-                        }
-                    }
-                } else if (e.data && e.data.type === 'GET_HTML') {
-                    const clone = document.documentElement.cloneNode(true);
-                    clone.querySelectorAll('[data-editable-id]').forEach(el => el.removeAttribute('data-editable-id'));
-                    const scripts = clone.querySelectorAll('.invitify-editor-script');
-                    scripts.forEach(s => s.remove());
-                    window.parent.postMessage({ type: 'SAVE_HTML_RESULT', html: clone.outerHTML }, '*');
-                }
-            });
-        });
-    </script>
-    `;
-    if (html.includes('</body>')) {
-        html = html.replace('</body>', scriptToInject + '</body>');
-    } else {
-        html += scriptToInject;
-    }
-    
-    return html;
-}
-
 function getElementIcon(el: Block) {
     if (el.type === 'text') return <Type className="size-4 text-blue-500 shrink-0" />;
     if (el.type === 'button') return <LinkIcon className="size-4 text-purple-500 shrink-0" />;
@@ -258,52 +170,12 @@ function getElementIcon(el: Block) {
 export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coupons = [] }: PageProps) {
     const normalizedConfig = useMemo(() => normalizeConfig(website.config), [website.config]);
 
-    const [config, setConfig] = useState<any>(normalizedConfig);
+    const [config, setConfig] = useState<WebsiteConfig>(normalizedConfig);
     const [activePageId, setActivePageId] = useState<string>(normalizedConfig.pages?.[0]?.id || 'home');
     const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('mobile');
     const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState<Record<string, boolean>>({});
-    const [extractedElements, setExtractedElements] = useState<any[]>([]);
-    const iframeRef = useRef<HTMLIFrameElement>(null);
-    const configRef = useRef(config);
-    configRef.current = config;
-
-    useEffect(() => {
-        const handleMessage = (e: MessageEvent) => {
-            if (e.data?.type === 'INIT_EDITABLES') {
-                setExtractedElements(e.data.items);
-            } else if (e.data?.type === 'SAVE_HTML_RESULT') {
-                const newConfig = { ...configRef.current, html: e.data.html };
-                setConfig(newConfig);
-                
-                // Proceed with saving
-                const callback = (window as any).pendingSaveCallback;
-                (window as any).pendingSaveCallback = null;
-                
-                router.put(`/customer/mini-websites/${website.uuid || website.id}`, {
-                    title: website.title,
-                    theme: website.theme || 'cozy',
-                    is_published: website.is_published ?? false,
-                    config: newConfig,
-                }, {
-                    preserveScroll: true,
-                    preserveState: true,
-                    onSuccess: () => {
-                        if (callback) callback();
-                    },
-                    onError: () => {
-                        alert('Failed to save. Please try again.');
-                    },
-                    onFinish: () => {
-                        setIsSaving(false);
-                    }
-                });
-            }
-        };
-        window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
-    }, [website.id, website.title, website.theme, website.is_published]);
 
     // Renewal Checkout States
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -320,8 +192,6 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
 
     const activePage = config.pages?.find(p => p.id === activePageId) || config.pages?.[0];
     const allBlocks = activePage?.blocks || [];
-
-    const isCodeTemplate = !!(config as any).html;
 
     // Filter only content-editable elements for the left panel
     const editableBlocks = allBlocks.filter(el =>
@@ -405,36 +275,24 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
 
     const handleSave = (callback?: () => void) => {
         setIsSaving(true);
-        if (isCodeTemplate && iframeRef.current?.contentWindow) {
-            (window as any).pendingSaveCallback = callback;
-            iframeRef.current.contentWindow.postMessage({ type: 'GET_HTML' }, '*');
-        } else {
-            router.put(`/customer/mini-websites/${website.uuid || website.id}`, {
-                title: website.title,
-                theme: website.theme || 'cozy',
-                is_published: website.is_published ?? false,
-                config: config as any,
-            }, {
-                preserveScroll: true,
-                preserveState: true,
-                onSuccess: () => {
-                    if (callback) callback();
-                },
-                onError: () => {
-                    alert('Failed to save. Please try again.');
-                },
-                onFinish: () => {
-                    setIsSaving(false);
-                }
-            });
-        }
-    };
-    
-    const handleUpdateExtracted = (id: string, elType: string, value: string) => {
-        setExtractedElements(prev => prev.map(item => item.id === id ? { ...item, [elType === 'text' ? 'text' : 'src']: value } : item));
-        if (iframeRef.current?.contentWindow) {
-            iframeRef.current.contentWindow.postMessage({ type: 'UPDATE_EDITABLE', id, elType, value }, '*');
-        }
+        router.put(`/customer/mini-websites/${website.id}`, {
+            title: website.title,
+            theme: website.theme || 'cozy',
+            is_published: website.is_published ?? false,
+            config: config as any,
+        }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                if (callback) callback();
+            },
+            onError: () => {
+                alert('Failed to save. Please try again.');
+            },
+            onFinish: () => {
+                setIsSaving(false);
+            }
+        });
     };
 
     const handleBuyClick = () => {
@@ -491,7 +349,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
         }
 
         try {
-            const res = await fetch(`/customer/mini-websites/${website.uuid || website.id}/verify-referral`, {
+            const res = await fetch(`/customer/mini-websites/${website.id}/verify-referral`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -539,7 +397,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
     const handleConfirmRenewal = async () => {
         setIsCheckingOut(true);
         try {
-            const response = await fetch(`/customer/mini-websites/${website.uuid || website.id}/create-order`, {
+            const response = await fetch(`/customer/mini-websites/${website.id}/create-order`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', ...getCsrfHeaders() },
                 body: JSON.stringify({ days, referral_code: isValidCoupon ? referralCode : '' })
@@ -555,7 +413,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
             const orderData = await response.json();
 
             if (orderData.mock) {
-                router.post(`/customer/mini-websites/${website.uuid || website.id}/verify-payment`, { mock: true }, {
+                router.post(`/customer/mini-websites/${website.id}/verify-payment`, { mock: true }, {
                     onSuccess: () => { setIsCheckoutOpen(false); setIsCheckingOut(false); },
                     onError: () => { setIsCheckingOut(false); }
                 });
@@ -572,7 +430,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                     description: `Hosting Purchase for ${website.title}`,
                     order_id: orderData.order_id,
                     handler: function (response: any) {
-                        router.post(`/customer/mini-websites/${website.uuid || website.id}/verify-payment`, {
+                        router.post(`/customer/mini-websites/${website.id}/verify-payment`, {
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_signature: response.razorpay_signature,
@@ -602,15 +460,15 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
         <AppLayout breadcrumbs={[
             { title: 'Dashboard', href: '/customer/dashboard' },
             { title: 'My Mini Websites', href: '/customer/mini-websites' },
-            { title: website.title, href: `/customer/mini-websites/${website.uuid || website.id}/edit` },
+            { title: website.title, href: `/customer/mini-websites/${website.id}/edit` },
         ]}>
             <Head title={`Customize: ${website.title}`} />
 
             <div className="flex flex-col h-[calc(100vh-4rem)] bg-white">
                 {/* Header Navbar */}
-                <div className="border-b border-gray-200 bg-white px-4 py-3 flex flex-wrap items-center justify-between shrink-0 shadow-sm gap-3">
+                <div className="border-b border-gray-200 bg-white px-4 py-3 flex items-center justify-between shrink-0 shadow-sm">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 shrink-0 rounded-lg bg-blue-600 flex items-center justify-center shadow-sm">
+                        <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center shadow-sm">
                             <Globe className="size-5 text-white" />
                         </div>
                         <div>
@@ -631,9 +489,9 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                             onClick={() => handleSave()}
                             disabled={isSaving}
                             variant="outline"
-                            className="h-8 px-3 text-xs font-bold border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                            className="h-9 text-sm font-semibold border-gray-300 text-white"
                         >
-                            {isSaving ? <Loader2 className="size-3 mr-1.5 animate-spin" /> : <Save className="size-3 mr-1.5" />}
+                            {isSaving ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Save className="size-4 mr-2" />}
                             Save
                         </Button>
 
@@ -641,9 +499,9 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                             <Button
                                 onClick={handleBuyClick}
                                 disabled={isSaving || isCheckingOut}
-                                className="h-8 px-3 bg-blue-600 hover:bg-blue-700 text-white shadow-sm flex items-center gap-1.5 font-bold text-xs"
+                                className="h-9 bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center gap-1.5 font-bold text-sm"
                             >
-                                <CreditCard className="size-3" />
+                                <CreditCard className="size-4" />
                                 {!website.is_purchased ? 'Purchase & Host' : (isExpired ? 'Re-Host' : 'Extend Hosting')}
                             </Button>
                         )}
@@ -651,9 +509,9 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                 </div>
 
                 {/* Main Content */}
-                <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+                <div className="flex flex-1 overflow-hidden">
                     {/* Left: Content Editing Panel */}
-                    <div className="w-full lg:w-[350px] h-[45%] lg:h-auto shrink-0 border-b lg:border-b-0 lg:border-r border-gray-200 bg-gray-50 flex flex-col overflow-hidden">
+                    <div className="w-[340px] shrink-0 border-r border-gray-200 bg-gray-50 flex flex-col overflow-hidden">
                         {/* Panel Header */}
                         <div className="px-5 py-4 border-b border-gray-200 bg-white">
                             <h2 className="text-sm font-bold text-gray-900">Customize Your Content</h2>
@@ -680,122 +538,14 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
 
                         {/* Editable Elements List */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                            {!isCodeTemplate && editableBlocks.length === 0 && (
+                            {editableBlocks.length === 0 && (
                                 <div className="text-center py-10 text-gray-400 text-sm">
                                     <Globe className="size-8 mx-auto mb-2 opacity-30" />
                                     <p>No editable elements found on this page.</p>
                                 </div>
                             )}
 
-                            {isCodeTemplate ? (
-                                extractedElements.map((el: any) => {
-                                    const isExpanded = selectedElementId === el.id;
-                                    return (
-                                        <div
-                                            key={el.id}
-                                            className={`rounded-xl border bg-white transition-all overflow-hidden shadow-sm ${isExpanded ? 'border-blue-300 shadow-md' : 'border-gray-200'}`}
-                                        >
-                                            <button
-                                                type="button"
-                                                onClick={() => setSelectedElementId(isExpanded ? null : el.id)}
-                                                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
-                                            >
-                                                {el.type === 'text' ? <Type className="size-4 text-blue-500 shrink-0" /> : el.type === 'video' ? <Video className="size-4 text-red-500 shrink-0" /> : <ImageIcon className="size-4 text-green-500 shrink-0" />}
-                                                <div className="flex-1 min-w-0">
-                                                    <span className="text-xs font-bold text-gray-800 capitalize">{el.label || el.type}</span>
-                                                    <p className="text-xs text-gray-500 truncate mt-0.5">{el.type === 'text' ? (el.text.length > 40 ? el.text.substring(0, 40) + '...' : el.text) : (el.src ? el.src.split('/').pop() : 'No media')}</p>
-                                                </div>
-                                                <ChevronRight className={`size-4 text-gray-400 transition-transform shrink-0 ${isExpanded ? 'rotate-90' : ''}`} />
-                                            </button>
-                                            
-                                            {isExpanded && (
-                                                <div className="px-4 pb-4 pt-1 border-t border-gray-100 space-y-3">
-                                                    {el.type === 'text' && (
-                                                        <div className="space-y-1">
-                                                            <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Text Content</Label>
-                                                            {el.text.length > 60 ? (
-                                                                <textarea
-                                                                    value={el.text}
-                                                                    onChange={e => handleUpdateExtracted(el.id, 'text', e.target.value)}
-                                                                    rows={3}
-                                                                    className="flex w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 resize-none text-gray-900"
-                                                                />
-                                                            ) : (
-                                                                <Input
-                                                                    value={el.text}
-                                                                    onChange={e => handleUpdateExtracted(el.id, 'text', e.target.value)}
-                                                                    className="focus-visible:ring-blue-400 border-gray-200"
-                                                                />
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                    
-                                                    {(el.type === 'image' || el.type === 'video') && (
-                                                        <div className="space-y-3">
-                                                            <div className="flex flex-col gap-2">
-                                                                <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Upload Local {el.type}</Label>
-                                                                <div className="relative">
-                                                                    <Input 
-                                                                        type="file" 
-                                                                        accept={el.type === 'image' ? "image/*" : "video/*"}
-                                                                        onChange={async (e) => {
-                                                                            const file = e.target.files?.[0];
-                                                                            if (file) {
-                                                                                setIsUploadingImage(prev => ({ ...prev, [el.id]: true }));
-                                                                                const formData = new FormData();
-                                                                                formData.append('file', file);
-                                                                                try {
-                                                                                    const response = await fetch('/media/upload', {
-                                                                                        method: 'POST',
-                                                                                        headers: { 'Accept': 'application/json', ...getCsrfHeaders() },
-                                                                                        body: formData
-                                                                                    });
-                                                                                    if (response.ok) {
-                                                                                        const data = await response.json();
-                                                                                        handleUpdateExtracted(el.id, el.type, data.url);
-                                                                                    }
-                                                                                } finally {
-                                                                                    setIsUploadingImage(prev => ({ ...prev, [el.id]: false }));
-                                                                                }
-                                                                            }
-                                                                        }} 
-                                                                        className="cursor-pointer file:text-xs text-xs h-9 bg-white border-gray-200"
-                                                                        disabled={isUploadingImage[el.id]}
-                                                                    />
-                                                                    {isUploadingImage[el.id] && (
-                                                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                                                            <Loader2 className="size-4 animate-spin text-blue-500" />
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                            <div className="grid gap-2">
-                                                                <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">{el.type} URL</Label>
-                                                                <Input
-                                                                    value={el.src}
-                                                                    onChange={e => handleUpdateExtracted(el.id, el.type, e.target.value)}
-                                                                    placeholder={`https://example.com/file.${el.type === 'image' ? 'jpg' : 'mp4'}`}
-                                                                    className="focus-visible:ring-blue-400 border-gray-200"
-                                                                />
-                                                            </div>
-                                                            {el.src && (
-                                                                <div className="h-28 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
-                                                                    {el.type === 'image' ? (
-                                                                        <img src={el.src} className="w-full h-full object-cover" />
-                                                                    ) : (
-                                                                        <video src={el.src} className="w-full h-full object-cover" controls />
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })
-                            ) : (
-                                editableBlocks.map((el, idx) => {
+                            {editableBlocks.map((el, idx) => {
                                 const isExpanded = selectedElementId === el.id;
 
                                 return (
@@ -1008,7 +758,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                                             className="focus-visible:ring-blue-400 border-gray-200"
                                                         />
                                                         <p className="text-[10px] text-gray-400">
-                                                            Go to Google Maps → Share → Embed a map → Copy the src URL from the iframe code.
+                                                            Go to Google Maps ΓåÆ Share ΓåÆ Embed a map ΓåÆ Copy the src URL from the iframe code.
                                                         </p>
                                                     </div>
                                                 )}
@@ -1016,9 +766,31 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                         )}
                                     </div>
                                 );
-                            }))}
+                            })}
                         </div>
 
+                        {/* Bottom CTA */}
+                        <div className="p-4 border-t border-gray-200 bg-white">
+                            {!isFree && website.template ? (
+                                <Button
+                                    onClick={handleBuyClick}
+                                    disabled={isSaving || isCheckingOut}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg h-11"
+                                >
+                                    <CreditCard className="size-4 mr-2" />
+                                    {!website.is_purchased ? 'Save & Purchase Hosting' : (isExpired ? 'Save & Re-Host' : 'Save & Extend Hosting')}
+                                </Button>
+                            ) : (
+                                <Button
+                                    onClick={() => handleSave()}
+                                    disabled={isSaving}
+                                    className="w-full h-11 font-bold bg-gray-900 hover:bg-gray-800 text-white"
+                                >
+                                    {isSaving ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Save className="size-4 mr-2" />}
+                                    Save Changes
+                                </Button>
+                            )}
+                        </div>
                     </div>
 
                     {/* Right: Canvas Preview */}
@@ -1052,31 +824,20 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
 
                         {/* Canvas Area */}
                         <div className="flex-1 overflow-y-auto p-8 flex justify-center bg-gray-100/50">
-                            {isCodeTemplate ? (
-                                <div className={`relative w-full shadow-2xl transition-all duration-300 ${getDeviceWidth()} overflow-hidden rounded-md bg-white border border-gray-200`} style={{ height: '800px' }}>
-                                    <iframe 
-                                        ref={iframeRef}
-                                        srcDoc={getCodeTemplateHtml(config) || ''}
-                                        className="w-full h-full border-none"
-                                        sandbox="allow-scripts allow-same-origin"
-                                    />
-                                </div>
-                            ) : (
-                                <div
-                                    className={`relative w-full shadow-2xl transition-all duration-300 ${getDeviceWidth()} overflow-hidden rounded-md bg-white`}
-                                    style={{
-                                        ...bgStyle,
-                                        containerType: 'inline-size' as any,
-                                        minHeight: pxToCqw(Math.max(800, allBlocks.filter(b => b.type !== 'background').reduce((max, b) => {
-                                            return Math.max(max, (b.y || 0) + (b.h || 100));
-                                        }, 0) + 200))
-                                    }}
-                                >
-                                    {allBlocks.filter(b => b.type !== 'background').map(el => (
-                                        <CanvasElement key={el.id} el={el} pxToCqwFn={pxToCqw} />
-                                    ))}
-                                </div>
-                            )}
+                            <div
+                                className={`relative w-full shadow-2xl transition-all duration-300 ${getDeviceWidth()} overflow-hidden rounded-md bg-white`}
+                                style={{
+                                    ...bgStyle,
+                                    containerType: 'inline-size' as any,
+                                    minHeight: pxToCqw(Math.max(800, allBlocks.filter(b => b.type !== 'background').reduce((max, b) => {
+                                        return Math.max(max, (b.y || 0) + (b.h || 100));
+                                    }, 0) + 200))
+                                }}
+                            >
+                                {allBlocks.filter(b => b.type !== 'background').map(el => (
+                                    <CanvasElement key={el.id} el={el} pxToCqwFn={pxToCqw} />
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1098,7 +859,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                 <h4 className="text-sm font-bold text-blue-700 mb-1">One-time Template License</h4>
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="text-gray-700">{website.template.name}</span>
-                                    <span className="font-bold text-gray-900">₹{templatePrice}</span>
+                                    <span className="font-bold text-gray-900">Γé╣{templatePrice}</span>
                                 </div>
                             </div>
                         )}
@@ -1129,7 +890,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                         className={`p-3 rounded-lg border text-center font-bold flex flex-col items-center gap-0.5 transition-all ${durationMode === String(val) ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 hover:bg-gray-50 text-gray-700'}`}
                                     >
                                         <span className="text-sm">{val} {durationUnit === 'days' ? (val === 1 ? 'Day' : 'Days') : (val === 1 ? 'Week' : 'Weeks')}</span>
-                                        <span className="text-[10px] opacity-70 text-gray-500">₹{durationUnit === 'days' ? val * dailyPrice : val * 7 * dailyPrice}</span>
+                                        <span className="text-[10px] opacity-70 text-gray-500">Γé╣{durationUnit === 'days' ? val * dailyPrice : val * 7 * dailyPrice}</span>
                                     </button>
                                 ))}
                                 <button
@@ -1225,27 +986,27 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                         <div className="border-t border-gray-200 pt-4 mt-2 flex flex-col gap-2.5">
                             <div className="flex justify-between items-center text-gray-500">
                                 <span>Daily Hosting Fee</span>
-                                <span className="font-semibold text-gray-700">₹{dailyPrice} / day</span>
+                                <span className="font-semibold text-gray-700">Γé╣{dailyPrice} / day</span>
                             </div>
                             <div className="flex justify-between items-center text-gray-500">
-                                <span>Hosting × {days} day{days !== 1 ? 's' : ''}</span>
-                                <span className="font-semibold text-gray-700">₹{hostingPrice}</span>
+                                <span>Hosting ├ù {days} day{days !== 1 ? 's' : ''}</span>
+                                <span className="font-semibold text-gray-700">Γé╣{hostingPrice}</span>
                             </div>
                             {!website.is_purchased && (
                                 <div className="flex justify-between items-center text-gray-500">
                                     <span>Template License (one-time)</span>
-                                    <span className="font-semibold text-gray-700">₹{templatePrice}</span>
+                                    <span className="font-semibold text-gray-700">Γé╣{templatePrice}</span>
                                 </div>
                             )}
                             {discountDeduction > 0 && (
                                 <div className="flex justify-between items-center text-emerald-600">
                                     <span className="flex items-center gap-1"><Ticket className="size-3.5" /> Discount ({appliedDiscount}%)</span>
-                                    <span className="font-bold">-₹{discountDeduction}</span>
+                                    <span className="font-bold">-Γé╣{discountDeduction}</span>
                                 </div>
                             )}
                             <div className="flex justify-between items-center border-t border-dashed border-gray-300 pt-3 text-base font-extrabold text-gray-900">
                                 <span>Total Payable</span>
-                                <span>₹{finalAmount}</span>
+                                <span>Γé╣{finalAmount}</span>
                             </div>
                         </div>
 

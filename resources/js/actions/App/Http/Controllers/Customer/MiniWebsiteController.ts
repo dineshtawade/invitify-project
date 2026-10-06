@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadInviteZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:451
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:449
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
 export const downloadInviteZip = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ downloadInviteZip.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadInviteZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:451
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:449
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
 downloadInviteZip.url = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ downloadInviteZip.url = (args: { mini_website: string | { uuid: string } } | [mi
 
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadInviteZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:451
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:449
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
 downloadInviteZip.get = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -58,7 +58,7 @@ downloadInviteZip.get = (args: { mini_website: string | { uuid: string } } | [mi
 })
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadInviteZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:451
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:449
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
 downloadInviteZip.head = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -68,7 +68,7 @@ downloadInviteZip.head = (args: { mini_website: string | { uuid: string } } | [m
 
     /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadInviteZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:451
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:449
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
     const downloadInviteZipForm = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -78,7 +78,7 @@ downloadInviteZip.head = (args: { mini_website: string | { uuid: string } } | [m
 
             /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadInviteZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:451
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:449
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
         downloadInviteZipForm.get = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -87,7 +87,7 @@ downloadInviteZip.head = (args: { mini_website: string | { uuid: string } } | [m
         })
             /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadInviteZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:451
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:449
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
         downloadInviteZipForm.head = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
