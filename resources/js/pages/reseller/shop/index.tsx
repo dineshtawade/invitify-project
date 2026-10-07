@@ -272,7 +272,7 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                         </div>
 
                                         <Link
-                                            href={`/reseller/templates/${tpl.id}/customize`}
+                                            href={`/reseller/templates/${tpl.encrypted_id}/customize`}
                                             className="mt-6 flex w-full items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
                                         >
                                             Customize & Buy <ArrowRight className="size-4" />

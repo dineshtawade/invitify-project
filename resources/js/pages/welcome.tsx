@@ -698,7 +698,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                                             <p className="font-serif text-2xl font-black my-2 truncate text-neutral-900 max-w-[170px]">{t.default_config.guest_of_honor}</p>
                                                             <p className="text-[8px] opacity-80 uppercase tracking-wider">{t.default_config.date}</p>
                                                         </div>
-                                                        <Link href={`/templates/${t.id}/customize`} className="absolute inset-0 z-20" />
+                                                        <Link href={`/templates/${t.encrypted_id}/customize`} className="absolute inset-0 z-20" />
                                                     </div>
                                                     <div className="w-[90%] -mt-6 z-20 bg-[#fdfbf7] border border-[#ebd9c1] rounded p-3 text-center shadow-sm relative pointer-events-none group-hover:border-[#d3c0a3] transition-colors">
                                                         <h3 className="text-sm font-serif font-bold text-[#3e3832] truncate">{t.name}</h3>
@@ -731,7 +731,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                                         <div className="text-center pointer-events-none scale-90 opacity-90 transition-transform duration-300 group-hover:scale-95 relative z-10">
                                                             <PlayCircle className="size-12 text-white/80 mx-auto" />
                                                         </div>
-                                                        <Link href={`/templates/${t.id}/customize`} className="absolute inset-0 z-20" />
+                                                        <Link href={`/templates/${t.encrypted_id}/customize`} className="absolute inset-0 z-20" />
                                                     </div>
                                                     <div className="w-[90%] -mt-6 z-20 bg-[#fdfbf7] border border-[#ebd9c1] rounded p-3 text-center shadow-sm relative pointer-events-none group-hover:border-[#d3c0a3] transition-colors">
                                                         <h3 className="text-sm font-serif font-bold text-[#3e3832] truncate">{t.name}</h3>

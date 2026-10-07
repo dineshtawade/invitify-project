@@ -21,6 +21,13 @@ class Template extends Model
         'status',
     ];
 
+    protected $appends = ['encrypted_id'];
+
+    public function getEncryptedIdAttribute()
+    {
+        return encrypt($this->id);
+    }
+
     protected function casts(): array
     {
         return [

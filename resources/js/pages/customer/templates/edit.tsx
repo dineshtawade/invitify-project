@@ -84,7 +84,7 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Browse Templates', href: '/customer/templates' },
-        { title: `Customize ${template.name}`, href: `/templates/${template.id}/customize` },
+        { title: `Customize ${template.name}`, href: `/templates/${template.encrypted_id}/customize` },
     ];
 
     const initialConfig = template.type === 'video'

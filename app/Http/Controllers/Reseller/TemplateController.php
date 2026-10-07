@@ -15,8 +15,15 @@ class TemplateController extends Controller
     /**
      * Start customizing a template (creates/retrieves draft and loads editor).
      */
-    public function edit(Template $template)
+    public function edit($encryptedId)
     {
+        try {
+            $id = decrypt($encryptedId);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404);
+        }
+
+        $template = Template::findOrFail($id);
         $user = auth()->user();
 
         // Create or retrieve draft for reseller
@@ -150,6 +157,7 @@ class TemplateController extends Controller
             ->map(function ($ut) {
                 return [
                     'id' => $ut->id,
+                    'encrypted_id' => $ut->encrypted_id,
                     'template_id' => $ut->template_id,
                     'template' => $ut->template,
                     'custom_config' => $ut->custom_config,

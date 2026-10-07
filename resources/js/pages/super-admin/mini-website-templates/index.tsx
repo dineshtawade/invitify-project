@@ -147,23 +147,23 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                 </div>
 
                 {/* Filter and Search Bar */}
-                <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white dark:bg-neutral-900 p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-2xs">
+                <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white dark:bg-neutral-900 p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+                        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
                         <Input
                             type="text"
                             placeholder="Search templates by name..."
                             value={searchVal}
                             onChange={(e) => setSearchVal(e.target.value)}
-                            className="pl-10 h-10 w-full bg-neutral-50/50 dark:bg-neutral-950/20 border-neutral-200 dark:border-neutral-800 text-sm rounded-xl focus:ring-2 focus:ring-pink-500"
+                            className="pl-9 h-9 w-full bg-neutral-50/50 dark:bg-neutral-950/20 border-neutral-200 dark:border-neutral-800 text-sm rounded-lg focus:ring-2 focus:ring-pink-500"
                         />
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button type="submit" size="sm" className="h-10 rounded-xl px-5">
+                        <Button type="submit" size="sm" className="h-9 rounded-lg px-4 text-xs font-semibold">
                             Filter
                         </Button>
                         {filters.search && (
-                            <Button type="button" onClick={handleReset} variant="outline" size="sm" className="h-10 rounded-xl px-4">
+                            <Button type="button" onClick={handleReset} variant="outline" size="sm" className="h-9 rounded-lg px-3 text-xs">
                                 Clear
                             </Button>
                         )}
@@ -228,27 +228,27 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                                                             return (
                                                                 <>
                                                                     {editReq?.status === 'approved' ? (
-                                                                        <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><Pencil className="size-3.5" /> Edit</Button>
+                                                                        <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-md h-7 px-2.5 text-[11px]"><Pencil className="size-3" /> Edit</Button>
                                                                     ) : editReq?.status === 'pending' ? (
-                                                                        <Button disabled variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs opacity-50"><Clock className="size-3.5" /> Edit Pending</Button>
+                                                                        <Button disabled variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-md h-7 px-2.5 text-[11px] opacity-50"><Clock className="size-3" /> Edit Pending</Button>
                                                                     ) : (
-                                                                        <Button onClick={() => handleRequestAction(t.id, 'edit')} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><ShieldAlert className="size-3.5" /> Request Edit</Button>
+                                                                        <Button onClick={() => handleRequestAction(t.id, 'edit')} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-md h-7 px-2.5 text-[11px]"><ShieldAlert className="size-3" /> Request Edit</Button>
                                                                     )}
 
                                                                     {deleteReq?.status === 'approved' ? (
-                                                                        <Button onClick={() => { if (confirm('Delete?')) router.delete(`/super-admin/mini-website-templates/${t.id}`) }} variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs"><Trash className="size-3.5" /> Delete</Button>
+                                                                        <Button onClick={() => { if (confirm('Delete?')) router.delete(`/super-admin/mini-website-templates/${t.id}`) }} variant="destructive" size="sm" className="flex items-center gap-1 rounded-md h-7 px-2.5 text-[11px]"><Trash className="size-3" /> Delete</Button>
                                                                     ) : deleteReq?.status === 'pending' ? (
-                                                                        <Button disabled variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs opacity-50"><Clock className="size-3.5" /> Delete Pending</Button>
+                                                                        <Button disabled variant="destructive" size="sm" className="flex items-center gap-1 rounded-md h-7 px-2.5 text-[11px] opacity-50"><Clock className="size-3" /> Delete Pending</Button>
                                                                     ) : (
-                                                                        <Button onClick={() => handleRequestAction(t.id, 'delete')} variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs"><ShieldAlert className="size-3.5" /> Request Delete</Button>
+                                                                        <Button onClick={() => handleRequestAction(t.id, 'delete')} variant="destructive" size="sm" className="flex items-center gap-1 rounded-md h-7 px-2.5 text-[11px]"><ShieldAlert className="size-3" /> Request Delete</Button>
                                                                     )}
                                                                 </>
                                                             );
                                                         })()
                                                     ) : (
                                                         <>
-                                                            <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><Pencil className="size-3.5" /> Edit</Button>
-                                                            <Button onClick={() => { if (confirm('Delete?')) router.delete(`/super-admin/mini-website-templates/${t.id}`) }} variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs"><Trash className="size-3.5" /> Delete</Button>
+                                                            <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-md h-7 px-2.5 text-[11px]"><Pencil className="size-3" /> Edit</Button>
+                                                            <Button onClick={() => { if (confirm('Delete?')) router.delete(`/super-admin/mini-website-templates/${t.id}`) }} variant="destructive" size="sm" className="flex items-center gap-1 rounded-md h-7 px-2.5 text-[11px]"><Trash className="size-3" /> Delete</Button>
                                                         </>
                                                     )}
                                                 </div>
@@ -362,25 +362,26 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                             </div>
                         </div>
 
-                        <DialogFooter className="p-4 border-t flex items-center justify-between">
-                            <div className="flex gap-4">
+                        <DialogFooter className="p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-neutral-900">
+                            <div className="flex flex-wrap items-center gap-4">
                                 <div className="flex items-center gap-2">
-                                    <Label className="text-xs whitespace-nowrap">Name</Label>
-                                    <Input value={data.name} onChange={e => setData('name', e.target.value)} className="h-9 w-48" placeholder="Template Name" />
+                                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-neutral-500 whitespace-nowrap">Name</Label>
+                                    <Input value={data.name} onChange={e => setData('name', e.target.value)} className="h-8 w-48 text-sm" placeholder="Template Name" />
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Label className="text-xs whitespace-nowrap">Price / Day</Label>
-                                    <Input type="number" step="0.01" value={data.price} onChange={e => setData('price', e.target.value)} className="h-9 w-24" />
+                                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-neutral-500 whitespace-nowrap">Price / Day</Label>
+                                    <Input type="number" step="0.01" value={data.price} onChange={e => setData('price', e.target.value)} className="h-8 w-24 text-sm" />
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Label className="text-xs whitespace-nowrap">Reseller Price</Label>
-                                    <Input type="number" step="0.01" value={data.reseller_price} onChange={e => setData('reseller_price', e.target.value)} className="h-9 w-24" />
+                                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-neutral-500 whitespace-nowrap">Reseller Price</Label>
+                                    <Input type="number" step="0.01" value={data.reseller_price} onChange={e => setData('reseller_price', e.target.value)} className="h-8 w-24 text-sm" />
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+                            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                                <Button type="button" variant="outline" size="sm" className="h-8 text-xs" onClick={() => setIsOpen(false)}>Cancel</Button>
                                 <Button
                                     type="button"
+                                    size="sm"
                                     onClick={(e) => {
                                         e.preventDefault();
                                         const payload = { ...data, status: 'draft' };
@@ -394,12 +395,13 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                                             router.post('/super-admin/mini-website-templates', payload, options);
                                         }
                                     }}
-                                    className="bg-neutral-800 hover:bg-neutral-900 text-white dark:bg-neutral-700 dark:hover:bg-neutral-600"
+                                    className="h-8 text-xs bg-neutral-800 hover:bg-neutral-900 text-white dark:bg-neutral-700 dark:hover:bg-neutral-600"
                                 >
                                     Save Draft
                                 </Button>
                                 <Button
                                     type="button"
+                                    size="sm"
                                     onClick={(e) => {
                                         e.preventDefault();
                                         const payload = { ...data, status: 'published' };
@@ -413,9 +415,9 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                                             router.post('/super-admin/mini-website-templates', payload, options);
                                         }
                                     }}
-                                    className="bg-pink-600 hover:bg-pink-700 text-white"
+                                    className="h-8 text-xs bg-pink-600 hover:bg-pink-700 text-white"
                                 >
-                                    <Save className="size-4 mr-2" /> {editingTemplate ? 'Publish Update' : 'Publish'}
+                                    <Save className="size-3.5 mr-1.5" /> {editingTemplate ? 'Publish Update' : 'Publish'}
                                 </Button>
                             </div>
                         </DialogFooter>

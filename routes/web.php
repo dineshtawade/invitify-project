@@ -36,10 +36,10 @@ Route::get('/cookie-policy', function () {
 
 
 
-Route::get('templates/{template}/customize', [\App\Http\Controllers\Customer\TemplateController::class, 'edit'])
+Route::get('templates/{encryptedId}/customize', [\App\Http\Controllers\Customer\TemplateController::class, 'edit'])
     ->name('customer.templates.customize');
 
-Route::get('invitations/view/{userTemplate}', [\App\Http\Controllers\Customer\TemplateController::class, 'viewShared'])
+Route::get('invitations/view/{encryptedId}', [\App\Http\Controllers\Customer\TemplateController::class, 'viewShared'])
     ->name('invitations.view');
 
 // Public Mini Websites (Invitations) Routing
@@ -260,7 +260,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('reseller.business-websites.purchase-template');
 
         // Reseller Template Customization Flow
-        Route::get('reseller/templates/{template}/customize', [\App\Http\Controllers\Reseller\TemplateController::class, 'edit'])
+        Route::get('reseller/templates/{encryptedId}/customize', [\App\Http\Controllers\Reseller\TemplateController::class, 'edit'])
             ->name('reseller.templates.customize');
         Route::put('reseller/user-templates/{userTemplate}/save-draft', [\App\Http\Controllers\Reseller\TemplateController::class, 'saveDraft'])
             ->name('reseller.user-templates.save-draft');

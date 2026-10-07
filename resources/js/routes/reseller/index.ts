@@ -320,7 +320,7 @@ shop.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     shop.form = shopForm
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::myInvitations
- * @see app/Http/Controllers/Reseller/TemplateController.php:143
+ * @see app/Http/Controllers/Reseller/TemplateController.php:150
  * @route '/reseller/my-invitations'
  */
 export const myInvitations = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -335,7 +335,7 @@ myInvitations.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::myInvitations
- * @see app/Http/Controllers/Reseller/TemplateController.php:143
+ * @see app/Http/Controllers/Reseller/TemplateController.php:150
  * @route '/reseller/my-invitations'
  */
 myInvitations.url = (options?: RouteQueryOptions) => {
@@ -344,7 +344,7 @@ myInvitations.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::myInvitations
- * @see app/Http/Controllers/Reseller/TemplateController.php:143
+ * @see app/Http/Controllers/Reseller/TemplateController.php:150
  * @route '/reseller/my-invitations'
  */
 myInvitations.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -353,7 +353,7 @@ myInvitations.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::myInvitations
- * @see app/Http/Controllers/Reseller/TemplateController.php:143
+ * @see app/Http/Controllers/Reseller/TemplateController.php:150
  * @route '/reseller/my-invitations'
  */
 myInvitations.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -363,7 +363,7 @@ myInvitations.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
 
     /**
 * @see \App\Http\Controllers\Reseller\TemplateController::myInvitations
- * @see app/Http/Controllers/Reseller/TemplateController.php:143
+ * @see app/Http/Controllers/Reseller/TemplateController.php:150
  * @route '/reseller/my-invitations'
  */
     const myInvitationsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -373,7 +373,7 @@ myInvitations.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
 
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::myInvitations
- * @see app/Http/Controllers/Reseller/TemplateController.php:143
+ * @see app/Http/Controllers/Reseller/TemplateController.php:150
  * @route '/reseller/my-invitations'
  */
         myInvitationsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -382,7 +382,7 @@ myInvitations.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
         })
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::myInvitations
- * @see app/Http/Controllers/Reseller/TemplateController.php:143
+ * @see app/Http/Controllers/Reseller/TemplateController.php:150
  * @route '/reseller/my-invitations'
  */
         myInvitationsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
