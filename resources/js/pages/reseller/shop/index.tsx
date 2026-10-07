@@ -10,6 +10,7 @@ import {
     Store, ShoppingBag, Globe, LayoutGrid, Sparkles, ShieldAlert,
     ChevronLeft, Search, Wallet, X, ArrowRight, CheckCircle2, PlayCircle
 } from 'lucide-react';
+import MiniWebsitePreview from '@/components/MiniWebsitePreview';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Reseller Dashboard', href: '/reseller/dashboard' },
@@ -221,6 +222,12 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                                 alt={tpl.name}
                                                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                                             />
+                                        ) : tpl.type === 'video' && tpl.default_config?.video_url ? (
+                                            <video 
+                                                src={tpl.default_config.video_url} 
+                                                autoPlay loop muted playsInline 
+                                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                                            />
                                         ) : (
                                             <div
                                                 className={`w-full h-full relative flex flex-col items-center justify-center p-6 bg-gradient-to-tr ${tpl.bg_gradient || 'from-neutral-100 to-neutral-200'} overflow-hidden`}
@@ -260,20 +267,20 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                         </span>
                                     </div>
 
-                                    {/* Card Details - Dark Theme */}
-                                    <div className="flex flex-1 flex-col justify-between p-5 bg-[#171717]">
+                                    {/* Card Details */}
+                                    <div className="flex flex-1 flex-col justify-between p-5 bg-white dark:bg-neutral-900">
                                         <div>
-                                            <h3 className="text-lg font-bold text-blue-400">
+                                            <h3 className="text-lg font-bold text-neutral-900 dark:text-white">
                                                 {tpl.name}
                                             </h3>
-                                            <p className="mt-1 text-xs capitalize text-neutral-400 font-medium">
+                                            <p className="mt-1 text-xs capitalize text-neutral-500 font-medium">
                                                 Category: {tpl.category ? tpl.category.replace('_', ' ') : 'Other'}
                                             </p>
                                         </div>
 
                                         <Link
                                             href={`/reseller/templates/${tpl.encrypted_id}/customize`}
-                                            className="mt-6 flex w-full items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
+                                            className="mt-6 flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-xs transition-colors hover:bg-indigo-700"
                                         >
                                             Customize & Buy <ArrowRight className="size-4" />
                                         </Link>
@@ -299,6 +306,18 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                 <div className="relative h-52 overflow-hidden bg-neutral-100 dark:bg-neutral-800">
                                     {tpl.preview_image ? (
                                         <img src={tpl.preview_image} alt={tpl.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                    ) : (typeof tpl.config === 'string' ? JSON.parse(tpl.config || '{}') : (tpl.config || {})).pages ? (
+                                        <div className="w-full h-full relative pointer-events-none overflow-hidden bg-white">
+                                            <div className="absolute top-0 left-0 w-[400px] h-[800px] origin-top-left scale-[0.65]">
+                                                <MiniWebsitePreview config={typeof tpl.config === 'string' ? JSON.parse(tpl.config) : tpl.config} />
+                                            </div>
+                                        </div>
+                                    ) : (typeof tpl.config === 'string' ? JSON.parse(tpl.config || '{}') : (tpl.config || {})).html ? (
+                                        <div className="w-full h-full relative pointer-events-none overflow-hidden bg-white">
+                                            <div className="absolute top-0 left-0 w-[400px] h-[800px] origin-top-left scale-[0.65]">
+                                                <iframe srcDoc={(typeof tpl.config === 'string' ? JSON.parse(tpl.config) : tpl.config).html} className="w-full h-full border-none pointer-events-none bg-white" tabIndex={-1} scrolling="no" />
+                                            </div>
+                                        </div>
                                     ) : (
                                         <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-neutral-400">
                                             <Store className="size-10 stroke-1 opacity-50" />

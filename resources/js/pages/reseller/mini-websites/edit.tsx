@@ -256,7 +256,7 @@ function getElementIcon(el: Block) {
     return <FileText className="size-4 text-gray-500 shrink-0" />;
 }
 
-export default function ResellerMiniWebsiteEdit({ auth, website, customBlocks = [], coupons = [] }: PageProps) {
+export default function ResellerMiniWebsiteEdit({ auth, wallet, website, customBlocks = [], coupons = [] }: PageProps) {
     const normalizedConfig = useMemo(() => normalizeConfig(website.config), [website.config]);
 
     const [config, setConfig] = useState<any>(normalizedConfig);
@@ -491,7 +491,9 @@ export default function ResellerMiniWebsiteEdit({ auth, website, customBlocks = 
     const dailyPrice = 2; // Flat 2.00 for resellers
     const days = getDaysValue();
     const hostingPrice = website.is_purchased ? days * dailyPrice : 0;
-    const finalAmount = templatePrice + hostingPrice;
+    const baseAmount = templatePrice + hostingPrice;
+    const discountDeduction = appliedDiscount > 0 ? Math.round(baseAmount * (appliedDiscount / 100)) : 0;
+    const finalAmount = baseAmount - discountDeduction;
     const hasSufficientBalance = wallet && wallet.balance >= finalAmount;
 
 
@@ -582,7 +584,7 @@ export default function ResellerMiniWebsiteEdit({ auth, website, customBlocks = 
     };
 
     const isExpired = !website.expires_at || new Date(website.expires_at) < new Date();
-    const isFree = website.template && parseFloat(String(website.template.price)) === 0;
+    
 
     return (
         <AppLayout breadcrumbs={[
@@ -623,7 +625,7 @@ export default function ResellerMiniWebsiteEdit({ auth, website, customBlocks = 
                             Save
                         </Button>
 
-                        {!isFree && website.template && (
+                        
                             <Button
                                 onClick={handleBuyClick}
                                 disabled={isSaving || isCheckingOut}
@@ -632,7 +634,7 @@ export default function ResellerMiniWebsiteEdit({ auth, website, customBlocks = 
                                 <CreditCard className="size-3" />
                                 {!website.is_purchased ? 'Purchase & Host' : (isExpired ? 'Re-Host' : 'Extend Hosting')}
                             </Button>
-                        )}
+
                     </div>
                 </div>
 
@@ -1086,11 +1088,11 @@ export default function ResellerMiniWebsiteEdit({ auth, website, customBlocks = 
                     </DialogHeader>
 
                     <div className="flex flex-col gap-5 py-3 text-sm">
-                        {!website.is_purchased && website.template && (
+                        {!website.is_purchased && templatePrice > 0 && (
                             <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
                                 <h4 className="text-sm font-bold text-blue-700 mb-1">One-time Template License</h4>
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="text-gray-700">{website.template.name}</span>
+                                    <span className="text-gray-700">Template</span>
                                     <span className="font-bold text-gray-900">₹{templatePrice}</span>
                                 </div>
                             </div>

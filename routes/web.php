@@ -294,6 +294,17 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('reseller.business-websites.update');
         Route::delete('reseller/business-websites/{business_website}', [\App\Http\Controllers\Reseller\BusinessWebsiteController::class, 'destroy'])
             ->name('reseller.business-websites.destroy');
+
+        // Reseller Business Cards editor
+        Route::resource('reseller/business-cards', \App\Http\Controllers\Reseller\BusinessCardController::class, [
+            'names' => 'reseller.business-cards'
+        ]);
+        Route::get('reseller/business-card-plans', [\App\Http\Controllers\Reseller\BusinessCardController::class, 'getPlans'])
+            ->name('reseller.business-card-plans');
+        Route::post('reseller/business-cards/draft-create', [\App\Http\Controllers\Reseller\BusinessCardController::class, 'draftCreate'])
+            ->name('reseller.business-cards.draft-create');
+        Route::post('reseller/business-cards/{business_card}/purchase', [\App\Http\Controllers\Reseller\BusinessCardController::class, 'purchase'])
+            ->name('reseller.business-cards.purchase');
     });
 
     // Referral Partner Routes
