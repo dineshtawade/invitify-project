@@ -28,23 +28,11 @@ class CustomLoginRateLimiter extends LoginRateLimiter
     public function increment(Request $request)
     {
         $key = $this->throttleKey($request);
-        $penaltyKey = $key . ':penalty_level';
-
-        $attempts = $this->limiter->attempts($key);
         
-        // 0 -> 1 hour (3600 seconds)
-        // 1 -> 1 day (86400 seconds)
-        // 2 -> 1 hour, etc.
-        $penaltyLevel = Cache::get($penaltyKey, 0);
-        $decaySeconds = ($penaltyLevel % 2 == 0) ? 3600 : 86400;
+        // Block for 5 hours (18000 seconds)
+        $decaySeconds = 18000;
 
         $this->limiter->hit($key, $decaySeconds);
-
-        // If this hit reaches the 5th attempt, we increment the penalty level for NEXT time they get blocked
-        if ($attempts + 1 >= 5) {
-            // Keep memory of penalty level for 30 days
-            Cache::put($penaltyKey, $penaltyLevel + 1, now()->addDays(30));
-        }
     }
 
     /**
@@ -57,9 +45,6 @@ class CustomLoginRateLimiter extends LoginRateLimiter
     {
         $key = $this->throttleKey($request);
         $this->limiter->clear($key);
-        
-        $penaltyKey = $key . ':penalty_level';
-        Cache::forget($penaltyKey);
     }
 
     /**

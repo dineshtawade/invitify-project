@@ -40,14 +40,8 @@ class LoginLockoutResponse implements LockoutResponseContract
     {
         return with($this->limiter->availableIn($request), function ($seconds) {
             
-            // Generate a more user-friendly message including days, hours, minutes if necessary
-            if ($seconds > 3600) {
-                $days = ceil($seconds / 86400);
-                $message = "Too many login attempts. Your IP is blocked for {$days} day(s).";
-            } else {
-                $minutes = ceil($seconds / 60);
-                $message = "Too many login attempts. Your IP is blocked for {$minutes} minute(s).";
-            }
+            // Send exact seconds so the React frontend can implement a live countdown
+            $message = "Too many login attempts. Please try again in {$seconds} seconds.";
 
             throw ValidationException::withMessages([
                 Fortify::username() => [
