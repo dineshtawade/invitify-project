@@ -40,7 +40,7 @@ interface CustomerMiniWebsite {
     expires_at: string | null;
     template?: {
         id: number;
-    uuid?: string;
+        uuid?: string;
         name: string;
         price: string | number;
     };

@@ -14,7 +14,7 @@ import {
 import {
     Globe, Save, ExternalLink, CreditCard, Ticket,
     Check, AlertCircle, Loader2, Type, ImageIcon,
-    Video, Link as LinkIcon, ChevronRight, Eye, Smartphone, Monitor, Tablet, FileText
+    Video, Link as LinkIcon, ChevronRight, Eye, Smartphone, Monitor, Tablet, FileText, Clock
 } from 'lucide-react';
 import type { Block, WebsiteConfig } from '@/components/design-editor/types';
 import { getCsrfHeaders } from '@/lib/utils';
@@ -1105,14 +1105,18 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
             {/* Hosting Checkout Dialog */}
             <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
                 <DialogContent className="w-[95%] sm:max-w-md max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-xl">
-                    <DialogHeader className="relative">
-                        <DialogTitle className="text-xl font-bold flex items-center gap-2 text-gray-900">
-                            <CreditCard className="size-5 text-blue-600" />
-                            {!website.is_purchased ? 'Purchase Template & Hosting' : 'Renew Website Hosting'}
+                    <DialogHeader>
+                        <DialogTitle className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-gray-900 pr-6">
+                            <div className="flex items-center gap-2 text-xl font-bold">
+                                <CreditCard className="size-5 text-blue-600 shrink-0" />
+                                <span className="truncate">
+                                    {!website.is_purchased ? 'Complete Purchase' : 'Renew Hosting'}
+                                </span>
+                            </div>
+                            <div className="bg-red-50 text-red-600 font-mono text-sm px-3 py-1 rounded-full font-bold flex items-center gap-1.5 border border-red-200 shrink-0 self-start sm:self-auto shadow-sm">
+                                <Clock className="size-4 animate-pulse" /> {formatTime(checkoutTimeLeft)}
+                            </div>
                         </DialogTitle>
-                        <div className="absolute top-0 right-8 bg-red-100 text-red-700 font-mono text-sm px-3 py-1 rounded-full font-bold flex items-center gap-1.5 border border-red-200">
-                            <Clock className="size-4 animate-pulse" /> {formatTime(checkoutTimeLeft)}
-                        </div>
                     </DialogHeader>
 
                     <div className="flex flex-col gap-5 py-3 text-sm">

@@ -23,8 +23,6 @@ class MiniWebsiteController extends Controller
             ->map(function ($website) {
                 return [
                     'id' => $website->id,
-                    'uuid' => $website->uuid,
-                    'type' => $website->type,
                     'title' => $website->title,
                     'slug' => $website->slug,
                     'theme' => $website->theme,
