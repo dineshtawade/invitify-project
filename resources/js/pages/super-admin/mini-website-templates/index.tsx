@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Head, useForm, router, usePage, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import MiniWebsitePreview from '@/Components/MiniWebsitePreview';
 import type { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Trash, Globe, Pencil, Save, ShieldAlert, Clock, Search } from 'lucide-react';
+import { Plus, Trash, Globe, Pencil, Save, ShieldAlert, Clock, Search, Monitor, Tablet, Smartphone } from 'lucide-react';
 import { SharedEditor } from '@/components/design-editor/SharedEditor';
 import type { Block } from '@/components/design-editor/types';
 
@@ -72,6 +73,7 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
     };
 
     const [isOpen, setIsOpen] = useState(false);
+    const [deviceType, setDeviceType] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
     const [editingTemplate, setEditingTemplate] = useState<MiniWebsiteTemplate | null>(null);
 
     const handleRequestAction = (target_id: number, action: 'edit' | 'delete') => {
@@ -85,8 +87,9 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
         name: '',
         status: 'published',
         price: '0.00',
+        reseller_price: '0.00',
         preview_image: '',
-        config: { pages: [] },
+        config: { html: '', variables: [] },
     });
 
     const handleOpenAdd = () => {
@@ -96,26 +99,11 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
             name: '',
             status: 'published',
             price: '0.00',
+            reseller_price: '0.00',
             preview_image: '',
             config: {
-                pages: [{
-                    id: 'home',
-                    name: 'Home',
-                    blocks: [
-                        {
-                            id: `el_${Math.random().toString(36).substr(2, 9)}`,
-                            type: 'text',
-                            x: 10,
-                            y: 10,
-                            zIndex: 1,
-                            content: 'Your new template',
-                            fontSize: 32,
-                            fontWeight: 'bold',
-                            color: '#1f2937',
-                            fontFamily: "'Inter', sans-serif"
-                        }
-                    ]
-                }]
+                html: '',
+                variables: []
             },
         });
         setIsOpen(true);
@@ -127,8 +115,9 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
             name: template.name,
             status: template.status || 'published',
             price: String(template.price),
+            reseller_price: String(template.reseller_price || '0.00'),
             preview_image: template.preview_image || '',
-            config: template.config ? (Array.isArray(template.config) ? { pages: [{ id: 'home', name: 'Home', blocks: template.config }] } : template.config) : { pages: [] },
+            config: template.config ? template.config : { html: '', variables: [] },
         });
         setIsOpen(true);
     };
@@ -158,23 +147,23 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                 </div>
 
                 {/* Filter and Search Bar */}
-                <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white dark:bg-neutral-900 p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-2xs">
+                <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white dark:bg-neutral-900 p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+                        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
                         <Input
                             type="text"
                             placeholder="Search templates by name..."
                             value={searchVal}
                             onChange={(e) => setSearchVal(e.target.value)}
-                            className="pl-10 h-10 w-full bg-neutral-50/50 dark:bg-neutral-950/20 border-neutral-200 dark:border-neutral-800 text-sm rounded-xl focus:ring-2 focus:ring-pink-500"
+                            className="pl-9 h-9 w-full bg-neutral-50/50 dark:bg-neutral-950/20 border-neutral-200 dark:border-neutral-800 text-sm rounded-lg focus:ring-2 focus:ring-pink-500"
                         />
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button type="submit" size="sm" className="h-10 rounded-xl px-5">
+                        <Button type="submit" size="sm" className="h-9 rounded-lg px-4 text-xs font-semibold">
                             Filter
                         </Button>
                         {filters.search && (
-                            <Button type="button" onClick={handleReset} variant="outline" size="sm" className="h-10 rounded-xl px-4">
+                            <Button type="button" onClick={handleReset} variant="outline" size="sm" className="h-9 rounded-lg px-3 text-xs">
                                 Clear
                             </Button>
                         )}
@@ -202,7 +191,25 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                                     templates.data.map((t) => (
                                         <tr key={t.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/15 transition-colors">
                                             <td className="px-6 py-4 font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                                                <Globe className="size-4.5 text-pink-600" /> {t.name}
+                                                {t.preview_image ? (
+                                                    <img src={t.preview_image} alt={t.name} className="size-10 rounded-md object-cover border border-neutral-200" />
+                                                ) : (typeof t.config === 'string' ? JSON.parse(t.config || '{}') : (t.config || {})).pages ? (
+                                                    <div className="size-10 rounded-md overflow-hidden border border-neutral-200 relative bg-white shrink-0">
+                                                        <div className="absolute top-0 left-0 w-[40px] h-[600px] origin-top-left pointer-events-none">
+                                                            <MiniWebsitePreview config={typeof t.config === 'string' ? JSON.parse(t.config) : t.config} />
+                                                        </div>
+                                                    </div>
+                                                ) : (typeof t.config === 'string' ? JSON.parse(t.config || '{}') : (t.config || {})).html ? (
+                                                    <div className="size-10 rounded-md overflow-hidden border border-neutral-200 relative bg-white shrink-0">
+                                                        <div className="absolute inset-0 w-[400%] h-[400%] origin-top-left scale-[0.25] pointer-events-none">
+                                                            <iframe srcDoc={(typeof t.config === 'string' ? JSON.parse(t.config) : t.config).html} className="w-full h-full border-none pointer-events-none bg-white" tabIndex={-1} scrolling="no" />
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="size-10 rounded-md bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 flex items-center justify-center shrink-0">
+                                                        <Globe className="size-5 text-neutral-400" />
+                                                    </div>
+                                                )} {t.name}
                                                 {t.status === 'draft' && (
                                                     <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-300">
                                                         Draft
@@ -221,27 +228,27 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                                                             return (
                                                                 <>
                                                                     {editReq?.status === 'approved' ? (
-                                                                        <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><Pencil className="size-3.5" /> Edit</Button>
+                                                                        <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-md h-7 px-2.5 text-[11px]"><Pencil className="size-3" /> Edit</Button>
                                                                     ) : editReq?.status === 'pending' ? (
-                                                                        <Button disabled variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs opacity-50"><Clock className="size-3.5" /> Edit Pending</Button>
+                                                                        <Button disabled variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-md h-7 px-2.5 text-[11px] opacity-50"><Clock className="size-3" /> Edit Pending</Button>
                                                                     ) : (
-                                                                        <Button onClick={() => handleRequestAction(t.id, 'edit')} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><ShieldAlert className="size-3.5" /> Request Edit</Button>
+                                                                        <Button onClick={() => handleRequestAction(t.id, 'edit')} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-md h-7 px-2.5 text-[11px]"><ShieldAlert className="size-3" /> Request Edit</Button>
                                                                     )}
 
                                                                     {deleteReq?.status === 'approved' ? (
-                                                                        <Button onClick={() => { if (confirm('Delete?')) router.delete(`/super-admin/mini-website-templates/${t.id}`) }} variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs"><Trash className="size-3.5" /> Delete</Button>
+                                                                        <Button onClick={() => { if (confirm('Delete?')) router.delete(`/super-admin/mini-website-templates/${t.id}`) }} variant="destructive" size="sm" className="flex items-center gap-1 rounded-md h-7 px-2.5 text-[11px]"><Trash className="size-3" /> Delete</Button>
                                                                     ) : deleteReq?.status === 'pending' ? (
-                                                                        <Button disabled variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs opacity-50"><Clock className="size-3.5" /> Delete Pending</Button>
+                                                                        <Button disabled variant="destructive" size="sm" className="flex items-center gap-1 rounded-md h-7 px-2.5 text-[11px] opacity-50"><Clock className="size-3" /> Delete Pending</Button>
                                                                     ) : (
-                                                                        <Button onClick={() => handleRequestAction(t.id, 'delete')} variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs"><ShieldAlert className="size-3.5" /> Request Delete</Button>
+                                                                        <Button onClick={() => handleRequestAction(t.id, 'delete')} variant="destructive" size="sm" className="flex items-center gap-1 rounded-md h-7 px-2.5 text-[11px]"><ShieldAlert className="size-3" /> Request Delete</Button>
                                                                     )}
                                                                 </>
                                                             );
                                                         })()
                                                     ) : (
                                                         <>
-                                                            <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><Pencil className="size-3.5" /> Edit</Button>
-                                                            <Button onClick={() => { if (confirm('Delete?')) router.delete(`/super-admin/mini-website-templates/${t.id}`) }} variant="destructive" size="sm" className="flex items-center gap-1 rounded-lg text-xs"><Trash className="size-3.5" /> Delete</Button>
+                                                            <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-md h-7 px-2.5 text-[11px]"><Pencil className="size-3" /> Edit</Button>
+                                                            <Button onClick={() => { if (confirm('Delete?')) router.delete(`/super-admin/mini-website-templates/${t.id}`) }} variant="destructive" size="sm" className="flex items-center gap-1 rounded-md h-7 px-2.5 text-[11px]"><Trash className="size-3" /> Delete</Button>
                                                         </>
                                                     )}
                                                 </div>
@@ -302,31 +309,79 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                             </DialogTitle>
                         </DialogHeader>
 
-                        <div className="flex-1 overflow-hidden">
-                            <SharedEditor
-                                config={data.config}
-                                onChange={(config) => setData('config', config)}
-                                isInvitation={true}
-                                title={data.name}
-                                customBlocks={customBlocks}
-                            />
-                        </div>
-
-                        <DialogFooter className="p-4 border-t flex items-center justify-between">
-                            <div className="flex gap-4">
-                                <div className="flex items-center gap-2">
-                                    <Label className="text-xs whitespace-nowrap">Name</Label>
-                                    <Input value={data.name} onChange={e => setData('name', e.target.value)} className="h-9 w-64" placeholder="Template Name" />
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Label className="text-xs whitespace-nowrap">Price / Day</Label>
-                                    <Input type="number" step="0.01" value={data.price} onChange={e => setData('price', e.target.value)} className="h-9 w-28" />
+                        <div className="flex-1 overflow-hidden flex bg-neutral-50 dark:bg-neutral-900">
+                            {/* Code Input Side */}
+                            <div className="w-1/5 min-w-[350px] flex flex-col border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 gap-4 overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+                                <div className="space-y-2 flex-1 flex flex-col">
+                                    <Label className="text-sm font-bold">HTML/CSS/JS Code</Label>
+                                    <textarea
+                                        className="w-full flex-1 p-4 font-mono text-sm border rounded-xl focus:ring-2 focus:ring-pink-500 dark:bg-neutral-900 dark:border-neutral-800 shadow-sm"
+                                        placeholder="Paste your complete HTML code here..."
+                                        value={data.config.html || ''}
+                                        onChange={e => setData('config', { ...data.config, html: e.target.value })}
+                                    />
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+
+                            {/* Preview Side */}
+                            <div className="flex-1 bg-neutral-100/50 dark:bg-neutral-900/50 flex flex-col items-center p-8 overflow-y-auto relative">
+                                {/* Device Toggle */}
+                                <div className="absolute top-4 bg-white dark:bg-neutral-800 p-1.5 rounded-xl flex gap-1 shadow-sm border border-neutral-200 dark:border-neutral-700 z-10">
+                                    <button
+                                        type="button"
+                                        onClick={() => setDeviceType('mobile')}
+                                        className={`p-2 rounded-lg transition-colors ${deviceType === 'mobile' ? 'bg-pink-100 text-pink-600 dark:bg-pink-900/30' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                                        title="Mobile Preview (375px)"
+                                    ><Smartphone className="size-4" /></button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setDeviceType('tablet')}
+                                        className={`p-2 rounded-lg transition-colors ${deviceType === 'tablet' ? 'bg-pink-100 text-pink-600 dark:bg-pink-900/30' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                                        title="Tablet Preview (768px)"
+                                    ><Tablet className="size-4" /></button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setDeviceType('desktop')}
+                                        className={`p-2 rounded-lg transition-colors ${deviceType === 'desktop' ? 'bg-pink-100 text-pink-600 dark:bg-pink-900/30' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                                        title="Desktop Preview (Full Width)"
+                                    ><Monitor className="size-4" /></button>
+                                </div>
+
+                                <div
+                                    className={`mt-10 h-[800px] bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden relative transition-all duration-300 ${deviceType === 'mobile' ? 'w-[375px] border border-neutral-200 dark:border-neutral-700' :
+                                        deviceType === 'tablet' ? 'w-[768px] rounded-2xl border border-neutral-200 dark:border-neutral-700' :
+                                            'w-full rounded-xl border border-neutral-200 dark:border-neutral-700'
+                                        }`}
+                                >
+                                    <iframe
+                                        srcDoc={data.config.html || '<div style="padding:20px;text-align:center;font-family:sans-serif;color:#888;">Preview will appear here</div>'}
+                                        className="w-full h-full border-0"
+                                        sandbox="allow-scripts allow-same-origin"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <DialogFooter className="p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-neutral-900">
+                            <div className="flex flex-wrap items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-neutral-500 whitespace-nowrap">Name</Label>
+                                    <Input value={data.name} onChange={e => setData('name', e.target.value)} className="h-8 w-48 text-sm" placeholder="Template Name" />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-neutral-500 whitespace-nowrap">Price / Day</Label>
+                                    <Input type="number" step="0.01" value={data.price} onChange={e => setData('price', e.target.value)} className="h-8 w-24 text-sm" />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-neutral-500 whitespace-nowrap">Reseller Price</Label>
+                                    <Input type="number" step="0.01" value={data.reseller_price} onChange={e => setData('reseller_price', e.target.value)} className="h-8 w-24 text-sm" />
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                                <Button type="button" variant="outline" size="sm" className="h-8 text-xs" onClick={() => setIsOpen(false)}>Cancel</Button>
                                 <Button
                                     type="button"
+                                    size="sm"
                                     onClick={(e) => {
                                         e.preventDefault();
                                         const payload = { ...data, status: 'draft' };
@@ -340,12 +395,13 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                                             router.post('/super-admin/mini-website-templates', payload, options);
                                         }
                                     }}
-                                    className="bg-neutral-800 hover:bg-neutral-900 text-white dark:bg-neutral-700 dark:hover:bg-neutral-600"
+                                    className="h-8 text-xs bg-neutral-800 hover:bg-neutral-900 text-white dark:bg-neutral-700 dark:hover:bg-neutral-600"
                                 >
                                     Save Draft
                                 </Button>
                                 <Button
                                     type="button"
+                                    size="sm"
                                     onClick={(e) => {
                                         e.preventDefault();
                                         const payload = { ...data, status: 'published' };
@@ -359,9 +415,9 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                                             router.post('/super-admin/mini-website-templates', payload, options);
                                         }
                                     }}
-                                    className="bg-pink-600 hover:bg-pink-700 text-white"
+                                    className="h-8 text-xs bg-pink-600 hover:bg-pink-700 text-white"
                                 >
-                                    <Save className="size-4 mr-2" /> {editingTemplate ? 'Publish Update' : 'Publish'}
+                                    <Save className="size-3.5 mr-1.5" /> {editingTemplate ? 'Publish Update' : 'Publish'}
                                 </Button>
                             </div>
                         </DialogFooter>

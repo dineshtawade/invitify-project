@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::saveDraft
- * @see app/Http/Controllers/Reseller/TemplateController.php:40
+ * @see app/Http/Controllers/Reseller/TemplateController.php:47
  * @route '/reseller/user-templates/{userTemplate}/save-draft'
  */
 export const saveDraft = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -16,7 +16,7 @@ saveDraft.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::saveDraft
- * @see app/Http/Controllers/Reseller/TemplateController.php:40
+ * @see app/Http/Controllers/Reseller/TemplateController.php:47
  * @route '/reseller/user-templates/{userTemplate}/save-draft'
  */
 saveDraft.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ saveDraft.url = (args: { userTemplate: number | { id: number } } | [userTemplate
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::saveDraft
- * @see app/Http/Controllers/Reseller/TemplateController.php:40
+ * @see app/Http/Controllers/Reseller/TemplateController.php:47
  * @route '/reseller/user-templates/{userTemplate}/save-draft'
  */
 saveDraft.put = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -59,7 +59,7 @@ saveDraft.put = (args: { userTemplate: number | { id: number } } | [userTemplate
 
     /**
 * @see \App\Http\Controllers\Reseller\TemplateController::saveDraft
- * @see app/Http/Controllers/Reseller/TemplateController.php:40
+ * @see app/Http/Controllers/Reseller/TemplateController.php:47
  * @route '/reseller/user-templates/{userTemplate}/save-draft'
  */
     const saveDraftForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -74,7 +74,7 @@ saveDraft.put = (args: { userTemplate: number | { id: number } } | [userTemplate
 
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::saveDraft
- * @see app/Http/Controllers/Reseller/TemplateController.php:40
+ * @see app/Http/Controllers/Reseller/TemplateController.php:47
  * @route '/reseller/user-templates/{userTemplate}/save-draft'
  */
         saveDraftForm.put = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -90,7 +90,7 @@ saveDraft.put = (args: { userTemplate: number | { id: number } } | [userTemplate
     saveDraft.form = saveDraftForm
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchase
- * @see app/Http/Controllers/Reseller/TemplateController.php:60
+ * @see app/Http/Controllers/Reseller/TemplateController.php:67
  * @route '/reseller/user-templates/{userTemplate}/purchase'
  */
 export const purchase = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -105,7 +105,7 @@ purchase.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchase
- * @see app/Http/Controllers/Reseller/TemplateController.php:60
+ * @see app/Http/Controllers/Reseller/TemplateController.php:67
  * @route '/reseller/user-templates/{userTemplate}/purchase'
  */
 purchase.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -138,7 +138,7 @@ purchase.url = (args: { userTemplate: number | { id: number } } | [userTemplate:
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchase
- * @see app/Http/Controllers/Reseller/TemplateController.php:60
+ * @see app/Http/Controllers/Reseller/TemplateController.php:67
  * @route '/reseller/user-templates/{userTemplate}/purchase'
  */
 purchase.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -148,7 +148,7 @@ purchase.post = (args: { userTemplate: number | { id: number } } | [userTemplate
 
     /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchase
- * @see app/Http/Controllers/Reseller/TemplateController.php:60
+ * @see app/Http/Controllers/Reseller/TemplateController.php:67
  * @route '/reseller/user-templates/{userTemplate}/purchase'
  */
     const purchaseForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -158,7 +158,7 @@ purchase.post = (args: { userTemplate: number | { id: number } } | [userTemplate
 
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchase
- * @see app/Http/Controllers/Reseller/TemplateController.php:60
+ * @see app/Http/Controllers/Reseller/TemplateController.php:67
  * @route '/reseller/user-templates/{userTemplate}/purchase'
  */
         purchaseForm.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -169,7 +169,7 @@ purchase.post = (args: { userTemplate: number | { id: number } } | [userTemplate
     purchase.form = purchaseForm
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::uploadVideo
- * @see app/Http/Controllers/Reseller/TemplateController.php:110
+ * @see app/Http/Controllers/Reseller/TemplateController.php:117
  * @route '/reseller/user-templates/{userTemplate}/upload-video'
  */
 export const uploadVideo = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -184,7 +184,7 @@ uploadVideo.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::uploadVideo
- * @see app/Http/Controllers/Reseller/TemplateController.php:110
+ * @see app/Http/Controllers/Reseller/TemplateController.php:117
  * @route '/reseller/user-templates/{userTemplate}/upload-video'
  */
 uploadVideo.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -217,7 +217,7 @@ uploadVideo.url = (args: { userTemplate: number | { id: number } } | [userTempla
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::uploadVideo
- * @see app/Http/Controllers/Reseller/TemplateController.php:110
+ * @see app/Http/Controllers/Reseller/TemplateController.php:117
  * @route '/reseller/user-templates/{userTemplate}/upload-video'
  */
 uploadVideo.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -227,7 +227,7 @@ uploadVideo.post = (args: { userTemplate: number | { id: number } } | [userTempl
 
     /**
 * @see \App\Http\Controllers\Reseller\TemplateController::uploadVideo
- * @see app/Http/Controllers/Reseller/TemplateController.php:110
+ * @see app/Http/Controllers/Reseller/TemplateController.php:117
  * @route '/reseller/user-templates/{userTemplate}/upload-video'
  */
     const uploadVideoForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -237,7 +237,7 @@ uploadVideo.post = (args: { userTemplate: number | { id: number } } | [userTempl
 
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::uploadVideo
- * @see app/Http/Controllers/Reseller/TemplateController.php:110
+ * @see app/Http/Controllers/Reseller/TemplateController.php:117
  * @route '/reseller/user-templates/{userTemplate}/upload-video'
  */
         uploadVideoForm.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

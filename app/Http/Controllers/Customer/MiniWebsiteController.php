@@ -397,8 +397,7 @@ class MiniWebsiteController extends Controller
             // Credit commission to referral partner's wallet
             $this->creditReferralCommission($referralCodeId, $commissionAmount, $transaction);
 
-            return redirect('/mini-website/' . $mini_website->slug)
-                ->with('status', '🎉 Your website is now live! (Mock checkout)');
+            return Inertia::location('/mini-website/' . $mini_website->slug);
         }
 
         // Verify Razorpay Payment Signature
@@ -435,8 +434,7 @@ class MiniWebsiteController extends Controller
             // Credit commission to referral partner's wallet
             $this->creditReferralCommission($referralCodeId, $commissionAmount, $transaction);
 
-            return redirect('/mini-website/' . $mini_website->slug)
-                ->with('status', '🎉 Payment successful! Your website is now live.');
+            return Inertia::location('/mini-website/' . $mini_website->slug);
         }
 
         abort(400, 'Payment signature verification failed.');

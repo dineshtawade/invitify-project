@@ -24,6 +24,7 @@ class MiniWebsiteController extends Controller
             ],
             'website' => [
                 'id' => $mini_website->id,
+                'uuid' => $mini_website->uuid,
                 'title' => $mini_website->title,
                 'slug' => $mini_website->slug,
                 'theme' => $mini_website->theme,

@@ -92,7 +92,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
         },
         {
             title: `Customize ${template.name}`,
-            href: `/reseller/templates/${template.id}/customize`,
+            href: `/reseller/templates/${template.encrypted_id}/customize`,
         },
     ];
 

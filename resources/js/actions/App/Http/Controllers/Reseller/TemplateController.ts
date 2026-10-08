@@ -2,66 +2,61 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFo
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::edit
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-export const edit = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const edit = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
 
 edit.definition = {
     methods: ["get","head"],
-    url: '/reseller/templates/{template}/customize',
+    url: '/reseller/templates/{encryptedId}/customize',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::edit
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-edit.url = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+edit.url = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
-        args = { template: args }
+        args = { encryptedId: args }
     }
 
-            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
-            args = { template: args.id }
-        }
     
     if (Array.isArray(args)) {
         args = {
-                    template: args[0],
+                    encryptedId: args[0],
                 }
     }
 
     args = applyUrlDefaults(args)
 
     const parsedArgs = {
-                        template: typeof args.template === 'object'
-                ? args.template.id
-                : args.template,
+                        encryptedId: args.encryptedId,
                 }
 
     return edit.definition.url
-            .replace('{template}', parsedArgs.template.toString())
+            .replace('{encryptedId}', parsedArgs.encryptedId.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::edit
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-edit.get = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::edit
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-edit.head = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit.url(args, options),
     method: 'head',
 })
@@ -69,9 +64,9 @@ edit.head = (args: { template: number | { id: number } } | [template: number | {
     /**
 * @see \App\Http\Controllers\Reseller\TemplateController::edit
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-    const editForm = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const editForm = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit.url(args, options),
         method: 'get',
     })
@@ -79,18 +74,18 @@ edit.head = (args: { template: number | { id: number } } | [template: number | {
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::edit
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-        editForm.get = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, options),
             method: 'get',
         })
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::edit
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-        editForm.head = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -103,7 +98,7 @@ edit.head = (args: { template: number | { id: number } } | [template: number | {
     edit.form = editForm
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::saveDraft
- * @see app/Http/Controllers/Reseller/TemplateController.php:40
+ * @see app/Http/Controllers/Reseller/TemplateController.php:47
  * @route '/reseller/user-templates/{userTemplate}/save-draft'
  */
 export const saveDraft = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -118,7 +113,7 @@ saveDraft.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::saveDraft
- * @see app/Http/Controllers/Reseller/TemplateController.php:40
+ * @see app/Http/Controllers/Reseller/TemplateController.php:47
  * @route '/reseller/user-templates/{userTemplate}/save-draft'
  */
 saveDraft.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -151,7 +146,7 @@ saveDraft.url = (args: { userTemplate: number | { id: number } } | [userTemplate
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::saveDraft
- * @see app/Http/Controllers/Reseller/TemplateController.php:40
+ * @see app/Http/Controllers/Reseller/TemplateController.php:47
  * @route '/reseller/user-templates/{userTemplate}/save-draft'
  */
 saveDraft.put = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -161,7 +156,7 @@ saveDraft.put = (args: { userTemplate: number | { id: number } } | [userTemplate
 
     /**
 * @see \App\Http\Controllers\Reseller\TemplateController::saveDraft
- * @see app/Http/Controllers/Reseller/TemplateController.php:40
+ * @see app/Http/Controllers/Reseller/TemplateController.php:47
  * @route '/reseller/user-templates/{userTemplate}/save-draft'
  */
     const saveDraftForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -176,7 +171,7 @@ saveDraft.put = (args: { userTemplate: number | { id: number } } | [userTemplate
 
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::saveDraft
- * @see app/Http/Controllers/Reseller/TemplateController.php:40
+ * @see app/Http/Controllers/Reseller/TemplateController.php:47
  * @route '/reseller/user-templates/{userTemplate}/save-draft'
  */
         saveDraftForm.put = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -192,7 +187,7 @@ saveDraft.put = (args: { userTemplate: number | { id: number } } | [userTemplate
     saveDraft.form = saveDraftForm
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchase
- * @see app/Http/Controllers/Reseller/TemplateController.php:60
+ * @see app/Http/Controllers/Reseller/TemplateController.php:67
  * @route '/reseller/user-templates/{userTemplate}/purchase'
  */
 export const purchase = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -207,7 +202,7 @@ purchase.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchase
- * @see app/Http/Controllers/Reseller/TemplateController.php:60
+ * @see app/Http/Controllers/Reseller/TemplateController.php:67
  * @route '/reseller/user-templates/{userTemplate}/purchase'
  */
 purchase.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -240,7 +235,7 @@ purchase.url = (args: { userTemplate: number | { id: number } } | [userTemplate:
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchase
- * @see app/Http/Controllers/Reseller/TemplateController.php:60
+ * @see app/Http/Controllers/Reseller/TemplateController.php:67
  * @route '/reseller/user-templates/{userTemplate}/purchase'
  */
 purchase.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -250,7 +245,7 @@ purchase.post = (args: { userTemplate: number | { id: number } } | [userTemplate
 
     /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchase
- * @see app/Http/Controllers/Reseller/TemplateController.php:60
+ * @see app/Http/Controllers/Reseller/TemplateController.php:67
  * @route '/reseller/user-templates/{userTemplate}/purchase'
  */
     const purchaseForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -260,7 +255,7 @@ purchase.post = (args: { userTemplate: number | { id: number } } | [userTemplate
 
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchase
- * @see app/Http/Controllers/Reseller/TemplateController.php:60
+ * @see app/Http/Controllers/Reseller/TemplateController.php:67
  * @route '/reseller/user-templates/{userTemplate}/purchase'
  */
         purchaseForm.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -271,7 +266,7 @@ purchase.post = (args: { userTemplate: number | { id: number } } | [userTemplate
     purchase.form = purchaseForm
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::uploadVideo
- * @see app/Http/Controllers/Reseller/TemplateController.php:110
+ * @see app/Http/Controllers/Reseller/TemplateController.php:117
  * @route '/reseller/user-templates/{userTemplate}/upload-video'
  */
 export const uploadVideo = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -286,7 +281,7 @@ uploadVideo.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::uploadVideo
- * @see app/Http/Controllers/Reseller/TemplateController.php:110
+ * @see app/Http/Controllers/Reseller/TemplateController.php:117
  * @route '/reseller/user-templates/{userTemplate}/upload-video'
  */
 uploadVideo.url = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -319,7 +314,7 @@ uploadVideo.url = (args: { userTemplate: number | { id: number } } | [userTempla
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::uploadVideo
- * @see app/Http/Controllers/Reseller/TemplateController.php:110
+ * @see app/Http/Controllers/Reseller/TemplateController.php:117
  * @route '/reseller/user-templates/{userTemplate}/upload-video'
  */
 uploadVideo.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -329,7 +324,7 @@ uploadVideo.post = (args: { userTemplate: number | { id: number } } | [userTempl
 
     /**
 * @see \App\Http\Controllers\Reseller\TemplateController::uploadVideo
- * @see app/Http/Controllers/Reseller/TemplateController.php:110
+ * @see app/Http/Controllers/Reseller/TemplateController.php:117
  * @route '/reseller/user-templates/{userTemplate}/upload-video'
  */
     const uploadVideoForm = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -339,7 +334,7 @@ uploadVideo.post = (args: { userTemplate: number | { id: number } } | [userTempl
 
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::uploadVideo
- * @see app/Http/Controllers/Reseller/TemplateController.php:110
+ * @see app/Http/Controllers/Reseller/TemplateController.php:117
  * @route '/reseller/user-templates/{userTemplate}/upload-video'
  */
         uploadVideoForm.post = (args: { userTemplate: number | { id: number } } | [userTemplate: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -350,7 +345,7 @@ uploadVideo.post = (args: { userTemplate: number | { id: number } } | [userTempl
     uploadVideo.form = uploadVideoForm
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchased
- * @see app/Http/Controllers/Reseller/TemplateController.php:143
+ * @see app/Http/Controllers/Reseller/TemplateController.php:150
  * @route '/reseller/my-invitations'
  */
 export const purchased = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -365,7 +360,7 @@ purchased.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchased
- * @see app/Http/Controllers/Reseller/TemplateController.php:143
+ * @see app/Http/Controllers/Reseller/TemplateController.php:150
  * @route '/reseller/my-invitations'
  */
 purchased.url = (options?: RouteQueryOptions) => {
@@ -374,7 +369,7 @@ purchased.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchased
- * @see app/Http/Controllers/Reseller/TemplateController.php:143
+ * @see app/Http/Controllers/Reseller/TemplateController.php:150
  * @route '/reseller/my-invitations'
  */
 purchased.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -383,7 +378,7 @@ purchased.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchased
- * @see app/Http/Controllers/Reseller/TemplateController.php:143
+ * @see app/Http/Controllers/Reseller/TemplateController.php:150
  * @route '/reseller/my-invitations'
  */
 purchased.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -393,7 +388,7 @@ purchased.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchased
- * @see app/Http/Controllers/Reseller/TemplateController.php:143
+ * @see app/Http/Controllers/Reseller/TemplateController.php:150
  * @route '/reseller/my-invitations'
  */
     const purchasedForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -403,7 +398,7 @@ purchased.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchased
- * @see app/Http/Controllers/Reseller/TemplateController.php:143
+ * @see app/Http/Controllers/Reseller/TemplateController.php:150
  * @route '/reseller/my-invitations'
  */
         purchasedForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -412,7 +407,7 @@ purchased.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::purchased
- * @see app/Http/Controllers/Reseller/TemplateController.php:143
+ * @see app/Http/Controllers/Reseller/TemplateController.php:150
  * @route '/reseller/my-invitations'
  */
         purchasedForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
