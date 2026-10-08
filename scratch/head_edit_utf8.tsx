@@ -336,7 +336,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
         if (!codeToApply) return;
         setIsApplyingCode(true);
         setCouponMessage('');
-        
+
         // First check locally if it's one of the listed coupons
         const localCoupon = coupons.find(c => c.code.toUpperCase() === codeToApply.toUpperCase());
         if (localCoupon) {
@@ -938,15 +938,15 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                         {isApplyingCode ? <Loader2 className="size-4 animate-spin" /> : 'Apply'}
                                     </Button>
                                 ) : (
-                                    <Button 
-                                        type="button" 
+                                    <Button
+                                        type="button"
                                         variant="outline"
                                         onClick={() => {
                                             setReferralCode('');
                                             setIsValidCoupon(false);
                                             setAppliedDiscount(0);
                                             setCouponMessage('');
-                                        }} 
+                                        }}
                                         className="h-9 px-4 shrink-0 border-red-200 text-red-600 hover:bg-red-50"
                                         disabled={isCheckingOut}
                                     >
@@ -954,15 +954,15 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                     </Button>
                                 )}
                             </div>
-                            
+
                             {/* Available Coupons List */}
                             {coupons && coupons.length > 0 && !isValidCoupon && (
                                 <div className="mt-2 text-xs flex flex-col gap-1.5 border-t border-gray-200 pt-2">
                                     <span className="font-bold text-gray-500">Available Coupons:</span>
                                     <div className="flex flex-wrap gap-2">
                                         {coupons.map((c) => (
-                                            <button 
-                                                key={c.id} 
+                                            <button
+                                                key={c.id}
                                                 type="button"
                                                 onClick={() => handleApplyCoupon(c.code)}
                                                 className="border border-blue-200 bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md text-[10px] font-bold hover:bg-blue-100 transition-colors"
