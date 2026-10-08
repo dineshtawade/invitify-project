@@ -162,7 +162,7 @@ function getElementLabel(el: Block, idx: number): string {
 function getCodeTemplateHtml(configData: any) {
     if (!configData || !configData.html) return null;
     let html = configData.html;
-    
+
     // Inject the script for extracting and updating elements
     const scriptToInject = `
     <script class="invitify-editor-script">
@@ -241,7 +241,7 @@ function getCodeTemplateHtml(configData: any) {
     } else {
         html += scriptToInject;
     }
-    
+
     return html;
 }
 
@@ -276,11 +276,11 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
             } else if (e.data?.type === 'SAVE_HTML_RESULT') {
                 const newConfig = { ...configRef.current, html: e.data.html };
                 setConfig(newConfig);
-                
+
                 // Proceed with saving
                 const callback = (window as any).pendingSaveCallback;
                 (window as any).pendingSaveCallback = null;
-                
+
                 router.put(`/customer/mini-websites/${website.uuid || website.id}`, {
                     title: website.title,
                     theme: website.theme || 'cozy',
@@ -316,7 +316,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
     const [couponMessage, setCouponMessage] = useState('');
     const [isValidCoupon, setIsValidCoupon] = useState(false);
     const [isApplyingCode, setIsApplyingCode] = useState(false);
-        const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [checkoutTimeLeft, setCheckoutTimeLeft] = useState(600);
 
     useEffect(() => {
@@ -449,7 +449,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
             });
         }
     };
-    
+
     const handleUpdateExtracted = (id: string, elType: string, value: string) => {
         setExtractedElements(prev => prev.map(item => item.id === id ? { ...item, [elType === 'text' ? 'text' : 'src']: value } : item));
         if (iframeRef.current?.contentWindow) {
@@ -498,7 +498,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
         if (!codeToApply) return;
         setIsApplyingCode(true);
         setCouponMessage('');
-        
+
         // First check locally if it's one of the listed coupons
         const localCoupon = coupons.find(c => c.code.toUpperCase() === codeToApply.toUpperCase());
         if (localCoupon) {
@@ -651,13 +651,13 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                             onClick={() => handleSave()}
                             disabled={isSaving}
                             variant="outline"
-                            className="h-8 px-3 text-xs font-bold border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                            className="h-8 px-3 text-xs font-bold border-gray-300 text-white bg-blue-600"
                         >
                             {isSaving ? <Loader2 className="size-3 mr-1.5 animate-spin" /> : <Save className="size-3 mr-1.5" />}
                             Save
                         </Button>
 
-                        {!isFree && website.template && (
+                        {!isFree && (
                             <Button
                                 onClick={handleBuyClick}
                                 disabled={isSaving || isCheckingOut}
@@ -727,7 +727,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                                 </div>
                                                 <ChevronRight className={`size-4 text-gray-400 transition-transform shrink-0 ${isExpanded ? 'rotate-90' : ''}`} />
                                             </button>
-                                            
+
                                             {isExpanded && (
                                                 <div className="px-4 pb-4 pt-1 border-t border-gray-100 space-y-3">
                                                     {el.type === 'text' && (
@@ -749,14 +749,14 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                                             )}
                                                         </div>
                                                     )}
-                                                    
+
                                                     {(el.type === 'image' || el.type === 'video') && (
                                                         <div className="space-y-3">
                                                             <div className="flex flex-col gap-2">
                                                                 <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Upload Local {el.type}</Label>
                                                                 <div className="relative">
-                                                                    <Input 
-                                                                        type="file" 
+                                                                    <Input
+                                                                        type="file"
                                                                         accept={el.type === 'image' ? "image/*" : "video/*"}
                                                                         onChange={async (e) => {
                                                                             const file = e.target.files?.[0];
@@ -778,7 +778,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                                                                     setIsUploadingImage(prev => ({ ...prev, [el.id]: false }));
                                                                                 }
                                                                             }
-                                                                        }} 
+                                                                        }}
                                                                         className="cursor-pointer file:text-xs text-xs h-9 bg-white border-gray-200"
                                                                         disabled={isUploadingImage[el.id]}
                                                                     />
@@ -816,227 +816,227 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                 })
                             ) : (
                                 editableBlocks.map((el, idx) => {
-                                const isExpanded = selectedElementId === el.id;
+                                    const isExpanded = selectedElementId === el.id;
 
-                                return (
-                                    <div
-                                        key={el.id}
-                                        className={`rounded-xl border bg-white transition-all overflow-hidden shadow-sm ${isExpanded
-                                            ? 'border-blue-300 shadow-md'
-                                            : 'border-gray-200'
-                                            }`}
-                                    >
-                                        {/* Element Header - Click to expand */}
-                                        <button
-                                            type="button"
-                                            onClick={() => setSelectedElementId(isExpanded ? null : el.id)}
-                                            className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                                    return (
+                                        <div
+                                            key={el.id}
+                                            className={`rounded-xl border bg-white transition-all overflow-hidden shadow-sm ${isExpanded
+                                                ? 'border-blue-300 shadow-md'
+                                                : 'border-gray-200'
+                                                }`}
                                         >
-                                            {getElementIcon(el)}
-                                            <div className="flex-1 min-w-0">
-                                                <span className="text-xs font-bold text-gray-800 capitalize">{el.type}</span>
-                                                <p className="text-xs text-gray-500 truncate mt-0.5">{getElementLabel(el, idx)}</p>
-                                            </div>
-                                            <ChevronRight className={`size-4 text-gray-400 transition-transform shrink-0 ${isExpanded ? 'rotate-90' : ''}`} />
-                                        </button>
+                                            {/* Element Header - Click to expand */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setSelectedElementId(isExpanded ? null : el.id)}
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                                            >
+                                                {getElementIcon(el)}
+                                                <div className="flex-1 min-w-0">
+                                                    <span className="text-xs font-bold text-gray-800 capitalize">{el.type}</span>
+                                                    <p className="text-xs text-gray-500 truncate mt-0.5">{getElementLabel(el, idx)}</p>
+                                                </div>
+                                                <ChevronRight className={`size-4 text-gray-400 transition-transform shrink-0 ${isExpanded ? 'rotate-90' : ''}`} />
+                                            </button>
 
-                                        {/* Expanded Edit Fields */}
-                                        {isExpanded && (
-                                            <div className="px-4 pb-4 pt-1 border-t border-gray-100 space-y-3">
-                                                {/* Text Element */}
-                                                {el.type === 'text' && (
-                                                    <div className="space-y-1">
-                                                        <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Text Content</Label>
-                                                        {el.content && el.content.length > 60 ? (
-                                                            <textarea
-                                                                value={el.content || ''}
-                                                                onChange={e => handleUpdateBlock(el.id, { content: e.target.value })}
-                                                                rows={3}
-                                                                className="flex w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 resize-none text-gray-900"
-                                                                placeholder="Enter your text..."
-                                                            />
-                                                        ) : (
-                                                            <Input
-                                                                value={el.content || ''}
-                                                                onChange={e => handleUpdateBlock(el.id, { content: e.target.value })}
-                                                                placeholder="Enter your text..."
-                                                                className="focus-visible:ring-blue-400 border-gray-200"
-                                                            />
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {/* Button Element */}
-                                                {el.type === 'button' && (
-                                                    <>
+                                            {/* Expanded Edit Fields */}
+                                            {isExpanded && (
+                                                <div className="px-4 pb-4 pt-1 border-t border-gray-100 space-y-3">
+                                                    {/* Text Element */}
+                                                    {el.type === 'text' && (
                                                         <div className="space-y-1">
-                                                            <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Button Text</Label>
-                                                            <Input
-                                                                value={el.content || ''}
-                                                                onChange={e => handleUpdateBlock(el.id, { content: e.target.value })}
-                                                                placeholder="Button label..."
-                                                                className="focus-visible:ring-blue-400 border-gray-200"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Link URL</Label>
-                                                            <Input
-                                                                value={el.url || ''}
-                                                                onChange={e => handleUpdateBlock(el.id, { actionType: 'url', url: e.target.value })}
-                                                                placeholder="https://your-website.com"
-                                                                className="focus-visible:ring-blue-400 border-gray-200"
-                                                            />
-                                                        </div>
-                                                    </>
-                                                )}
-
-                                                {/* Image Element */}
-                                                {el.type === 'image' && (
-                                                    <div className="space-y-3">
-                                                        <div className="flex flex-col gap-2">
-                                                            <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Upload Local File</Label>
-                                                            <div className="relative">
+                                                            <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Text Content</Label>
+                                                            {el.content && el.content.length > 60 ? (
+                                                                <textarea
+                                                                    value={el.content || ''}
+                                                                    onChange={e => handleUpdateBlock(el.id, { content: e.target.value })}
+                                                                    rows={3}
+                                                                    className="flex w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 resize-none text-gray-900"
+                                                                    placeholder="Enter your text..."
+                                                                />
+                                                            ) : (
                                                                 <Input
-                                                                    type="file"
-                                                                    accept="image/*"
-                                                                    onChange={(e) => handleImageUpload(e, el.id)}
-                                                                    disabled={isUploadingImage[el.id]}
-                                                                    className="cursor-pointer file:text-xs text-xs h-9 bg-white border-gray-200"
+                                                                    value={el.content || ''}
+                                                                    onChange={e => handleUpdateBlock(el.id, { content: e.target.value })}
+                                                                    placeholder="Enter your text..."
+                                                                    className="focus-visible:ring-blue-400 border-gray-200"
                                                                 />
-                                                                {isUploadingImage[el.id] && (
-                                                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                                                        <Loader2 className="size-4 animate-spin text-blue-500" />
-                                                                    </div>
-                                                                )}
-                                                            </div>
+                                                            )}
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <hr className="flex-1 border-gray-200" />
-                                                            <span className="text-[10px] text-gray-400 font-medium uppercase">OR</span>
-                                                            <hr className="flex-1 border-gray-200" />
-                                                        </div>
-                                                        <div className="grid gap-2">
-                                                            <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Image URL</Label>
-                                                            <Input
-                                                                value={el.src || ''}
-                                                                onChange={e => handleUpdateBlock(el.id, { src: e.target.value })}
-                                                                placeholder="https://example.com/photo.jpg"
-                                                                className="focus-visible:ring-blue-400 border-gray-200"
-                                                            />
-                                                        </div>
-                                                        {el.src && (
-                                                            <div className="h-28 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
-                                                                <img
-                                                                    src={el.src}
-                                                                    className="w-full h-full object-cover"
-                                                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                                                                />
-                                                            </div>
-                                                        )}
-                                                        <p className="text-[10px] text-gray-400">Upload an image or paste a direct URL. Recommended size: at least 800px wide.</p>
-                                                    </div>
-                                                )}
+                                                    )}
 
-                                                {/* Video Element */}
-                                                {el.type === 'video' && (
-                                                    <div className="space-y-3">
-                                                        <div className="flex flex-col gap-2">
-                                                            <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Upload Local Video</Label>
-                                                            <div className="relative">
+                                                    {/* Button Element */}
+                                                    {el.type === 'button' && (
+                                                        <>
+                                                            <div className="space-y-1">
+                                                                <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Button Text</Label>
                                                                 <Input
-                                                                    type="file"
-                                                                    accept="video/mp4,video/webm"
-                                                                    onChange={(e) => handleImageUpload(e, el.id)}
-                                                                    disabled={isUploadingImage[el.id]}
-                                                                    className="cursor-pointer file:text-xs text-xs h-9 bg-white border-gray-200"
+                                                                    value={el.content || ''}
+                                                                    onChange={e => handleUpdateBlock(el.id, { content: e.target.value })}
+                                                                    placeholder="Button label..."
+                                                                    className="focus-visible:ring-blue-400 border-gray-200"
                                                                 />
-                                                                {isUploadingImage[el.id] && (
-                                                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                                                        <Loader2 className="size-4 animate-spin text-blue-500" />
-                                                                    </div>
-                                                                )}
                                                             </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <hr className="flex-1 border-gray-200" />
-                                                            <span className="text-[10px] text-gray-400 font-medium uppercase">OR</span>
-                                                            <hr className="flex-1 border-gray-200" />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Video URL</Label>
-                                                            <Input
-                                                                value={el.src || ''}
-                                                                onChange={e => handleUpdateBlock(el.id, { src: e.target.value })}
-                                                                placeholder="https://example.com/video.mp4"
-                                                                className="focus-visible:ring-blue-400 border-gray-200"
-                                                            />
-                                                            <p className="text-[10px] text-gray-400">Paste a direct .mp4 video URL. The video will autoplay silently.</p>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                                            <div className="space-y-1">
+                                                                <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Link URL</Label>
+                                                                <Input
+                                                                    value={el.url || ''}
+                                                                    onChange={e => handleUpdateBlock(el.id, { actionType: 'url', url: e.target.value })}
+                                                                    placeholder="https://your-website.com"
+                                                                    className="focus-visible:ring-blue-400 border-gray-200"
+                                                                />
+                                                            </div>
+                                                        </>
+                                                    )}
 
-                                                {/* Carousel Element */}
-                                                {el.type === 'carousel' && (
-                                                    <div className="space-y-3">
-                                                        <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Gallery Images</Label>
-                                                        {(el.images || []).map((imgUrl, imgIdx) => (
-                                                            <div key={imgIdx} className="p-3 border border-gray-200 rounded-lg bg-gray-50 flex flex-col gap-2">
-                                                                <div className="flex gap-2 items-center">
-                                                                    <div className="relative flex-1">
-                                                                        <Input
-                                                                            type="file"
-                                                                            accept="image/*"
-                                                                            onChange={(e) => handleImageUpload(e, el.id, imgIdx)}
-                                                                            disabled={isUploadingImage[`${el.id}-${imgIdx}`]}
-                                                                            className="cursor-pointer file:text-[10px] text-[10px] h-8 bg-white border-gray-200 pr-8"
-                                                                        />
-                                                                        {isUploadingImage[`${el.id}-${imgIdx}`] && (
-                                                                            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                                                                                <Loader2 className="size-3 animate-spin text-blue-500" />
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex gap-2 items-center">
+                                                    {/* Image Element */}
+                                                    {el.type === 'image' && (
+                                                        <div className="space-y-3">
+                                                            <div className="flex flex-col gap-2">
+                                                                <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Upload Local File</Label>
+                                                                <div className="relative">
                                                                     <Input
-                                                                        value={imgUrl}
-                                                                        onChange={e => handleUpdateCarouselImage(el.id, imgIdx, e.target.value)}
-                                                                        placeholder={`Image URL ${imgIdx + 1}`}
-                                                                        className="focus-visible:ring-blue-400 flex-1 text-xs h-8 border-gray-200"
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        onChange={(e) => handleImageUpload(e, el.id)}
+                                                                        disabled={isUploadingImage[el.id]}
+                                                                        className="cursor-pointer file:text-xs text-xs h-9 bg-white border-gray-200"
                                                                     />
-                                                                    <div className="size-8 shrink-0 rounded overflow-hidden border border-gray-200 bg-gray-100 flex items-center justify-center">
-                                                                        {imgUrl ? (
-                                                                            <img src={imgUrl} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                                                                        ) : (
-                                                                            <ImageIcon className="size-3 text-gray-300" />
-                                                                        )}
-                                                                    </div>
+                                                                    {isUploadingImage[el.id] && (
+                                                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                                            <Loader2 className="size-4 animate-spin text-blue-500" />
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             </div>
-                                                        ))}
-                                                    </div>
-                                                )}
+                                                            <div className="flex items-center gap-2">
+                                                                <hr className="flex-1 border-gray-200" />
+                                                                <span className="text-[10px] text-gray-400 font-medium uppercase">OR</span>
+                                                                <hr className="flex-1 border-gray-200" />
+                                                            </div>
+                                                            <div className="grid gap-2">
+                                                                <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Image URL</Label>
+                                                                <Input
+                                                                    value={el.src || ''}
+                                                                    onChange={e => handleUpdateBlock(el.id, { src: e.target.value })}
+                                                                    placeholder="https://example.com/photo.jpg"
+                                                                    className="focus-visible:ring-blue-400 border-gray-200"
+                                                                />
+                                                            </div>
+                                                            {el.src && (
+                                                                <div className="h-28 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                                                                    <img
+                                                                        src={el.src}
+                                                                        className="w-full h-full object-cover"
+                                                                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                            <p className="text-[10px] text-gray-400">Upload an image or paste a direct URL. Recommended size: at least 800px wide.</p>
+                                                        </div>
+                                                    )}
 
-                                                {/* Map Element */}
-                                                {el.type === 'map' && (
-                                                    <div className="space-y-2">
-                                                        <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Google Maps Embed URL</Label>
-                                                        <Input
-                                                            value={el.src || ''}
-                                                            onChange={e => handleUpdateBlock(el.id, { src: e.target.value })}
-                                                            placeholder="https://www.google.com/maps/embed?pb=..."
-                                                            className="focus-visible:ring-blue-400 border-gray-200"
-                                                        />
-                                                        <p className="text-[10px] text-gray-400">
-                                                            Go to Google Maps → Share → Embed a map → Copy the src URL from the iframe code.
-                                                        </p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            }))}
+                                                    {/* Video Element */}
+                                                    {el.type === 'video' && (
+                                                        <div className="space-y-3">
+                                                            <div className="flex flex-col gap-2">
+                                                                <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Upload Local Video</Label>
+                                                                <div className="relative">
+                                                                    <Input
+                                                                        type="file"
+                                                                        accept="video/mp4,video/webm"
+                                                                        onChange={(e) => handleImageUpload(e, el.id)}
+                                                                        disabled={isUploadingImage[el.id]}
+                                                                        className="cursor-pointer file:text-xs text-xs h-9 bg-white border-gray-200"
+                                                                    />
+                                                                    {isUploadingImage[el.id] && (
+                                                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                                            <Loader2 className="size-4 animate-spin text-blue-500" />
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <hr className="flex-1 border-gray-200" />
+                                                                <span className="text-[10px] text-gray-400 font-medium uppercase">OR</span>
+                                                                <hr className="flex-1 border-gray-200" />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Video URL</Label>
+                                                                <Input
+                                                                    value={el.src || ''}
+                                                                    onChange={e => handleUpdateBlock(el.id, { src: e.target.value })}
+                                                                    placeholder="https://example.com/video.mp4"
+                                                                    className="focus-visible:ring-blue-400 border-gray-200"
+                                                                />
+                                                                <p className="text-[10px] text-gray-400">Paste a direct .mp4 video URL. The video will autoplay silently.</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Carousel Element */}
+                                                    {el.type === 'carousel' && (
+                                                        <div className="space-y-3">
+                                                            <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Gallery Images</Label>
+                                                            {(el.images || []).map((imgUrl, imgIdx) => (
+                                                                <div key={imgIdx} className="p-3 border border-gray-200 rounded-lg bg-gray-50 flex flex-col gap-2">
+                                                                    <div className="flex gap-2 items-center">
+                                                                        <div className="relative flex-1">
+                                                                            <Input
+                                                                                type="file"
+                                                                                accept="image/*"
+                                                                                onChange={(e) => handleImageUpload(e, el.id, imgIdx)}
+                                                                                disabled={isUploadingImage[`${el.id}-${imgIdx}`]}
+                                                                                className="cursor-pointer file:text-[10px] text-[10px] h-8 bg-white border-gray-200 pr-8"
+                                                                            />
+                                                                            {isUploadingImage[`${el.id}-${imgIdx}`] && (
+                                                                                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                                                                    <Loader2 className="size-3 animate-spin text-blue-500" />
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex gap-2 items-center">
+                                                                        <Input
+                                                                            value={imgUrl}
+                                                                            onChange={e => handleUpdateCarouselImage(el.id, imgIdx, e.target.value)}
+                                                                            placeholder={`Image URL ${imgIdx + 1}`}
+                                                                            className="focus-visible:ring-blue-400 flex-1 text-xs h-8 border-gray-200"
+                                                                        />
+                                                                        <div className="size-8 shrink-0 rounded overflow-hidden border border-gray-200 bg-gray-100 flex items-center justify-center">
+                                                                            {imgUrl ? (
+                                                                                <img src={imgUrl} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                                                            ) : (
+                                                                                <ImageIcon className="size-3 text-gray-300" />
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Map Element */}
+                                                    {el.type === 'map' && (
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Google Maps Embed URL</Label>
+                                                            <Input
+                                                                value={el.src || ''}
+                                                                onChange={e => handleUpdateBlock(el.id, { src: e.target.value })}
+                                                                placeholder="https://www.google.com/maps/embed?pb=..."
+                                                                className="focus-visible:ring-blue-400 border-gray-200"
+                                                            />
+                                                            <p className="text-[10px] text-gray-400">
+                                                                Go to Google Maps → Share → Embed a map → Copy the src URL from the iframe code.
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }))}
                         </div>
 
                     </div>
@@ -1074,7 +1074,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                         <div className="flex-1 overflow-y-auto p-8 flex justify-center bg-gray-100/50">
                             {isCodeTemplate ? (
                                 <div className={`relative w-full shadow-2xl transition-all duration-300 ${getDeviceWidth()} overflow-hidden rounded-md bg-white border border-gray-200`} style={{ height: '800px' }}>
-                                    <iframe 
+                                    <iframe
                                         ref={iframeRef}
                                         srcDoc={getCodeTemplateHtml(config) || ''}
                                         className="w-full h-full border-none"
@@ -1204,15 +1204,15 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                         {isApplyingCode ? <Loader2 className="size-4 animate-spin" /> : 'Apply'}
                                     </Button>
                                 ) : (
-                                    <Button 
-                                        type="button" 
+                                    <Button
+                                        type="button"
                                         variant="outline"
                                         onClick={() => {
                                             setReferralCode('');
                                             setIsValidCoupon(false);
                                             setAppliedDiscount(0);
                                             setCouponMessage('');
-                                        }} 
+                                        }}
                                         className="h-9 px-4 shrink-0 border-red-200 text-red-600 hover:bg-red-50"
                                         disabled={isCheckingOut}
                                     >
@@ -1220,15 +1220,15 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                     </Button>
                                 )}
                             </div>
-                            
+
                             {/* Available Coupons List */}
                             {coupons && coupons.length > 0 && !isValidCoupon && (
                                 <div className="mt-2 text-xs flex flex-col gap-1.5 border-t border-gray-200 pt-2">
                                     <span className="font-bold text-gray-500">Available Coupons:</span>
                                     <div className="flex flex-wrap gap-2">
                                         {coupons.map((c) => (
-                                            <button 
-                                                key={c.id} 
+                                            <button
+                                                key={c.id}
                                                 type="button"
                                                 onClick={() => handleApplyCoupon(c.code)}
                                                 className="border border-blue-200 bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md text-[10px] font-bold hover:bg-blue-100 transition-colors"
