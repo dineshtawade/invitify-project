@@ -211,7 +211,7 @@ register.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     
     register.form = registerForm
 /**
- * @see routes/web.php:8
+ * @see [serialized-closure]:2
  * @route '/'
  */
 export const home = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -225,7 +225,7 @@ home.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
- * @see routes/web.php:8
+ * @see [serialized-closure]:2
  * @route '/'
  */
 home.url = (options?: RouteQueryOptions) => {
@@ -233,7 +233,7 @@ home.url = (options?: RouteQueryOptions) => {
 }
 
 /**
- * @see routes/web.php:8
+ * @see [serialized-closure]:2
  * @route '/'
  */
 home.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -241,7 +241,7 @@ home.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     method: 'get',
 })
 /**
- * @see routes/web.php:8
+ * @see [serialized-closure]:2
  * @route '/'
  */
 home.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -250,7 +250,7 @@ home.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 })
 
     /**
- * @see routes/web.php:8
+ * @see [serialized-closure]:2
  * @route '/'
  */
     const homeForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -259,7 +259,7 @@ home.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     })
 
             /**
- * @see routes/web.php:8
+ * @see [serialized-closure]:2
  * @route '/'
  */
         homeForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -267,7 +267,7 @@ home.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
             method: 'get',
         })
             /**
- * @see routes/web.php:8
+ * @see [serialized-closure]:2
  * @route '/'
  */
         homeForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -282,7 +282,7 @@ home.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     
     home.form = homeForm
 /**
- * @see routes/web.php:17
+ * @see [serialized-closure]:2
  * @route '/privacy-policy'
  */
 export const privacyPolicy = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -296,7 +296,7 @@ privacyPolicy.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
- * @see routes/web.php:17
+ * @see [serialized-closure]:2
  * @route '/privacy-policy'
  */
 privacyPolicy.url = (options?: RouteQueryOptions) => {
@@ -304,7 +304,7 @@ privacyPolicy.url = (options?: RouteQueryOptions) => {
 }
 
 /**
- * @see routes/web.php:17
+ * @see [serialized-closure]:2
  * @route '/privacy-policy'
  */
 privacyPolicy.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -312,7 +312,7 @@ privacyPolicy.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     method: 'get',
 })
 /**
- * @see routes/web.php:17
+ * @see [serialized-closure]:2
  * @route '/privacy-policy'
  */
 privacyPolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -321,7 +321,7 @@ privacyPolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
 })
 
     /**
- * @see routes/web.php:17
+ * @see [serialized-closure]:2
  * @route '/privacy-policy'
  */
     const privacyPolicyForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -330,7 +330,7 @@ privacyPolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
     })
 
             /**
- * @see routes/web.php:17
+ * @see [serialized-closure]:2
  * @route '/privacy-policy'
  */
         privacyPolicyForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -338,7 +338,7 @@ privacyPolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
             method: 'get',
         })
             /**
- * @see routes/web.php:17
+ * @see [serialized-closure]:2
  * @route '/privacy-policy'
  */
         privacyPolicyForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -353,7 +353,7 @@ privacyPolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
     
     privacyPolicy.form = privacyPolicyForm
 /**
- * @see routes/web.php:21
+ * @see [serialized-closure]:2
  * @route '/terms-and-conditions'
  */
 export const termsAndConditions = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -367,7 +367,7 @@ termsAndConditions.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
- * @see routes/web.php:21
+ * @see [serialized-closure]:2
  * @route '/terms-and-conditions'
  */
 termsAndConditions.url = (options?: RouteQueryOptions) => {
@@ -375,7 +375,7 @@ termsAndConditions.url = (options?: RouteQueryOptions) => {
 }
 
 /**
- * @see routes/web.php:21
+ * @see [serialized-closure]:2
  * @route '/terms-and-conditions'
  */
 termsAndConditions.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -383,7 +383,7 @@ termsAndConditions.get = (options?: RouteQueryOptions): RouteDefinition<'get'> =
     method: 'get',
 })
 /**
- * @see routes/web.php:21
+ * @see [serialized-closure]:2
  * @route '/terms-and-conditions'
  */
 termsAndConditions.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -392,7 +392,7 @@ termsAndConditions.head = (options?: RouteQueryOptions): RouteDefinition<'head'>
 })
 
     /**
- * @see routes/web.php:21
+ * @see [serialized-closure]:2
  * @route '/terms-and-conditions'
  */
     const termsAndConditionsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -401,7 +401,7 @@ termsAndConditions.head = (options?: RouteQueryOptions): RouteDefinition<'head'>
     })
 
             /**
- * @see routes/web.php:21
+ * @see [serialized-closure]:2
  * @route '/terms-and-conditions'
  */
         termsAndConditionsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -409,7 +409,7 @@ termsAndConditions.head = (options?: RouteQueryOptions): RouteDefinition<'head'>
             method: 'get',
         })
             /**
- * @see routes/web.php:21
+ * @see [serialized-closure]:2
  * @route '/terms-and-conditions'
  */
         termsAndConditionsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -424,7 +424,7 @@ termsAndConditions.head = (options?: RouteQueryOptions): RouteDefinition<'head'>
     
     termsAndConditions.form = termsAndConditionsForm
 /**
- * @see routes/web.php:25
+ * @see [serialized-closure]:2
  * @route '/refund-policy'
  */
 export const refundPolicy = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -438,7 +438,7 @@ refundPolicy.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
- * @see routes/web.php:25
+ * @see [serialized-closure]:2
  * @route '/refund-policy'
  */
 refundPolicy.url = (options?: RouteQueryOptions) => {
@@ -446,7 +446,7 @@ refundPolicy.url = (options?: RouteQueryOptions) => {
 }
 
 /**
- * @see routes/web.php:25
+ * @see [serialized-closure]:2
  * @route '/refund-policy'
  */
 refundPolicy.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -454,7 +454,7 @@ refundPolicy.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     method: 'get',
 })
 /**
- * @see routes/web.php:25
+ * @see [serialized-closure]:2
  * @route '/refund-policy'
  */
 refundPolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -463,7 +463,7 @@ refundPolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 })
 
     /**
- * @see routes/web.php:25
+ * @see [serialized-closure]:2
  * @route '/refund-policy'
  */
     const refundPolicyForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -472,7 +472,7 @@ refundPolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     })
 
             /**
- * @see routes/web.php:25
+ * @see [serialized-closure]:2
  * @route '/refund-policy'
  */
         refundPolicyForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -480,7 +480,7 @@ refundPolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
             method: 'get',
         })
             /**
- * @see routes/web.php:25
+ * @see [serialized-closure]:2
  * @route '/refund-policy'
  */
         refundPolicyForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -495,7 +495,7 @@ refundPolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     
     refundPolicy.form = refundPolicyForm
 /**
- * @see routes/web.php:29
+ * @see [serialized-closure]:2
  * @route '/disclaimer'
  */
 export const disclaimer = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -509,7 +509,7 @@ disclaimer.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
- * @see routes/web.php:29
+ * @see [serialized-closure]:2
  * @route '/disclaimer'
  */
 disclaimer.url = (options?: RouteQueryOptions) => {
@@ -517,7 +517,7 @@ disclaimer.url = (options?: RouteQueryOptions) => {
 }
 
 /**
- * @see routes/web.php:29
+ * @see [serialized-closure]:2
  * @route '/disclaimer'
  */
 disclaimer.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -525,7 +525,7 @@ disclaimer.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     method: 'get',
 })
 /**
- * @see routes/web.php:29
+ * @see [serialized-closure]:2
  * @route '/disclaimer'
  */
 disclaimer.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -534,7 +534,7 @@ disclaimer.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 })
 
     /**
- * @see routes/web.php:29
+ * @see [serialized-closure]:2
  * @route '/disclaimer'
  */
     const disclaimerForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -543,7 +543,7 @@ disclaimer.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     })
 
             /**
- * @see routes/web.php:29
+ * @see [serialized-closure]:2
  * @route '/disclaimer'
  */
         disclaimerForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -551,7 +551,7 @@ disclaimer.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
             method: 'get',
         })
             /**
- * @see routes/web.php:29
+ * @see [serialized-closure]:2
  * @route '/disclaimer'
  */
         disclaimerForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -566,7 +566,7 @@ disclaimer.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     
     disclaimer.form = disclaimerForm
 /**
- * @see routes/web.php:33
+ * @see [serialized-closure]:2
  * @route '/cookie-policy'
  */
 export const cookiePolicy = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -580,7 +580,7 @@ cookiePolicy.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
- * @see routes/web.php:33
+ * @see [serialized-closure]:2
  * @route '/cookie-policy'
  */
 cookiePolicy.url = (options?: RouteQueryOptions) => {
@@ -588,7 +588,7 @@ cookiePolicy.url = (options?: RouteQueryOptions) => {
 }
 
 /**
- * @see routes/web.php:33
+ * @see [serialized-closure]:2
  * @route '/cookie-policy'
  */
 cookiePolicy.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -596,7 +596,7 @@ cookiePolicy.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     method: 'get',
 })
 /**
- * @see routes/web.php:33
+ * @see [serialized-closure]:2
  * @route '/cookie-policy'
  */
 cookiePolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -605,7 +605,7 @@ cookiePolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 })
 
     /**
- * @see routes/web.php:33
+ * @see [serialized-closure]:2
  * @route '/cookie-policy'
  */
     const cookiePolicyForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -614,7 +614,7 @@ cookiePolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     })
 
             /**
- * @see routes/web.php:33
+ * @see [serialized-closure]:2
  * @route '/cookie-policy'
  */
         cookiePolicyForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -622,7 +622,7 @@ cookiePolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
             method: 'get',
         })
             /**
- * @see routes/web.php:33
+ * @see [serialized-closure]:2
  * @route '/cookie-policy'
  */
         cookiePolicyForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -637,7 +637,7 @@ cookiePolicy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     
     cookiePolicy.form = cookiePolicyForm
 /**
- * @see routes/web.php:77
+ * @see [serialized-closure]:2
  * @route '/apply-referral'
  */
 export const applyReferral = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -651,7 +651,7 @@ applyReferral.definition = {
 } satisfies RouteDefinition<["post"]>
 
 /**
- * @see routes/web.php:77
+ * @see [serialized-closure]:2
  * @route '/apply-referral'
  */
 applyReferral.url = (options?: RouteQueryOptions) => {
@@ -659,7 +659,7 @@ applyReferral.url = (options?: RouteQueryOptions) => {
 }
 
 /**
- * @see routes/web.php:77
+ * @see [serialized-closure]:2
  * @route '/apply-referral'
  */
 applyReferral.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -668,7 +668,7 @@ applyReferral.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
 })
 
     /**
- * @see routes/web.php:77
+ * @see [serialized-closure]:2
  * @route '/apply-referral'
  */
     const applyReferralForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -677,7 +677,7 @@ applyReferral.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
     })
 
             /**
- * @see routes/web.php:77
+ * @see [serialized-closure]:2
  * @route '/apply-referral'
  */
         applyReferralForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -687,7 +687,7 @@ applyReferral.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
     
     applyReferral.form = applyReferralForm
 /**
- * @see routes/web.php:92
+ * @see [serialized-closure]:2
  * @route '/dashboard'
  */
 export const dashboard = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -701,7 +701,7 @@ dashboard.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
- * @see routes/web.php:92
+ * @see [serialized-closure]:2
  * @route '/dashboard'
  */
 dashboard.url = (options?: RouteQueryOptions) => {
@@ -709,7 +709,7 @@ dashboard.url = (options?: RouteQueryOptions) => {
 }
 
 /**
- * @see routes/web.php:92
+ * @see [serialized-closure]:2
  * @route '/dashboard'
  */
 dashboard.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -717,7 +717,7 @@ dashboard.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     method: 'get',
 })
 /**
- * @see routes/web.php:92
+ * @see [serialized-closure]:2
  * @route '/dashboard'
  */
 dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -726,7 +726,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 })
 
     /**
- * @see routes/web.php:92
+ * @see [serialized-closure]:2
  * @route '/dashboard'
  */
     const dashboardForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -735,7 +735,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     })
 
             /**
- * @see routes/web.php:92
+ * @see [serialized-closure]:2
  * @route '/dashboard'
  */
         dashboardForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -743,7 +743,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
             method: 'get',
         })
             /**
- * @see routes/web.php:92
+ * @see [serialized-closure]:2
  * @route '/dashboard'
  */
         dashboardForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

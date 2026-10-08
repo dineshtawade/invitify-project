@@ -6,7 +6,6 @@ import businessWebsites from './business-websites'
 import templates from './templates'
 import userTemplates from './user-templates'
 import websites from './websites'
-import businessCards from './business-cards'
 /**
 * @see \App\Http\Controllers\Reseller\DashboardController::dashboard
  * @see app/Http/Controllers/Reseller/DashboardController.php:14
@@ -397,84 +396,6 @@ myInvitations.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => (
         })
     
     myInvitations.form = myInvitationsForm
-/**
-* @see \App\Http\Controllers\Reseller\BusinessCardController::businessCardPlans
- * @see app/Http/Controllers/Reseller/BusinessCardController.php:141
- * @route '/reseller/business-card-plans'
- */
-export const businessCardPlans = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: businessCardPlans.url(options),
-    method: 'get',
-})
-
-businessCardPlans.definition = {
-    methods: ["get","head"],
-    url: '/reseller/business-card-plans',
-} satisfies RouteDefinition<["get","head"]>
-
-/**
-* @see \App\Http\Controllers\Reseller\BusinessCardController::businessCardPlans
- * @see app/Http/Controllers/Reseller/BusinessCardController.php:141
- * @route '/reseller/business-card-plans'
- */
-businessCardPlans.url = (options?: RouteQueryOptions) => {
-    return businessCardPlans.definition.url + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\Reseller\BusinessCardController::businessCardPlans
- * @see app/Http/Controllers/Reseller/BusinessCardController.php:141
- * @route '/reseller/business-card-plans'
- */
-businessCardPlans.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: businessCardPlans.url(options),
-    method: 'get',
-})
-/**
-* @see \App\Http\Controllers\Reseller\BusinessCardController::businessCardPlans
- * @see app/Http/Controllers/Reseller/BusinessCardController.php:141
- * @route '/reseller/business-card-plans'
- */
-businessCardPlans.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: businessCardPlans.url(options),
-    method: 'head',
-})
-
-    /**
-* @see \App\Http\Controllers\Reseller\BusinessCardController::businessCardPlans
- * @see app/Http/Controllers/Reseller/BusinessCardController.php:141
- * @route '/reseller/business-card-plans'
- */
-    const businessCardPlansForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: businessCardPlans.url(options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\Reseller\BusinessCardController::businessCardPlans
- * @see app/Http/Controllers/Reseller/BusinessCardController.php:141
- * @route '/reseller/business-card-plans'
- */
-        businessCardPlansForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: businessCardPlans.url(options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\Reseller\BusinessCardController::businessCardPlans
- * @see app/Http/Controllers/Reseller/BusinessCardController.php:141
- * @route '/reseller/business-card-plans'
- */
-        businessCardPlansForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: businessCardPlans.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    businessCardPlans.form = businessCardPlansForm
 const reseller = {
     dashboard: Object.assign(dashboard, dashboard),
 wallet: Object.assign(wallet, wallet),
@@ -488,8 +409,6 @@ templates: Object.assign(templates, templates),
 userTemplates: Object.assign(userTemplates, userTemplates),
 myInvitations: Object.assign(myInvitations, myInvitations),
 websites: Object.assign(websites, websites),
-businessCards: Object.assign(businessCards, businessCards),
-businessCardPlans: Object.assign(businessCardPlans, businessCardPlans),
 }
 
 export default reseller

@@ -2,61 +2,61 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFo
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
  * @see app/Http/Controllers/Customer/TemplateController.php:57
- * @route '/templates/{encryptedId}/customize'
+ * @route '/templates/{template}/customize'
  */
-export const edit = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const edit = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
 
 edit.definition = {
     methods: ["get","head"],
-    url: '/templates/{encryptedId}/customize',
+    url: '/templates/{template}/customize',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
  * @see app/Http/Controllers/Customer/TemplateController.php:57
- * @route '/templates/{encryptedId}/customize'
+ * @route '/templates/{template}/customize'
  */
-edit.url = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions) => {
+edit.url = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
-        args = { encryptedId: args }
+        args = { template: args }
     }
 
     
     if (Array.isArray(args)) {
         args = {
-                    encryptedId: args[0],
+                    template: args[0],
                 }
     }
 
     args = applyUrlDefaults(args)
 
     const parsedArgs = {
-                        encryptedId: args.encryptedId,
+                        template: args.template,
                 }
 
     return edit.definition.url
-            .replace('{encryptedId}', parsedArgs.encryptedId.toString())
+            .replace('{template}', parsedArgs.template.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
  * @see app/Http/Controllers/Customer/TemplateController.php:57
- * @route '/templates/{encryptedId}/customize'
+ * @route '/templates/{template}/customize'
  */
-edit.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit.get = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
  * @see app/Http/Controllers/Customer/TemplateController.php:57
- * @route '/templates/{encryptedId}/customize'
+ * @route '/templates/{template}/customize'
  */
-edit.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit.head = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit.url(args, options),
     method: 'head',
 })
@@ -64,9 +64,9 @@ edit.head = (args: { encryptedId: string | number } | [encryptedId: string | num
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
  * @see app/Http/Controllers/Customer/TemplateController.php:57
- * @route '/templates/{encryptedId}/customize'
+ * @route '/templates/{template}/customize'
  */
-    const editForm = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const editForm = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit.url(args, options),
         method: 'get',
     })
@@ -74,18 +74,18 @@ edit.head = (args: { encryptedId: string | number } | [encryptedId: string | num
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
  * @see app/Http/Controllers/Customer/TemplateController.php:57
- * @route '/templates/{encryptedId}/customize'
+ * @route '/templates/{template}/customize'
  */
-        editForm.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.get = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, options),
             method: 'get',
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
  * @see app/Http/Controllers/Customer/TemplateController.php:57
- * @route '/templates/{encryptedId}/customize'
+ * @route '/templates/{template}/customize'
  */
-        editForm.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.head = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -99,61 +99,61 @@ edit.head = (args: { encryptedId: string | number } | [encryptedId: string | num
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::viewShared
  * @see app/Http/Controllers/Customer/TemplateController.php:251
- * @route '/invitations/view/{encryptedId}'
+ * @route '/invitations/view/{userTemplate}'
  */
-export const viewShared = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const viewShared = (args: { userTemplate: string | number } | [userTemplate: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: viewShared.url(args, options),
     method: 'get',
 })
 
 viewShared.definition = {
     methods: ["get","head"],
-    url: '/invitations/view/{encryptedId}',
+    url: '/invitations/view/{userTemplate}',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::viewShared
  * @see app/Http/Controllers/Customer/TemplateController.php:251
- * @route '/invitations/view/{encryptedId}'
+ * @route '/invitations/view/{userTemplate}'
  */
-viewShared.url = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions) => {
+viewShared.url = (args: { userTemplate: string | number } | [userTemplate: string | number ] | string | number, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
-        args = { encryptedId: args }
+        args = { userTemplate: args }
     }
 
     
     if (Array.isArray(args)) {
         args = {
-                    encryptedId: args[0],
+                    userTemplate: args[0],
                 }
     }
 
     args = applyUrlDefaults(args)
 
     const parsedArgs = {
-                        encryptedId: args.encryptedId,
+                        userTemplate: args.userTemplate,
                 }
 
     return viewShared.definition.url
-            .replace('{encryptedId}', parsedArgs.encryptedId.toString())
+            .replace('{userTemplate}', parsedArgs.userTemplate.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::viewShared
  * @see app/Http/Controllers/Customer/TemplateController.php:251
- * @route '/invitations/view/{encryptedId}'
+ * @route '/invitations/view/{userTemplate}'
  */
-viewShared.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+viewShared.get = (args: { userTemplate: string | number } | [userTemplate: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: viewShared.url(args, options),
     method: 'get',
 })
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::viewShared
  * @see app/Http/Controllers/Customer/TemplateController.php:251
- * @route '/invitations/view/{encryptedId}'
+ * @route '/invitations/view/{userTemplate}'
  */
-viewShared.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+viewShared.head = (args: { userTemplate: string | number } | [userTemplate: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: viewShared.url(args, options),
     method: 'head',
 })
@@ -161,9 +161,9 @@ viewShared.head = (args: { encryptedId: string | number } | [encryptedId: string
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::viewShared
  * @see app/Http/Controllers/Customer/TemplateController.php:251
- * @route '/invitations/view/{encryptedId}'
+ * @route '/invitations/view/{userTemplate}'
  */
-    const viewSharedForm = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const viewSharedForm = (args: { userTemplate: string | number } | [userTemplate: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: viewShared.url(args, options),
         method: 'get',
     })
@@ -171,18 +171,18 @@ viewShared.head = (args: { encryptedId: string | number } | [encryptedId: string
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::viewShared
  * @see app/Http/Controllers/Customer/TemplateController.php:251
- * @route '/invitations/view/{encryptedId}'
+ * @route '/invitations/view/{userTemplate}'
  */
-        viewSharedForm.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        viewSharedForm.get = (args: { userTemplate: string | number } | [userTemplate: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: viewShared.url(args, options),
             method: 'get',
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::viewShared
  * @see app/Http/Controllers/Customer/TemplateController.php:251
- * @route '/invitations/view/{encryptedId}'
+ * @route '/invitations/view/{userTemplate}'
  */
-        viewSharedForm.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        viewSharedForm.head = (args: { userTemplate: string | number } | [userTemplate: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: viewShared.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',

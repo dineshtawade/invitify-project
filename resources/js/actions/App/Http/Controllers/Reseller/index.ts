@@ -7,7 +7,6 @@ import TemplateController from './TemplateController'
 import HostingController from './HostingController'
 import MiniWebsiteController from './MiniWebsiteController'
 import BusinessWebsiteController from './BusinessWebsiteController'
-import BusinessCardController from './BusinessCardController'
 const Reseller = {
     DashboardController: Object.assign(DashboardController, DashboardController),
 WalletController: Object.assign(WalletController, WalletController),
@@ -18,7 +17,6 @@ TemplateController: Object.assign(TemplateController, TemplateController),
 HostingController: Object.assign(HostingController, HostingController),
 MiniWebsiteController: Object.assign(MiniWebsiteController, MiniWebsiteController),
 BusinessWebsiteController: Object.assign(BusinessWebsiteController, BusinessWebsiteController),
-BusinessCardController: Object.assign(BusinessCardController, BusinessCardController),
 }
 
 export default Reseller
