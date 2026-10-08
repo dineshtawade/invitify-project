@@ -657,7 +657,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                             Save
                         </Button>
 
-                        {!isFree && website.template && (
+                        {!isFree && (
                             <Button
                                 onClick={handleBuyClick}
                                 disabled={isSaving || isCheckingOut}
