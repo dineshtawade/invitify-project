@@ -255,7 +255,7 @@ export default function TransactionsIndex({ transactions, filters = { search: ''
                                                                 </a>
                                                             )}
                                                             {tx.userTemplate && (
-                                                                <a href={`/invitations/view/${tx.userTemplate.id}`} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline flex items-center gap-1">
+                                                                <a href={`/invitations/view/${tx.userTemplate.encrypted_id}`} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline flex items-center gap-1">
                                                                     View Invitation ↗
                                                                 </a>
                                                             )}

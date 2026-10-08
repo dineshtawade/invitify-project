@@ -33,6 +33,7 @@ class TemplateController extends Controller
             'type' => $t->type,
             'price' => floatval($t->price),
             'preview_image' => $t->preview_image,
+            'config' => $t->default_config,
         ]);
 
         $businessTemplates = \App\Models\BusinessWebsiteTemplate::all()->map(fn($t) => [
@@ -53,8 +54,15 @@ class TemplateController extends Controller
     /**
      * Start customizing a template (creates/retrieves draft and loads editor).
      */
-    public function edit(Template $template)
+    public function edit($encryptedId)
     {
+        try {
+            $id = decrypt($encryptedId);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404);
+        }
+
+        $template = Template::findOrFail($id);
         $userTemplate = null;
 
         if (auth()->check()) {
@@ -205,6 +213,7 @@ class TemplateController extends Controller
             ->map(function ($ut) {
                 return [
                     'id' => $ut->id,
+                    'encrypted_id' => $ut->encrypted_id,
                     'template_id' => $ut->template_id,
                     'template' => $ut->template,
                     'custom_config' => $ut->custom_config,
@@ -239,8 +248,15 @@ class TemplateController extends Controller
     /**
      * View a shared invitation card.
      */
-    public function viewShared(UserTemplate $userTemplate)
+    public function viewShared($encryptedId)
     {
+        try {
+            $id = decrypt($encryptedId);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404);
+        }
+
+        $userTemplate = UserTemplate::findOrFail($id);
         $userTemplate->load('template');
 
         return Inertia::render('public/view', [

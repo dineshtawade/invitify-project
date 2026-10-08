@@ -10,7 +10,7 @@ import {
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
-import { Mail, Share2, Printer, Sparkles, Download, PlayCircle, Video } from 'lucide-react';
+import { Mail, Share2, Printer, Sparkles, Download, PlayCircle, Video, Copy, Check } from 'lucide-react';
 import { normalizeConfig } from '@/utils/builder-utils';
 import { toPng } from 'html-to-image';
 import VideoGenerator from '@/components/video-generator';
@@ -125,7 +125,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
 
     const handleCopyLink = () => {
         if (selectedInvitation) {
-            const shareUrl = `${window.location.origin}/invitations/view/${selectedInvitation.id}`;
+            const shareUrl = `${window.location.origin}/invitations/view/${selectedInvitation.encrypted_id}`;
             navigator.clipboard.writeText(shareUrl);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
@@ -326,7 +326,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                 </div>
                                             ) : (
                                                 <Link
-                                                    href={`/templates/${t.template_id}/customize`}
+                                                    href={`/templates/${t.template?.encrypted_id || t.template_id}/customize`}
                                                     className={`text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium text-xs flex items-center gap-1 mt-1 ${isVideo ? 'justify-center py-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg' : ''}`}
                                                 >
                                                     Edit Design →
@@ -453,35 +453,46 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
 
             {/* Share invitation link dialog */}
             <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
-                <DialogContent className="max-w-sm bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
-                    <DialogHeader>
-                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                <DialogContent className="max-w-md bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl w-[95vw] sm:w-full">
+                    <DialogHeader className="pb-2">
+                        <DialogTitle className="text-lg font-bold flex items-center gap-2">
                             Share Invitation
                         </DialogTitle>
                     </DialogHeader>
 
-                    <div className="py-4 flex flex-col gap-4">
-                        <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-normal">
+                    <div className="py-2 flex flex-col gap-4">
+                        <p className="text-sm text-neutral-600 dark:text-neutral-400">
                             Copy the guest-link below and send it to your friends and family via WhatsApp, email, or social media.
                         </p>
 
-                        <div className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-950">
-                            <span className="truncate text-xs font-mono text-neutral-600 dark:text-neutral-400 select-all flex-1">
-                                {selectedInvitation ? `${window.location.origin}/invitations/view/${selectedInvitation.id}` : ''}
-                            </span>
+                        <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                                <input 
+                                    readOnly
+                                    type="text" 
+                                    value={selectedInvitation ? `${window.location.origin}/invitations/view/${selectedInvitation.encrypted_id}` : ''}
+                                    className="w-full h-10 rounded-lg border border-neutral-200 bg-neutral-50 px-3 text-xs font-mono text-neutral-600 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    onClick={(e) => e.currentTarget.select()}
+                                />
+                            </div>
+                            <Button 
+                                type="button" 
+                                variant={copied ? "secondary" : "default"}
+                                onClick={handleCopyLink}
+                                className={`h-10 px-4 font-semibold transition-all ${copied ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                            >
+                                {copied ? (
+                                    <><Check className="size-4 mr-2" /> Copied</>
+                                ) : (
+                                    <><Copy className="size-4 mr-2" /> Copy</>
+                                )}
+                            </Button>
                         </div>
                     </div>
 
-                    <DialogFooter className="gap-2">
-                        <Button type="button" variant="outline" onClick={() => setIsShareOpen(false)}>
+                    <DialogFooter className="pt-2">
+                        <Button type="button" variant="ghost" onClick={() => setIsShareOpen(false)} className="w-full sm:w-auto text-neutral-500">
                             Close
-                        </Button>
-                        <Button
-                            type="button"
-                            onClick={handleCopyLink}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                        >
-                            {copied ? 'Copied!' : 'Copy Link'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

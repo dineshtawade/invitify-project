@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
+import MiniWebsitePreview from '@/Components/MiniWebsitePreview';
 import { dashboard, login, register } from '@/routes';
 import {
     Sparkles,
@@ -697,7 +698,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                                             <p className="font-serif text-2xl font-black my-2 truncate text-neutral-900 max-w-[170px]">{t.default_config.guest_of_honor}</p>
                                                             <p className="text-[8px] opacity-80 uppercase tracking-wider">{t.default_config.date}</p>
                                                         </div>
-                                                        <Link href={`/templates/${t.id}/customize`} className="absolute inset-0 z-20" />
+                                                        <Link href={`/templates/${t.encrypted_id}/customize`} className="absolute inset-0 z-20" />
                                                     </div>
                                                     <div className="w-[90%] -mt-6 z-20 bg-[#fdfbf7] border border-[#ebd9c1] rounded p-3 text-center shadow-sm relative pointer-events-none group-hover:border-[#d3c0a3] transition-colors">
                                                         <h3 className="text-sm font-serif font-bold text-[#3e3832] truncate">{t.name}</h3>
@@ -730,7 +731,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                                         <div className="text-center pointer-events-none scale-90 opacity-90 transition-transform duration-300 group-hover:scale-95 relative z-10">
                                                             <PlayCircle className="size-12 text-white/80 mx-auto" />
                                                         </div>
-                                                        <Link href={`/templates/${t.id}/customize`} className="absolute inset-0 z-20" />
+                                                        <Link href={`/templates/${t.encrypted_id}/customize`} className="absolute inset-0 z-20" />
                                                     </div>
                                                     <div className="w-[90%] -mt-6 z-20 bg-[#fdfbf7] border border-[#ebd9c1] rounded p-3 text-center shadow-sm relative pointer-events-none group-hover:border-[#d3c0a3] transition-colors">
                                                         <h3 className="text-sm font-serif font-bold text-[#3e3832] truncate">{t.name}</h3>
@@ -770,6 +771,14 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                                 <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#e0d6c8] flex items-center justify-center rounded-t-xl rounded-b shadow-md">
                                                     {w.preview_image ? (
                                                         <img src={w.preview_image} alt={w.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                                    ) : (typeof w.config === 'string' ? JSON.parse(w.config || '{}') : (w.config || {})).pages ? (
+                                                        <div className="absolute top-0 left-0 w-full h-[800px] origin-top-left transition-transform duration-500 group-hover:scale-105 bg-white">
+                                                            <MiniWebsitePreview config={typeof w.config === 'string' ? JSON.parse(w.config) : w.config} />
+                                                        </div>
+                                                    ) : (typeof w.config === 'string' ? JSON.parse(w.config || '{}') : (w.config || {})).html ? (
+                                                        <div className="absolute inset-0 w-[400%] h-[400%] origin-top-left scale-[0.25] transition-transform duration-500 group-hover:scale-[0.26]">
+                                                            <iframe srcDoc={(typeof w.config === 'string' ? JSON.parse(w.config) : w.config).html} className="w-full h-full border-none pointer-events-none bg-white" tabIndex={-1} scrolling="no" />
+                                                        </div>
                                                     ) : (
                                                         <div className="absolute inset-0 bg-[#ebd9c1]/20 flex flex-col items-center justify-center p-6 text-center select-none">
                                                             <Globe className="size-8 text-[#d3c0a3] mb-3" />

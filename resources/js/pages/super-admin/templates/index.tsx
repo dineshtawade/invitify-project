@@ -1004,7 +1004,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
 
                                 {/* Workspace logic based on type */}
                                 {data.type === 'video' ? (
-                                    <div className="flex flex-col h-full overflow-hidden">
+                                    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                                         <VideoTemplateBuilder data={data} setData={setData} />
                                     </div>
                                 ) : (

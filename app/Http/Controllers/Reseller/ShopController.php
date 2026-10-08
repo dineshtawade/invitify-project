@@ -36,6 +36,7 @@ class ShopController extends Controller
             'price' => floatval($t->price),
             'reseller_price' => $t->getResellerPrice(),
             'preview_image' => $t->preview_image,
+            'config' => $t->config,
         ]);
 
         // Catalog of Business Website templates

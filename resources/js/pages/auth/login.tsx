@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -35,7 +36,86 @@ export default function Login({
                 resetOnSuccess={['password']}
                 className="flex flex-col gap-6"
             >
-                {({ processing, errors }) => (
+                {({ processing, errors }) => {
+                    const isRateLimited = errors.email && errors.email.toLowerCase().includes('too many login attempts');
+                    
+                    const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
+                    useEffect(() => {
+                        if (isRateLimited && errors.email && timeLeft === null) {
+                            const match = errors.email.match(/(\d+)\s+seconds?/);
+                            if (match) {
+                                setTimeLeft(parseInt(match[1]));
+                            }
+                        }
+                    }, [isRateLimited, errors.email]);
+
+                    useEffect(() => {
+                        if (timeLeft === null || timeLeft <= 0) return;
+                        const timer = setInterval(() => {
+                            setTimeLeft(prev => (prev !== null && prev > 0 ? prev - 1 : 0));
+                        }, 1000);
+                        return () => clearInterval(timer);
+                    }, [timeLeft]);
+
+                    let formattedError = errors.email;
+                    if (timeLeft !== null) {
+                        if (timeLeft <= 0) {
+                            formattedError = "You can try logging in now. Please refresh.";
+                        } else {
+                            const h = Math.floor(timeLeft / 3600);
+                            const m = Math.floor((timeLeft % 3600) / 60);
+                            const s = timeLeft % 60;
+                            const timeString = [
+                                h > 0 ? `${h}h` : null,
+                                m > 0 ? `${m}m` : null,
+                                `${s}s`
+                            ].filter(Boolean).join(' ');
+                            
+                            formattedError = `Please try again in ${timeString}`;
+                        }
+                    } else if (isRateLimited && errors.email) {
+                        const match = errors.email.match(/(\d+)\s+seconds?/);
+                        if (match) {
+                            const totalSeconds = parseInt(match[1]);
+                            if (totalSeconds >= 3600) {
+                                const hours = Math.ceil(totalSeconds / 3600);
+                                formattedError = `Too many login attempts. Please try again in ${hours} hour${hours > 1 ? 's' : ''}.`;
+                            } else if (totalSeconds >= 60) {
+                                const mins = Math.ceil(totalSeconds / 60);
+                                formattedError = `Too many login attempts. Please try again in ${mins} minute${mins > 1 ? 's' : ''}.`;
+                            }
+                        }
+                    }
+
+                    if (isRateLimited) {
+                        return (
+                            <div className="flex flex-col items-center justify-center py-6 text-center space-y-4 animate-in fade-in zoom-in duration-300">
+                                <div className="size-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-2">
+                                    <svg className="size-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <h2 className="text-2xl font-black text-neutral-900">Too Many Attempts</h2>
+                                <p className="text-sm text-neutral-500 max-w-[280px]">
+                                    For your security, we have temporarily blocked your account due to multiple failed login attempts.
+                                </p>
+                                <p className="text-lg font-bold text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded-xl w-full font-mono tracking-wider">
+                                    {formattedError}
+                                </p>
+                                <Button 
+                                    type="button" 
+                                    onClick={() => window.location.reload()} 
+                                    className="mt-6 bg-neutral-900 hover:bg-neutral-800 text-white w-full rounded-xl"
+                                    disabled={timeLeft !== null && timeLeft > 0}
+                                >
+                                    {timeLeft !== null && timeLeft > 0 ? 'Wait to Refresh' : 'Refresh & Try Again'}
+                                </Button>
+                            </div>
+                        );
+                    }
+
+                    return (
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
@@ -107,7 +187,8 @@ export default function Login({
                             </div>
                         )}
                     </>
-                )}
+                    );
+                }}
             </Form>
 
             {status && (

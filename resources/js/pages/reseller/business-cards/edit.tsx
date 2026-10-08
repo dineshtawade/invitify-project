@@ -11,12 +11,12 @@ import {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Customer Dashboard',
-        href: '/customer/dashboard',
+        title: 'Reseller Dashboard',
+        href: '/reseller/dashboard',
     },
     {
         title: 'Digital Business Cards',
-        href: '/customer/business-cards',
+        href: '/reseller/business-cards',
     },
     {
         title: 'Card Designer',
@@ -188,7 +188,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
         setIsSaving(true);
         setSaveMessage('');
         try {
-            const response = await axios.put(`/customer/business-cards/${cardState.id}`, cardState);
+            const response = await axios.put(`/reseller/business-cards/${cardState.id}`, cardState);
             if (response.data.success) {
                 setSaveMessage('Draft saved successfully!');
                 if (targetStep) {
@@ -210,10 +210,10 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
         setSaveMessage('Initiating payment...');
         try {
             // First save any unsaved changes
-            await axios.put(`/customer/business-cards/${cardState.id}`, cardState);
+            await axios.put(`/reseller/business-cards/${cardState.id}`, cardState);
 
             // 1. Create order
-            const orderRes = await fetch(`/customer/business-cards/${cardState.id}/create-order`, {
+            const orderRes = await fetch(`/reseller/business-cards/${cardState.id}/create-order`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }
             });
@@ -221,7 +221,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
             if (!orderRes.ok) throw new Error(orderData.error || 'Order creation failed.');
 
             const verifyPayment = async (payload: object) => {
-                const res = await fetch(`/customer/business-cards/${cardState.id}/verify-payment`, {
+                const res = await fetch(`/reseller/business-cards/${cardState.id}/verify-payment`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                     body: JSON.stringify(payload)
@@ -1351,7 +1351,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                             </button>
                         ) : (
                             <Link
-                                href="/customer/business-cards"
+                                href="/reseller/business-cards"
                                 className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 transition-all active:scale-95"
                             >
                                 Finish & Exit <Check className="size-5" />
