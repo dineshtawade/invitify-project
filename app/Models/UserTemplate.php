@@ -11,11 +11,19 @@ class UserTemplate extends Model
     use HasFactory;
 
     protected $fillable = [
+        'uuid',
         'user_id',
         'template_id',
         'custom_config',
         'is_purchased',
     ];
+
+    protected $appends = ['encrypted_id'];
+
+    public function getEncryptedIdAttribute()
+    {
+        return encrypt($this->id);
+    }
 
     protected function casts(): array
     {
@@ -27,6 +35,12 @@ class UserTemplate extends Model
 
     protected static function booted()
     {
+        static::creating(function ($userTemplate) {
+            if (empty($userTemplate->uuid)) {
+                $userTemplate->uuid = (string) \Illuminate\Support\Str::uuid();
+            }
+        });
+
         static::saving(function ($userTemplate) {
             if ($userTemplate->is_purchased) {
                 $userTemplate->localizeVideoBackground();

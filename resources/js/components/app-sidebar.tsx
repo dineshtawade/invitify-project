@@ -144,6 +144,11 @@ export function AppSidebar() {
                 icon: Globe,
             },
             {
+                title: 'Digital Business Cards',
+                href: '/reseller/business-cards',
+                icon: Briefcase,
+            },
+            {
                 title: 'My Wallet',
                 href: '/reseller/wallet',
                 icon: Wallet,

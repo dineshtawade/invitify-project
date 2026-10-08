@@ -174,7 +174,7 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [], i
                                     </div>
 
                                     <Link
-                                        href={`/templates/${t.id}/customize`}
+                                        href={`/templates/${t.encrypted_id}/customize`}
                                         className="absolute inset-0 z-30"
                                     />
                                 </div>

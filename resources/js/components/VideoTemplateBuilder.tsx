@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Upload, Plus, SkipBack, Trash, Type, Image as ImageIcon, Loader2, X, Check, Grid, List, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import axios from 'axios';
 
 interface VideoTemplateBuilderProps {
@@ -35,6 +36,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
     const [mediaViewMode, setMediaViewMode] = useState<'grid' | 'list'>('grid');
     const [mediaSearch, setMediaSearch] = useState('');
     const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null);
+    const [assetTab, setAssetTab] = useState<'all' | 'png' | 'svg' | 'gif' | 'video'>('all');
 
     useEffect(() => {
         if (!videoUrl && !isCustomerMode) {
@@ -45,7 +47,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
     const fetchMediaLibrary = async () => {
         try {
             setIsLoadingMedia(true);
-            const response = await axios.get('/media?type=video');
+            const response = await axios.get('/media');
             setMediaLibrary(response.data.media || []);
         } catch (error) {
             console.error("Failed to fetch media library:", error);
@@ -111,8 +113,9 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
     };
 
     const filteredMedia = mediaLibrary.filter(media =>
-        media.filename?.toLowerCase().includes(mediaSearch.toLowerCase()) ||
-        media.title?.toLowerCase().includes(mediaSearch.toLowerCase())
+        media.type === 'video' &&
+        (media.filename?.toLowerCase().includes(mediaSearch.toLowerCase()) ||
+        media.title?.toLowerCase().includes(mediaSearch.toLowerCase()))
     );
 
     // Upload Section Component
@@ -159,7 +162,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
 
     // Media Library Section Component
     const MediaLibrarySection = () => (
-        <div className="flex-1 flex flex-col border-t lg:border-t-0 lg:border-l border-gray-200 bg-gray-50">
+        <div className="flex-1 flex flex-col min-h-0 border-t lg:border-t-0 lg:border-l border-gray-200 bg-gray-50">
             {/* Library Header */}
             <div className="p-4 border-b border-gray-200 bg-white">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -294,7 +297,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
             );
         }
         return (
-            <div className="flex-1 flex flex-col lg:flex-row bg-white overflow-hidden">
+            <div className="flex-1 flex flex-col min-h-0 lg:flex-row bg-white overflow-hidden">
                 {/* Upload Section - Half Screen */}
                 <UploadSection />
 
@@ -306,8 +309,17 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
 
     if (isPreviewOnly) {
         return (
-            <div className="w-full h-full bg-black relative overflow-hidden flex items-center justify-center">
-                <div ref={containerRef} className="relative shadow-2xl aspect-[9/16] h-full max-h-[80vh] sm:max-h-full sm:h-[800px] bg-neutral-900 group">
+            <div className="w-full h-full bg-black relative overflow-hidden flex items-center justify-center" style={{ containerType: 'size' }}>
+                <div 
+                    ref={containerRef} 
+                    className="relative shadow-2xl bg-neutral-900 group shrink-0"
+                    style={{
+                        width: '450px',
+                        height: '800px',
+                        transform: 'scale(min(calc(100cqw / 450), calc(100cqh / 800)))',
+                        transformOrigin: 'center center'
+                    }}
+                >
                     <video
                         ref={videoRef}
                         src={videoUrl || undefined}
@@ -340,14 +352,13 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                             return (
                                 <div
                                     key={el.id}
-                                    className="absolute flex items-center justify-center"
+                                    className="absolute"
                                     style={{
+                                        zIndex: el.zIndex || 10,
                                         left: `${el.x}%`,
                                         top: `${el.y}%`,
-                                        width: `${el.w}%`,
-                                        height: `${el.h}%`,
                                         opacity,
-                                        transform,
+                                        transform: `translate(-50%, -50%) ${transform.replace('translateY(0) scale(1)', '')}`,
                                         transition: 'opacity 0.1s linear, transform 0.1s linear'
                                     }}
                                 >
@@ -360,25 +371,26 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                 fontWeight: el.fontWeight || 'normal',
                                                 textShadow: el.textShadow && el.textShadow !== 'none' ? el.textShadow : undefined,
                                             }}
-                                            className="text-center w-full break-words"
+                                            className="text-center whitespace-pre-wrap w-max max-w-xs"
                                         >
                                             {el.content}
                                         </div>
+                                    ) : el.type === 'video' ? (
+                                        <video
+                                            src={el.src}
+                                            autoPlay
+                                            loop
+                                            muted
+                                            playsInline
+                                            style={{ width: el.width || 100, height: el.height || 100 }}
+                                            className="object-contain pointer-events-none"
+                                        />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            {el.src ? (
-                                                <img
-                                                    src={el.src}
-                                                    alt=""
-                                                    className="max-w-full max-h-full object-contain"
-                                                    onError={(e) => {
-                                                        e.currentTarget.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-                                                    }}
-                                                />
-                                            ) : (
-                                                <ImageIcon className="size-10 text-neutral-600/50" />
-                                            )}
-                                        </div>
+                                        <img
+                                            src={el.src}
+                                            style={{ width: el.width || 100, height: el.height || 100 }}
+                                            className="object-contain pointer-events-none"
+                                        />
                                     )}
                                 </div>
                             );
@@ -409,9 +421,84 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                 {/* Tools & Properties (Scrollable) */}
                 <div className="flex-1 flex flex-col overflow-y-auto">
                     <div className="p-5 border-b border-gray-200 shrink-0 bg-white">
-                        <h3 className="font-bold text-gray-900 text-lg">
-                            {isCustomerMode ? "Personalize Content" : "Video Elements"}
-                        </h3>
+                        <div className="flex items-center justify-between">
+                            <h3 className="font-bold text-gray-900 text-lg">
+                                {isCustomerMode ? "Personalize Content" : "Video Elements"}
+                            </h3>
+                            {!isCustomerMode && (
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" size="sm" className="h-8 text-xs font-bold border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+                                            <ImageIcon className="size-3.5 mr-1.5" />
+                                            Asset Library
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-xl">
+                                        <DialogHeader>
+                                            <DialogTitle>Asset Library</DialogTitle>
+                                        </DialogHeader>
+                                        <div className="mt-4">
+                                            <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 scrollbar-hide">
+                                                {['all', 'png', 'svg', 'gif', 'video'].map(tab => (
+                                                    <button
+                                                        key={tab}
+                                                        onClick={() => setAssetTab(tab as any)}
+                                                        className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-md whitespace-nowrap transition-colors ${assetTab === tab ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                                    >
+                                                        {tab === 'all' ? 'ALL ASSETS' : tab.toUpperCase()}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 max-h-[60vh] overflow-y-auto pr-1">
+                                                {mediaLibrary.filter(media => {
+                                                    if (assetTab === 'all') return true;
+                                                    if (assetTab === 'video') return media.type === 'video';
+                                                    return media.filename?.toLowerCase().endsWith(`.${assetTab}`);
+                                                }).map(media => (
+                                                    <div
+                                                        key={media.id}
+                                                        onClick={() => {
+                                                            const isVideo = media.type === 'video';
+                                                            const newId = `${isVideo ? 'video' : 'image'}_${Date.now()}`;
+                                                            const newElement = {
+                                                                id: newId,
+                                                                type: isVideo ? 'video' : 'image',
+                                                                src: media.url,
+                                                                x: 50, y: 50,
+                                                                zIndex: 10,
+                                                                width: 100, height: 100,
+                                                                startTime: 0,
+                                                                endTime: duration > 0 ? duration : 5,
+                                                                animationIn: 'fade',
+                                                                animationOut: 'fade',
+                                                            };
+                                                            updateConfig([...elements, newElement]);
+                                                            setSelectedElementId(newId);
+                                                        }}
+                                                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-indigo-500 transition-all relative group"
+                                                        title={media.filename}
+                                                    >
+                                                        {media.type === 'video' ? (
+                                                            <video src={media.url} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <img src={media.url} className="w-full h-full object-cover" />
+                                                        )}
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                            <Plus className="size-5 text-white" />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {mediaLibrary.length === 0 && (
+                                                    <div className="col-span-full text-center py-8 text-sm text-gray-500">
+                                                        No assets uploaded yet.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                            )}
+                        </div>
                         {isCustomerMode && (
                             <p className="text-[11px] text-gray-500 mt-1">Replace placeholder contents. Overall styling and timings are secured.</p>
                         )}
@@ -428,6 +515,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                             type: 'text',
                                             content: 'New Text Layer',
                                             x: 20, y: 40,
+                                            zIndex: 10,
                                             fontFamily: 'Playfair Display',
                                             fontSize: '24px',
                                             color: '#ffffff',
@@ -439,16 +527,16 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                         updateConfig([...elements, newElement]);
                                         setSelectedElementId(newId);
                                     }}
-                                    className="w-full bg-gray-900 text-white hover:bg-gray-800 font-bold gap-2 h-12 rounded-xl text-xs px-2"
+                                    className="w-full bg-gray-900 text-white hover:bg-gray-800 font-bold gap-2 h-9 rounded-lg text-xs px-2"
                                 >
                                     <Type className="size-4 shrink-0" /> Add Text
                                 </Button>
 
-                                <label className="w-full bg-indigo-600 text-white hover:bg-indigo-700 font-bold gap-2 h-12 rounded-xl flex items-center justify-center cursor-pointer transition-colors text-xs px-2">
-                                    <ImageIcon className="size-4 shrink-0" /> Add Image
+                                <label className="w-full bg-indigo-600 text-white hover:bg-indigo-700 font-bold gap-2 h-9 rounded-lg flex items-center justify-center cursor-pointer transition-colors text-[10px] px-2 leading-tight text-center">
+                                    <ImageIcon className="size-4 shrink-0" /> Upload img/gif/svg/png/video
                                     <input
                                         type="file"
-                                        accept="image/png, image/jpeg, image/webp"
+                                        accept="image/png, image/jpeg, image/webp, image/gif, image/svg+xml, video/mp4, video/webm"
                                         className="hidden"
                                         onChange={async (e) => {
                                             const file = e.target.files?.[0];
@@ -464,12 +552,14 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                         }
                                                     });
 
-                                                    const newId = `image_${Date.now()}`;
+                                                    const isVideo = file.type.startsWith('video/');
+                                                    const newId = `${isVideo ? 'video' : 'image'}_${Date.now()}`;
                                                     const newElement = {
                                                         id: newId,
-                                                        type: 'image',
+                                                        type: isVideo ? 'video' : 'image',
                                                         src: response.data.url,
                                                         x: 50, y: 50,
+                                                        zIndex: 10,
                                                         width: 100, height: 100,
                                                         startTime: 0,
                                                         endTime: duration > 0 ? duration : 5,
@@ -478,6 +568,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                     };
                                                     updateConfig([...elements, newElement]);
                                                     setSelectedElementId(newId);
+                                                    fetchMediaLibrary();
                                                 } catch (error) {
                                                     console.error("Failed to upload image:", error);
                                                     alert("Failed to upload image. Please check format and size.");
@@ -490,20 +581,26 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                             </div>
                         )}
 
+
+
                         {/* Customer Mode Personalization Panel */}
                         {isCustomerMode ? (
                             <div className="space-y-4">
                                 {elements.map((el: any, idx: number) => (
                                     <div key={el.id} className="grid gap-2 bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:border-gray-300" onClick={() => setSelectedElementId(el.id)}>
                                         <label className="text-xs font-bold text-gray-700 flex items-center justify-between">
-                                            <span>{el.type === 'image' ? 'Upload Image' : 'Text Content'}</span>
+                                            <span>{el.type !== 'text' ? 'Upload Media' : 'Text Content'}</span>
                                             <span className="text-[9px] uppercase font-bold tracking-widest text-gray-400">Layer {idx + 1}</span>
                                         </label>
-                                        {el.type === 'image' ? (
+                                        {el.type !== 'text' ? (
                                             <div className="flex gap-4 items-center mt-1">
                                                 <div className="size-16 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center shrink-0">
                                                     {el.src ? (
-                                                        <img src={el.src} alt="Custom" className="size-full object-cover" />
+                                                        el.type === 'video' ? (
+                                                            <video src={el.src} className="size-full object-cover" />
+                                                        ) : (
+                                                            <img src={el.src} alt="Custom" className="size-full object-cover" />
+                                                        )
                                                     ) : (
                                                         <ImageIcon className="size-6 text-gray-400" />
                                                     )}
@@ -511,7 +608,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                 <div className="flex-1 flex flex-col gap-1.5">
                                                     <input
                                                         type="file"
-                                                        accept="image/*"
+                                                        accept="image/*, video/*"
                                                         onChange={async (e) => {
                                                             const file = e.target.files?.[0];
                                                             if (file) {
@@ -525,7 +622,8 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                             'X-CSRF-TOKEN': csrfToken
                                                                         }
                                                                     });
-                                                                    const newEls = elements.map((x: any) => x.id === el.id ? { ...x, src: response.data.url } : x);
+                                                                    const isVideo = file.type.startsWith('video/');
+                                                                    const newEls = elements.map((x: any) => x.id === el.id ? { ...x, src: response.data.url, type: isVideo ? 'video' : 'image' } : x);
                                                                     updateConfig(newEls);
                                                                 } catch (error) {
                                                                     console.error("Failed to upload image:", error);
@@ -561,7 +659,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                     if (!el) return null;
                                     return (
                                         <div className="space-y-3">
-                                            {el.type !== 'image' && (
+                                            {el.type === 'text' && (
                                                 <Input
                                                     value={el.content || ''}
                                                     onChange={(e) => {
@@ -572,9 +670,9 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                     placeholder="Text content"
                                                 />
                                             )}
-                                            <div className="grid grid-cols-2 gap-2">
+                                            <div className="grid grid-cols-3 gap-2">
                                                 <div>
-                                                    <label className="text-xs text-gray-500 mb-1 block">Start Time (s)</label>
+                                                    <label className="text-xs text-gray-500 mb-1 block">Start (s)</label>
                                                     <Input
                                                         type="number" step="0.1"
                                                         value={el.startTime}
@@ -582,11 +680,11 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                             const newEls = elements.map((x: any) => x.id === el.id ? { ...x, startTime: parseFloat(e.target.value) } : x);
                                                             updateConfig(newEls);
                                                         }}
-                                                        className="bg-white border-gray-200"
+                                                        className="bg-white border-gray-200 h-9 text-xs px-2"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="text-xs text-gray-500 mb-1 block">End Time (s)</label>
+                                                    <label className="text-xs text-gray-500 mb-1 block">End (s)</label>
                                                     <Input
                                                         type="number" step="0.1"
                                                         value={el.endTime}
@@ -594,13 +692,75 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                             const newEls = elements.map((x: any) => x.id === el.id ? { ...x, endTime: parseFloat(e.target.value) } : x);
                                                             updateConfig(newEls);
                                                         }}
-                                                        className="bg-white border-gray-200 h-9"
+                                                        className="bg-white border-gray-200 h-9 text-xs px-2"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs text-gray-500 mb-1 block">Z-Index</label>
+                                                    <Input
+                                                        type="number" step="1"
+                                                        value={el.zIndex || 10}
+                                                        onChange={(e) => {
+                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, zIndex: parseInt(e.target.value) } : x);
+                                                            updateConfig(newEls);
+                                                        }}
+                                                        className="bg-white border-gray-200 h-9 text-xs px-2"
                                                     />
                                                 </div>
                                             </div>
+                                            
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <label className="text-xs text-gray-500 mb-1 block">Animation In</label>
+                                                    <select
+                                                        value={el.animationIn || 'none'}
+                                                        onChange={(e) => {
+                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, animationIn: e.target.value } : x);
+                                                            updateConfig(newEls);
+                                                        }}
+                                                        className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                    >
+                                                        <option value="none">None</option>
+                                                        <option value="fade">Fade In</option>
+                                                        <option value="slide">Slide In (Up-Left)</option>
+                                                        <option value="zoom">Zoom In</option>
+                                                        <option value="bounce">Bounce In</option>
+                                                        <option value="slide-up">Slide Up</option>
+                                                        <option value="slide-down">Slide Down</option>
+                                                        <option value="slide-left">Slide Left</option>
+                                                        <option value="slide-right">Slide Right</option>
+                                                        <option value="rotate">Rotate In</option>
+                                                        <option value="flip">Flip In</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs text-gray-500 mb-1 block">Animation Out</label>
+                                                    <select
+                                                        value={el.animationOut || 'none'}
+                                                        onChange={(e) => {
+                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, animationOut: e.target.value } : x);
+                                                            updateConfig(newEls);
+                                                        }}
+                                                        className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                    >
+                                                        <option value="none">None</option>
+                                                        <option value="fade">Fade Out</option>
+                                                        <option value="slide">Slide Out (Down-Right)</option>
+                                                        <option value="zoom">Zoom Out</option>
+                                                        <option value="bounce">Bounce Out</option>
+                                                        <option value="slide-up">Slide Up Out</option>
+                                                        <option value="slide-down">Slide Down Out</option>
+                                                        <option value="slide-left">Slide Left Out</option>
+                                                        <option value="slide-right">Slide Right Out</option>
+                                                        <option value="rotate">Rotate Out</option>
+                                                        <option value="flip">Flip Out</option>
+                                                    </select>
+                                                </div>
+                                            </div>
 
-                                            {el.type !== 'image' ? (
-                                                <div className="grid grid-cols-2 gap-2">
+                                            {el.type === 'text' ? (
+                                                <>
+                                                    <div className="grid grid-cols-2 gap-2">
                                                     <div>
                                                         <label className="text-xs text-gray-500 mb-1 block">Font</label>
                                                         <select
@@ -616,8 +776,34 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                             <option value="Montserrat">Montserrat</option>
                                                             <option value="Cinzel">Cinzel</option>
                                                             <option value="Dancing Script">Dancing Script</option>
+                                                            <option value="Roboto">Roboto</option>
+                                                            <option value="Open Sans">Open Sans</option>
+                                                            <option value="Lato">Lato</option>
+                                                            <option value="Oswald">Oswald</option>
+                                                            <option value="Pacifico">Pacifico</option>
                                                         </select>
                                                     </div>
+                                                    <div>
+                                                        <label className="text-xs text-gray-500 mb-1 block">Text Shadow</label>
+                                                        <select
+                                                            value={el.textShadow || 'none'}
+                                                            onChange={(e) => {
+                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, textShadow: e.target.value } : x);
+                                                                updateConfig(newEls);
+                                                            }}
+                                                            className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                        >
+                                                            <option value="none">None</option>
+                                                            <option value="1px 1px 2px rgba(0,0,0,0.8)">Soft Shadow</option>
+                                                            <option value="2px 2px 4px rgba(0,0,0,0.9)">Strong Shadow</option>
+                                                            <option value="0px 0px 8px rgba(255,255,255,0.8)">White Glow</option>
+                                                            <option value="0px 0px 8px rgba(0,0,0,0.8)">Dark Glow</option>
+                                                            <option value="0 0 5px #fff, 0 0 10px #fff, 0 0 20px #0ff, 0 0 30px #0ff">Neon Glow</option>
+                                                            <option value="1px 1px 0 #999, 2px 2px 0 #888, 3px 3px 0 #777">3D Block</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2 mt-2">
                                                     <div>
                                                         <label className="text-xs text-gray-500 mb-1 block">Color & Size</label>
                                                         <div className="flex gap-2">
@@ -656,7 +842,8 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                             </select>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                    </div>
+                                                </>
                                             ) : (
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <div>
@@ -686,46 +873,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                 </div>
                                             )}
 
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <div className="grid gap-2">
-                                                    <div>
-                                                        <label className="text-xs text-gray-500 mb-1 block">Animation</label>
-                                                        <select
-                                                            value={el.animationIn}
-                                                            onChange={(e) => {
-                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, animationIn: e.target.value, animationOut: e.target.value } : x);
-                                                                updateConfig(newEls);
-                                                            }}
-                                                            className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                                        >
-                                                            <option value="none">None</option>
-                                                            <option value="fade">Fade In/Out</option>
-                                                            <option value="slide">Slide In/Out</option>
-                                                            <option value="zoom">Zoom In/Out</option>
-                                                        </select>
-                                                    </div>
-                                                    {el.type === 'text' && (
-                                                        <div>
-                                                            <label className="text-xs text-gray-500 mb-1 block">Text Shadow</label>
-                                                            <select
-                                                                value={el.textShadow || 'none'}
-                                                                onChange={(e) => {
-                                                                    const newEls = elements.map((x: any) => x.id === el.id ? { ...x, textShadow: e.target.value } : x);
-                                                                    updateConfig(newEls);
-                                                                }}
-                                                                className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                                            >
-                                                                <option value="none">None</option>
-                                                                <option value="1px 1px 2px rgba(0,0,0,0.8)">Soft Shadow</option>
-                                                                <option value="2px 2px 4px rgba(0,0,0,0.9)">Strong Shadow</option>
-                                                                <option value="0px 0px 8px rgba(255,255,255,0.8)">White Glow</option>
-                                                                <option value="0px 0px 8px rgba(0,0,0,0.8)">Dark Glow</option>
-                                                                <option value="0 0 5px #fff, 0 0 10px #fff, 0 0 20px #0ff, 0 0 30px #0ff">Neon Glow</option>
-                                                                <option value="1px 1px 0 #999, 2px 2px 0 #888, 3px 3px 0 #777">3D Block</option>
-                                                            </select>
-                                                        </div>
-                                                    )}
-                                                </div>
+
                                                 <div className="flex gap-2">
                                                     <div>
                                                         <label className="text-xs text-gray-500 mb-1 block">X (%)</label>
@@ -752,8 +900,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                         />
                                                     </div>
                                                 </div>
-                                            </div>
-
+                                            
                                             <Button
                                                 type="button"
                                                 variant="destructive"
@@ -812,7 +959,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                 return (
                                     <div key={el.id} className="flex items-center gap-4" onClick={() => setSelectedElementId(el.id)}>
                                         <div className={`w-24 text-xs font-bold truncate tracking-wider shrink-0 cursor-pointer transition-colors ${selectedElementId === el.id ? 'text-indigo-600' : 'text-gray-400'}`}>
-                                            {el.type === 'image' ? 'Image Layer' : (el.content || 'Text Layer')}
+                                            {el.type === 'image' ? 'Image Layer' : el.type === 'video' ? 'Video Layer' : (el.content || 'Text Layer')}
                                         </div>
                                         <div className="flex-1 h-10 bg-gray-100 rounded-xl overflow-hidden relative border border-gray-200 cursor-pointer hover:border-gray-300">
                                             <div
@@ -901,8 +1048,17 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
             </div>
 
             {/* Right Side - Live Preview */}
-            <div className="flex-1 flex items-center justify-center relative p-4 lg:p-8 overflow-hidden">
-                <div ref={containerRef} className="video-template-preview-container relative rounded-2xl overflow-hidden shadow-2xl border border-gray-800 aspect-[9/16] h-full bg-neutral-900 max-h-full">
+            <div className="flex-1 flex items-center justify-center relative p-4 lg:p-8 overflow-hidden" style={{ containerType: 'size' }}>
+                <div 
+                    ref={containerRef} 
+                    className="video-template-preview-container relative rounded-2xl overflow-hidden shadow-2xl border border-gray-800 bg-neutral-900 shrink-0"
+                    style={{
+                        width: '450px',
+                        height: '800px',
+                        transform: 'scale(min(calc(100cqw / 450), calc(100cqh / 800)))',
+                        transformOrigin: 'center center'
+                    }}
+                >
                     <video
                         ref={videoRef}
                         src={videoUrl}
@@ -969,9 +1125,10 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                 }}
                                 className={`absolute ${isCustomerMode ? '' : 'cursor-pointer'} p-2 ${!dragPos ? 'transition-colors duration-300' : ''} ${selectedElementId === el.id && !isCustomerMode ? 'ring-2 ring-indigo-500 bg-indigo-500/10 border border-indigo-400 border-dashed cursor-move' : ''}`}
                                 style={{
+                                    zIndex: el.zIndex || 10,
                                     left: `${displayX}%`,
                                     top: `${displayY}%`,
-                                    ...(el.type !== 'image' ? {
+                                    ...(el.type === 'text' ? {
                                         fontFamily: el.fontFamily,
                                         fontSize: el.fontSize,
                                         fontWeight: el.fontWeight || 'normal',
@@ -981,14 +1138,31 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                     transform: 'translate(-50%, -50%)',
                                     animation: el.animationIn === 'fade' ? 'fadeIn 0.5s ease'
                                         : el.animationIn === 'slide' ? 'slideIn 0.5s ease'
-                                            : el.animationIn === 'zoom' ? 'zoomIn 0.5s ease'
-                                                : undefined
+                                        : el.animationIn === 'zoom' ? 'zoomIn 0.5s ease'
+                                        : el.animationIn === 'bounce' ? 'bounceIn 1s ease'
+                                        : el.animationIn === 'slide-up' ? 'slideUp 0.5s ease'
+                                        : el.animationIn === 'slide-down' ? 'slideDown 0.5s ease'
+                                        : el.animationIn === 'slide-left' ? 'slideLeft 0.5s ease'
+                                        : el.animationIn === 'slide-right' ? 'slideRight 0.5s ease'
+                                        : el.animationIn === 'rotate' ? 'rotateIn 0.5s ease'
+                                        : el.animationIn === 'flip' ? 'flipIn 0.5s ease'
+                                        : undefined
                                 }}
                             >
                                 {el.type === 'image' ? (
                                     <img
                                         src={el.src}
                                         alt=""
+                                        style={{ width: el.width || 100, height: el.height || 100 }}
+                                        className="object-contain pointer-events-none"
+                                    />
+                                ) : el.type === 'video' ? (
+                                    <video
+                                        src={el.src}
+                                        autoPlay
+                                        loop
+                                        muted
+                                        playsInline
                                         style={{ width: el.width || 100, height: el.height || 100 }}
                                         className="object-contain pointer-events-none"
                                     />
