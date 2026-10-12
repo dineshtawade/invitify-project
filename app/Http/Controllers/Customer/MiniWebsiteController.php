@@ -23,6 +23,7 @@ class MiniWebsiteController extends Controller
             ->map(function ($website) {
                 return [
                     'id' => $website->id,
+                    'uuid' => $website->uuid,
                     'title' => $website->title,
                     'slug' => $website->slug,
                     'theme' => $website->theme,
@@ -130,6 +131,48 @@ class MiniWebsiteController extends Controller
         return redirect()->route('customer.mini-websites.index')->with('status', 'Website deleted successfully.');
     }
 
+    public function submissions(MiniWebsite $mini_website)
+    {
+        if ($mini_website->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $mini_website->load([
+            'rsvps' => fn($q) => $q->orderBy('created_at', 'desc'),
+            'contactSubmissions' => fn($q) => $q->orderBy('created_at', 'desc'),
+        ]);
+
+        return Inertia::render('customer/mini-websites/submissions', [
+            'website' => $mini_website,
+        ]);
+    }
+
+    public function allRsvps(Request $request)
+    {
+        $user = auth()->user();
+        $selectedWebsiteId = $request->input('website_id');
+
+        $miniWebsites = MiniWebsite::where('user_id', $user->id)
+            ->withCount('rsvps')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $query = \App\Models\Rsvp::whereIn('mini_website_id', $miniWebsites->pluck('id'))
+            ->with('miniWebsite:id,title,slug,uuid');
+
+        if ($selectedWebsiteId && $miniWebsites->contains('id', $selectedWebsiteId)) {
+            $query->where('mini_website_id', $selectedWebsiteId);
+        }
+
+        $rsvps = $query->orderBy('created_at', 'desc')->get();
+
+        return Inertia::render('customer/rsvps/index', [
+            'websites' => $miniWebsites,
+            'rsvps' => $rsvps,
+            'selectedWebsiteId' => $selectedWebsiteId ? (int)$selectedWebsiteId : null,
+        ]);
+    }
+
     /**
      * Verify a referral code or coupon for a mini-website.
      */
@@ -205,12 +248,14 @@ class MiniWebsiteController extends Controller
         $days = (int) $request->input('days');
         $mini_website->load('template');
         
-        // End Customers: Template Price (one-time) + Hosting Price (fixed per day)
-        $templatePrice = !$mini_website->is_purchased && $mini_website->template ? floatval($mini_website->template->price) : 0.0;
-        $dailyHostingRate = floatval(SystemSetting::get('mini_website_hosting_price_customer', '5'));
+        // End Customers: Daily Rate comes from the Template price (per day hosting subscription)
+        // developed by dinesh tawade
+        $dailyHostingRate = $mini_website->template && floatval($mini_website->template->price) > 0
+            ? floatval($mini_website->template->price)
+            : floatval(SystemSetting::get('mini_website_hosting_price_customer', '100'));
         $hostingPrice = $dailyHostingRate * $days;
         
-        $originalPrice = $templatePrice + $hostingPrice;
+        $originalPrice = $hostingPrice;
         $discountAmount = 0;
         $referralCodeId = null;
         $globalCouponUsed = null;

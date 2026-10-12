@@ -97,10 +97,13 @@ export default function Register() {
                                     id="mobile"
                                     type="text"
                                     required
+                                    pattern="[0-9]{10}"
+                                    maxLength={10}
+                                    title="Please enter exactly 10 digits"
                                     tabIndex={3}
                                     autoComplete="tel"
                                     name="mobile"
-                                    placeholder="+91 9876543210"
+                                    placeholder="9876543210"
                                 />
                                 <InputError message={errors.mobile} />
                             </div>
@@ -168,8 +171,11 @@ export default function Register() {
                                             id="reseller_mobile_number"
                                             type="text"
                                             required={roleType === 'reseller'}
+                                            pattern="[0-9]{10}"
+                                            maxLength={10}
+                                            title="Please enter exactly 10 digits"
                                             name="reseller_mobile_number"
-                                            placeholder="+91 XXXXX XXXXX"
+                                            placeholder="9876543210"
                                         />
                                         <InputError message={errors.reseller_mobile_number} />
                                     </div>
@@ -255,8 +261,11 @@ export default function Register() {
                                             id="referral_phone_number"
                                             type="text"
                                             required={roleType === 'referral_partner'}
+                                            pattern="[0-9]{10}"
+                                            maxLength={10}
+                                            title="Please enter exactly 10 digits"
                                             name="referral_phone_number"
-                                            placeholder="+91 XXXXX XXXXX"
+                                            placeholder="9876543210"
                                         />
                                         <InputError message={errors.referral_phone_number} />
                                     </div>

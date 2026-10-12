@@ -2,61 +2,61 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFo
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::edit
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-export const edit = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const edit = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
 
 edit.definition = {
     methods: ["get","head"],
-    url: '/reseller/templates/{template}/customize',
+    url: '/reseller/templates/{encryptedId}/customize',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::edit
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-edit.url = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions) => {
+edit.url = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
-        args = { template: args }
+        args = { encryptedId: args }
     }
 
     
     if (Array.isArray(args)) {
         args = {
-                    template: args[0],
+                    encryptedId: args[0],
                 }
     }
 
     args = applyUrlDefaults(args)
 
     const parsedArgs = {
-                        template: args.template,
+                        encryptedId: args.encryptedId,
                 }
 
     return edit.definition.url
-            .replace('{template}', parsedArgs.template.toString())
+            .replace('{encryptedId}', parsedArgs.encryptedId.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::edit
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-edit.get = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::edit
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-edit.head = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit.url(args, options),
     method: 'head',
 })
@@ -64,9 +64,9 @@ edit.head = (args: { template: string | number } | [template: string | number ] 
     /**
 * @see \App\Http\Controllers\Reseller\TemplateController::edit
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-    const editForm = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const editForm = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: edit.url(args, options),
         method: 'get',
     })
@@ -74,18 +74,18 @@ edit.head = (args: { template: string | number } | [template: string | number ] 
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::edit
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-        editForm.get = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, options),
             method: 'get',
         })
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::edit
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-        editForm.head = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        editForm.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',

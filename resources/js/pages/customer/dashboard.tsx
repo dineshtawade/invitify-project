@@ -66,44 +66,6 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [], i
                     <p className="text-[#706557]">Welcome to Invitify! Create invitations, customize your design templates.</p>
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                    <div className="rounded-xl border border-[#ebd9c1] bg-[#fdfbf7] p-6 shadow-sm">
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-sm font-medium text-[#706557] font-serif">My Invitations</p>
-                                <h3 className="mt-2 text-2xl font-bold text-[#3e3832]">{invitationsCount}</h3>
-                            </div>
-                            <div className="rounded-lg bg-[#ebd9c1] p-3 text-[#3d5644]">
-                                <Mail className="size-6" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* <div className="rounded-xl border border-[#ebd9c1] bg-[#fdfbf7] p-6 shadow-sm">
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-sm font-medium text-[#706557] font-serif">Total RSVPs</p>
-                                <h3 className="mt-2 text-2xl font-bold text-[#3e3832]">148</h3>
-                            </div>
-                            <div className="rounded-lg bg-[#ebd9c1] p-3 text-[#3d5644]">
-                                <Star className="size-6" />
-                            </div>
-                        </div>
-                    </div> */}
-
-                    <div className="rounded-xl border border-[#ebd9c1] bg-[#fdfbf7] p-6 shadow-sm">
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-sm font-medium text-[#706557] font-serif">Notifications</p>
-                                <h3 className="mt-2 text-2xl font-bold text-[#3e3832]">{notificationsCount}</h3>
-                            </div>
-                            <div className="rounded-lg bg-[#ebd9c1] p-3 text-[#3d5644]">
-                                <Bell className="size-6" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between gap-4">
                         <h3 className="text-lg font-bold font-serif text-[#3e3832] flex items-center gap-2">
@@ -237,18 +199,31 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [], i
                                                     </span>
                                                 </td>
                                                 <td className="px-5 py-3 font-semibold text-[#3d5644]">
-                                                    {w.type === 'invitation'
-                                                        ? `${w.rsvps_count || 0} RSVPs`
-                                                        : `${w.contact_submissions_count || 0} Messages`
-                                                    }
+                                                    <Link
+                                                        href={`/customer/mini-websites/${w.id}/submissions`}
+                                                        className="hover:underline flex items-center gap-1"
+                                                    >
+                                                        {w.type === 'invitation'
+                                                            ? `${w.rsvps_count || 0} RSVPs`
+                                                            : `${w.contact_submissions_count || 0} Messages`
+                                                        } &rarr;
+                                                    </Link>
                                                 </td>
                                                 <td className="px-5 py-3 text-right">
-                                                    <Link
-                                                        href={`/customer/mini-websites/${w.id}/edit`}
-                                                        className="inline-flex items-center gap-1 rounded border border-[#ebd9c1] bg-[#fdfbf7] px-2.5 py-1 text-[10px] font-bold text-[#3d5644] shadow-xs hover:bg-[#ebd9c1]"
-                                                    >
-                                                        Edit Site
-                                                    </Link>
+                                                    <div className="flex items-center justify-end gap-1.5">
+                                                        <Link
+                                                            href={`/customer/mini-websites/${w.id}/submissions`}
+                                                            className="inline-flex items-center gap-1 rounded border border-[#ebd9c1] bg-[#fdfbf7] px-2.5 py-1 text-[10px] font-bold text-[#4a4238] shadow-xs hover:bg-[#ebd9c1]"
+                                                        >
+                                                            View RSVPs
+                                                        </Link>
+                                                        <Link
+                                                            href={`/customer/mini-websites/${w.id}/edit`}
+                                                            className="inline-flex items-center gap-1 rounded border border-[#3d5644] bg-[#3d5644] text-white px-2.5 py-1 text-[10px] font-bold shadow-xs hover:bg-[#2d4033]"
+                                                        >
+                                                            Edit Site
+                                                        </Link>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}

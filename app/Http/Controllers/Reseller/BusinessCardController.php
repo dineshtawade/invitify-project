@@ -56,8 +56,26 @@ class BusinessCardController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $templates = [];
+        for ($i = 1; $i <= 100; $i++) {
+            $thumbnail = "/images/business-cards/template{$i}.png";
+            if ($i >= 36 && $i <= 100) {
+                $thumbnail = "/images/business-cards/pre{$i}.webp";
+            }
+            $templates[] = [
+                'id' => $i,
+                'name' => "Template {$i}",
+                'css_file' => "card_css{$i}.css",
+                'thumbnail' => $thumbnail
+            ];
+        }
+
+        $plans = BusinessCardPlan::all();
+
         return Inertia::render('reseller/business-cards/index', [
-            'cards' => $cards
+            'cards' => $cards,
+            'templates' => $templates,
+            'plans' => $plans,
         ]);
     }
 

@@ -485,11 +485,12 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
         return weeks * 7;
     };
 
-    const templatePrice = !website.is_purchased && website.template ? parseFloat(String(website.template.price)) : 0;
-    const dailyPrice = 5;
+    // Daily price comes from the template price (e.g., 100/day -> 7 days = 700)
+    // developed by dinesh tawade
+    const dailyPrice = website.template?.price ? parseFloat(String(website.template.price)) : 100;
     const days = getDaysValue();
     const hostingPrice = days * dailyPrice;
-    const subtotal = templatePrice + hostingPrice;
+    const subtotal = hostingPrice;
     const discountDeduction = appliedDiscount > 0 ? Math.round(subtotal * (appliedDiscount / 100) * 100) / 100 : 0;
     const finalAmount = Math.max(0, subtotal - discountDeduction);
 
@@ -1120,19 +1121,9 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                     </DialogHeader>
 
                     <div className="flex flex-col gap-5 py-3 text-sm">
-                        {!website.is_purchased && website.template && (
-                            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                                <h4 className="text-sm font-bold text-blue-700 mb-1">One-time Template License</h4>
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-gray-700">{website.template.name}</span>
-                                    <span className="font-bold text-gray-900">₹{templatePrice}</span>
-                                </div>
-                            </div>
-                        )}
-
                         <div className="rounded-xl bg-gray-50 p-4 border border-gray-200 flex flex-col gap-1">
-                            <span className="text-xs text-gray-400 uppercase font-bold">Hosting Website</span>
-                            <span className="font-bold text-gray-800">{website.title}</span>
+                            <span className="text-xs text-gray-400 uppercase font-bold">Template & Website</span>
+                            <span className="font-bold text-gray-800">{website.template?.name ? `${website.template.name} — ` : ''}{website.title}</span>
                             <span className="text-xs text-gray-500 font-mono">/mini-website/{website.slug}</span>
                         </div>
 
@@ -1258,12 +1249,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                 <span>Hosting × {days} day{days !== 1 ? 's' : ''}</span>
                                 <span className="font-semibold text-gray-700">₹{hostingPrice}</span>
                             </div>
-                            {!website.is_purchased && (
-                                <div className="flex justify-between items-center text-gray-500">
-                                    <span>Template License (one-time)</span>
-                                    <span className="font-semibold text-gray-700">₹{templatePrice}</span>
-                                </div>
-                            )}
+
                             {discountDeduction > 0 && (
                                 <div className="flex justify-between items-center text-emerald-600">
                                     <span className="flex items-center gap-1"><Ticket className="size-3.5" /> Discount ({appliedDiscount}%)</span>

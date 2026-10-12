@@ -296,9 +296,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('reseller.business-websites.destroy');
 
         // Reseller Business Cards editor
-        Route::resource('reseller/business-cards', \App\Http\Controllers\Reseller\BusinessCardController::class, [
-            'names' => 'reseller.business-cards'
-        ]);
+        Route::resource('reseller/business-cards', \App\Http\Controllers\Reseller\BusinessCardController::class)
+            ->names('reseller.business-cards');
         Route::get('reseller/business-card-plans', [\App\Http\Controllers\Reseller\BusinessCardController::class, 'getPlans'])
             ->name('reseller.business-card-plans');
         Route::post('reseller/business-cards/draft-create', [\App\Http\Controllers\Reseller\BusinessCardController::class, 'draftCreate'])
@@ -420,6 +419,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
 
         Route::get('customer/mini-websites/{mini_website}/submissions', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'submissions'])
             ->name('customer.mini-websites.submissions');
+        Route::get('customer/rsvps', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'allRsvps'])
+            ->name('customer.rsvps');
         Route::post('customer/mini-websites/{mini_website}/create-order', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'createRenewalOrder'])
             ->name('customer.mini-websites.create-order');
         Route::post('customer/mini-websites/{mini_website}/verify-payment', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'verifyRenewalPayment'])

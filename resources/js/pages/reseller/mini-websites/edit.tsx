@@ -564,7 +564,11 @@ export default function ResellerMiniWebsiteEdit({ auth, wallet, website, customB
         setIsCheckingOut(true);
         if (!website.is_purchased) {
             router.post(`/reseller/mini-websites/${website.uuid || website.id}/purchase-template`, {}, {
-                onSuccess: () => {
+                onSuccess: (page) => {
+                    if (page.props.flash?.error) {
+                        setIsCheckingOut(false);
+                        return;
+                    }
                     setIsCheckoutOpen(false);
                     setIsCheckingOut(false);
                     alert('Template license purchased! You can now host the website.');
@@ -573,7 +577,11 @@ export default function ResellerMiniWebsiteEdit({ auth, wallet, website, customB
             });
         } else {
             router.post(`/reseller/websites/mini/${website.id}/host`, { days: getDaysValue() }, {
-                onSuccess: () => {
+                onSuccess: (page) => {
+                    if (page.props.flash?.error) {
+                        setIsCheckingOut(false);
+                        return;
+                    }
                     setIsCheckoutOpen(false);
                     setIsCheckingOut(false);
                     window.location.href = `/mini-website/${website.slug}`;

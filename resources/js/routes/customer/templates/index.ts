@@ -2,61 +2,61 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFo
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
  * @see app/Http/Controllers/Customer/TemplateController.php:57
- * @route '/templates/{template}/customize'
+ * @route '/templates/{encryptedId}/customize'
  */
-export const customize = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const customize = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: customize.url(args, options),
     method: 'get',
 })
 
 customize.definition = {
     methods: ["get","head"],
-    url: '/templates/{template}/customize',
+    url: '/templates/{encryptedId}/customize',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
  * @see app/Http/Controllers/Customer/TemplateController.php:57
- * @route '/templates/{template}/customize'
+ * @route '/templates/{encryptedId}/customize'
  */
-customize.url = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions) => {
+customize.url = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
-        args = { template: args }
+        args = { encryptedId: args }
     }
 
     
     if (Array.isArray(args)) {
         args = {
-                    template: args[0],
+                    encryptedId: args[0],
                 }
     }
 
     args = applyUrlDefaults(args)
 
     const parsedArgs = {
-                        template: args.template,
+                        encryptedId: args.encryptedId,
                 }
 
     return customize.definition.url
-            .replace('{template}', parsedArgs.template.toString())
+            .replace('{encryptedId}', parsedArgs.encryptedId.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
  * @see app/Http/Controllers/Customer/TemplateController.php:57
- * @route '/templates/{template}/customize'
+ * @route '/templates/{encryptedId}/customize'
  */
-customize.get = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+customize.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: customize.url(args, options),
     method: 'get',
 })
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
  * @see app/Http/Controllers/Customer/TemplateController.php:57
- * @route '/templates/{template}/customize'
+ * @route '/templates/{encryptedId}/customize'
  */
-customize.head = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+customize.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: customize.url(args, options),
     method: 'head',
 })
@@ -64,9 +64,9 @@ customize.head = (args: { template: string | number } | [template: string | numb
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
  * @see app/Http/Controllers/Customer/TemplateController.php:57
- * @route '/templates/{template}/customize'
+ * @route '/templates/{encryptedId}/customize'
  */
-    const customizeForm = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const customizeForm = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: customize.url(args, options),
         method: 'get',
     })
@@ -74,18 +74,18 @@ customize.head = (args: { template: string | number } | [template: string | numb
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
  * @see app/Http/Controllers/Customer/TemplateController.php:57
- * @route '/templates/{template}/customize'
+ * @route '/templates/{encryptedId}/customize'
  */
-        customizeForm.get = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        customizeForm.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: customize.url(args, options),
             method: 'get',
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
  * @see app/Http/Controllers/Customer/TemplateController.php:57
- * @route '/templates/{template}/customize'
+ * @route '/templates/{encryptedId}/customize'
  */
-        customizeForm.head = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        customizeForm.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: customize.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',
@@ -98,7 +98,7 @@ customize.head = (args: { template: string | number } | [template: string | numb
     customize.form = customizeForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:270
+ * @see app/Http/Controllers/Customer/TemplateController.php:304
  * @route '/customer/templates/{template}/verify-referral'
  */
 export const verifyReferral = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -113,7 +113,7 @@ verifyReferral.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:270
+ * @see app/Http/Controllers/Customer/TemplateController.php:304
  * @route '/customer/templates/{template}/verify-referral'
  */
 verifyReferral.url = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -146,7 +146,7 @@ verifyReferral.url = (args: { template: number | { id: number } } | [template: n
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:270
+ * @see app/Http/Controllers/Customer/TemplateController.php:304
  * @route '/customer/templates/{template}/verify-referral'
  */
 verifyReferral.post = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -156,7 +156,7 @@ verifyReferral.post = (args: { template: number | { id: number } } | [template: 
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:270
+ * @see app/Http/Controllers/Customer/TemplateController.php:304
  * @route '/customer/templates/{template}/verify-referral'
  */
     const verifyReferralForm = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -166,7 +166,7 @@ verifyReferral.post = (args: { template: number | { id: number } } | [template: 
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:270
+ * @see app/Http/Controllers/Customer/TemplateController.php:304
  * @route '/customer/templates/{template}/verify-referral'
  */
         verifyReferralForm.post = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
