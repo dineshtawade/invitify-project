@@ -59,7 +59,11 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
         e.preventDefault();
         setIsTemplatePurchasing(true);
         router.post(`/reseller/business-websites/${website.id}/purchase-template`, {}, {
-            onSuccess: () => {
+            onSuccess: (page) => {
+                if (page.props.flash?.error) {
+                    setIsTemplatePurchasing(false);
+                    return;
+                }
                 setIsTemplateCheckoutOpen(false);
                 setIsTemplatePurchasing(false);
             },
@@ -126,7 +130,11 @@ export default function ResellerBusinessWebsiteEdit({ wallet, website }: PagePro
         router.post(`/reseller/websites/business/${website.id}/host`, {
             days: days
         }, {
-            onSuccess: () => {
+            onSuccess: (page) => {
+                if (page.props.flash?.error) {
+                    setIsCheckingOut(false);
+                    return;
+                }
                 setIsCheckoutOpen(false);
                 setIsCheckingOut(false);
                 setIsSuccessOpen(true);

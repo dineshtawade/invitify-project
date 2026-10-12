@@ -7,7 +7,7 @@ import businessWebsites from './business-websites'
 import businessCards from './business-cards'
 import staticTemplates from './static-templates'
 /**
- * @see [serialized-closure]:2
+ * @see routes/web.php:325
  * @route '/customer/dashboard'
  */
 export const dashboard = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -21,7 +21,7 @@ dashboard.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
- * @see [serialized-closure]:2
+ * @see routes/web.php:325
  * @route '/customer/dashboard'
  */
 dashboard.url = (options?: RouteQueryOptions) => {
@@ -29,7 +29,7 @@ dashboard.url = (options?: RouteQueryOptions) => {
 }
 
 /**
- * @see [serialized-closure]:2
+ * @see routes/web.php:325
  * @route '/customer/dashboard'
  */
 dashboard.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -37,7 +37,7 @@ dashboard.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     method: 'get',
 })
 /**
- * @see [serialized-closure]:2
+ * @see routes/web.php:325
  * @route '/customer/dashboard'
  */
 dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -46,7 +46,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 })
 
     /**
- * @see [serialized-closure]:2
+ * @see routes/web.php:325
  * @route '/customer/dashboard'
  */
     const dashboardForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -55,7 +55,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     })
 
             /**
- * @see [serialized-closure]:2
+ * @see routes/web.php:325
  * @route '/customer/dashboard'
  */
         dashboardForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
             method: 'get',
         })
             /**
- * @see [serialized-closure]:2
+ * @see routes/web.php:325
  * @route '/customer/dashboard'
  */
         dashboardForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -389,6 +389,84 @@ businessCardPlans.head = (options?: RouteQueryOptions): RouteDefinition<'head'> 
         })
     
     businessCardPlans.form = businessCardPlansForm
+/**
+* @see \App\Http\Controllers\Customer\MiniWebsiteController::rsvps
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:150
+ * @route '/customer/rsvps'
+ */
+export const rsvps = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: rsvps.url(options),
+    method: 'get',
+})
+
+rsvps.definition = {
+    methods: ["get","head"],
+    url: '/customer/rsvps',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Customer\MiniWebsiteController::rsvps
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:150
+ * @route '/customer/rsvps'
+ */
+rsvps.url = (options?: RouteQueryOptions) => {
+    return rsvps.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Customer\MiniWebsiteController::rsvps
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:150
+ * @route '/customer/rsvps'
+ */
+rsvps.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: rsvps.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\Customer\MiniWebsiteController::rsvps
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:150
+ * @route '/customer/rsvps'
+ */
+rsvps.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: rsvps.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\Customer\MiniWebsiteController::rsvps
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:150
+ * @route '/customer/rsvps'
+ */
+    const rsvpsForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: rsvps.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\Customer\MiniWebsiteController::rsvps
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:150
+ * @route '/customer/rsvps'
+ */
+        rsvpsForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: rsvps.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Customer\MiniWebsiteController::rsvps
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:150
+ * @route '/customer/rsvps'
+ */
+        rsvpsForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: rsvps.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    rsvps.form = rsvpsForm
 const customer = {
     templates: Object.assign(templates, templatesD41748),
 dashboard: Object.assign(dashboard, dashboard),
@@ -400,6 +478,7 @@ businessWebsites: Object.assign(businessWebsites, businessWebsites),
 businessCards: Object.assign(businessCards, businessCards),
 businessCardPlans: Object.assign(businessCardPlans, businessCardPlans),
 staticTemplates: Object.assign(staticTemplates, staticTemplates),
+rsvps: Object.assign(rsvps, rsvps),
 }
 
 export default customer

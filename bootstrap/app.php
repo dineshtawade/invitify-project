@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         
         $middleware->validateCsrfTokens(except: [
             '/media/upload',
+            'mini-website/*/rsvp',
+            'mini-website/*/contact',
+            'card/*/feedback',
         ]);
 
         $middleware->web(append: [

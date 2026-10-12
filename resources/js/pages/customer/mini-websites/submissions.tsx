@@ -6,9 +6,10 @@ import { ChevronLeft, MessageSquare, Users, UserCheck, Mail, Calendar } from 'lu
 interface RSVP {
     id: number;
     name: string;
-    email: string;
+    mobile_number?: string;
+    email?: string;
     guests_count: number;
-    status: 'attending' | 'declined';
+    status: 'yes' | 'no' | 'maybe' | 'attending' | 'declined' | string;
     message: string | null;
     created_at: string;
 }
@@ -46,17 +47,22 @@ export default function SubmissionsIndex({ website }: PageProps) {
     const submissions = website.contact_submissions || [];
 
     // Calculate metrics for invitations
+    const isAttending = (s: string) => s === 'yes' || s === 'attending';
+    const isDeclined = (s: string) => s === 'no' || s === 'declined';
+    const isMaybe = (s: string) => s === 'maybe';
+
     const totalAttendingGuests = rsvps
-        .filter(r => r.status === 'attending')
+        .filter(r => isAttending(r.status))
         .reduce((sum, r) => sum + (r.guests_count || 1), 0);
 
-    const attendingRsvps = rsvps.filter(r => r.status === 'attending').length;
-    const declinedRsvps = rsvps.filter(r => r.status === 'declined').length;
+    const attendingRsvps = rsvps.filter(r => isAttending(r.status)).length;
+    const maybeRsvps = rsvps.filter(r => isMaybe(r.status)).length;
+    const declinedRsvps = rsvps.filter(r => isDeclined(r.status)).length;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`${website.title} - Inbox`} />
-            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6">
                 
                 {/* Header Actions */}
                 <div className="flex items-center gap-1 border-b border-neutral-150 pb-4 dark:border-neutral-850">
@@ -67,7 +73,7 @@ export default function SubmissionsIndex({ website }: PageProps) {
                         >
                             <ChevronLeft className="size-4" /> Back to My Websites
                         </Link>
-                        <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mt-1">
+                        <h1 className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-neutral-100 mt-1">
                             {website.title} - {isInvitation ? 'RSVP Responses' : 'Contact Messages'}
                         </h1>
                     </div>
@@ -78,34 +84,44 @@ export default function SubmissionsIndex({ website }: PageProps) {
                     <div className="flex flex-col gap-6">
                         
                         {/* Summary Widgets */}
-                        <div className="grid gap-6 sm:grid-cols-3">
-                            <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 flex items-center justify-between gap-4">
+                        <div className="grid gap-4 sm:grid-cols-4">
+                            <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 flex items-center justify-between gap-3">
                                 <div>
-                                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest">Total Attending Guests</p>
-                                    <h3 className="mt-1 text-3xl font-black text-emerald-600 dark:text-emerald-400">{totalAttendingGuests}</h3>
+                                    <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-widest">Attending Guests</p>
+                                    <h3 className="mt-1 text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">{totalAttendingGuests}</h3>
                                 </div>
-                                <div className="rounded-lg bg-emerald-50 p-2.5 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
-                                    <Users className="size-6" />
+                                <div className="rounded-lg bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                                    <Users className="size-5 sm:size-6" />
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 flex items-center justify-between gap-4">
+                            <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 flex items-center justify-between gap-3">
                                 <div>
-                                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest">Attending RSVPs</p>
-                                    <h3 className="mt-1 text-3xl font-black text-blue-600 dark:text-blue-400">{attendingRsvps}</h3>
+                                    <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-widest">Yes (Attending)</p>
+                                    <h3 className="mt-1 text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400">{attendingRsvps}</h3>
                                 </div>
-                                <div className="rounded-lg bg-blue-50 p-2.5 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-                                    <UserCheck className="size-6" />
+                                <div className="rounded-lg bg-blue-50 p-2 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+                                    <UserCheck className="size-5 sm:size-6" />
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 flex items-center justify-between gap-4">
+                            <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 flex items-center justify-between gap-3">
                                 <div>
-                                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest">Declined RSVPs</p>
-                                    <h3 className="mt-1 text-3xl font-black text-red-600 dark:text-red-400">{declinedRsvps}</h3>
+                                    <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-widest">Maybe</p>
+                                    <h3 className="mt-1 text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">{maybeRsvps}</h3>
                                 </div>
-                                <div className="rounded-lg bg-red-50 p-2.5 text-red-600 dark:bg-red-950/40 dark:text-red-400">
-                                    <Users className="size-6" />
+                                <div className="rounded-lg bg-amber-50 p-2 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+                                    <Users className="size-5 sm:size-6" />
+                                </div>
+                            </div>
+
+                            <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 flex items-center justify-between gap-3">
+                                <div>
+                                    <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-widest">No (Declined)</p>
+                                    <h3 className="mt-1 text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400">{declinedRsvps}</h3>
+                                </div>
+                                <div className="rounded-lg bg-red-50 p-2 text-red-600 dark:bg-red-950/40 dark:text-red-400">
+                                    <Users className="size-5 sm:size-6" />
                                 </div>
                             </div>
                         </div>
@@ -117,10 +133,10 @@ export default function SubmissionsIndex({ website }: PageProps) {
                                     <thead className="bg-neutral-50 text-xs font-semibold uppercase text-neutral-700 dark:bg-neutral-800/50 dark:text-neutral-300">
                                         <tr>
                                             <th scope="col" className="px-6 py-4">Guest Name</th>
-                                            <th scope="col" className="px-6 py-4">Email</th>
-                                            <th scope="col" className="px-6 py-4">Guests Count</th>
-                                            <th scope="col" className="px-6 py-4">Status</th>
-                                            <th scope="col" className="px-6 py-4">Message</th>
+                                            <th scope="col" className="px-6 py-4">Mobile Number</th>
+                                            <th scope="col" className="px-6 py-4">Attendance Status</th>
+                                            <th scope="col" className="px-6 py-4">Number of Guests</th>
+                                            <th scope="col" className="px-6 py-4">Message for Couple</th>
                                             <th scope="col" className="px-6 py-4 text-right">Received</th>
                                         </tr>
                                     </thead>
@@ -132,28 +148,46 @@ export default function SubmissionsIndex({ website }: PageProps) {
                                                 </td>
                                             </tr>
                                         ) : (
-                                            rsvps.map((r) => (
-                                                <tr key={r.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20">
-                                                    <td className="px-6 py-4 font-bold text-neutral-900 dark:text-neutral-100">{r.name}</td>
-                                                    <td className="px-6 py-4">{r.email}</td>
-                                                    <td className="px-6 py-4 font-semibold">{r.guests_count}</td>
-                                                    <td className="px-6 py-4">
-                                                        <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${
-                                                            r.status === 'attending'
-                                                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
-                                                                : 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400'
-                                                        }`}>
-                                                            {r.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 italic text-neutral-400 max-w-[200px] truncate" title={r.message || ''}>
-                                                        {r.message || '-'}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right whitespace-nowrap">
-                                                        {new Date(r.created_at).toLocaleDateString()}
-                                                    </td>
-                                                </tr>
-                                            ))
+                                            rsvps.map((r) => {
+                                                const statusLower = String(r.status || '').toLowerCase();
+                                                let badgeClass = 'bg-neutral-100 text-neutral-700';
+                                                let statusLabel = 'Maybe';
+                                                if (statusLower === 'yes' || statusLower === 'attending') {
+                                                    badgeClass = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200';
+                                                    statusLabel = 'Yes (Attending)';
+                                                } else if (statusLower === 'no' || statusLower === 'declined') {
+                                                    badgeClass = 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400 border border-red-200';
+                                                    statusLabel = 'No (Declined)';
+                                                } else {
+                                                    badgeClass = 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200';
+                                                    statusLabel = 'Maybe';
+                                                }
+
+                                                return (
+                                                    <tr key={r.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20">
+                                                        <td className="px-6 py-4 font-bold text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
+                                                            {r.name}
+                                                        </td>
+                                                        <td className="px-6 py-4 font-mono font-medium text-neutral-800 dark:text-neutral-200 whitespace-nowrap">
+                                                            {r.mobile_number || (r.email ? r.email : '-')}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${badgeClass}`}>
+                                                                {statusLabel}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 font-semibold text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
+                                                            {r.guests_count || 1}
+                                                        </td>
+                                                        <td className="px-6 py-4 italic text-neutral-600 dark:text-neutral-300 max-w-[250px] truncate" title={r.message || ''}>
+                                                            {r.message || '-'}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right whitespace-nowrap text-xs text-neutral-400">
+                                                            {new Date(r.created_at).toLocaleDateString()}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
                                         )}
                                     </tbody>
                                 </table>

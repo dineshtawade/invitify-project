@@ -681,7 +681,11 @@ export default function UsersList({ users, filters }: UsersPageProps) {
                                 <Input 
                                     type="text"
                                     value={createData.mobile}
-                                    onChange={e => setCreateData('mobile', e.target.value)}
+                                    maxLength={10}
+                                    onChange={e => {
+                                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                        setCreateData('mobile', val);
+                                    }}
                                     className="rounded-xl"
                                 />
                                 {createErrors.mobile && <div className="text-red-500 text-xs mt-1">{createErrors.mobile}</div>}

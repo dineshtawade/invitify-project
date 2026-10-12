@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import {
     Plus, Globe, ExternalLink, MessageSquare, Trash, Pencil,
-    ShieldAlert, Download, Package, Loader2, CreditCard, Ticket, Check, AlertCircle
+    ShieldAlert, Download, Package, Loader2, CreditCard, Ticket, Check, AlertCircle, QrCode
 } from 'lucide-react';
 import { getCsrfHeaders } from '@/lib/utils';
 
@@ -143,22 +143,83 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
         }
     };
 
-    const handleDownloadZip = async (websiteId: string | number) => {
-        setDownloadingId(websiteId);
+    const handleDownloadQR = async (w: CustomerMiniWebsite) => {
         try {
-            const link = document.createElement('a');
-            link.href = `/customer/mini-websites/${websiteId}/download-zip`;
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            setDownloadingId(w.id);
+            const url = `${window.location.origin}/mini-website/${w.slug}`;
+            const qrUrl = `https://quickchart.io/qr?size=500&text=${encodeURIComponent(url)}&dark=D4AF37&light=111111&margin=0`;
+            
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = qrUrl;
+            });
 
-            setTimeout(() => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('Canvas not supported');
+
+            const width = 600;
+            const height = 750;
+            canvas.width = width;
+            canvas.height = height;
+
+            // Background
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(0, 0, width, height);
+
+            // Border
+            ctx.strokeStyle = '#D4AF37';
+            ctx.lineWidth = 3;
+            if (ctx.roundRect) {
+                ctx.beginPath();
+                ctx.roundRect(20, 20, 560, 710, 24);
+                ctx.stroke();
+            } else {
+                ctx.strokeRect(20, 20, 560, 710);
+            }
+
+            // Header Text
+            ctx.fillStyle = '#D4AF37';
+            ctx.font = 'bold 32px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Scan to View', width / 2, 85);
+            
+            ctx.fillStyle = '#bfa55a';
+            ctx.font = '18px sans-serif';
+            ctx.fillText(w.title.length > 40 ? w.title.substring(0, 37) + '...' : w.title, width / 2, 120);
+
+            // QR Code
+            ctx.drawImage(img, 50, 150, 500, 500);
+
+            // Footer Text
+            ctx.fillStyle = '#8a763a';
+            ctx.font = '15px sans-serif';
+            ctx.fillText('Sponsored by Invitify.com', width / 2, 700);
+
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    setDownloadingId(null);
+                    return;
+                }
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = `${w.slug}-QR.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(blobUrl);
                 setDownloadingId(null);
-            }, 3000);
-        } catch (err) {
-            console.error('Download failed:', err);
+            }, 'image/png');
+
+        } catch (error) {
+            console.error('Failed to download QR Code', error);
             setDownloadingId(null);
+            alert('Failed to generate QR code. Please check your network and try again.');
         }
     };
 
@@ -205,7 +266,8 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
         }
     };
 
-    const dailyPrice = checkoutWebsite?.template?.price ? parseFloat(String(checkoutWebsite.template.price)) : 0;
+    // developed by dinesh tawade
+    const dailyPrice = checkoutWebsite?.template?.price ? parseFloat(String(checkoutWebsite.template.price)) : 100;
     const days = getDaysValue();
     const subtotal = days * dailyPrice;
     const discountDeduction = appliedDiscount > 0 ? Math.round(subtotal * (appliedDiscount / 100) * 100) / 100 : 0;
@@ -467,7 +529,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                 </Link>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <div className="flex justify-end gap-2">
+                                                <div className="flex flex-wrap justify-end gap-2 items-center">
                                                     {w.is_published && (
                                                         <a
                                                             href={`/mini-website/${w.slug}`}
@@ -482,10 +544,10 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                     {isWebsiteActive(w) && (
                                                         <button
                                                             type="button"
-                                                            onClick={() => handleDownloadZip(w.uuid || w.id)}
+                                                            onClick={() => handleDownloadQR(w)}
                                                             disabled={downloadingId === w.id}
                                                             className="inline-flex items-center gap-1 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 shadow-sm hover:bg-violet-100 hover:border-violet-300 transition-all disabled:opacity-60 disabled:cursor-wait"
-                                                            title="Download ZIP package with QR code & invite card"
+                                                            title="Download QR code"
                                                         >
                                                             {downloadingId === w.id ? (
                                                                 <>
@@ -493,7 +555,7 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                                 </>
                                                             ) : (
                                                                 <>
-                                                                    <Package className="size-3.5" /> Download ZIP
+                                                                    <QrCode className="size-3.5" /> Download QR
                                                                 </>
                                                             )}
                                                         </button>

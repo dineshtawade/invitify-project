@@ -10,10 +10,15 @@ import {
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
-import { Mail, Share2, Printer, Sparkles, Download, PlayCircle, Video, Copy, Check } from 'lucide-react';
+import { 
+    Mail, Share2, Printer, Sparkles, Download, PlayCircle, Video, 
+    Copy, Check, QrCode, Loader2, Users, UserCheck, Heart, Phone, Search, 
+    CheckCircle2, XCircle, HelpCircle, Globe, Layers, ArrowUpRight
+} from 'lucide-react';
 import { normalizeConfig } from '@/utils/builder-utils';
 import { toPng } from 'html-to-image';
 import VideoGenerator from '@/components/video-generator';
+import { Input } from '@/components/ui/input';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -49,9 +54,42 @@ interface BusinessCard {
     created_at: string;
 }
 
+interface DashboardMiniWebsite {
+    id: number;
+    uuid: string;
+    type: string;
+    title: string;
+    slug: string;
+    theme: string;
+    is_published: boolean;
+    rsvps_count?: number;
+    created_at: string;
+    preview_image?: string | null;
+}
+
+interface RSVP {
+    id: number;
+    mini_website_id: number;
+    name: string;
+    mobile_number?: string;
+    email?: string;
+    guests_count: number;
+    status: 'yes' | 'no' | 'maybe' | 'attending' | 'declined' | string;
+    message: string | null;
+    created_at: string;
+    mini_website?: {
+        id: number;
+        title: string;
+        slug: string;
+        uuid?: string;
+    };
+}
+
 interface PageProps {
     purchasedTemplates: UserTemplate[];
     businessCards?: BusinessCard[];
+    miniWebsites?: DashboardMiniWebsite[];
+    rsvps?: RSVP[];
 }
 
 const fontStyles: Record<string, string> = {
@@ -61,7 +99,13 @@ const fontStyles: Record<string, string> = {
     cinzel: "'Cinzel', serif",
 };
 
-export default function PurchasedInvitations({ purchasedTemplates, businessCards = [] }: PageProps) {
+// developed by dinesh tawade
+export default function PurchasedInvitations({ purchasedTemplates, businessCards = [], miniWebsites = [], rsvps = [] }: PageProps) {
+    const [activeTab, setActiveTab] = useState<'all' | 'invitations' | 'mini-websites' | 'business-cards' | 'guest-list'>('all');
+    const [guestSearch, setGuestSearch] = useState('');
+    const [guestStatusFilter, setGuestStatusFilter] = useState<'all' | 'yes' | 'maybe' | 'no'>('all');
+    const [selectedWebsiteFilter, setSelectedWebsiteFilter] = useState<string>('all');
+
     const [selectedInvitation, setSelectedInvitation] = useState<UserTemplate | null>(null);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -69,6 +113,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
     const [selectedDownloadInvitation, setSelectedDownloadInvitation] = useState<UserTemplate | null>(null);
     const [isDownloadOpen, setIsDownloadOpen] = useState(false);
     const [isDownloadingIndex, setIsDownloadingIndex] = useState<number | null>(null);
+    const [downloadingQRId, setDownloadingQRId] = useState<number | null>(null);
 
     const [isVideoOpen, setIsVideoOpen] = useState(false);
     const [selectedVideoTemplate, setSelectedVideoTemplate] = useState<UserTemplate | null>(null);
@@ -129,6 +174,86 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
             navigator.clipboard.writeText(shareUrl);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
+        }
+    };
+
+    const downloadQRCode = async (websiteId: number, slug: string, title: string) => {
+        try {
+            setDownloadingQRId(websiteId);
+            const url = `${window.location.origin}/mini-website/${slug}`;
+            const qrUrl = `https://quickchart.io/qr?size=500&text=${encodeURIComponent(url)}&dark=D4AF37&light=111111&margin=0`;
+            
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = qrUrl;
+            });
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('Canvas not supported');
+
+            const width = 600;
+            const height = 750;
+            canvas.width = width;
+            canvas.height = height;
+
+            // Background
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(0, 0, width, height);
+
+            // Border
+            ctx.strokeStyle = '#D4AF37';
+            ctx.lineWidth = 3;
+            if (ctx.roundRect) {
+                ctx.beginPath();
+                ctx.roundRect(20, 20, 560, 710, 24);
+                ctx.stroke();
+            } else {
+                ctx.strokeRect(20, 20, 560, 710);
+            }
+
+            // Header Text
+            ctx.fillStyle = '#D4AF37';
+            ctx.font = 'bold 32px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Scan to View', width / 2, 85);
+            
+            ctx.fillStyle = '#bfa55a';
+            ctx.font = '18px sans-serif';
+            ctx.fillText(title.length > 40 ? title.substring(0, 37) + '...' : title, width / 2, 120);
+
+            // QR Code
+            ctx.drawImage(img, 50, 150, 500, 500);
+
+            // Footer Text
+            ctx.fillStyle = '#8a763a';
+            ctx.font = '15px sans-serif';
+            ctx.fillText('Sponsored by Invitify.com', width / 2, 700);
+
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    setDownloadingQRId(null);
+                    return;
+                }
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = `${slug}-QR.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(blobUrl);
+                setDownloadingQRId(null);
+            }, 'image/png');
+
+        } catch (error) {
+            console.error('Failed to download QR Code', error);
+            setDownloadingQRId(null);
+            alert('Failed to generate QR code. Please check your network and try again.');
         }
     };
 
@@ -204,30 +329,124 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
         }
     };
 
+    const isAttending = (s: string) => s === 'yes' || s === 'attending';
+    const isDeclined = (s: string) => s === 'no' || s === 'declined';
+    const isMaybe = (s: string) => s === 'maybe';
+
+    const filteredRsvps = rsvps.filter(r => {
+        if (selectedWebsiteFilter !== 'all' && String(r.mini_website_id) !== selectedWebsiteFilter) {
+            return false;
+        }
+        const q = guestSearch.toLowerCase();
+        const matchesSearch = !q ||
+            r.name.toLowerCase().includes(q) ||
+            (r.mobile_number && r.mobile_number.includes(q)) ||
+            (r.message && r.message.toLowerCase().includes(q)) ||
+            (r.mini_website?.title && r.mini_website.title.toLowerCase().includes(q));
+
+        if (!matchesSearch) return false;
+
+        if (guestStatusFilter === 'yes') return isAttending(r.status);
+        if (guestStatusFilter === 'no') return isDeclined(r.status);
+        if (guestStatusFilter === 'maybe') return isMaybe(r.status);
+        return true;
+    });
+
+    const totalAttendingGuests = rsvps
+        .filter(r => isAttending(r.status))
+        .reduce((sum, r) => sum + (r.guests_count || 1), 0);
+
+    const yesCount = rsvps.filter(r => isAttending(r.status)).length;
+    const maybeCount = rsvps.filter(r => isMaybe(r.status)).length;
+    const noCount = rsvps.filter(r => isDeclined(r.status)).length;
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="My Invitations" />
+            <Head title="My Invitations & Guest List" />
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                        My Invitations <Sparkles className="size-6 text-amber-500" />
-                    </h1>
-                    <p className="">
-                        Manage your purchased templates, share links, or print them.
-                    </p>
+                <div className="flex flex-col gap-4 border-b border-neutral-200 dark:border-neutral-800 pb-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white flex items-center gap-2">
+                            My Invitations
+                        </h1>
+                    </div>
+
+                    {/* Navigation Tabs */}
+                    <div className="flex items-center gap-2 overflow-x-auto scrollbar-none -mb-2.5 pt-1">
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('all')}
+                            className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+                                activeTab === 'all'
+                                    ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                                    : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
+                            }`}
+                        >
+                            <Sparkles className="size-4" />
+                            All Items
+                        </button>
+                        {purchasedTemplates.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('invitations')}
+                                className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+                                    activeTab === 'invitations'
+                                        ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                                        : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
+                                }`}
+                            >
+                                <Mail className="size-4" />
+                                Invitations ({purchasedTemplates.length})
+                            </button>
+                        )}
+                        {miniWebsites.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('mini-websites')}
+                                className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+                                    activeTab === 'mini-websites'
+                                        ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                                        : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
+                                }`}
+                            >
+                                <Globe className="size-4" />
+                                Mini Websites ({miniWebsites.length})
+                            </button>
+                        )}
+                        {businessCards.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('business-cards')}
+                                className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+                                    activeTab === 'business-cards'
+                                        ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                                        : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
+                                }`}
+                            >
+                                <Sparkles className="size-4" />
+                                Business Cards ({businessCards.length})
+                            </button>
+                        )}
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('guest-list')}
+                            className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+                                activeTab === 'guest-list'
+                                    ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                                    : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
+                            }`}
+                        >
+                            <Users className="size-4 text-emerald-600" />
+                            Guest List (RSVPs)
+                            <span className="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                                {rsvps.length}
+                            </span>
+                        </button>
+                    </div>
                 </div>
 
-                {purchasedTemplates.length === 0 ? (
-                    <div className="flex h-64 flex-col items-center justify-center rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 gap-4">
-                        <span className="text-neutral-400">You haven't purchased any templates yet.</span>
-                        <Link
-                            href="/customer/templates"
-                            className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-                        >
-                            Browse Templates
-                        </Link>
-                    </div>
-                ) : (
+                {/* Invitations Grid */}
+                {(activeTab === 'all' || activeTab === 'invitations') && purchasedTemplates.length > 0 && (
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         {purchasedTemplates.map((t) => {
                             const isVideo = t.template.type === 'video';
@@ -243,42 +462,43 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                             return (
                                 <div
                                     key={t.id}
-                                    className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900"
+                                    className="group flex flex-col overflow-hidden rounded-2xl border-0 bg-white shadow-xl shadow-neutral-200/50 hover:shadow-2xl hover:shadow-neutral-200/80 transition-all duration-300 dark:bg-neutral-900/50 dark:shadow-none dark:border dark:border-neutral-800"
                                 >
                                     {/* Live Card Graphic Preview */}
                                     <div
-                                        className={`relative flex aspect-video flex-col items-center justify-center border-b border-neutral-100 dark:border-neutral-850 overflow-hidden ${isVideo ? 'bg-black' : `p-6 bg-gradient-to-tr ${firstPage?.bg_gradient || t.template.bg_gradient}`}`}
+                                        className={`relative flex aspect-video flex-col items-center justify-center overflow-hidden ${isVideo ? 'bg-black' : `p-6 bg-gradient-to-tr ${firstPage?.bg_gradient || t.template.bg_gradient}`}`}
                                     >
                                         {isVideo ? (
                                             <>
                                                 {t.custom_config?.video_url ? (
                                                     <video
                                                         src={t.custom_config.video_url}
-                                                        className="w-full h-full object-cover opacity-70"
+                                                        className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-500"
                                                         muted
                                                         playsInline
                                                         loop
                                                         autoPlay
                                                     />
                                                 ) : (
-                                                    <div className="w-full h-full bg-neutral-900" />
+                                                    <div className="w-full h-full bg-neutral-900 flex items-center justify-center">
+                                                        <Video className="size-8 text-neutral-700" />
+                                                    </div>
                                                 )}
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
-                                                    <div className="w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center">
-                                                        <PlayCircle className="size-6 text-indigo-400" />
+                                                    <div className="w-12 h-12 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10">
+                                                        <PlayCircle className="size-6 text-white" />
                                                     </div>
-                                                    <span className="text-[10px] uppercase tracking-widest font-bold text-white/80 drop-shadow-md">Video Template</span>
                                                 </div>
                                             </>
                                         ) : (
-                                            <div className="text-center scale-85 opacity-90">
-                                                <p className="text-[10px] tracking-wider uppercase font-semibold opacity-70">
+                                            <div className="text-center scale-90 opacity-95 bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/50 w-full max-w-[200px]">
+                                                <p className="text-[9px] tracking-widest uppercase font-semibold text-neutral-500 mb-1">
                                                     {titleElem?.content || 'THE WEDDING OF'}
                                                 </p>
-                                                <p className="font-serif text-lg font-bold my-1 truncate max-w-[180px]">
+                                                <p className="font-serif text-lg font-bold text-neutral-800 my-1 truncate w-full">
                                                     {coupleElem?.content || 'Couple Names'}
                                                 </p>
-                                                <p className="text-[8px] opacity-70">
+                                                <p className="text-[9px] font-medium text-neutral-500 mt-1">
                                                     {dateElem?.content || ''}
                                                 </p>
                                             </div>
@@ -286,87 +506,87 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex flex-1 flex-col justify-between p-5 gap-4">
+                                    <div className="flex flex-1 flex-col justify-between p-6 gap-5 bg-white dark:bg-neutral-900">
                                         <div>
-                                            <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+                                            <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 tracking-tight">
                                                 {t.template.name}
                                             </h3>
-                                            <p className="mt-1 text-xs text-neutral-400 font-medium">
-                                                Purchased invitation card
-                                            </p>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <span className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider">
+                                                    {isVideo ? 'Video' : 'Card'}
+                                                </span>
+                                            </div>
                                         </div>
 
-                                        <div className={`grid gap-1.5 ${isVideo ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                                        <div className={`grid gap-2 ${isVideo ? 'grid-cols-1' : 'grid-cols-3'}`}>
                                             {!isVideo && (
                                                 <>
                                                     <Button
                                                         onClick={() => handlePrint(t)}
                                                         variant="outline"
-                                                        className="flex items-center justify-center gap-1 text-[10px] px-1 font-semibold border-neutral-200 dark:border-neutral-850"
+                                                        className="flex items-center justify-center gap-1.5 text-xs font-semibold h-9 rounded-xl border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800"
                                                         title="Print or Save as PDF"
                                                     >
-                                                        <Printer className="size-3" /> Print
+                                                        <Printer className="size-3.5" /> Print
                                                     </Button>
                                                     <Button
                                                         onClick={() => handleOpenDownload(t)}
                                                         variant="outline"
-                                                        className="flex items-center justify-center gap-1 text-[10px] px-1 font-semibold border-neutral-200 dark:border-neutral-850"
+                                                        className="flex items-center justify-center gap-1.5 text-xs font-semibold h-9 rounded-xl border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800"
                                                         title="Download as PNG"
                                                     >
-                                                        <Download className="size-3" /> PNG
+                                                        <Download className="size-3.5" /> PNG
                                                     </Button>
                                                 </>
                                             )}
                                             {isVideo && t.edit_count >= 2 ? (
                                                 <div
-                                                    className="text-neutral-400 dark:text-neutral-500 font-medium text-xs flex items-center justify-center gap-1 mt-1 py-2 bg-neutral-100 dark:bg-neutral-800/50 rounded-lg cursor-not-allowed"
-                                                    title="You have reached the maximum edit limit for this video template."
+                                                    className="text-neutral-400 dark:text-neutral-500 font-semibold text-xs flex items-center justify-center gap-1 h-9 bg-neutral-100 dark:bg-neutral-800 rounded-xl cursor-not-allowed"
                                                 >
-                                                    Edit Limit Reached
+                                                    Limit Reached
                                                 </div>
                                             ) : (
                                                 <Link
                                                     href={`/templates/${t.template?.encrypted_id || t.template_id}/customize`}
-                                                    className={`text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium text-xs flex items-center gap-1 mt-1 ${isVideo ? 'justify-center py-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg' : ''}`}
+                                                    className={`text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-400 font-semibold text-xs flex items-center justify-center gap-1.5 h-9 rounded-xl transition-colors ${isVideo ? 'w-full' : ''}`}
                                                 >
-                                                    Edit Design →
+                                                    Edit <span className="hidden sm:inline">Design</span>
                                                 </Link>
                                             )}
                                         </div>
-                                        <div className={`grid gap-2 mt-2 ${isVideo ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                        <div className={`grid gap-2 mt-1 ${isVideo ? 'grid-cols-2' : 'grid-cols-1'}`}>
                                             <Button
                                                 onClick={() => handleOpenShare(t)}
-                                                className="bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-1 text-[10px] px-1 font-semibold"
-                                                title="Share guest link"
+                                                className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 text-white flex items-center justify-center gap-2 text-xs font-semibold h-10 rounded-xl shadow-md"
                                             >
-                                                <Share2 className="size-3" /> Share
+                                                <Share2 className="size-4" /> Share Link
                                             </Button>
 
                                             {isVideo && (
                                                 t.video_url ? (
-                                                    <div className="grid grid-cols-2 gap-1">
+                                                    <div className="grid grid-cols-2 gap-2">
                                                         <a
                                                             href={t.video_url}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:hover:bg-indigo-800/40 dark:text-indigo-300 flex items-center justify-center gap-1 text-[10px] px-1 py-1.5 rounded-lg font-semibold transition-colors"
+                                                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-400 flex items-center justify-center gap-1.5 text-xs h-10 rounded-xl font-semibold transition-colors"
                                                         >
-                                                            <PlayCircle className="size-3" /> Play
+                                                            <PlayCircle className="size-4" /> Play
                                                         </a>
                                                         <a
                                                             href={t.video_url}
                                                             download
-                                                            className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:hover:bg-indigo-800/40 dark:text-indigo-300 flex items-center justify-center gap-1 text-[10px] px-1 py-1.5 rounded-lg font-semibold transition-colors"
+                                                            className="bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400 flex items-center justify-center gap-1.5 text-xs h-10 rounded-xl font-semibold transition-colors"
                                                         >
-                                                            <Download className="size-3" /> Save
+                                                            <Download className="size-4" /> Save
                                                         </a>
                                                     </div>
                                                 ) : (
                                                     <Button
                                                         onClick={() => { setSelectedVideoTemplate(t); setIsVideoOpen(true); }}
-                                                        className="flex items-center justify-center gap-1 text-[10px] px-1 font-semibold"
+                                                        className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-1.5 text-xs font-semibold h-10 rounded-xl shadow-md shadow-indigo-600/20"
                                                     >
-                                                        <Video className="size-3" /> Generate MP4
+                                                        <Video className="size-4" /> Gen MP4
                                                     </Button>
                                                 )
                                             )}
@@ -379,58 +599,57 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                 )}
             </div>
 
-            {businessCards.length > 0 && (
+            {(activeTab === 'all' || activeTab === 'business-cards') && businessCards.length > 0 && (
                 <div className="flex flex-col gap-6 p-6 pt-0 border-t border-neutral-200 dark:border-neutral-800 mt-6">
                     <div className="flex flex-col gap-2 mt-6">
-                        <h2 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                            My Business Cards <Sparkles className="size-5 text-amber-500" />
+                        <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+                            My Business Cards <Sparkles className="size-4 text-amber-500" />
                         </h2>
-                        <p className="">
-                            Manage your digital business cards.
-                        </p>
                     </div>
 
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         {businessCards.map((card) => (
                             <div
                                 key={card.id}
-                                className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900"
+                                className="group flex flex-col overflow-hidden rounded-2xl border-0 bg-white shadow-xl shadow-neutral-200/50 hover:shadow-2xl hover:shadow-neutral-200/80 transition-all duration-300 dark:bg-neutral-900/50 dark:shadow-none dark:border dark:border-neutral-800"
                             >
-                                <div className="relative flex aspect-video flex-col items-center justify-center bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-850 overflow-hidden">
+                                <div className="relative flex aspect-video flex-col items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30 overflow-hidden">
                                     {/* Mobile Mockup */}
-                                    <div className="relative w-24 h-[135px] bg-white dark:bg-neutral-900 rounded-2xl shadow-md border-[4px] border-neutral-800 dark:border-neutral-700 overflow-hidden shrink-0 flex flex-col items-center justify-center transform group-hover:scale-105 transition-transform duration-300">
-                                        <div className="absolute top-1 left-1/2 -translate-x-1/2 w-6 h-1 rounded-full bg-neutral-800 dark:bg-neutral-700 z-10"></div>
+                                    <div className="relative w-28 h-[160px] bg-white dark:bg-neutral-900 rounded-3xl shadow-xl shadow-blue-900/10 border-[6px] border-neutral-100 dark:border-neutral-800 overflow-hidden shrink-0 flex flex-col items-center justify-center transform group-hover:scale-105 transition-transform duration-500">
+                                        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700 z-10"></div>
 
                                         {/* Card content mock */}
-                                        <div className="w-full h-full flex flex-col items-center p-2 pt-4 bg-gradient-to-br from-indigo-500 to-blue-600">
-                                            <div className="w-8 h-8 rounded-full bg-white/20 mb-2 shadow-sm flex items-center justify-center">
-                                                <Sparkles className="size-4 text-white opacity-80" />
+                                        <div className="w-full h-full flex flex-col items-center p-3 pt-6 bg-gradient-to-br from-blue-600 to-indigo-700">
+                                            <div className="w-10 h-10 rounded-full bg-white/20 mb-3 shadow-inner flex items-center justify-center backdrop-blur-sm">
+                                                <Sparkles className="size-5 text-white" />
                                             </div>
-                                            <p className="text-[7px] font-bold text-white leading-tight text-center break-words w-full truncate px-1">
+                                            <p className="text-[9px] font-bold text-white leading-tight text-center break-words w-full truncate px-2">
                                                 {card.company_name}
                                             </p>
-                                            <div className="w-10 h-1 bg-white/30 rounded mt-2"></div>
-                                            <div className="w-8 h-1 bg-white/20 rounded mt-1"></div>
+                                            <div className="w-12 h-1.5 bg-white/40 rounded-full mt-3"></div>
+                                            <div className="w-8 h-1.5 bg-white/30 rounded-full mt-1.5"></div>
                                         </div>
                                     </div>
 
                                     {/* Background decorative elements */}
-                                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:14px_14px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
+                                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
                                 </div>
-                                <div className="flex flex-1 flex-col justify-between p-5 gap-4">
+                                <div className="flex flex-1 flex-col justify-between p-6 gap-5 bg-white dark:bg-neutral-900">
                                     <div>
-                                        <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+                                        <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 tracking-tight">
                                             {card.company_name}
                                         </h3>
-                                        <p className="mt-1 text-xs text-neutral-400 font-medium">
-                                            Purchased Business Card
-                                        </p>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider">
+                                                Business Card
+                                            </span>
+                                        </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 mt-2">
                                         <Link
                                             href={`/customer/business-cards/${card.id}/edit`}
-                                            className="flex-1 text-center bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:bg-neutral-900 dark:border-indigo-900 dark:text-indigo-400 dark:hover:bg-indigo-900/50 py-2 rounded-lg font-semibold text-xs transition-colors"
+                                            className="flex-1 text-center bg-neutral-100 hover:bg-neutral-200 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 py-2.5 rounded-xl font-semibold text-sm transition-colors"
                                         >
                                             Edit Card
                                         </Link>
@@ -438,9 +657,9 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                             href={`/card/${card.slug}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex-1 text-center bg-indigo-600 text-white hover:bg-indigo-700 py-2 rounded-lg font-semibold text-xs transition-colors flex items-center justify-center gap-1"
+                                            className="flex-1 text-center bg-indigo-600 text-white hover:bg-indigo-700 py-2.5 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2 shadow-md shadow-indigo-600/20"
                                         >
-                                            <Share2 className="size-3" /> View
+                                            <Share2 className="size-4" /> View
                                         </a>
                                     </div>
                                 </div>
@@ -450,6 +669,352 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                 </div>
             )}
 
+            {(activeTab === 'all' || activeTab === 'mini-websites') && miniWebsites.length > 0 && (
+                <div className="flex flex-col gap-6 p-6 pt-0 border-t border-neutral-200 dark:border-neutral-800 mt-6">
+                    <div className="flex flex-col gap-2 mt-6">
+                        <h2 className="text-xl font-bold tracking-tight text-neutral-900 flex items-center gap-2">
+                            My Mini Websites <Sparkles className="size-4 text-emerald-500" />
+                        </h2>
+                    </div>
+
+                    <div className="overflow-x-auto rounded-2xl border border-neutral-200 bg-white shadow-sm mt-4">
+                        <table className="w-full text-left text-sm text-neutral-600 border-collapse">
+                            <thead className="bg-neutral-50 text-neutral-900 border-b border-neutral-200 font-medium text-xs uppercase tracking-wider">
+                                <tr>
+                                    <th className="px-6 py-4 font-bold w-[120px]">Preview</th>
+                                    <th className="px-6 py-4 font-bold">Website Details</th>
+                                    <th className="px-6 py-4 font-bold w-[110px]">RSVPs</th>
+                                    <th className="px-6 py-4 font-bold w-[140px]">Status</th>
+                                    <th className="px-6 py-4 font-bold text-right w-[200px]">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-neutral-200">
+                                {miniWebsites.map((site, index) => {
+                                    const gradients = [
+                                        'from-emerald-400 to-teal-500',
+                                        'from-rose-400 to-red-500',
+                                        'from-indigo-400 to-cyan-400',
+                                        'from-amber-400 to-orange-500',
+                                        'from-fuchsia-400 to-purple-600'
+                                    ];
+                                    const gradientClass = gradients[index % gradients.length];
+                                    const initials = site.title ? site.title.substring(0, 2).toUpperCase() : 'MW';
+
+                                    return (
+                                        <tr key={site.id} className="hover:bg-neutral-50/50 transition-colors group align-middle">
+                                            <td className="px-6 py-4">
+                                                <div className="relative w-24 aspect-video rounded-lg overflow-hidden shrink-0 bg-neutral-100 border border-neutral-200/50">
+                                                    {site.preview_image ? (
+                                                        <img src={site.preview_image} alt={site.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                    ) : (
+                                                        <div className={`w-full h-full bg-gradient-to-br ${gradientClass} flex flex-col items-center justify-center transform group-hover:scale-105 transition-transform duration-300`}>
+                                                            <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-md shadow-sm border border-white/30 flex items-center justify-center">
+                                                                <span className="text-xs font-bold text-white tracking-widest">{initials}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <h3 className="text-base font-bold text-neutral-900 tracking-tight">
+                                                        {site.title}
+                                                    </h3>
+                                                    <p className="text-xs text-neutral-500 font-mono inline-block">
+                                                        /{site.slug}
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSelectedWebsiteFilter(String(site.id));
+                                                        setActiveTab('guest-list');
+                                                    }}
+                                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors"
+                                                    title="Click to view this website's guests"
+                                                >
+                                                    <Users className="size-3" />
+                                                    {site.rsvps_count || 0} Guests
+                                                </button>
+                                            </td>
+
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${site.is_published ? 'bg-emerald-50 text-emerald-600' : 'bg-neutral-100 text-neutral-600'}`}>
+                                                    {site.is_published ? 'Live' : 'Draft'}
+                                                </span>
+                                            </td>
+
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center justify-end gap-1.5">
+                                                    <Link
+                                                        href={`/customer/mini-websites/${site.id}/submissions`}
+                                                        className="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg font-semibold text-xs transition-colors flex items-center gap-1 border border-amber-200"
+                                                        title="View Guest RSVPs"
+                                                    >
+                                                        RSVPs
+                                                    </Link>
+                                                    <Link
+                                                        href={`/customer/mini-websites/${site.uuid || site.id}/edit`}
+                                                        className="px-3 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg font-semibold text-xs transition-colors flex items-center gap-1.5"
+                                                    >
+                                                        Edit
+                                                    </Link>
+                                                    <a
+                                                        href={`/mini-website/${site.slug}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="px-3 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm shadow-emerald-600/20"
+                                                    >
+                                                        <Share2 className="size-3.5" /> View
+                                                    </a>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => downloadQRCode(site.id, site.slug, site.title)}
+                                                        disabled={downloadingQRId === site.id}
+                                                        className="px-3 py-2 bg-neutral-900 text-white hover:bg-neutral-800 rounded-lg font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                                                    >
+                                                        {downloadingQRId === site.id ? (
+                                                            <Loader2 className="size-3.5 animate-spin" />
+                                                        ) : (
+                                                            <QrCode className="size-3.5" />
+                                                        )}
+                                                        QR
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {/* Guest List Tab Content */}
+            {(activeTab === 'all' || activeTab === 'guest-list') && (
+                <div className="flex flex-col gap-6 p-6 pt-0 border-t border-neutral-200 dark:border-neutral-800 mt-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-6">
+                        <div>
+                            <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+                                Guest List (RSVPs) <Sparkles className="size-4 text-emerald-500" />
+                            </h2>
+                            <p className="text-xs text-neutral-500 mt-0.5">Guest responses and wishes received from your wedding mini-websites.</p>
+                        </div>
+
+                        {/* Metric Chips */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <div className="px-3 py-1.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                                Total: <span className="font-bold text-neutral-900 dark:text-white">{rsvps.length}</span>
+                            </div>
+                            <div className="px-3 py-1.5 rounded-xl bg-emerald-50 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                                Attending: <span className="font-bold">{yesCount}</span> ({totalAttendingGuests} guests)
+                            </div>
+                            <div className="px-3 py-1.5 rounded-xl bg-amber-50 text-xs font-semibold text-amber-700 border border-amber-200">
+                                Maybe: <span className="font-bold">{maybeCount}</span>
+                            </div>
+                            <div className="px-3 py-1.5 rounded-xl bg-rose-50 text-xs font-semibold text-rose-700 border border-rose-200">
+                                Declined: <span className="font-bold">{noCount}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Filter toolbar */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-neutral-900 p-3 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-xs">
+                        <div className="relative flex-1 max-w-md">
+                            <Search className="size-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Input
+                                type="text"
+                                placeholder="Search by guest name, mobile, message..."
+                                value={guestSearch}
+                                onChange={(e) => setGuestSearch(e.target.value)}
+                                className="pl-9 h-9 text-xs sm:text-sm bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700"
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {miniWebsites.length > 1 && (
+                                <select
+                                    value={selectedWebsiteFilter}
+                                    onChange={(e) => setSelectedWebsiteFilter(e.target.value)}
+                                    className="h-9 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-3 text-xs font-semibold text-neutral-700 dark:text-neutral-200 focus:outline-none"
+                                >
+                                    <option value="all">All Mini Websites</option>
+                                    {miniWebsites.map((w) => (
+                                        <option key={w.id} value={String(w.id)}>
+                                            {w.title} ({w.rsvps_count || 0})
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+
+                            <div className="flex items-center gap-1">
+                                <Button
+                                    type="button"
+                                    variant={guestStatusFilter === 'all' ? 'default' : 'ghost'}
+                                    size="sm"
+                                    onClick={() => setGuestStatusFilter('all')}
+                                    className="text-xs h-8 px-2.5 rounded-xl font-semibold"
+                                >
+                                    All
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant={guestStatusFilter === 'yes' ? 'default' : 'ghost'}
+                                    size="sm"
+                                    onClick={() => setGuestStatusFilter('yes')}
+                                    className={`text-xs h-8 px-2.5 rounded-xl font-semibold ${guestStatusFilter === 'yes' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'text-emerald-700 hover:bg-emerald-50'}`}
+                                >
+                                    Attending
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant={guestStatusFilter === 'maybe' ? 'default' : 'ghost'}
+                                    size="sm"
+                                    onClick={() => setGuestStatusFilter('maybe')}
+                                    className={`text-xs h-8 px-2.5 rounded-xl font-semibold ${guestStatusFilter === 'maybe' ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'text-amber-700 hover:bg-amber-50'}`}
+                                >
+                                    Maybe
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant={guestStatusFilter === 'no' ? 'default' : 'ghost'}
+                                    size="sm"
+                                    onClick={() => setGuestStatusFilter('no')}
+                                    className={`text-xs h-8 px-2.5 rounded-xl font-semibold ${guestStatusFilter === 'no' ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'text-rose-700 hover:bg-rose-50'}`}
+                                >
+                                    Declined
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Guest list table */}
+                    <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse text-left text-sm text-neutral-600 dark:text-neutral-400">
+                                <thead className="bg-neutral-50/80 text-[11px] font-bold uppercase tracking-wider text-neutral-700 dark:bg-neutral-800/60 dark:text-neutral-300 border-b border-neutral-200 dark:border-neutral-800">
+                                    <tr>
+                                        <th scope="col" className="px-5 py-3.5 font-bold">Guest Name</th>
+                                        <th scope="col" className="px-5 py-3.5 font-bold">Mobile Number</th>
+                                        <th scope="col" className="px-5 py-3.5 font-bold">Attendance</th>
+                                        <th scope="col" className="px-5 py-3.5 font-bold">Guests Count</th>
+                                        <th scope="col" className="px-5 py-3.5 font-bold">Message for Couple</th>
+                                        <th scope="col" className="px-5 py-3.5 font-bold">Website</th>
+                                        <th scope="col" className="px-5 py-3.5 font-bold text-right">Received Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                                    {filteredRsvps.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={7} className="px-6 py-12 text-center text-neutral-400">
+                                                <div className="flex flex-col items-center justify-center gap-2">
+                                                    <Users className="size-8 text-neutral-300 dark:text-neutral-600" />
+                                                    <p className="font-semibold text-sm">No guest responses found.</p>
+                                                    <p className="text-xs text-neutral-400">
+                                                        {rsvps.length === 0
+                                                            ? "Share your mini-website URL with guests so they can RSVP."
+                                                            : "No guests match your search criteria."
+                                                        }
+                                                    </p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredRsvps.map((r) => {
+                                            const statusLower = String(r.status || '').toLowerCase();
+                                            let badgeClass = 'bg-neutral-100 text-neutral-700';
+                                            let statusLabel = 'Maybe';
+                                            if (statusLower === 'yes' || statusLower === 'attending') {
+                                                badgeClass = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200';
+                                                statusLabel = 'Yes (Attending)';
+                                            } else if (statusLower === 'no' || statusLower === 'declined') {
+                                                badgeClass = 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200';
+                                                statusLabel = 'No (Declined)';
+                                            } else {
+                                                badgeClass = 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200';
+                                                statusLabel = 'Maybe';
+                                            }
+
+                                            return (
+                                                <tr key={r.id} className="hover:bg-neutral-50/60 dark:hover:bg-neutral-800/30 transition-colors">
+                                                    <td className="px-5 py-4 font-bold text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
+                                                        {r.name}
+                                                    </td>
+                                                    <td className="px-5 py-4 font-mono font-medium text-neutral-800 dark:text-neutral-200 whitespace-nowrap">
+                                                        {r.mobile_number ? (
+                                                            <a href={`tel:${r.mobile_number}`} className="inline-flex items-center gap-1 hover:text-emerald-600">
+                                                                <Phone className="size-3 text-neutral-400" />
+                                                                {r.mobile_number}
+                                                            </a>
+                                                        ) : (
+                                                            r.email || '-'
+                                                        )}
+                                                    </td>
+                                                    <td className="px-5 py-4 whitespace-nowrap">
+                                                        <span className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${badgeClass}`}>
+                                                            {statusLabel}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-5 py-4 font-bold text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
+                                                        {r.guests_count || 1}
+                                                    </td>
+                                                    <td className="px-5 py-4 text-xs italic text-neutral-600 dark:text-neutral-300 max-w-[280px]">
+                                                        {r.message ? (
+                                                            <div className="flex items-start gap-1" title={r.message}>
+                                                                <Heart className="size-3 text-rose-400 shrink-0 mt-0.5" />
+                                                                <span className="line-clamp-2">{r.message}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-neutral-300 dark:text-neutral-600">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-5 py-4 whitespace-nowrap">
+                                                        {r.mini_website ? (
+                                                            <a
+                                                                href={`/mini-website/${r.mini_website.slug}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline"
+                                                            >
+                                                                {r.mini_website.title}
+                                                                <Share2 className="size-3" />
+                                                            </a>
+                                                        ) : (
+                                                            '-'
+                                                        )}
+                                                    </td>
+                                                    <td className="px-5 py-4 text-right text-xs text-neutral-500 whitespace-nowrap">
+                                                        {new Date(r.created_at).toLocaleDateString('en-US', {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            year: 'numeric'
+                                                        })}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {(purchasedTemplates.length > 0 || businessCards.length > 0 || miniWebsites.length > 0) && (
+                <div className="flex justify-center p-6 mt-4">
+                    <Link
+                        href="/customer/templates"
+                        className="inline-flex items-center rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
+                    >
+                        Browse More Templates
+                    </Link>
+                </div>
+            )}
 
             {/* Share invitation link dialog */}
             <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
@@ -467,16 +1032,16 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
 
                         <div className="flex items-center gap-2">
                             <div className="relative flex-1">
-                                <input 
+                                <input
                                     readOnly
-                                    type="text" 
+                                    type="text"
                                     value={selectedInvitation ? `${window.location.origin}/invitations/view/${selectedInvitation.encrypted_id}` : ''}
                                     className="w-full h-10 rounded-lg border border-neutral-200 bg-neutral-50 px-3 text-xs font-mono text-neutral-600 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                                     onClick={(e) => e.currentTarget.select()}
                                 />
                             </div>
-                            <Button 
-                                type="button" 
+                            <Button
+                                type="button"
                                 variant={copied ? "secondary" : "default"}
                                 onClick={handleCopyLink}
                                 className={`h-10 px-4 font-semibold transition-all ${copied ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
@@ -542,7 +1107,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                         fontWeight: elem.fontWeight || 'normal',
                                                         fontStyle: elem.isItalic ? 'italic' : 'normal',
                                                         textShadow: elem.type === 'text' && elem.textShadow && elem.textShadow !== 'none' ? elem.textShadow : undefined,
-                                                opacity: elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1,
+                                                        opacity: elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1,
                                                         zIndex: elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25,
                                                     };
 

@@ -12,6 +12,7 @@ class Rsvp extends Model
     protected $fillable = [
         'mini_website_id',
         'name',
+        'mobile_number',
         'email',
         'guests_count',
         'status',

@@ -22,18 +22,18 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
-            'mobile' => ['required', 'string', 'max:20'],
+            'mobile' => ['required', 'string', 'digits:10'],
             'role' => ['nullable', 'string', 'in:customer,reseller,referral_partner'],
             // Reseller details validations
             'reseller_business_name' => ['required_if:role,reseller', 'nullable', 'string', 'max:255'],
-            'reseller_mobile_number' => ['required_if:role,reseller', 'nullable', 'string', 'max:20'],
+            'reseller_mobile_number' => ['required_if:role,reseller', 'nullable', 'string', 'digits:10'],
             'reseller_email' => ['required_if:role,reseller', 'nullable', 'email', 'max:255'],
             'reseller_gst_number' => ['required_if:role,reseller', 'nullable', 'string', 'max:50'],
             'reseller_business_address' => ['nullable', 'string', 'max:1000'],
             // Referral details validations
             'referral_city' => ['required_if:role,referral_partner', 'nullable', 'string', 'max:255'],
             'referral_email' => ['required_if:role,referral_partner', 'nullable', 'email', 'max:255'],
-            'referral_phone_number' => ['required_if:role,referral_partner', 'nullable', 'string', 'max:20'],
+            'referral_phone_number' => ['required_if:role,referral_partner', 'nullable', 'string', 'digits:10'],
             'referral_social_media' => ['required_if:role,referral_partner', 'nullable', 'array'],
             'referral_social_media.*.platform' => ['required_with:referral_social_media', 'string', 'max:255'],
             'referral_social_media.*.username' => ['required_with:referral_social_media', 'string', 'max:255'],

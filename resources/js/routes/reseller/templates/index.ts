@@ -2,61 +2,61 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFo
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::customize
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-export const customize = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const customize = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: customize.url(args, options),
     method: 'get',
 })
 
 customize.definition = {
     methods: ["get","head"],
-    url: '/reseller/templates/{template}/customize',
+    url: '/reseller/templates/{encryptedId}/customize',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::customize
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-customize.url = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions) => {
+customize.url = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
-        args = { template: args }
+        args = { encryptedId: args }
     }
 
     
     if (Array.isArray(args)) {
         args = {
-                    template: args[0],
+                    encryptedId: args[0],
                 }
     }
 
     args = applyUrlDefaults(args)
 
     const parsedArgs = {
-                        template: args.template,
+                        encryptedId: args.encryptedId,
                 }
 
     return customize.definition.url
-            .replace('{template}', parsedArgs.template.toString())
+            .replace('{encryptedId}', parsedArgs.encryptedId.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::customize
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-customize.get = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+customize.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: customize.url(args, options),
     method: 'get',
 })
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::customize
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-customize.head = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+customize.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: customize.url(args, options),
     method: 'head',
 })
@@ -64,9 +64,9 @@ customize.head = (args: { template: string | number } | [template: string | numb
     /**
 * @see \App\Http\Controllers\Reseller\TemplateController::customize
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-    const customizeForm = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    const customizeForm = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: customize.url(args, options),
         method: 'get',
     })
@@ -74,18 +74,18 @@ customize.head = (args: { template: string | number } | [template: string | numb
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::customize
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-        customizeForm.get = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        customizeForm.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: customize.url(args, options),
             method: 'get',
         })
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::customize
  * @see app/Http/Controllers/Reseller/TemplateController.php:18
- * @route '/reseller/templates/{template}/customize'
+ * @route '/reseller/templates/{encryptedId}/customize'
  */
-        customizeForm.head = (args: { template: string | number } | [template: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        customizeForm.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: customize.url(args, {
                         [options?.mergeQuery ? 'mergeQuery' : 'query']: {
                             _method: 'HEAD',

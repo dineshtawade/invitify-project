@@ -239,9 +239,43 @@ class TemplateController extends Controller
                 ];
             });
 
+        // Fetch all RSVPs for customer's mini websites
+        // developed by dinesh tawade
+        $userMiniWebsites = \App\Models\MiniWebsite::where('user_id', auth()->id())->get();
+        $allRsvps = \App\Models\Rsvp::whereIn('mini_website_id', $userMiniWebsites->pluck('id'))
+            ->with(['miniWebsite:id,title,slug,uuid'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $miniWebsites = \App\Models\MiniWebsite::with('template')
+            ->withCount('rsvps')
+            ->where('user_id', auth()->id())
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($w) {
+                return [
+                    'id' => $w->id,
+                    'uuid' => $w->uuid,
+                    'title' => $w->title,
+                    'slug' => $w->slug,
+                    'theme' => $w->theme,
+                    'type' => $w->type,
+                    'is_published' => $w->is_published,
+                    'rsvps_count' => $w->rsvps_count,
+                    'created_at' => $w->created_at->format('M d, Y'),
+                    'preview_image' => $w->template && $w->template->preview_image ? asset('storage/' . $w->template->preview_image) : null,
+                ];
+            });
+
+        if ($purchasedTemplates->isEmpty() && $businessCards->isEmpty() && $miniWebsites->isEmpty()) {
+            return redirect('/customer/templates');
+        }
+
         return Inertia::render('customer/templates/purchased', [
             'purchasedTemplates' => $purchasedTemplates,
             'businessCards' => $businessCards,
+            'miniWebsites' => $miniWebsites,
+            'rsvps' => $allRsvps,
         ]);
     }
 
