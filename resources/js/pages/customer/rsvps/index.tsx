@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { 
-    Users, UserCheck, MessageSquare, ExternalLink, Calendar, 
+import {
+    Users, UserCheck, MessageSquare, ExternalLink, Calendar,
     Phone, Mail, Heart, Filter, ArrowUpRight, Search, CheckCircle2, XCircle, HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -44,7 +44,7 @@ interface PageProps {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/customer/dashboard' },
-    { title: 'My Mini Websites', href: '/customer/mini-websites' },
+    { title: 'My Invitation Website', href: '/customer/mini-websites' },
     { title: 'RSVP Responses', href: '/customer/rsvps' },
 ];
 
@@ -74,7 +74,7 @@ export default function RsvpsIndex({ websites = [], rsvps = [], selectedWebsiteI
     const noCount = rsvps.filter(r => isDeclined(r.status)).length;
 
     const filteredRsvps = rsvps.filter(r => {
-        const matchesSearch = 
+        const matchesSearch =
             r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             (r.mobile_number && r.mobile_number.includes(searchQuery)) ||
             (r.message && r.message.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -93,7 +93,7 @@ export default function RsvpsIndex({ websites = [], rsvps = [], selectedWebsiteI
             <Head title="Guest RSVP Responses - Invitify" />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
-                
+
                 {/* Header section */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
                     <div>
@@ -102,7 +102,7 @@ export default function RsvpsIndex({ websites = [], rsvps = [], selectedWebsiteI
                             Guest RSVP Responses
                         </h1>
                         <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-                            Live guest list and wishes submitted directly from your wedding mini websites.
+                            Live guest list and wishes submitted directly from your wedding Invitation Website.
                         </p>
                     </div>
 

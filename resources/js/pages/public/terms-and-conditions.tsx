@@ -49,7 +49,7 @@ export default function TermsAndConditions() {
                     <div className="grid gap-3 sm:grid-cols-2">
                         {[
                             'Digital invitation creation & templates',
-                            'Single-page responsive Mini Websites',
+                            'Single-page responsive Invitation Website',
                             'Custom QR code generation',
                             'Subscription-based event hosting services',
                             'Reseller & Influencer earning systems'
@@ -291,7 +291,7 @@ export default function TermsAndConditions() {
         <>
             <Head>
                 <title>Terms & Conditions | Invitify</title>
-                <meta name="description" content="Review the Terms and Conditions for using Invitify. Find out our guidelines for creating digital business cards, wedding invitations, and mini websites." />
+                <meta name="description" content="Review the Terms and Conditions for using Invitify. Find out our guidelines for creating digital business cards, wedding invitations, and Invitation Website." />
                 <meta property="og:title" content="Terms & Conditions | Invitify" />
                 <meta property="og:description" content="Review the guidelines and rules for using Invitify's digital templates and services." />
             </Head>

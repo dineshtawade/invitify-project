@@ -218,7 +218,7 @@ export default function PrivacyPolicy() {
             icon: Shield,
             content: (
                 <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed">
-                    There is no strict age restriction to view invitations or mini websites on our platform. However, to register an account and purchase templates/subscriptions, users must be capable of understanding and accepting our terms and utilizing the platform responsibly.
+                    There is no strict age restriction to view invitations or Invitation Website on our platform. However, to register an account and purchase templates/subscriptions, users must be capable of understanding and accepting our terms and utilizing the platform responsibly.
                 </p>
             ),
         },
@@ -266,7 +266,7 @@ export default function PrivacyPolicy() {
         <>
             <Head>
                 <title>Privacy Policy | Invitify</title>
-                <meta name="description" content="Read the Privacy Policy of Invitify. Learn how we securely collect, use, and protect your personal data when you create invitations and mini websites with us." />
+                <meta name="description" content="Read the Privacy Policy of Invitify. Learn how we securely collect, use, and protect your personal data when you create invitations and Invitation Website with us." />
                 <meta property="og:title" content="Privacy Policy | Invitify" />
                 <meta property="og:description" content="Learn how we securely collect, use, and protect your personal data at Invitify." />
             </Head>

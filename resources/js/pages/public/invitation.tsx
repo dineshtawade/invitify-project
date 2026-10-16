@@ -5,6 +5,7 @@ import * as LucideIcons from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { getFontFamilyCss, loadGoogleFont } from '@/utils/font-utils';
 
 interface PublicInvitationWebsite {
     id: number;
@@ -173,7 +174,15 @@ export default function PublicInvitationSite({ website, flash, previewMode = nul
         language = 'en'
     } = website.config;
 
-    const activeFont = fontStyles[font_style] || fontStyles.playfair;
+    // Preload font if Google Font
+    // developed by dinesh tawade
+    useEffect(() => {
+        if (font_style) {
+            loadGoogleFont(font_style);
+        }
+    }, [font_style]);
+
+    const activeFont = getFontFamilyCss(font_style);
     const activeTheme = themePresets[website.theme] || themePresets.royal;
     const tLang = languageDict[language] || languageDict.en;
 

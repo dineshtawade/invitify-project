@@ -122,7 +122,7 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
     const tabs = [
         { key: 'invitations', label: 'Static Cards', count: catalog.templates.filter(t => t.type !== 'video').length, icon: LayoutGrid },
         { key: 'video-invitations', label: 'Video Cards', count: catalog.templates.filter(t => t.type === 'video').length, icon: PlayCircle },
-        { key: 'mini-websites', label: 'Mini Websites', count: catalog.miniTemplates.length, icon: Store },
+        { key: 'mini-websites', label: 'Invitation Website', count: catalog.miniTemplates.length, icon: Store },
         { key: 'business-websites', label: 'Business Websites', count: catalog.businessTemplates.length, icon: Globe },
     ] as const;
 
@@ -176,7 +176,7 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                     ))}
                 </div>
 
-                {/* ===== INVITATION CARDS ===== */}
+                {/* ===== Invitation Cards & Videos  ===== */}
                 {(activeTab === 'invitations' || activeTab === 'video-invitations') && (
                     <div className="flex flex-col gap-5">
                         {/* Search + Category Filter */}
@@ -223,10 +223,10 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                                             />
                                         ) : tpl.type === 'video' && tpl.default_config?.video_url ? (
-                                            <video 
-                                                src={tpl.default_config.video_url} 
-                                                autoPlay loop muted playsInline 
-                                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                                            <video
+                                                src={tpl.default_config.video_url}
+                                                autoPlay loop muted playsInline
+                                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                                             />
                                         ) : (
                                             <div
@@ -246,7 +246,7 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                                                     <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-neutral-200/90 dark:bg-neutral-800/90 border-l border-neutral-200 flex items-center justify-center text-[8px] font-bold text-neutral-400 select-none">IMAGE</div>
                                                 )}
 
-                                                <div 
+                                                <div
                                                     className="text-center pointer-events-none scale-85 opacity-90 z-10 relative"
                                                     style={{ color: tpl.default_config?.layout_style === 'photo-bg' && tpl.default_config?.image_url ? '#ffffff' : undefined }}
                                                 >
@@ -298,7 +298,7 @@ export default function ResellerShop({ wallet, catalog }: ShopPageProps) {
                     </div>
                 )}
 
-                {/* ===== MINI WEBSITES ===== */}
+                {/* ===== Invitation Website ===== */}
                 {activeTab === 'mini-websites' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
                         {catalog.miniTemplates.map(tpl => (

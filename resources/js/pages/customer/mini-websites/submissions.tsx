@@ -38,7 +38,7 @@ interface PageProps {
 
 export default function SubmissionsIndex({ website }: PageProps) {
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'My Mini Websites', href: '/customer/mini-websites' },
+        { title: 'My Invitation Website', href: '/customer/mini-websites' },
         { title: `${website.title} Submissions`, href: `/customer/mini-websites/${website.id}/submissions` },
     ];
 
@@ -63,7 +63,7 @@ export default function SubmissionsIndex({ website }: PageProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`${website.title} - Inbox`} />
             <div className="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6">
-                
+
                 {/* Header Actions */}
                 <div className="flex items-center gap-1 border-b border-neutral-150 pb-4 dark:border-neutral-850">
                     <div className="flex flex-col gap-1">
@@ -82,7 +82,7 @@ export default function SubmissionsIndex({ website }: PageProps) {
                 {/* 1. Rendering Invitation RSVPs */}
                 {isInvitation && (
                     <div className="flex flex-col gap-6">
-                        
+
                         {/* Summary Widgets */}
                         <div className="grid gap-4 sm:grid-cols-4">
                             <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 flex items-center justify-between gap-3">

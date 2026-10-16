@@ -28,7 +28,7 @@ code = code.replace(/\/customer\/mini-websites\//g, '/reseller/mini-websites/');
 
 // 4. Update breadcrumbs
 code = code.replace(/{ title: 'Dashboard', href: '\/customer\/dashboard' }/g, "{ title: 'Reseller Dashboard', href: '/reseller/dashboard' }");
-code = code.replace(/{ title: 'My Mini Websites', href: '\/customer\/mini-websites' }/g, "{ title: 'My Hosted Websites', href: '/reseller/websites' }");
+code = code.replace(/{ title: 'My Invitation Website', href: '\/customer\/mini-websites' }/g, "{ title: 'My Hosted Websites', href: '/reseller/websites' }");
 
 // 5. Override handleConfirmRenewal with Reseller logic
 // Instead of regex matching the entire function (which is prone to errors), let's find the start of handleConfirmRenewal and the start of the next function.

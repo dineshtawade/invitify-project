@@ -23,6 +23,8 @@ import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
 import html2canvas from 'html2canvas';
+import GoogleFontPicker from '@/components/GoogleFontPicker';
+import { getFontFamilyCss, loadGoogleFont } from '@/utils/font-utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -84,7 +86,7 @@ interface PageProps {
     filters?: { search: string };
 }
 
-const fontStyles: Record<string, string> = {
+const fontStyles: Record<string, string> = new Proxy({
     playfair: "'Playfair Display', serif",
     vibes: "'Great Vibes', cursive",
     montserrat: "'Montserrat', sans-serif",
@@ -100,7 +102,15 @@ const fontStyles: Record<string, string> = {
     poppins: "'Poppins', sans-serif",
     pacifico: "'Pacifico', cursive",
     sacramento: "'Sacramento', cursive",
-};
+}, {
+    get(target: any, prop: string) {
+        if (typeof prop === 'string') {
+            if (prop in target) return target[prop];
+            return getFontFamilyCss(prop);
+        }
+        return target[prop];
+    }
+});
 
 const fontLabels: Record<string, string> = {
     playfair: "Playfair Display (Serif)",
@@ -215,6 +225,20 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
 
         return () => observer.disconnect();
     }, [isOpen, activePageIndex, previewViewport, data.default_config.aspectRatio, data.default_config.width]);
+
+    // Preload Google Fonts used in template pages
+    // developed by dinesh tawade
+    useEffect(() => {
+        if (data.default_config?.pages) {
+            data.default_config.pages.forEach((p: any) => {
+                p.elements?.forEach((elem: any) => {
+                    if (elem.type === 'text' && elem.fontStyle) {
+                        loadGoogleFont(elem.fontStyle);
+                    }
+                });
+            });
+        }
+    }, [data.default_config]);
 
     // Target width for scaling calculation
     const targetWidth = data.default_config.aspectRatio === 'custom'
@@ -1283,20 +1307,23 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                     />
                                                                 </div>
 
-                                                                <div className="grid grid-cols-2 gap-3">
-                                                                    <div className="grid gap-1">
-                                                                        <Label htmlFor="fontStyle" className="text-[10px] uppercase font-bold text-neutral-450">Font Family</Label>
-                                                                        <select
-                                                                            id="fontStyle"
-                                                                            value={selectedElement.fontStyle || 'playfair'}
-                                                                            onChange={(e) => handleUpdateElement(selectedElement.id, { fontStyle: e.target.value })}
-                                                                            className="h-8 rounded-md border text-xs bg-white dark:bg-neutral-950 px-2"
-                                                                        >
-                                                                            {Object.keys(fontLabels).map((fKey) => (
-                                                                                <option key={fKey} value={fKey}>{fontLabels[fKey]}</option>
-                                                                            ))}
-                                                                        </select>
+                                                                {/* Google Font Picker */}
+                                                                {/* developed by dinesh tawade */}
+                                                                <div className="grid gap-1.5">
+                                                                    <div className="flex items-center justify-between">
+                                                                        <Label className="text-[10px] uppercase font-bold text-neutral-500">Google Font Family</Label>
+                                                                        <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1">
+                                                                            <Sparkles className="size-2.5" /> 1,950+ Fonts
+                                                                        </span>
                                                                     </div>
+                                                                    <GoogleFontPicker
+                                                                        value={selectedElement.fontStyle || 'playfair'}
+                                                                        sampleText={selectedElement.content || 'The Wedding of Sarah & Alex'}
+                                                                        onChange={(newFont) => handleUpdateElement(selectedElement.id, { fontStyle: newFont })}
+                                                                    />
+                                                                </div>
+
+                                                                <div className="grid grid-cols-2 gap-3">
                                                                     <div className="grid gap-1">
                                                                         <Label htmlFor="fontSize" className="text-[10px] uppercase font-bold text-neutral-450">Font Size (px)</Label>
                                                                         <Input
@@ -1306,26 +1333,6 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                             onChange={(e) => handleUpdateElement(selectedElement.id, { fontSize: parseInt(e.target.value) || 12 })}
                                                                             className="h-8 text-xs bg-white"
                                                                         />
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="grid grid-cols-2 gap-3">
-                                                                    <div className="grid gap-1 bg-white p-2 rounded border">
-                                                                        <Label htmlFor="textColor" className="text-[10px] uppercase font-bold text-neutral-455">Text Color</Label>
-                                                                        <div className="flex gap-1.5 items-center mt-1">
-                                                                            <input
-                                                                                type="color"
-                                                                                value={selectedElement.textColor || '#1f2937'}
-                                                                                onChange={(e) => handleUpdateElement(selectedElement.id, { textColor: e.target.value })}
-                                                                                className="w-8 h-8 p-0 cursor-pointer rounded border"
-                                                                            />
-                                                                            <Input
-                                                                                type="text"
-                                                                                value={selectedElement.textColor || '#1f2937'}
-                                                                                onChange={(e) => handleUpdateElement(selectedElement.id, { textColor: e.target.value })}
-                                                                                className="h-7 text-[10px] px-1 font-mono uppercase"
-                                                                            />
-                                                                        </div>
                                                                     </div>
                                                                     <div className="grid gap-1">
                                                                         <Label htmlFor="textAlign" className="text-[10px] uppercase font-bold text-neutral-450">Alignment</Label>
@@ -1339,6 +1346,24 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                             <option value="center">Center</option>
                                                                             <option value="right">Right</option>
                                                                         </select>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="grid gap-1 bg-white dark:bg-neutral-900 p-2 rounded border border-neutral-200 dark:border-neutral-800">
+                                                                    <Label htmlFor="textColor" className="text-[10px] uppercase font-bold text-neutral-455">Text Color</Label>
+                                                                    <div className="flex gap-1.5 items-center mt-1">
+                                                                        <input
+                                                                            type="color"
+                                                                            value={selectedElement.textColor || '#1f2937'}
+                                                                            onChange={(e) => handleUpdateElement(selectedElement.id, { textColor: e.target.value })}
+                                                                            className="w-8 h-8 p-0 cursor-pointer rounded border"
+                                                                        />
+                                                                        <Input
+                                                                            type="text"
+                                                                            value={selectedElement.textColor || '#1f2937'}
+                                                                            onChange={(e) => handleUpdateElement(selectedElement.id, { textColor: e.target.value })}
+                                                                            className="h-7 text-[10px] px-1 font-mono uppercase"
+                                                                        />
                                                                     </div>
                                                                 </div>
 
@@ -2061,7 +2086,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                             alignItems: 'center',
                                                             justifyContent: elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center',
                                                             textAlign: elem.textAlign || 'center',
-                                                            fontFamily: fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair,
+                                                            fontFamily: getFontFamilyCss(elem.fontStyle),
                                                             color: elem.textColor || '#1f2937',
                                                             fontSize: elem.fontSize ? `${elem.fontSize * scaleRatio}px` : undefined,
                                                             fontWeight: elem.fontWeight || 'normal',

@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Upload, Plus, SkipBack, Trash, Type, Image as ImageIcon, Loader2, X, Check, Grid, List, Search } from 'lucide-react';
+import { Play, Pause, Upload, Plus, SkipBack, Trash, Type, Image as ImageIcon, Loader2, X, Check, Grid, List, Search, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import axios from 'axios';
+import GoogleFontPicker from '@/components/GoogleFontPicker';
+import { getFontFamilyCss, loadGoogleFont } from '@/utils/font-utils';
 
 interface VideoTemplateBuilderProps {
     data: any;
@@ -29,6 +31,18 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
     const updateConfig = (newElements: any[]) => {
         setData('default_config', { ...data.default_config, elements: newElements });
     };
+
+    // Preload Google Fonts used in video elements
+    // developed by dinesh tawade
+    useEffect(() => {
+        if (elements && Array.isArray(elements)) {
+            elements.forEach((el: any) => {
+                if (el.type === 'text' && el.fontFamily) {
+                    loadGoogleFont(el.fontFamily);
+                }
+            });
+        }
+    }, [elements]);
 
     const [isUploading, setIsUploading] = useState(false);
     const [mediaLibrary, setMediaLibrary] = useState<any[]>([]);
@@ -365,7 +379,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                     {el.type === 'text' ? (
                                         <div
                                             style={{
-                                                fontFamily: el.fontFamily || 'Playfair Display',
+                                                fontFamily: getFontFamilyCss(el.fontFamily),
                                                 fontSize: el.fontSize || '24px',
                                                 color: el.color || '#ffffff',
                                                 fontWeight: el.fontWeight || 'normal',
@@ -760,33 +774,28 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
 
                                             {el.type === 'text' ? (
                                                 <>
-                                                    <div className="grid grid-cols-2 gap-2">
-                                                    <div>
-                                                        <label className="text-xs text-gray-500 mb-1 block">Font</label>
-                                                        <select
-                                                            value={el.fontFamily}
-                                                            onChange={(e) => {
-                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, fontFamily: e.target.value } : x);
-                                                                updateConfig(newEls);
-                                                            }}
-                                                            className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                                        >
-                                                            <option value="Playfair Display">Playfair Display</option>
-                                                            <option value="Great Vibes">Great Vibes</option>
-                                                            <option value="Montserrat">Montserrat</option>
-                                                            <option value="Cinzel">Cinzel</option>
-                                                            <option value="Dancing Script">Dancing Script</option>
-                                                            <option value="Roboto">Roboto</option>
-                                                            <option value="Open Sans">Open Sans</option>
-                                                            <option value="Lato">Lato</option>
-                                                            <option value="Oswald">Oswald</option>
-                                                            <option value="Pacifico">Pacifico</option>
-                                                        </select>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-xs text-gray-500 mb-1 block">Text Shadow</label>
-                                                        <select
-                                                            value={el.textShadow || 'none'}
+                                                    <div className="space-y-2">
+                                                        <div>
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <label className="text-xs text-gray-500 font-medium">Google Font Family</label>
+                                                                <span className="text-[10px] text-indigo-600 font-semibold flex items-center gap-1">
+                                                                    <Sparkles className="size-2.5" /> 1,950+ Fonts
+                                                                </span>
+                                                            </div>
+                                                            <GoogleFontPicker
+                                                                value={el.fontFamily || 'Playfair Display'}
+                                                                sampleText={el.content || 'The Wedding of Sarah & Alex'}
+                                                                onChange={(newFont) => {
+                                                                    loadGoogleFont(newFont);
+                                                                    const newEls = elements.map((x: any) => x.id === el.id ? { ...x, fontFamily: newFont } : x);
+                                                                    updateConfig(newEls);
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs text-gray-500 mb-1 block">Text Shadow</label>
+                                                            <select
+                                                                value={el.textShadow || 'none'}
                                                             onChange={(e) => {
                                                                 const newEls = elements.map((x: any) => x.id === el.id ? { ...x, textShadow: e.target.value } : x);
                                                                 updateConfig(newEls);
@@ -1129,7 +1138,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                     left: `${displayX}%`,
                                     top: `${displayY}%`,
                                     ...(el.type === 'text' ? {
-                                        fontFamily: el.fontFamily,
+                                        fontFamily: getFontFamilyCss(el.fontFamily),
                                         fontSize: el.fontSize,
                                         fontWeight: el.fontWeight || 'normal',
                                         color: el.color,

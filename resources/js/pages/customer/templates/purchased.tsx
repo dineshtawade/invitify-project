@@ -19,6 +19,7 @@ import { normalizeConfig } from '@/utils/builder-utils';
 import { toPng } from 'html-to-image';
 import VideoGenerator from '@/components/video-generator';
 import { Input } from '@/components/ui/input';
+import { getFontFamilyCss, getFontFamilyName, loadGoogleFont } from '@/utils/font-utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -118,19 +119,40 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
 
     // QR Code Customizer Modal state
     // developed by dinesh tawade
+    interface QRItem {
+        id: number;
+        title: string;
+        url: string;
+        slug?: string;
+        displayPath?: string;
+        badgeText?: string;
+        subtitleText?: string;
+        type?: 'website' | 'video' | 'card';
+    }
+
     const [isQROpen, setIsQROpen] = useState(false);
-    const [selectedQRWebsite, setSelectedQRWebsite] = useState<{ id: number; slug: string; title: string } | null>(null);
+    const [selectedQRTarget, setSelectedQRTarget] = useState<QRItem | null>(null);
     const [qrTheme, setQrTheme] = useState<'gold' | 'black'>('gold');
     const [isGeneratingQR, setIsGeneratingQR] = useState(false);
 
-    const handleOpenQRModal = (site: { id: number; slug: string; title: string }) => {
-        setSelectedQRWebsite(site);
+    const handleOpenQRModal = (target: QRItem) => {
+        setSelectedQRTarget(target);
         setIsQROpen(true);
     };
 
     const handleOpenDownload = (invitation: UserTemplate) => {
         setSelectedDownloadInvitation(invitation);
         setIsDownloadOpen(true);
+        // Preload any Google Fonts in invitation
+        if (invitation.custom_config?.pages) {
+            invitation.custom_config.pages.forEach((p: any) => {
+                p.elements?.forEach((elem: any) => {
+                    if (elem.type === 'text' && elem.fontStyle) {
+                        loadGoogleFont(elem.fontStyle);
+                    }
+                });
+            });
+        }
     };
 
     const handleDownloadPage = async (pageIdx: number) => {
@@ -189,10 +211,14 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
 
     // Generate & Download styled QR Code (Luxury Gold or Sleek Black)
     // developed by dinesh tawade
-    const downloadQRCode = async (websiteId: number, slug: string, title: string, theme: 'gold' | 'black' = 'gold') => {
+    const downloadQRCode = async (target: QRItem, theme: 'gold' | 'black' = 'gold') => {
         try {
             setIsGeneratingQR(true);
-            const url = `${window.location.origin}/mini-website/${slug}`;
+            const url = target.url;
+            const title = target.title;
+            const badge = target.badgeText || (target.type === 'video' ? '✨ VIDEO INVITATION ✨' : '✨ WEDDING INVITATION ✨');
+            const subtitle = target.subtitleText || (target.type === 'video' ? 'Scan to Watch Video Invite' : 'Scan to Open Invite');
+            const displayLabel = target.displayPath || (target.slug ? `/${target.slug}` : '/invitation');
 
             // Generate QR code with matching colors and smooth borders
             // Gold: Dark #d4af37 (rich gold), Light #ffffff (clean white for high scannability)
@@ -260,7 +286,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                 ctx.fillStyle = '#fbf5e6';
                 if (ctx.roundRect) {
                     ctx.beginPath();
-                    ctx.roundRect(width / 2 - 90, 52, 180, 32, 16);
+                    ctx.roundRect(width / 2 - 100, 52, 200, 32, 16);
                     ctx.fill();
                     ctx.strokeStyle = '#ebd9aa';
                     ctx.lineWidth = 1;
@@ -269,12 +295,12 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                 ctx.fillStyle = '#9b7824';
                 ctx.font = 'bold 12px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText('✨ WEDDING INVITATION ✨', width / 2, 73);
+                ctx.fillText(badge, width / 2, 73);
 
                 // Title Text
                 ctx.fillStyle = '#1c1712';
                 ctx.font = 'bold 30px serif';
-                ctx.fillText('Scan to Open Invite', width / 2, 122);
+                ctx.fillText(subtitle, width / 2, 122);
 
                 ctx.fillStyle = '#84786d';
                 ctx.font = '500 16px sans-serif';
@@ -312,7 +338,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                 }
                 ctx.fillStyle = '#8c702a';
                 ctx.font = 'bold 13px monospace';
-                ctx.fillText(`/${slug}`, width / 2, 703);
+                ctx.fillText(displayLabel, width / 2, 703);
 
                 // Footer Text
                 ctx.fillStyle = '#b3a08b';
@@ -343,7 +369,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
                 if (ctx.roundRect) {
                     ctx.beginPath();
-                    ctx.roundRect(width / 2 - 80, 52, 160, 32, 16);
+                    ctx.roundRect(width / 2 - 100, 52, 200, 32, 16);
                     ctx.fill();
                     ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
                     ctx.lineWidth = 1;
@@ -352,12 +378,12 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                 ctx.fillStyle = '#e5e7eb';
                 ctx.font = 'bold 11px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText('DIGITAL INVITATION', width / 2, 72);
+                ctx.fillText(badge.replace(/✨/g, '').trim(), width / 2, 72);
 
                 // Title Text
                 ctx.fillStyle = '#ffffff';
                 ctx.font = 'bold 30px sans-serif';
-                ctx.fillText('Scan to View', width / 2, 122);
+                ctx.fillText(subtitle, width / 2, 122);
 
                 ctx.fillStyle = '#9ca3af';
                 ctx.font = '500 16px sans-serif';
@@ -395,7 +421,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                 }
                 ctx.fillStyle = '#d1d5db';
                 ctx.font = 'bold 13px monospace';
-                ctx.fillText(`/${slug}`, width / 2, 703);
+                ctx.fillText(displayLabel, width / 2, 703);
 
                 // Footer Text
                 ctx.fillStyle = '#6b7280';
@@ -411,7 +437,8 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                 const blobUrl = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = blobUrl;
-                link.download = `${slug}-QR-${theme.toUpperCase()}.png`;
+                const cleanFileBase = (target.slug || target.title || 'invitation').replace(/[^a-zA-Z0-9_-]/g, '_');
+                link.download = `${cleanFileBase}-QR-${theme.toUpperCase()}.png`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -431,6 +458,9 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
         const printWindow = window.open('', '_blank');
         if (printWindow) {
             let pagesHtml = '';
+            const fontFamilies = Array.from(new Set(cfg.pages.flatMap(p => p.elements.filter(e => e.type === 'text' && e.fontStyle).map(e => getFontFamilyName(e.fontStyle)))));
+            const dynamicFontLinks = fontFamilies.map(f => `<link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(f)}:ital,wght@0,300;0,400;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet" />`).join('\n');
+
             cfg.pages.forEach((page) => {
                 let elementsHtml = '';
                 page.elements.forEach(elem => {
@@ -444,7 +474,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                         align-items: center;
                         justify-content: ${elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center'};
                         text-align: ${elem.textAlign || 'center'};
-                        font-family: ${fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair};
+                        font-family: ${getFontFamilyCss(elem.fontStyle)};
                         color: ${elem.textColor || '#1f2937'};
                         font-size: ${elem.fontSize ? elem.fontSize + 'px' : '12px'};
                         font-weight: ${elem.fontWeight || 'normal'};
@@ -478,6 +508,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                         <link rel="preconnect" href="https://fonts.googleapis.com" />
                         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&display=swap" rel="stylesheet" />
+                        ${dynamicFontLinks}
                         <style>
                             @media print {
                                 body { margin: 0; padding: 0; background: none; }
@@ -576,7 +607,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                     }`}
                             >
                                 <Globe className="size-4" />
-                                Mini Websites ({miniWebsites.length})
+                                Invitation Website ({miniWebsites.length})
                             </button>
                         )}
                         {businessCards.length > 0 && (
@@ -718,29 +749,48 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                 </Link>
                                             )}
                                         </div>
-                                        <div className={`grid gap-2 mt-1 ${isVideo ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                        <div className="grid grid-cols-2 gap-2 mt-1">
                                             <Button
                                                 onClick={() => handleOpenShare(t)}
-                                                className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 text-white flex items-center justify-center gap-2 text-xs font-semibold h-10 rounded-xl shadow-md"
+                                                className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 text-white flex items-center justify-center gap-1.5 text-xs font-semibold h-10 rounded-xl shadow-md"
                                             >
-                                                <Share2 className="size-4" /> Share Link
+                                                <Share2 className="size-3.5" /> Share Link
                                             </Button>
 
-                                            {isVideo && (
-                                                t.video_url ? (
+                                            <Button
+                                                onClick={() => handleOpenQRModal({
+                                                    id: t.id,
+                                                    title: t.template.name,
+                                                    url: `${window.location.origin}/invitations/view/${t.encrypted_id}`,
+                                                    displayPath: `/invitations/view/${t.encrypted_id.substring(0, 10)}...`,
+                                                    badgeText: isVideo ? '✨ VIDEO INVITATION ✨' : '✨ WEDDING INVITATION ✨',
+                                                    subtitleText: isVideo ? 'Scan to Watch Video' : 'Scan to Open Invite',
+                                                    type: isVideo ? 'video' : 'card'
+                                                })}
+                                                variant="outline"
+                                                className="border-amber-400/60 dark:border-amber-600/60 bg-amber-50/60 hover:bg-amber-100 dark:bg-amber-950/30 dark:hover:bg-amber-950/50 text-amber-900 dark:text-amber-300 flex items-center justify-center gap-1.5 text-xs font-semibold h-10 rounded-xl shadow-xs"
+                                                title="Luxury QR Code Card"
+                                            >
+                                                <QrCode className="size-3.5 text-amber-600 dark:text-amber-400" /> QR Code
+                                            </Button>
+                                        </div>
+
+                                        {isVideo && (
+                                            <div className="mt-2">
+                                                {t.video_url ? (
                                                     <div className="grid grid-cols-2 gap-2">
                                                         <a
                                                             href={t.video_url}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-400 flex items-center justify-center gap-1.5 text-xs h-10 rounded-xl font-semibold transition-colors"
+                                                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-400 flex items-center justify-center gap-1.5 text-xs h-10 rounded-xl font-semibold transition-colors shadow-xs"
                                                         >
                                                             <PlayCircle className="size-4" /> Play
                                                         </a>
                                                         <a
                                                             href={t.video_url}
                                                             download
-                                                            className="bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400 flex items-center justify-center gap-1.5 text-xs h-10 rounded-xl font-semibold transition-colors"
+                                                            className="bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400 flex items-center justify-center gap-1.5 text-xs h-10 rounded-xl font-semibold transition-colors shadow-xs"
                                                         >
                                                             <Download className="size-4" /> Save
                                                         </a>
@@ -748,13 +798,13 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                 ) : (
                                                     <Button
                                                         onClick={() => { setSelectedVideoTemplate(t); setIsVideoOpen(true); }}
-                                                        className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-1.5 text-xs font-semibold h-10 rounded-xl shadow-md shadow-indigo-600/20"
+                                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-1.5 text-xs font-semibold h-10 rounded-xl shadow-md shadow-indigo-600/20"
                                                     >
                                                         <Video className="size-4" /> Gen MP4
                                                     </Button>
-                                                )
-                                            )}
-                                        </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             );
@@ -837,7 +887,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                 <div className="flex flex-col gap-6 p-6 pt-0 border-t border-neutral-200 dark:border-neutral-800 mt-6">
                     <div className="flex flex-col gap-2 mt-6">
                         <h2 className="text-xl font-bold tracking-tight text-neutral-900 flex items-center gap-2">
-                            My Mini Websites <Sparkles className="size-4 text-emerald-500" />
+                            My Invitation Website <Sparkles className="size-4 text-emerald-500" />
                         </h2>
                     </div>
 
@@ -936,7 +986,16 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                     </a>
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleOpenQRModal({ id: site.id, slug: site.slug, title: site.title })}
+                                                        onClick={() => handleOpenQRModal({
+                                                            id: site.id,
+                                                            slug: site.slug,
+                                                            title: site.title,
+                                                            url: `${window.location.origin}/mini-website/${site.slug}`,
+                                                            displayPath: `/${site.slug}`,
+                                                            badgeText: '✨ WEDDING INVITATION ✨',
+                                                            subtitleText: 'Scan to Celebrate',
+                                                            type: 'website'
+                                                        })}
                                                         className="px-3 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg font-semibold text-xs transition-all flex items-center gap-1.5 shadow-xs shadow-amber-500/20 active:scale-95"
                                                         title="Download QR code in Gold or Black"
                                                     >
@@ -1002,7 +1061,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                     onChange={(e) => setSelectedWebsiteFilter(e.target.value)}
                                     className="h-9 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-3 text-xs font-semibold text-neutral-700 dark:text-neutral-200 focus:outline-none"
                                 >
-                                    <option value="all">All Mini Websites</option>
+                                    <option value="all">All Invitation Website</option>
                                     {miniWebsites.map((w) => (
                                         <option key={w.id} value={String(w.id)}>
                                             {w.title} ({w.rsvps_count || 0})
@@ -1261,7 +1320,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                         alignItems: 'center',
                                                         justifyContent: elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center',
                                                         textAlign: elem.textAlign || 'center',
-                                                        fontFamily: fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair,
+                                                        fontFamily: getFontFamilyCss(elem.fontStyle),
                                                         color: elem.textColor || '#1f2937',
                                                         fontSize: elem.fontSize ? `${elem.fontSize * 0.95}px` : '12px',
                                                         fontWeight: elem.fontWeight || 'normal',
@@ -1352,7 +1411,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                         </div>
                     </DialogHeader>
 
-                    {selectedQRWebsite && (
+                    {selectedQRTarget && (
                         <div className="p-4 sm:p-5 overflow-y-auto flex-1 space-y-4">
                             {/* Color / Theme Selector Cards */}
                             <div>
@@ -1436,7 +1495,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                 : 'bg-white/10 text-neutral-200 border border-white/15'
                                                 }`}
                                         >
-                                            {qrTheme === 'gold' ? '✨ Wedding Invitation ✨' : 'Digital Invitation'}
+                                            {selectedQRTarget.badgeText || (selectedQRTarget.type === 'video' ? '✨ Video Invitation ✨' : (qrTheme === 'gold' ? '✨ Wedding Invitation ✨' : 'Digital Invitation'))}
                                         </span>
                                     </div>
 
@@ -1444,13 +1503,13 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                         className={`font-bold text-sm sm:text-base line-clamp-1 ${qrTheme === 'gold' ? 'text-amber-950 font-serif' : 'text-white'
                                             }`}
                                     >
-                                        Scan to Celebrate
+                                        {selectedQRTarget.subtitleText || (selectedQRTarget.type === 'video' ? 'Scan to Watch Video' : 'Scan to Celebrate')}
                                     </h4>
                                     <p
                                         className={`text-[11px] truncate max-w-[190px] mx-auto mt-0.5 ${qrTheme === 'gold' ? 'text-amber-800/80' : 'text-neutral-400'
                                             }`}
                                     >
-                                        {selectedQRWebsite.title}
+                                        {selectedQRTarget.title}
                                     </p>
 
                                     {/* QR Image Box */}
@@ -1462,7 +1521,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                     >
                                         <img
                                             src={`https://quickchart.io/qr?size=300&text=${encodeURIComponent(
-                                                `${typeof window !== 'undefined' ? window.location.origin : ''}/mini-website/${selectedQRWebsite.slug}`
+                                                selectedQRTarget.url
                                             )}&dark=${qrTheme === 'gold' ? 'c59b27' : '111111'}&light=ffffff&ecLevel=H&margin=1`}
                                             alt="QR Preview"
                                             className="w-full h-full object-contain"
@@ -1476,7 +1535,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                             : 'bg-white/5 text-neutral-300 border border-white/10'
                                             }`}
                                     >
-                                        /{selectedQRWebsite.slug}
+                                        {selectedQRTarget.displayPath || (selectedQRTarget.slug ? `/${selectedQRTarget.slug}` : '/invitation')}
                                     </div>
                                 </div>
                             </div>
@@ -1496,8 +1555,8 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                             type="button"
                             disabled={isGeneratingQR}
                             onClick={() => {
-                                if (selectedQRWebsite) {
-                                    downloadQRCode(selectedQRWebsite.id, selectedQRWebsite.slug, selectedQRWebsite.title, qrTheme);
+                                if (selectedQRTarget) {
+                                    downloadQRCode(selectedQRTarget, qrTheme);
                                 }
                             }}
                             className={`w-full sm:flex-1 h-9 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 text-white shadow-sm ${qrTheme === 'gold'

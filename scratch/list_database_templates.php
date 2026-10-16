@@ -10,12 +10,12 @@ use App\Models\Template;
 use App\Models\MiniWebsiteTemplate;
 use App\Models\BusinessWebsiteTemplate;
 
-echo "--- INVITATION CARDS (Template) ---\n";
+echo "--- Invitation Cards & Videos  (Template) ---\n";
 foreach (Template::all() as $t) {
     echo "ID: {$t->id} | Name: {$t->name} | Price: {$t->price}\n";
 }
 
-echo "\n--- MINI WEBSITES (MiniWebsiteTemplate) ---\n";
+echo "\n--- Invitation Website (MiniWebsiteTemplate) ---\n";
 foreach (MiniWebsiteTemplate::all() as $t) {
     echo "ID: {$t->id} | Name: {$t->name} | Type: {$t->type} | Price: {$t->price}\n";
 }

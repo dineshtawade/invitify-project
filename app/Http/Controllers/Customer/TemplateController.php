@@ -239,7 +239,7 @@ class TemplateController extends Controller
                 ];
             });
 
-        // Fetch all RSVPs for customer's mini websites
+        // Fetch all RSVPs for customer's Invitation Website
         // developed by dinesh tawade
         $userMiniWebsites = \App\Models\MiniWebsite::where('user_id', auth()->id())->get();
         $allRsvps = \App\Models\Rsvp::whereIn('mini_website_id', $userMiniWebsites->pluck('id'))

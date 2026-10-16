@@ -24,7 +24,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/customer/dashboard',
     },
     {
-        title: 'My Mini Websites',
+        title: 'My Invitation Website',
         href: '/customer/mini-websites',
     },
 ];
@@ -584,12 +584,12 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="My Mini Websites" />
+            <Head title="My Invitation Website" />
             <div className="flex h-full flex-1 flex-col gap-6 p-6 bg-white">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex flex-col gap-2">
                         <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                            My Mini Websites <Globe className="size-6 text-blue-600" />
+                            My Invitation Website <Globe className="size-6 text-blue-600" />
                         </h1>
                         <p className="text-gray-500">
                             Build, customize and host single-page invitations or multi-page business websites.

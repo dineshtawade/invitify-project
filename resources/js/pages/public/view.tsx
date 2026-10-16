@@ -22,7 +22,12 @@ interface PageProps {
     };
 }
 
-const fontStyles: Record<string, string> = {
+import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
+import VideoGenerator from '@/components/video-generator';
+import { getFontFamilyCss, loadGoogleFont } from '@/utils/font-utils';
+
+// developed by dinesh tawade
+const fontStyles: Record<string, string> = new Proxy({
     playfair: "'Playfair Display', serif",
     vibes: "'Great Vibes', cursive",
     montserrat: "'Montserrat', sans-serif",
@@ -33,10 +38,12 @@ const fontStyles: Record<string, string> = {
     parisienne: "'Parisienne', cursive",
     cormorant: "'Cormorant Garamond', serif",
     pinyon: "'Pinyon Script', cursive",
-};
-
-import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
-import VideoGenerator from '@/components/video-generator';
+}, {
+    get(target, prop: string) {
+        if (prop in target) return (target as any)[prop];
+        return getFontFamilyCss(prop);
+    }
+});
 
 export default function PublicSharedView({ userTemplate }: PageProps) {
     const isVideo = userTemplate.template.type === 'video';
@@ -107,6 +114,19 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
         
         return () => observer.disconnect();
     }, [currentPageIndex]);
+
+    // Preload Google Fonts used in the template
+    // developed by dinesh tawade
+    useEffect(() => {
+        if (!config?.pages) return;
+        config.pages.forEach((p: any) => {
+            p.elements?.forEach((elem: any) => {
+                if (elem.type === 'text' && elem.fontStyle) {
+                    loadGoogleFont(elem.fontStyle);
+                }
+            });
+        });
+    }, [config]);
 
     const activePage = config.pages[currentPageIndex] || config.pages[0];
     const totalPages = config.pages.length;
@@ -263,7 +283,7 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
                                 alignItems: 'center',
                                 justifyContent: elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center',
                                 textAlign: elem.textAlign || 'center',
-                                fontFamily: fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair,
+                                fontFamily: getFontFamilyCss(elem.fontStyle),
                                 color: elem.textColor || '#1f2937',
                                 fontSize: elem.fontSize ? `${elem.fontSize * scaleRatio}px` : undefined,
                                 fontWeight: elem.fontWeight || 'normal',

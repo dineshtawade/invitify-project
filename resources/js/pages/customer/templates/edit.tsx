@@ -24,6 +24,7 @@ import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 import { getCsrfHeaders } from '@/lib/utils';
 import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
+import { getFontFamilyCss, loadGoogleFont } from '@/utils/font-utils';
 
 interface Template {
     id: number;
@@ -83,7 +84,7 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
     const cardRef = useRef<HTMLDivElement>(null);
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Browse Templates', href: '/customer/templates' },
+        { title: isGuest ? 'Home' : 'Browse Templates', href: isGuest ? '/#templates' : '/customer/templates' },
         { title: `Customize ${template.name}`, href: `/templates/${template.encrypted_id}/customize` },
     ];
 
@@ -95,8 +96,8 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
         custom_config: initialConfig,
     });
 
-    const activePage = data.custom_config.pages[activePageIndex] || data.custom_config.pages[0];
-    const ratioData = ASPECT_RATIOS[data.custom_config.aspectRatio] || ASPECT_RATIOS.standard;
+    const activePage = data.custom_config?.pages ? (data.custom_config.pages[activePageIndex] || data.custom_config.pages[0]) : null;
+    const ratioData = ASPECT_RATIOS[data.custom_config?.aspectRatio || 'standard'] || ASPECT_RATIOS.standard;
 
     useEffect(() => {
         if (!cardRef.current) return;
@@ -110,11 +111,25 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
         return () => observer.disconnect();
     }, [activePageIndex]);
 
-    const targetWidth = data.custom_config.aspectRatio === 'custom'
-        ? (data.custom_config.width || 350)
-        : (ratioData.targetWidth || 350);
+    const targetWidth = data.custom_config?.aspectRatio === 'custom'
+        ? (data.custom_config?.width || 350)
+        : (ratioData?.targetWidth || 350);
 
     const scaleRatio = cardWidth / targetWidth;
+
+    // Preload Google Fonts used in customer customized template
+    // developed by dinesh tawade
+    useEffect(() => {
+        if (data.custom_config?.pages) {
+            data.custom_config.pages.forEach((p: any) => {
+                p.elements?.forEach((elem: any) => {
+                    if (elem.type === 'text' && elem.fontStyle) {
+                        loadGoogleFont(elem.fontStyle);
+                    }
+                });
+            });
+        }
+    }, [data.custom_config]);
 
     const loadRazorpayScript = () => {
         return new Promise((resolve) => {
@@ -398,13 +413,13 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-200 pb-6">
                     <div className="flex items-center gap-4">
                         <a
-                            href="/customer/templates"
+                            href={isGuest ? "/#templates" : "/customer/templates"}
                             className="group flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-black transition-all duration-200"
                         >
                             <div className="p-1.5 rounded-full bg-gray-100 group-hover:bg-gray-200 transition-colors">
                                 <ChevronLeft className="size-4" />
                             </div>
-                            <span className="hidden sm:inline">Back to Templates</span>
+                            <span className="hidden sm:inline">{isGuest ? 'Back to Templates' : 'Back to Templates'}</span>
                         </a>
 
                         <div className="flex items-center gap-3">
@@ -699,7 +714,7 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                                             alignItems: 'center',
                                             justifyContent: elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center',
                                             textAlign: elem.textAlign || 'center',
-                                            fontFamily: fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair,
+                                            fontFamily: getFontFamilyCss(elem.fontStyle),
                                             color: elem.textColor || '#1f2937',
                                             fontSize: elem.fontSize ? `${elem.fontSize * scaleRatio}px` : undefined,
                                             fontWeight: elem.fontWeight || 'normal',
@@ -947,7 +962,7 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                         <Button
                             type="button"
                             onClick={() => handleGuestRedirect('/login')}
-                            className="w-full sm:w-auto rounded-xl text-sm font-medium border-2 border-gray-300 text-black hover:bg-gray-50"
+                            className="w-full sm:w-auto rounded-xl text-sm font-semibold bg-black hover:bg-gray-800 shadow-lg shadow-black/25 text-white"
                         >
                             Log In
                         </Button>

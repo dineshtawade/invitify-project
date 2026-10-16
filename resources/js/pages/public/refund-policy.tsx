@@ -26,7 +26,7 @@ export default function RefundPolicy() {
             icon: HelpCircle,
             content: (
                 <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed">
-                    At TheInvitify, we provide digital services including invitation creation, mini websites, and subscription-based access. Due to the nature of digital products, refunds are limited and governed by this policy.
+                    At TheInvitify, we provide digital services including invitation creation, Invitation Website, and subscription-based access. Due to the nature of digital products, refunds are limited and governed by this policy.
                 </p>
             ),
         },

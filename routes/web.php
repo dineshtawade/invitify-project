@@ -42,7 +42,7 @@ Route::get('templates/{encryptedId}/customize', [\App\Http\Controllers\Customer\
 Route::get('invitations/view/{encryptedId}', [\App\Http\Controllers\Customer\TemplateController::class, 'viewShared'])
     ->name('invitations.view');
 
-// Public Mini Websites (Invitations) Routing
+// Public Invitation Website (Invitations) Routing
 Route::get('mini-website/{slug}/{page?}', [\App\Http\Controllers\PublicSiteController::class, 'show'])->name('public.site.show');
 Route::post('mini-website/{slug}/rsvp', [\App\Http\Controllers\PublicSiteController::class, 'rsvp'])->name('public.site.rsvp');
 Route::post('mini-website/{slug}/contact', [\App\Http\Controllers\PublicSiteController::class, 'contact'])->name('public.site.contact');
@@ -277,7 +277,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
         Route::post('reseller/websites/{type}/{id}/host', [\App\Http\Controllers\Reseller\HostingController::class, 'host'])
             ->name('reseller.websites.host');
 
-        // Reseller Mini Websites editor
+        // Reseller Invitation Website editor
         Route::get('reseller/mini-websites/{mini_website}/download-zip', [\App\Http\Controllers\Reseller\MiniWebsiteController::class, 'downloadInviteZip'])
             ->name('reseller.mini-websites.download-zip');
         Route::get('reseller/mini-websites/{mini_website}/edit', [\App\Http\Controllers\Reseller\MiniWebsiteController::class, 'edit'])
@@ -368,7 +368,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
         Route::post('customer/subscriptions', [\App\Http\Controllers\Customer\SubscriptionController::class, 'subscribe'])
             ->name('customer.subscriptions.subscribe');
 
-        // Customer Mini Websites
+        // Customer Invitation Website
         Route::get('customer/mini-websites/{mini_website}/download-zip', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'downloadInviteZip'])
             ->name('customer.mini-websites.download-zip');
         Route::resource('customer/mini-websites', \App\Http\Controllers\Customer\MiniWebsiteController::class, [

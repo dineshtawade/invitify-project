@@ -622,7 +622,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
     return (
         <AppLayout breadcrumbs={[
             { title: 'Dashboard', href: '/customer/dashboard' },
-            { title: 'My Mini Websites', href: '/customer/mini-websites' },
+            { title: 'My Invitation Website', href: '/customer/mini-websites' },
             { title: website.title, href: `/customer/mini-websites/${website.uuid || website.id}/edit` },
         ]}>
             <Head title={`Customize: ${website.title}`} />

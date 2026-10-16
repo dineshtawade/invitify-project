@@ -22,6 +22,7 @@ import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 import { getCsrfHeaders } from '@/lib/utils';
 import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
+import { getFontFamilyCss, loadGoogleFont } from '@/utils/font-utils';
 
 interface Template {
     id: number;
@@ -45,7 +46,8 @@ interface PageProps {
     userTemplate: UserTemplate;
 }
 
-const fontStyles: Record<string, string> = {
+// developed by dinesh tawade
+const fontStyles: Record<string, string> = new Proxy({
     playfair: "'Playfair Display', serif",
     vibes: "'Great Vibes', cursive",
     montserrat: "'Montserrat', sans-serif",
@@ -56,7 +58,12 @@ const fontStyles: Record<string, string> = {
     parisienne: "'Parisienne', cursive",
     cormorant: "'Cormorant Garamond', serif",
     pinyon: "'Pinyon Script', cursive",
-};
+}, {
+    get(target, prop: string) {
+        if (prop in target) return (target as any)[prop];
+        return getFontFamilyCss(prop);
+    }
+});
 
 export default function TemplateCustomize({ template, userTemplate }: PageProps) {
     const { auth } = usePage().props;
@@ -123,6 +130,20 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
 
         return () => observer.disconnect();
     }, [activePageIndex]);
+
+    // Preload Google Fonts used in reseller customized template
+    // developed by dinesh tawade
+    useEffect(() => {
+        if (data.custom_config?.pages) {
+            data.custom_config.pages.forEach((p: any) => {
+                p.elements?.forEach((elem: any) => {
+                    if (elem.type === 'text' && elem.fontStyle) {
+                        loadGoogleFont(elem.fontStyle);
+                    }
+                });
+            });
+        }
+    }, [data.custom_config]);
 
     const targetWidth = data.custom_config.aspectRatio === 'custom'
         ? (data.custom_config.width || 350)
@@ -581,7 +602,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
                                             alignItems: 'center',
                                             justifyContent: elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center',
                                             textAlign: elem.textAlign || 'center',
-                                            fontFamily: fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair,
+                                            fontFamily: getFontFamilyCss(elem.fontStyle),
                                             color: elem.textColor || '#1f2937',
                                             fontSize: elem.fontSize ? `${elem.fontSize * scaleRatio}px` : undefined,
                                             fontWeight: elem.fontWeight || 'normal',

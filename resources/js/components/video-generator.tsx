@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, Video, CheckCircle2, AlertCircle } from 'lucide-react';
 import { normalizeConfig } from '@/utils/builder-utils';
+import { getFontFamilyCss, loadGoogleFont } from '@/utils/font-utils';
 
 interface VideoGeneratorProps {
     userTemplate: any;
@@ -16,12 +17,18 @@ interface VideoGeneratorProps {
     uploadEndpoint?: string;
 }
 
-const fontStyles: Record<string, string> = {
+// developed by dinesh tawade
+const fontStyles: Record<string, string> = new Proxy({
     playfair: "'Playfair Display', serif",
     vibes: "'Great Vibes', cursive",
     montserrat: "'Montserrat', sans-serif",
     cinzel: "'Cinzel', serif",
-};
+}, {
+    get(target, prop: string) {
+        if (prop in target) return (target as any)[prop];
+        return getFontFamilyCss(prop);
+    }
+});
 
 export default function VideoGenerator({ userTemplate, isOpen, onClose, onComplete, uploadEndpoint }: VideoGeneratorProps) {
     const [status, setStatus] = useState<string>('idle');
@@ -85,6 +92,34 @@ export default function VideoGenerator({ userTemplate, isOpen, onClose, onComple
         setErrorMsg('');
         
         try {
+            // Preload Google Fonts used in the template
+            // developed by dinesh tawade
+            if (userTemplate?.custom_config?.pages) {
+                userTemplate.custom_config.pages.forEach((p: any) => {
+                    p.elements?.forEach((elem: any) => {
+                        if (elem.type === 'text' && elem.fontStyle) {
+                            loadGoogleFont(elem.fontStyle);
+                        }
+                    });
+                });
+            }
+            // Preload Google Fonts in video templates
+            const videoEls = userTemplate?.custom_config?.elements || userTemplate?.template?.default_config?.elements;
+            if (videoEls && Array.isArray(videoEls)) {
+                videoEls.forEach((elem: any) => {
+                    if (elem.type === 'text' && elem.fontFamily) {
+                        loadGoogleFont(elem.fontFamily);
+                    }
+                });
+            }
+            if (typeof document !== 'undefined' && (document as any).fonts) {
+                try {
+                    await (document as any).fonts.ready;
+                } catch (e) {
+                    // ignore
+                }
+            }
+
             // Setup recording loop
             for (let frame = 0; frame < TOTAL_FRAMES; frame++) {
                 const timeMs = (frame / FPS) * 1000;
@@ -287,7 +322,7 @@ export default function VideoGenerator({ userTemplate, isOpen, onClose, onComple
                                 {el.type === 'text' ? (
                                     <div
                                         style={{
-                                            fontFamily: el.fontFamily || 'Playfair Display',
+                                            fontFamily: getFontFamilyCss(el.fontFamily),
                                             fontSize: el.fontSize || '24px',
                                             color: el.color || '#ffffff',
                                             fontWeight: el.fontWeight || 'normal',
@@ -336,7 +371,7 @@ export default function VideoGenerator({ userTemplate, isOpen, onClose, onComple
                         alignItems: 'center',
                         justifyContent: elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center',
                         textAlign: elem.textAlign || 'center',
-                        fontFamily: fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair,
+                        fontFamily: getFontFamilyCss(elem.fontStyle),
                         color: elem.textColor || '#1f2937',
                         fontSize: elem.fontSize ? `${elem.fontSize}px` : undefined,
                         fontWeight: elem.fontWeight || 'normal',

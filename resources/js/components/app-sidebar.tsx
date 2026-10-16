@@ -195,7 +195,7 @@ export function AppSidebar() {
                 icon: Mail,
             },
             {
-                title: 'My Mini Websites',
+                title: 'My Invitation Website',
                 href: '/customer/mini-websites',
                 icon: Globe,
             },
