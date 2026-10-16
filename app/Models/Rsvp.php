@@ -17,6 +17,12 @@ class Rsvp extends Model
         'guests_count',
         'status',
         'message',
+        'answers',
+    ];
+
+    protected $casts = [
+        'answers' => 'array',
+        'guests_count' => 'integer',
     ];
 
     public function miniWebsite()

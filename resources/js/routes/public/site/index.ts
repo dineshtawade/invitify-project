@@ -174,7 +174,7 @@ rsvp.post = (args: { slug: string | number } | [slug: string | number ] | string
     rsvp.form = rsvpForm
 /**
 * @see \App\Http\Controllers\PublicSiteController::contact
- * @see app/Http/Controllers/PublicSiteController.php:136
+ * @see app/Http/Controllers/PublicSiteController.php:151
  * @route '/mini-website/{slug}/contact'
  */
 export const contact = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -189,7 +189,7 @@ contact.definition = {
 
 /**
 * @see \App\Http\Controllers\PublicSiteController::contact
- * @see app/Http/Controllers/PublicSiteController.php:136
+ * @see app/Http/Controllers/PublicSiteController.php:151
  * @route '/mini-website/{slug}/contact'
  */
 contact.url = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -217,7 +217,7 @@ contact.url = (args: { slug: string | number } | [slug: string | number ] | stri
 
 /**
 * @see \App\Http\Controllers\PublicSiteController::contact
- * @see app/Http/Controllers/PublicSiteController.php:136
+ * @see app/Http/Controllers/PublicSiteController.php:151
  * @route '/mini-website/{slug}/contact'
  */
 contact.post = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -227,7 +227,7 @@ contact.post = (args: { slug: string | number } | [slug: string | number ] | str
 
     /**
 * @see \App\Http\Controllers\PublicSiteController::contact
- * @see app/Http/Controllers/PublicSiteController.php:136
+ * @see app/Http/Controllers/PublicSiteController.php:151
  * @route '/mini-website/{slug}/contact'
  */
     const contactForm = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -237,7 +237,7 @@ contact.post = (args: { slug: string | number } | [slug: string | number ] | str
 
             /**
 * @see \App\Http\Controllers\PublicSiteController::contact
- * @see app/Http/Controllers/PublicSiteController.php:136
+ * @see app/Http/Controllers/PublicSiteController.php:151
  * @route '/mini-website/{slug}/contact'
  */
         contactForm.post = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
