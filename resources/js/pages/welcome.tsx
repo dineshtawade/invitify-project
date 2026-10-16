@@ -766,7 +766,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                             <div className="flex flex-col gap-12 w-full max-w-full overflow-hidden">
                                 {displayedImageTemplates.length > 0 && (
                                     <div className="w-full max-w-full">
-                                        <h3 className="text-2xl font-serif font-bold text-[#3e3832] mb-6 text-center lg:text-left">Image Templates</h3>
+                                        <h3 className="text-3xl sm:text-4xl font-bold font-serif text-[#3e3832] text-center mb-24">Image Templates</h3>
                                         <div ref={imageScrollRef} className="flex overflow-x-auto pb-6 snap-x snap-mandatory gap-6 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible sm:pb-0 sm:snap-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-2 sm:px-0">
                                             {displayedImageTemplates.map((t) => (
                                                 <div
@@ -810,7 +810,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
 
                                 {displayedVideoTemplates.length > 0 && (
                                     <div className="w-full max-w-full">
-                                        <h3 className="text-2xl font-serif font-bold text-[#3e3832] mb-6 text-center lg:text-left">Video Templates</h3>
+                                        <h3 className="text-3xl sm:text-4xl font-bold font-serif text-[#3e3832] text-center mb-24">Video Templates</h3>
                                         <div ref={videoScrollRef} className="flex overflow-x-auto pb-6 snap-x snap-mandatory gap-6 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible sm:pb-0 sm:snap-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-2 sm:px-0">
                                             {displayedVideoTemplates.map((t) => (
                                                 <div
@@ -953,6 +953,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
 
                 {/* ===== DIGITAL BUSINESS CARDS SECTION (always visible below showcase) ===== */}
                 <section id="digital-business-cards" className="relative z-10 max-w-6xl mx-auto px-6 py-16">
+                    <h1 className="text-3xl sm:text-4xl font-bold font-serif text-[#3e3832] text-center mb-24">Digital Business Cards</h1>
 
                     {/* <div className="flex flex-col items-center justify-center text-center gap-2 mb-12">
                         <h2 className="text-3xl sm:text-4xl font-bold font-serif text-[#3e3832]">

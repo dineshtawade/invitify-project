@@ -1310,6 +1310,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                 className={`w-full aspect-[3/4.2] rounded-2xl shadow-md bg-gradient-to-tr ${page.bg_gradient} relative overflow-hidden border border-neutral-200 dark:border-neutral-800`}
                                             >
                                                 {page.elements.map((elem) => {
+                                                    if (elem.hidden) return null;
                                                     const style: React.CSSProperties = {
                                                         position: 'absolute',
                                                         left: `${elem.x}%`,

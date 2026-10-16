@@ -592,6 +592,7 @@ export default function TemplateCustomize({ template, userTemplate }: PageProps)
 
                                     {/* Renders elements in canvas (Locked preview) */}
                                     {activePage?.elements.map((elem) => {
+                                        if (elem.hidden) return null;
                                         const style: React.CSSProperties = {
                                             position: 'absolute',
                                             left: `${elem.x}%`,

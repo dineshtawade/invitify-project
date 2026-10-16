@@ -133,8 +133,87 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     
     store.form = storeForm
 /**
-* @see \App\Http\Controllers\SuperAdmin\TemplateController::update
+* @see \App\Http\Controllers\SuperAdmin\TemplateController::clone
  * @see app/Http/Controllers/SuperAdmin/TemplateController.php:74
+ * @route '/super-admin/templates/{template}/clone'
+ */
+export const clone = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: clone.url(args, options),
+    method: 'post',
+})
+
+clone.definition = {
+    methods: ["post"],
+    url: '/super-admin/templates/{template}/clone',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\SuperAdmin\TemplateController::clone
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:74
+ * @route '/super-admin/templates/{template}/clone'
+ */
+clone.url = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { template: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { template: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    template: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        template: typeof args.template === 'object'
+                ? args.template.id
+                : args.template,
+                }
+
+    return clone.definition.url
+            .replace('{template}', parsedArgs.template.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\SuperAdmin\TemplateController::clone
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:74
+ * @route '/super-admin/templates/{template}/clone'
+ */
+clone.post = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: clone.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\SuperAdmin\TemplateController::clone
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:74
+ * @route '/super-admin/templates/{template}/clone'
+ */
+    const cloneForm = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: clone.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\SuperAdmin\TemplateController::clone
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:74
+ * @route '/super-admin/templates/{template}/clone'
+ */
+        cloneForm.post = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: clone.url(args, options),
+            method: 'post',
+        })
+    
+    clone.form = cloneForm
+/**
+* @see \App\Http\Controllers\SuperAdmin\TemplateController::update
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:110
  * @route '/super-admin/templates/{template}'
  */
 export const update = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -149,7 +228,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::update
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:74
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:110
  * @route '/super-admin/templates/{template}'
  */
 update.url = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -182,7 +261,7 @@ update.url = (args: { template: number | { id: number } } | [template: number | 
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::update
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:74
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:110
  * @route '/super-admin/templates/{template}'
  */
 update.put = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -192,7 +271,7 @@ update.put = (args: { template: number | { id: number } } | [template: number | 
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::update
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:74
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:110
  * @route '/super-admin/templates/{template}'
  */
     const updateForm = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -207,7 +286,7 @@ update.put = (args: { template: number | { id: number } } | [template: number | 
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::update
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:74
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:110
  * @route '/super-admin/templates/{template}'
  */
         updateForm.put = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -223,7 +302,7 @@ update.put = (args: { template: number | { id: number } } | [template: number | 
     update.form = updateForm
 /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:110
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:146
  * @route '/super-admin/templates/{template}'
  */
 export const destroy = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -238,7 +317,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:110
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:146
  * @route '/super-admin/templates/{template}'
  */
 destroy.url = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -271,7 +350,7 @@ destroy.url = (args: { template: number | { id: number } } | [template: number |
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:110
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:146
  * @route '/super-admin/templates/{template}'
  */
 destroy.delete = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -281,7 +360,7 @@ destroy.delete = (args: { template: number | { id: number } } | [template: numbe
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:110
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:146
  * @route '/super-admin/templates/{template}'
  */
     const destroyForm = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -296,7 +375,7 @@ destroy.delete = (args: { template: number | { id: number } } | [template: numbe
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\TemplateController::destroy
- * @see app/Http/Controllers/SuperAdmin/TemplateController.php:110
+ * @see app/Http/Controllers/SuperAdmin/TemplateController.php:146
  * @route '/super-admin/templates/{template}'
  */
         destroyForm.delete = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -310,6 +389,6 @@ destroy.delete = (args: { template: number | { id: number } } | [template: numbe
         })
     
     destroy.form = destroyForm
-const TemplateController = { index, store, update, destroy }
+const TemplateController = { index, store, clone, update, destroy }
 
 export default TemplateController

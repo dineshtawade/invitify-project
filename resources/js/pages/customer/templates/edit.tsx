@@ -704,6 +704,7 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
 
                                     {/* Elements */}
                                     {activePage?.elements.map((elem) => {
+                                        if (elem.hidden) return null;
                                         const style: React.CSSProperties = {
                                             position: 'absolute',
                                             left: `${elem.x}%`,

@@ -273,6 +273,7 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
                         )}
 
                         {activePage?.elements.map((elem) => {
+                            if (elem.hidden) return null;
                             const style: React.CSSProperties = {
                                 position: 'absolute',
                                 left: `${elem.x}%`,

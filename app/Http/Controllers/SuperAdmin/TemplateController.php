@@ -69,6 +69,42 @@ class TemplateController extends Controller
     }
 
     /**
+     * Clone an existing template.
+     */
+    public function clone(Request $request, Template $template)
+    {
+        $newTemplate = $template->replicate();
+        
+        // If a new name is passed from frontend, use it, otherwise append (Copy)
+        $newTemplate->name = $request->input('name') ?: ($template->name . ' (Copy)');
+        
+        // If a new config / state is passed (Save As from editor), use updated values
+        if ($request->has('default_config')) {
+            $newTemplate->default_config = $request->input('default_config');
+        }
+        if ($request->has('bg_gradient')) {
+            $newTemplate->bg_gradient = $request->input('bg_gradient');
+        }
+        if ($request->has('thumbnail')) {
+            $newTemplate->thumbnail = $request->input('thumbnail');
+        }
+        if ($request->has('price')) {
+            $newTemplate->price = $request->input('price');
+        }
+        if ($request->has('category')) {
+            $newTemplate->category = $request->input('category');
+        }
+        
+        // Set cloned template status to draft or specified status
+        $newTemplate->status = $request->input('status', 'draft');
+        $newTemplate->created_at = now();
+        $newTemplate->updated_at = now();
+        $newTemplate->save();
+
+        return redirect()->back()->with('status', 'Template cloned successfully as "' . $newTemplate->name . '".');
+    }
+
+    /**
      * Update an existing template.
      */
     public function update(Request $request, Template $template)

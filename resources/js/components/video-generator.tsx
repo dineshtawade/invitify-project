@@ -361,6 +361,7 @@ export default function VideoGenerator({ userTemplate, isOpen, onClose, onComple
                 style={{ background: page.bg_gradient }}
             >
                 {page.elements.map((elem: any) => {
+                    if (elem.hidden) return null;
                     const style: React.CSSProperties = {
                         position: 'absolute',
                         left: `${elem.x}%`,

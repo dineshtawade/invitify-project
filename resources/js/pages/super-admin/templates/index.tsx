@@ -17,7 +17,8 @@ import {
     Cake, Baby, Award, Move, Type, Image as ImageIcon,
     Smile, Link as LinkIcon, MapPin, Compass, Gift, Calendar, Clock,
     Music, Wine, Star, Bell, ZoomIn, ZoomOut, Check, ArrowRight,
-    Laptop, Tablet, Smartphone, Settings, PlayCircle, Play, ShieldAlert, Search
+    Laptop, Tablet, Smartphone, Settings, PlayCircle, Play, ShieldAlert, Search,
+    Copy, Eye, EyeOff, Lock, Unlock, ArrowUp, ArrowDown, ChevronUp, ChevronDown, CheckCircle2
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
@@ -163,7 +164,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
     const [isOpen, setIsOpen] = useState(false);
     const [templateMode, setTemplateMode] = useState<'select' | 'editor'>('select');
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
-    const [activeTab, setActiveTab] = useState<'pages' | 'text' | 'image' | 'icon' | 'link'>('pages');
+    const [activeTab, setActiveTab] = useState<'layers' | 'pages' | 'text' | 'image' | 'icon' | 'link'>('layers');
     const [iconSearch, setIconSearch] = useState('');
 
     const filteredIcons = validIconNames.filter(name =>
@@ -209,6 +210,15 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
     const activePage = data.default_config.pages[activePageIndex] || data.default_config.pages[0];
     const selectedElement = activePage?.elements.find(e => e.id === selectedElementId) || null;
     const ratioData = ASPECT_RATIOS[data.default_config.aspectRatio] || ASPECT_RATIOS.standard;
+
+    // Layer category counts
+    // developed by dinesh tawade
+    const textLayerCount = activePage?.elements.filter(e => e.type === 'text').length || 0;
+    const imageLayerCount = activePage?.elements.filter(e => e.type === 'image' && !e.isBackground).length || 0;
+    const bgImageLayerCount = activePage?.elements.filter(e => e.isBackground).length || 0;
+    const iconLayerCount = activePage?.elements.filter(e => e.type === 'icon' || e.type === 'divider').length || 0;
+    const linkLayerCount = activePage?.elements.filter(e => e.type === 'link').length || 0;
+    const totalLayerCount = activePage?.elements.length || 0;
 
     // Monitor card scale factor dynamically
     useEffect(() => {
@@ -412,6 +422,160 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
         if (confirm('Are you sure you want to delete this template?')) {
             router.delete(`/super-admin/templates/${id}`);
         }
+    };
+
+    // Template Clone Handlers
+    // developed by dinesh tawade
+    const handleCloneTemplate = (t: Template, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (confirm(`Clone template "${t.name}"? A duplicate copy will be created as Draft so you can safely edit its design.`)) {
+            router.post(`/super-admin/templates/${t.id}/clone`, {}, {
+                preserveScroll: true,
+            });
+        }
+    };
+
+    const handleSaveAsClone = async () => {
+        const copyName = prompt('Enter a name for the cloned template:', `${data.name} (Copy)`);
+        if (!copyName) return;
+
+        let thumbnailUrl = data.thumbnail;
+        const elementToCapture = data.type === 'video'
+            ? document.querySelector('.video-template-preview-container') || cardRef.current
+            : cardRef.current;
+
+        if (elementToCapture) {
+            try {
+                const canvas = await html2canvas(elementToCapture as HTMLElement, {
+                    useCORS: true,
+                    scale: 1.5,
+                    backgroundColor: null,
+                });
+                const dataUrl = canvas.toDataURL('image/png');
+                const file = dataURLtoFile(dataUrl, `template-thumb-${Date.now()}.png`);
+                const formData = new FormData();
+                formData.append('file', file);
+                const response = await fetch('/media/upload', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                    },
+                    body: formData,
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    thumbnailUrl = result.url;
+                }
+            } catch (err) {
+                console.error("Failed to capture thumbnail on clone:", err);
+            }
+        }
+
+        const payload = {
+            ...data,
+            name: copyName,
+            thumbnail: thumbnailUrl,
+            status: 'draft',
+        };
+
+        if (editingTemplate) {
+            router.post(`/super-admin/templates/${editingTemplate.id}/clone`, payload, {
+                onSuccess: () => {
+                    setIsOpen(false);
+                    reset();
+                }
+            });
+        } else {
+            router.post('/super-admin/templates', payload, {
+                onSuccess: () => {
+                    setIsOpen(false);
+                    reset();
+                }
+            });
+        }
+    };
+
+    // Layer management methods
+    // developed by dinesh tawade
+    const handleMoveLayer = (elementId: string, direction: 'up' | 'down' | 'top' | 'bottom') => {
+        if (!activePage) return;
+        const elements = [...activePage.elements];
+        const index = elements.findIndex(e => e.id === elementId);
+        if (index === -1) return;
+
+        if (direction === 'up') {
+            // Bring forward in z-index (higher index in array)
+            if (index < elements.length - 1) {
+                const temp = elements[index];
+                elements[index] = elements[index + 1];
+                elements[index + 1] = temp;
+            }
+        } else if (direction === 'down') {
+            // Send backward in z-index (lower index in array)
+            if (index > 0) {
+                const temp = elements[index];
+                elements[index] = elements[index - 1];
+                elements[index - 1] = temp;
+            }
+        } else if (direction === 'top') {
+            const [item] = elements.splice(index, 1);
+            elements.push(item);
+        } else if (direction === 'bottom') {
+            const [item] = elements.splice(index, 1);
+            elements.unshift(item);
+        }
+
+        const updatedPages = [...data.default_config.pages];
+        updatedPages[activePageIndex] = {
+            ...activePage,
+            elements
+        };
+        setData('default_config', {
+            ...data.default_config,
+            pages: updatedPages
+        });
+    };
+
+    const handleToggleLayerVisibility = (elementId: string, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        const elem = activePage.elements.find(el => el.id === elementId);
+        if (!elem) return;
+        handleUpdateElement(elementId, { hidden: !elem.hidden });
+    };
+
+    const handleToggleLayerLock = (elementId: string, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        const elem = activePage.elements.find(el => el.id === elementId);
+        if (!elem) return;
+        handleUpdateElement(elementId, { locked: !elem.locked });
+    };
+
+    const handleDuplicateElement = (elementId: string, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        const elem = activePage.elements.find(el => el.id === elementId);
+        if (!elem) return;
+
+        const newElement: ElementConfig = {
+            ...elem,
+            id: `elem-${Math.random().toString(36).substr(2, 9)}`,
+            x: Math.min(90, (elem.x || 0) + 4),
+            y: Math.min(90, (elem.y || 0) + 4),
+            content: elem.content ? `${elem.content}` : undefined,
+            hidden: false,
+            locked: false,
+        };
+
+        const updatedPages = [...data.default_config.pages];
+        updatedPages[activePageIndex] = {
+            ...activePage,
+            elements: [...activePage.elements, newElement]
+        };
+
+        setData('default_config', {
+            ...data.default_config,
+            pages: updatedPages
+        });
+        setSelectedElementId(newElement.id);
     };
 
     // Canvas layout methods
@@ -698,15 +862,20 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
         const elem = activePage.elements.find(el => el.id === elementId);
         if (!elem) return;
 
-        // Auto-switch active tab to show matching properties inspector
-        if (elem.type === 'text') {
-            setActiveTab('text');
-        } else if (elem.type === 'image') {
-            setActiveTab('image');
-        } else if (elem.type === 'icon' || elem.type === 'divider') {
-            setActiveTab('icon');
-        } else if (elem.type === 'link') {
-            setActiveTab('link');
+        // Locked layers cannot be dragged or resized
+        if (elem.locked) return;
+
+        // Auto-switch active tab to show matching properties inspector only if not on layers tab
+        if (activeTab !== 'layers') {
+            if (elem.type === 'text') {
+                setActiveTab('text');
+            } else if (elem.type === 'image') {
+                setActiveTab('image');
+            } else if (elem.type === 'icon' || elem.type === 'divider') {
+                setActiveTab('icon');
+            } else if (elem.type === 'link') {
+                setActiveTab('link');
+            }
         }
 
         const startX = e.clientX;
@@ -877,7 +1046,10 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                 return (
                                                                     <>
                                                                         {editReq?.status === 'approved' ? (
-                                                                            <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><Pencil className="size-3.5" /> Edit Builder</Button>
+                                                                            <>
+                                                                                <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><Pencil className="size-3.5" /> Edit Builder</Button>
+                                                                                <Button onClick={() => handleCloneTemplate(t)} variant="outline" size="sm" className="flex items-center gap-1 border-indigo-200 dark:border-indigo-900/50 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 rounded-lg text-xs font-semibold shadow-2xs" title="Clone this template to create an editable copy"><Copy className="size-3.5" /> Clone</Button>
+                                                                            </>
                                                                         ) : editReq?.status === 'pending' ? (
                                                                             <Button disabled variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs opacity-50"><Clock className="size-3.5" /> Edit Pending</Button>
                                                                         ) : (
@@ -903,6 +1075,15 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                     className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"
                                                                 >
                                                                     <Pencil className="size-3.5" /> Edit Builder
+                                                                </Button>
+                                                                <Button
+                                                                    onClick={() => handleCloneTemplate(t)}
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="flex items-center gap-1 border-indigo-200 dark:border-indigo-900/50 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 rounded-lg text-xs font-semibold shadow-2xs"
+                                                                    title="Clone this template to create an editable copy"
+                                                                >
+                                                                    <Copy className="size-3.5" /> Clone
                                                                 </Button>
                                                                 <Button
                                                                     onClick={() => handleDelete(t.id)}
@@ -1039,30 +1220,310 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                         <div className="flex flex-col border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden h-full">
                                             
                                             {/* Tab Selectors */}
-                                            <div className="flex border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/20 shrink-0">
+                                            <div className="flex border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/20 shrink-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                                                 {[
-                                                    { id: 'pages', label: 'Pages & Borders' },
-                                                    { id: 'text', label: 'Text layers' },
-                                                    { id: 'image', label: 'Images' },
-                                                    { id: 'icon', label: 'Icons & Shapes' },
-                                                    { id: 'link', label: 'Location Pins' },
+                                                    { id: 'layers', label: 'Layers', badge: totalLayerCount, icon: Layers },
+                                                    { id: 'text', label: 'Text', icon: Type },
+                                                    { id: 'image', label: 'Images', icon: ImageIcon },
+                                                    { id: 'icon', label: 'Icons', icon: Heart },
+                                                    { id: 'link', label: 'Pins', icon: MapPin },
+                                                    { id: 'pages', label: 'Page/Bg', icon: Sparkles },
                                                 ].map((tab) => (
                                                     <button
                                                         key={tab.id}
                                                         type="button"
                                                         onClick={() => setActiveTab(tab.id as any)}
-                                                        className={`flex-1 py-3 text-[11px] font-bold border-b-2 text-center transition-all ${activeTab === tab.id
-                                                            ? 'border-indigo-700 text-indigo-700 dark:border-indigo-400 dark:text-indigo-400 bg-white dark:bg-neutral-900'
+                                                        className={`flex-1 min-w-[65px] py-2.5 px-2 text-[11px] font-bold border-b-2 text-center transition-all flex items-center justify-center gap-1.5 ${activeTab === tab.id
+                                                            ? 'border-indigo-700 text-indigo-700 dark:border-indigo-400 dark:text-indigo-400 bg-white dark:bg-neutral-900 shadow-2xs'
                                                             : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300'
                                                             }`}
                                                     >
-                                                        {tab.label}
+                                                        <tab.icon className="size-3.5 shrink-0" />
+                                                        <span className="truncate">{tab.label}</span>
+                                                        {tab.badge !== undefined && (
+                                                            <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-extrabold ${activeTab === tab.id ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300' : 'bg-neutral-200 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'}`}>
+                                                                {tab.badge}
+                                                            </span>
+                                                        )}
                                                     </button>
                                                 ))}
                                             </div>
 
                                             {/* Controls configuration options container */}
                                             <div className="p-5 flex-1 overflow-y-auto flex flex-col gap-5 min-h-0">
+                                                {/* LAYERS MANAGEMENT TAB */}
+                                                {/* developed by dinesh tawade */}
+                                                {activeTab === 'layers' && (
+                                                    <div className="flex flex-col gap-4">
+                                                        {/* Header Summary Card */}
+                                                        <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/50 dark:from-neutral-900 dark:via-neutral-850 dark:to-neutral-900 border border-indigo-100 dark:border-indigo-900/40 shadow-xs">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="size-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                                                                        <Layers className="size-4.5" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <h3 className="font-bold text-sm text-neutral-900 dark:text-neutral-100">
+                                                                            Page Layers & Content ({totalLayerCount})
+                                                                        </h3>
+                                                                        <p className="text-[11px] text-neutral-500">
+                                                                            Hierarchy, z-index stacking & element controls
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Content summary badges */}
+                                                            <div className="flex flex-wrap gap-1.5 pt-2 border-t border-indigo-100/60 dark:border-neutral-800">
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 text-[10px] font-bold text-blue-700 dark:text-blue-300">
+                                                                    <Type className="size-3" /> Text: {textLayerCount}
+                                                                </span>
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                                                                    <ImageIcon className="size-3" /> Images/PNG: {imageLayerCount + bgImageLayerCount}
+                                                                </span>
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                                                                    <Heart className="size-3" /> Icons/SVG: {iconLayerCount}
+                                                                </span>
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-[10px] font-bold text-rose-700 dark:text-rose-300">
+                                                                    <MapPin className="size-3" /> Pins: {linkLayerCount}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Quick Add Toolbar */}
+                                                            <div className="grid grid-cols-4 gap-1.5 mt-3 pt-3 border-t border-indigo-100/60 dark:border-neutral-800">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleAddElement('text')}
+                                                                    className="py-1.5 px-2 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:border-indigo-500 hover:text-indigo-600 text-[11px] font-bold flex items-center justify-center gap-1 transition-all"
+                                                                >
+                                                                    <Plus className="size-3 text-indigo-600" /> Text
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleAddElement('image')}
+                                                                    className="py-1.5 px-2 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:border-emerald-500 hover:text-emerald-600 text-[11px] font-bold flex items-center justify-center gap-1 transition-all"
+                                                                >
+                                                                    <Plus className="size-3 text-emerald-600" /> Image
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleAddElement('icon')}
+                                                                    className="py-1.5 px-2 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:border-amber-500 hover:text-amber-600 text-[11px] font-bold flex items-center justify-center gap-1 transition-all"
+                                                                >
+                                                                    <Plus className="size-3 text-amber-600" /> Icon
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleAddElement('link')}
+                                                                    className="py-1.5 px-2 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:border-rose-500 hover:text-rose-600 text-[11px] font-bold flex items-center justify-center gap-1 transition-all"
+                                                                >
+                                                                    <Plus className="size-3 text-rose-600" /> Pin
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Layer Stack Explanation Helper */}
+                                                        <div className="flex items-center justify-between px-1 text-[10px] font-bold text-neutral-400">
+                                                            <span className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
+                                                                <ChevronUp className="size-3" /> Front / Top Layer
+                                                            </span>
+                                                            <span className="flex items-center gap-1">
+                                                                Back / Bottom Layer <ChevronDown className="size-3" />
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Layers Stack List */}
+                                                        <div className="flex flex-col gap-2">
+                                                            {activePage?.elements.length === 0 ? (
+                                                                <div className="p-8 text-center border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col items-center justify-center">
+                                                                    <Layers className="size-8 text-neutral-300 dark:text-neutral-600 mb-2" />
+                                                                    <p className="text-xs font-bold text-neutral-600 dark:text-neutral-400">No content elements added yet</p>
+                                                                    <p className="text-[10px] text-neutral-400 mt-0.5">Use the quick buttons above to place text, images, or icons.</p>
+                                                                </div>
+                                                            ) : (
+                                                                [...activePage.elements].reverse().map((elem, revIdx) => {
+                                                                    const originalIndex = activePage.elements.length - 1 - revIdx;
+                                                                    const isTop = originalIndex === activePage.elements.length - 1;
+                                                                    const isBottom = originalIndex === 0;
+                                                                    const isSelected = selectedElementId === elem.id;
+
+                                                                    return (
+                                                                        <div
+                                                                            key={elem.id}
+                                                                            onClick={() => setSelectedElementId(elem.id)}
+                                                                            className={`p-3 rounded-xl border transition-all duration-200 flex flex-col gap-2 cursor-pointer ${
+                                                                                isSelected
+                                                                                    ? 'bg-indigo-50/70 dark:bg-indigo-950/40 border-indigo-500 shadow-sm ring-1 ring-indigo-500/30'
+                                                                                    : 'bg-white dark:bg-neutral-850 border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 hover:bg-neutral-50/50'
+                                                                            }`}
+                                                                        >
+                                                                            <div className="flex items-center justify-between gap-2">
+                                                                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                                                                    {/* Layer Stack Rank Badge */}
+                                                                                    <span className="size-5 rounded-md bg-neutral-100 dark:bg-neutral-800 text-[10px] font-mono font-bold text-neutral-500 flex items-center justify-center shrink-0">
+                                                                                        {originalIndex + 1}
+                                                                                    </span>
+
+                                                                                    {/* Element Icon / Thumbnail */}
+                                                                                    <div className="size-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center shrink-0 overflow-hidden">
+                                                                                        {elem.type === 'text' && (
+                                                                                            <Type className="size-4" style={{ color: elem.textColor || '#1f2937' }} />
+                                                                                        )}
+                                                                                        {elem.type === 'image' && (
+                                                                                            elem.url && elem.url !== 'uploading' ? (
+                                                                                                <img src={elem.url} alt="Layer" className="w-full h-full object-cover" />
+                                                                                            ) : (
+                                                                                                <ImageIcon className="size-4 text-emerald-600" />
+                                                                                            )
+                                                                                        )}
+                                                                                        {elem.type === 'icon' && (
+                                                                                            <Heart className="size-4 text-amber-600" style={{ color: elem.color || elem.textColor || '#d97706' }} />
+                                                                                        )}
+                                                                                        {elem.type === 'divider' && (
+                                                                                            <div className="w-4 h-0.5 bg-neutral-400" />
+                                                                                        )}
+                                                                                        {elem.type === 'link' && (
+                                                                                            <MapPin className="size-4 text-rose-600" />
+                                                                                        )}
+                                                                                    </div>
+
+                                                                                    {/* Element Info */}
+                                                                                    <div className="min-w-0 flex-1">
+                                                                                        <div className="flex items-center gap-1.5">
+                                                                                            <span className="font-bold text-xs text-neutral-900 dark:text-neutral-100 truncate">
+                                                                                                {elem.customName || elem.content || (elem.isBackground ? 'Background Image' : elem.type === 'image' ? 'Image Layer' : elem.type === 'icon' ? `Icon (${elem.iconType || 'heart'})` : 'Pin Button')}
+                                                                                            </span>
+                                                                                            {elem.hidden && (
+                                                                                                <span className="text-[8px] px-1 py-0.2 rounded bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-bold">
+                                                                                                    Hidden
+                                                                                                </span>
+                                                                                            )}
+                                                                                            {elem.locked && (
+                                                                                                <span className="text-[8px] px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400 font-bold">
+                                                                                                    Locked
+                                                                                                </span>
+                                                                                            )}
+                                                                                        </div>
+                                                                                        <p className="text-[10px] text-neutral-400 font-mono mt-0.5 truncate">
+                                                                                            {elem.type.toUpperCase()} • X:{Math.round(elem.x)}% Y:{Math.round(elem.y)}% | W:{Math.round(elem.w)}%
+                                                                                        </p>
+                                                                                    </div>
+                                                                                </div>
+
+                                                                                {/* Layer Actions Toolbar */}
+                                                                                <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                                                                    {/* Move Up in Stack */}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        disabled={isTop}
+                                                                                        onClick={() => handleMoveLayer(elem.id, 'up')}
+                                                                                        className={`size-6 rounded-md flex items-center justify-center transition-colors ${
+                                                                                            isTop
+                                                                                                ? 'opacity-25 cursor-not-allowed text-neutral-400'
+                                                                                                : 'text-neutral-500 hover:text-indigo-600 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                                                                        }`}
+                                                                                        title="Bring Forward (Move Up in Layer Stack)"
+                                                                                    >
+                                                                                        <ArrowUp className="size-3.5" />
+                                                                                    </button>
+
+                                                                                    {/* Move Down in Stack */}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        disabled={isBottom}
+                                                                                        onClick={() => handleMoveLayer(elem.id, 'down')}
+                                                                                        className={`size-6 rounded-md flex items-center justify-center transition-colors ${
+                                                                                            isBottom
+                                                                                                ? 'opacity-25 cursor-not-allowed text-neutral-400'
+                                                                                                : 'text-neutral-500 hover:text-indigo-600 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                                                                        }`}
+                                                                                        title="Send Backward (Move Down in Layer Stack)"
+                                                                                    >
+                                                                                        <ArrowDown className="size-3.5" />
+                                                                                    </button>
+
+                                                                                    {/* Visibility Toggle */}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={(e) => handleToggleLayerVisibility(elem.id, e)}
+                                                                                        className={`size-6 rounded-md flex items-center justify-center transition-colors ${
+                                                                                            elem.hidden
+                                                                                                ? 'text-neutral-400 bg-neutral-100 dark:bg-neutral-800'
+                                                                                                : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                                                                        }`}
+                                                                                        title={elem.hidden ? 'Show Layer' : 'Hide Layer'}
+                                                                                    >
+                                                                                        {elem.hidden ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                                                                                    </button>
+
+                                                                                    {/* Lock Toggle */}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={(e) => handleToggleLayerLock(elem.id, e)}
+                                                                                        className={`size-6 rounded-md flex items-center justify-center transition-colors ${
+                                                                                            elem.locked
+                                                                                                ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/40'
+                                                                                                : 'text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                                                                        }`}
+                                                                                        title={elem.locked ? 'Unlock Layer (Allow Dragging)' : 'Lock Layer (Prevent Dragging)'}
+                                                                                    >
+                                                                                        {elem.locked ? <Lock className="size-3.5" /> : <Unlock className="size-3.5" />}
+                                                                                    </button>
+
+                                                                                    {/* Duplicate Layer */}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={(e) => handleDuplicateElement(elem.id, e)}
+                                                                                        className="size-6 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center transition-colors"
+                                                                                        title="Duplicate Element"
+                                                                                    >
+                                                                                        <Copy className="size-3.5" />
+                                                                                    </button>
+
+                                                                                    {/* Delete Layer */}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={(e) => {
+                                                                                            e.stopPropagation();
+                                                                                            if (confirm('Delete this layer?')) {
+                                                                                                handleDeleteElement(elem.id);
+                                                                                            }
+                                                                                        }}
+                                                                                        className="size-6 rounded-md text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center transition-colors"
+                                                                                        title="Delete Element"
+                                                                                    >
+                                                                                        <Trash className="size-3.5" />
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {/* Direct edit button if selected */}
+                                                                            {isSelected && (
+                                                                                <div className="flex items-center justify-between pt-2 border-t border-indigo-100 dark:border-neutral-800" onClick={(e) => e.stopPropagation()}>
+                                                                                    <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1">
+                                                                                        <CheckCircle2 className="size-3" /> Selected on Canvas
+                                                                                    </span>
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => {
+                                                                                            if (elem.type === 'text') setActiveTab('text');
+                                                                                            else if (elem.type === 'image') setActiveTab('image');
+                                                                                            else if (elem.type === 'icon' || elem.type === 'divider') setActiveTab('icon');
+                                                                                            else if (elem.type === 'link') setActiveTab('link');
+                                                                                        }}
+                                                                                        className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 flex items-center gap-1 shadow-2xs"
+                                                                                    >
+                                                                                        <Pencil className="size-2.5" /> Configure Properties →
+                                                                                    </button>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                })
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
                                                 {activeTab === 'pages' && (
                                                     <div className="flex flex-col gap-5">
                                                         {/* Ratios & Dimensions */}
@@ -1920,6 +2381,19 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                     ))}
                                                 </div>
 
+                                                {/* Quick Layers access button */}
+                                                <div className="flex flex-col items-center">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setActiveTab('layers')}
+                                                        className={`p-2 rounded-xl transition-all flex flex-col items-center gap-0.5 ${activeTab === 'layers' ? 'bg-indigo-600 text-white shadow-xs' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+                                                        title={`Open Layers Panel (${totalLayerCount} elements)`}
+                                                    >
+                                                        <Layers className="size-5" />
+                                                        <span className="text-[9px] font-mono font-bold leading-none">{totalLayerCount}</span>
+                                                    </button>
+                                                </div>
+
                                                 <div className="w-8 h-px bg-neutral-200 dark:bg-neutral-700"></div>
 
                                                 {/* Device Responsive selectors */}
@@ -2076,6 +2550,10 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                     {/* Layer elements */}
                                                     {activePage?.elements.map((elem) => {
                                                         const isSelected = selectedElementId === elem.id;
+                                                        if (elem.hidden && !isSelected) {
+                                                            return null;
+                                                        }
+
                                                         const style: React.CSSProperties = {
                                                             position: 'absolute',
                                                             left: `${elem.x}%`,
@@ -2092,7 +2570,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                             fontWeight: elem.fontWeight || 'normal',
                                                             fontStyle: elem.isItalic ? 'italic' : 'normal',
                                                             textShadow: elem.type === 'text' && elem.textShadow && elem.textShadow !== 'none' ? elem.textShadow : undefined,
-                                                            opacity: elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1,
+                                                            opacity: elem.hidden ? 0.35 : (elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1),
                                                             zIndex: isSelected ? 50 : (elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25),
                                                         };
 
@@ -2102,11 +2580,17 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                 style={style}
                                                                 onMouseDown={(e) => handleCanvasMouseDown(elem.id, e, false)}
                                                                 onClick={(e) => e.stopPropagation()}
-                                                                className={`transition-all duration-75 relative group border p-0.5 leading-tight select-none break-words overflow-hidden ${isSelected
+                                                                className={`transition-all duration-75 relative group border p-0.5 leading-tight select-none break-words overflow-hidden ${elem.locked ? 'cursor-default' : 'cursor-move'} ${isSelected
                                                                     ? 'border-indigo-700 bg-indigo-500/10 shadow-xs z-30'
-                                                                    : 'border-transparent hover:border-dashed hover:border-neutral-400 hover:z-20 cursor-move'
-                                                                    } ${elem.animation && elem.animation !== 'none' ? elem.animation : ''}`}
+                                                                    : 'border-transparent hover:border-dashed hover:border-neutral-400 hover:z-20'
+                                                                    } ${elem.hidden ? 'border-dashed border-neutral-400/60' : ''} ${elem.animation && elem.animation !== 'none' ? elem.animation : ''}`}
                                                             >
+                                                                {elem.hidden && isSelected && (
+                                                                    <div className="absolute top-0 right-0 bg-neutral-800 text-white text-[8px] font-bold px-1 rounded-bl">
+                                                                        Hidden
+                                                                    </div>
+                                                                )}
+
                                                                 {elem.type === 'text' && (
                                                                     <span className="w-full pointer-events-none whitespace-pre-wrap">{elem.content}</span>
                                                                 )}
@@ -2155,16 +2639,18 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
 
                                                                 {isSelected && (
                                                                     <>
-                                                                        <div className="absolute top-0.5 left-0.5 bg-indigo-700 rounded-full text-white p-0.5 shadow-xs z-40 pointer-events-none opacity-80">
-                                                                            <Move className="size-2.5" />
+                                                                        <div className={`absolute top-0.5 left-0.5 rounded-full text-white p-0.5 shadow-xs z-40 pointer-events-none ${elem.locked ? 'bg-amber-600' : 'bg-indigo-700 opacity-80'}`}>
+                                                                            {elem.locked ? <Lock className="size-2.5" /> : <Move className="size-2.5" />}
                                                                         </div>
-                                                                        <div
-                                                                            onMouseDown={(e) => handleCanvasMouseDown(elem.id, e, true)}
-                                                                            onClick={(e) => e.stopPropagation()}
-                                                                            className="absolute bottom-0 right-0 size-3 bg-indigo-700 cursor-se-resize flex items-center justify-center text-[7px] text-white font-bold leading-none select-none rounded-tl-xs z-45"
-                                                                        >
-                                                                            ⇲
-                                                                        </div>
+                                                                        {!elem.locked && (
+                                                                            <div
+                                                                                onMouseDown={(e) => handleCanvasMouseDown(elem.id, e, true)}
+                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                className="absolute bottom-0 right-0 size-3 bg-indigo-700 cursor-se-resize flex items-center justify-center text-[7px] text-white font-bold leading-none select-none rounded-tl-xs z-45"
+                                                                            >
+                                                                                ⇲
+                                                                            </div>
+                                                                        )}
                                                                     </>
                                                                 )}
                                                             </div>
@@ -2230,6 +2716,19 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                         <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl h-9">
                                             Cancel
                                         </Button>
+                                        {editingTemplate && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                disabled={processing}
+                                                onClick={handleSaveAsClone}
+                                                className="font-bold rounded-xl px-4 h-9 border-indigo-300 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-950/30 flex items-center gap-1.5 shadow-2xs"
+                                                title="Clone this design as a new template (Save As)"
+                                            >
+                                                <Copy className="size-3.5" />
+                                                Clone & Save As
+                                            </Button>
+                                        )}
                                         <Button 
                                             type="submit" 
                                             variant="secondary"

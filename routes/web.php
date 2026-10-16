@@ -135,6 +135,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('super-admin.templates');
         Route::post('super-admin/templates', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'store'])
             ->name('super-admin.templates.store');
+        Route::post('super-admin/templates/{template}/clone', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'clone'])
+            ->name('super-admin.templates.clone');
         Route::put('super-admin/templates/{template}', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'update'])
             ->name('super-admin.templates.update');
         Route::delete('super-admin/templates/{template}', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'destroy'])
