@@ -22,6 +22,8 @@ class EnsureSuperAdmin
         if ($user->role === 'editor') {
             if (!$request->routeIs('super-admin.templates*') && 
                 !$request->routeIs('mini-website-templates.*') &&
+                !$request->routeIs('categories.*') &&
+                !$request->routeIs('super-admin.categories*') &&
                 !$request->routeIs('super-admin.editor-requests.store')) {
                 if ($request->routeIs('super-admin.dashboard')) {
                     return redirect()->route('super-admin.templates');

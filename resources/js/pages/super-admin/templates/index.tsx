@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Head, useForm, router, usePage, Link } from '@inertiajs/react';
+import axios from 'axios';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ import {
     Music, Wine, Star, Bell, ZoomIn, ZoomOut, Check, ArrowRight,
     Laptop, Tablet, Smartphone, Settings, PlayCircle, Play, ShieldAlert, Search,
     Copy, Eye, EyeOff, Lock, Unlock, ArrowUp, ArrowDown, ChevronUp, ChevronDown, CheckCircle2,
-    Flame, UploadCloud
+    Flame, UploadCloud, Loader2, X
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
@@ -157,12 +158,80 @@ const validIconNames = Object.keys(LucideIcons).filter(
     key => key !== 'createLucideIcon' && key !== 'default' && key !== 'Icon' && key === key.charAt(0).toUpperCase() + key.slice(1)
 );
 
-export default function TemplatesIndex({ templates, categories, editorRequests = [], customIcons = [], filters }: PageProps) {
+export default function TemplatesIndex({ templates, categories = [], editorRequests = [], customIcons = [], filters }: PageProps) {
     const auth = usePage().props.auth as any;
     const isEditor = auth?.user?.role === 'editor';
     const [searchVal, setSearchVal] = useState(filters?.search || '');
     const [statusVal, setStatusVal] = useState(filters?.status || 'all');
     const [myIcons, setMyIcons] = useState(customIcons);
+
+    // Dynamic categories state with support for inline adding new categories
+    // developed by dinesh tawade
+    const [categoriesList, setCategoriesList] = useState<Category[]>(categories || []);
+    const [isAddingNewCategory, setIsAddingNewCategory] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [isSavingCategory, setIsSavingCategory] = useState(false);
+    const [categoryNotice, setCategoryNotice] = useState('');
+
+    useEffect(() => {
+        if (categories && categories.length > 0) {
+            setCategoriesList(categories);
+        }
+    }, [categories]);
+
+    // Handle inline adding new category
+    // developed by dinesh tawade
+    const handleAddNewCategory = async () => {
+        const trimmed = newCategoryName.trim();
+        if (!trimmed) return;
+
+        setIsSavingCategory(true);
+        try {
+            const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
+            const res = await axios.post('/super-admin/categories', { name: trimmed }, {
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            });
+
+            if (res.data && res.data.category) {
+                const newCat: Category = res.data.category;
+                setCategoriesList(prev => {
+                    const exists = prev.find(c => c.slug === newCat.slug);
+                    if (exists) return prev;
+                    return [...prev, newCat];
+                });
+                setData('category', newCat.slug);
+                setCategoryNotice(`Added "${newCat.name}"!`);
+                setTimeout(() => setCategoryNotice(''), 3500);
+                setNewCategoryName('');
+                setIsAddingNewCategory(false);
+            }
+        } catch (err: any) {
+            console.error('Failed to create category:', err);
+            // Fallback: create slug locally so template saving is not blocked and TemplateController will auto-create on save
+            const fallbackSlug = trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+            const fallbackCat: Category = {
+                id: Date.now(),
+                name: trimmed,
+                slug: fallbackSlug || 'cat_' + Date.now()
+            };
+            setCategoriesList(prev => {
+                const exists = prev.find(c => c.slug === fallbackCat.slug);
+                if (exists) return prev;
+                return [...prev, fallbackCat];
+            });
+            setData('category', fallbackCat.slug);
+            setCategoryNotice(`Set to "${fallbackCat.name}"!`);
+            setTimeout(() => setCategoryNotice(''), 3500);
+            setNewCategoryName('');
+            setIsAddingNewCategory(false);
+        } finally {
+            setIsSavingCategory(false);
+        }
+    };
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -213,7 +282,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
     const { data, setData, post, put, reset, processing, errors } = useForm({
         name: '',
         type: 'image' as 'image' | 'video',
-        category: categories[0]?.slug || 'wedding',
+        category: (categories && categories[0]?.slug) || 'wedding',
         price: '9.99',
         bg_gradient: 'from-stone-100 to-rose-50 text-neutral-800',
         thumbnail: '' as string | null,
@@ -335,7 +404,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
         setData({
             name: '',
             type: 'image',
-            category: categories[0]?.slug || 'wedding',
+            category: categoriesList[0]?.slug || (categories && categories[0]?.slug) || 'wedding',
             price: '9.99',
             bg_gradient: 'from-stone-100 to-rose-50 text-neutral-800',
             thumbnail: '',
@@ -343,6 +412,9 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
             status: 'published',
             is_trending: false,
         });
+        setIsAddingNewCategory(false);
+        setNewCategoryName('');
+        setCategoryNotice('');
         setBgType('preset');
         setActivePageIndex(0);
         setSelectedElementId(null);
@@ -3107,14 +3179,117 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                 <option value="video">Video Template</option>
                                             </select>
                                         </div>
-                                        <div className="grid gap-1 w-[130px]">
-                                            <Label htmlFor="category_footer" className="text-[10px] uppercase font-bold text-neutral-500">Category</Label>
-                                            <select id="category_footer" value={data.category} onChange={(e) => setData('category', e.target.value)} className="flex h-8.5 w-full rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs shadow-2xs transition-colors dark:border-neutral-800 dark:bg-neutral-950">
-                                                {categories.map((cat) => (
-                                                    <option key={cat.id} value={cat.slug}>{cat.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
+                                        {/* Category with Add New Feature */}
+                                        {/* developed by dinesh tawade */}
+                                        {!isAddingNewCategory ? (
+                                            <div className="grid gap-1 min-w-[155px] relative">
+                                                <div className="flex items-center justify-between">
+                                                    <Label htmlFor="category_footer" className="text-[10px] uppercase font-bold text-neutral-500">
+                                                        Category
+                                                    </Label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsAddingNewCategory(true)}
+                                                        className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-semibold flex items-center gap-0.5 hover:underline transition-all cursor-pointer"
+                                                        title="Add new category"
+                                                    >
+                                                        <Plus className="size-2.5" /> New
+                                                    </button>
+                                                </div>
+                                                <select
+                                                    id="category_footer"
+                                                    value={data.category}
+                                                    onChange={(e) => {
+                                                        if (e.target.value === '__add_new__') {
+                                                            setIsAddingNewCategory(true);
+                                                        } else {
+                                                            setData('category', e.target.value);
+                                                        }
+                                                    }}
+                                                    className="flex h-8.5 w-full rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs shadow-2xs transition-colors dark:border-neutral-800 dark:bg-neutral-950 capitalize"
+                                                >
+                                                    {categoriesList.map((cat) => (
+                                                        <option key={cat.id || cat.slug} value={cat.slug} className="capitalize">
+                                                            {cat.name}
+                                                        </option>
+                                                    ))}
+                                                    <option value="__add_new__" className="text-indigo-600 font-bold bg-indigo-50/50 dark:bg-indigo-950/30">
+                                                        + Add New Category...
+                                                    </option>
+                                                </select>
+                                                {categoryNotice && (
+                                                    <span className="text-[10px] font-semibold text-emerald-600 absolute -bottom-4.5 left-0 animate-in fade-in">
+                                                        ✓ {categoryNotice}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="grid gap-1 min-w-[210px] relative animate-in fade-in zoom-in-95 duration-150">
+                                                <div className="flex items-center justify-between">
+                                                    <Label htmlFor="new_category_input" className="text-[10px] uppercase font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                                                        <Sparkles className="size-2.5" /> New Category
+                                                    </Label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setIsAddingNewCategory(false);
+                                                            setNewCategoryName('');
+                                                        }}
+                                                        className="text-[10px] text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 flex items-center gap-0.5 font-medium transition-colors cursor-pointer"
+                                                        title="Cancel"
+                                                    >
+                                                        <X className="size-2.5" /> Cancel
+                                                    </button>
+                                                </div>
+                                                <div className="relative flex items-center">
+                                                    <Input
+                                                        id="new_category_input"
+                                                        autoFocus
+                                                        type="text"
+                                                        value={newCategoryName}
+                                                        onChange={(e) => setNewCategoryName(e.target.value)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                handleAddNewCategory();
+                                                            } else if (e.key === 'Escape') {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                setIsAddingNewCategory(false);
+                                                                setNewCategoryName('');
+                                                            }
+                                                        }}
+                                                        placeholder="Category name..."
+                                                        disabled={isSavingCategory}
+                                                        className="h-8.5 pr-14 rounded-lg text-xs bg-white dark:bg-neutral-950 border-indigo-300 dark:border-indigo-700 focus-visible:ring-indigo-500"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            handleAddNewCategory();
+                                                        }}
+                                                        disabled={isSavingCategory || !newCategoryName.trim()}
+                                                        className="absolute right-1 top-1 bottom-1 px-2.5 rounded-md bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-[10px] font-semibold flex items-center gap-1 transition-all shadow-2xs cursor-pointer"
+                                                        title="Add category (Enter)"
+                                                    >
+                                                        {isSavingCategory ? (
+                                                            <Loader2 className="size-3 animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                <Check className="size-3" />
+                                                                <span>Add</span>
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                                <span className="text-[9px] text-neutral-400 dark:text-neutral-500">
+                                                    Press <kbd className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded text-[9px] font-mono border">Enter ↵</kbd> to add
+                                                </span>
+                                            </div>
+                                        )}
                                         <div className="grid gap-1 w-[100px]">
                                             <Label htmlFor="price_footer" className="text-[10px] uppercase font-bold text-neutral-500">Price (₹)</Label>
                                             <Input id="price_footer" type="number" step="0.01" min="0" value={data.price} onChange={(e) => setData('price', e.target.value)} required className="h-8.5 rounded-lg text-xs bg-white dark:bg-neutral-950" />

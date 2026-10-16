@@ -52,6 +52,18 @@ class TemplateController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->filled('category')) {
+            $catSlug = \Illuminate\Support\Str::slug($request->category, '_');
+            if (empty($catSlug)) {
+                $catSlug = 'cat_' . time();
+            }
+            \App\Models\Category::firstOrCreate(
+                ['slug' => $catSlug],
+                ['name' => ucwords(str_replace(['_', '-'], ' ', $request->input('category_name') ?: $request->category))]
+            );
+            $request->merge(['category' => $catSlug]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:image,video',
@@ -92,8 +104,16 @@ class TemplateController extends Controller
         if ($request->has('price')) {
             $newTemplate->price = $request->input('price');
         }
-        if ($request->has('category')) {
-            $newTemplate->category = $request->input('category');
+        if ($request->has('category') && $request->filled('category')) {
+            $catSlug = \Illuminate\Support\Str::slug($request->input('category'), '_');
+            if (empty($catSlug)) {
+                $catSlug = 'cat_' . time();
+            }
+            \App\Models\Category::firstOrCreate(
+                ['slug' => $catSlug],
+                ['name' => ucwords(str_replace(['_', '-'], ' ', $request->input('category_name') ?: $request->input('category')))]
+            );
+            $newTemplate->category = $catSlug;
         }
         
         // Cloned template starts as draft and not trending by default
@@ -140,6 +160,18 @@ class TemplateController extends Controller
             }
 
             $approval->update(['status' => 'completed']);
+        }
+
+        if ($request->filled('category')) {
+            $catSlug = \Illuminate\Support\Str::slug($request->category, '_');
+            if (empty($catSlug)) {
+                $catSlug = 'cat_' . time();
+            }
+            \App\Models\Category::firstOrCreate(
+                ['slug' => $catSlug],
+                ['name' => ucwords(str_replace(['_', '-'], ' ', $request->input('category_name') ?: $request->category))]
+            );
+            $request->merge(['category' => $catSlug]);
         }
 
         $validated = $request->validate([
