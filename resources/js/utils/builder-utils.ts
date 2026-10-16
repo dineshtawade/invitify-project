@@ -24,6 +24,7 @@ export interface ElementConfig {
     hidden?: boolean;
     locked?: boolean;
     customName?: string;
+    zIndex?: number;
 }
 
 export interface PageConfig {

@@ -722,7 +722,7 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                                             fontStyle: elem.isItalic ? 'italic' : 'normal',
                                             textShadow: elem.type === 'text' && elem.textShadow && elem.textShadow !== 'none' ? elem.textShadow : undefined,
                                             opacity: elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1,
-                                            zIndex: elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25,
+                                            zIndex: elem.zIndex !== undefined ? elem.zIndex : (elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25),
                                         };
 
                                         return (

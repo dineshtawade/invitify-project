@@ -1,4 +1,4 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../../wayfinder'
+import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\MediaUploadController::index
  * @see app/Http/Controllers/MediaUploadController.php:12
@@ -79,7 +79,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\MediaUploadController::upload
- * @see app/Http/Controllers/MediaUploadController.php:26
+ * @see app/Http/Controllers/MediaUploadController.php:37
  * @route '/media/upload'
  */
 export const upload = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -94,7 +94,7 @@ upload.definition = {
 
 /**
 * @see \App\Http\Controllers\MediaUploadController::upload
- * @see app/Http/Controllers/MediaUploadController.php:26
+ * @see app/Http/Controllers/MediaUploadController.php:37
  * @route '/media/upload'
  */
 upload.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ upload.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\MediaUploadController::upload
- * @see app/Http/Controllers/MediaUploadController.php:26
+ * @see app/Http/Controllers/MediaUploadController.php:37
  * @route '/media/upload'
  */
 upload.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -113,7 +113,7 @@ upload.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\MediaUploadController::upload
- * @see app/Http/Controllers/MediaUploadController.php:26
+ * @see app/Http/Controllers/MediaUploadController.php:37
  * @route '/media/upload'
  */
     const uploadForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -123,7 +123,7 @@ upload.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\MediaUploadController::upload
- * @see app/Http/Controllers/MediaUploadController.php:26
+ * @see app/Http/Controllers/MediaUploadController.php:37
  * @route '/media/upload'
  */
         uploadForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -132,6 +132,95 @@ upload.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
         })
     
     upload.form = uploadForm
-const MediaUploadController = { index, upload }
+/**
+* @see \App\Http\Controllers\MediaUploadController::destroy
+ * @see app/Http/Controllers/MediaUploadController.php:119
+ * @route '/media/{media}'
+ */
+export const destroy = (args: { media: number | { id: number } } | [media: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroy.url(args, options),
+    method: 'delete',
+})
+
+destroy.definition = {
+    methods: ["delete"],
+    url: '/media/{media}',
+} satisfies RouteDefinition<["delete"]>
+
+/**
+* @see \App\Http\Controllers\MediaUploadController::destroy
+ * @see app/Http/Controllers/MediaUploadController.php:119
+ * @route '/media/{media}'
+ */
+destroy.url = (args: { media: number | { id: number } } | [media: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { media: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { media: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    media: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        media: typeof args.media === 'object'
+                ? args.media.id
+                : args.media,
+                }
+
+    return destroy.definition.url
+            .replace('{media}', parsedArgs.media.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\MediaUploadController::destroy
+ * @see app/Http/Controllers/MediaUploadController.php:119
+ * @route '/media/{media}'
+ */
+destroy.delete = (args: { media: number | { id: number } } | [media: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroy.url(args, options),
+    method: 'delete',
+})
+
+    /**
+* @see \App\Http\Controllers\MediaUploadController::destroy
+ * @see app/Http/Controllers/MediaUploadController.php:119
+ * @route '/media/{media}'
+ */
+    const destroyForm = (args: { media: number | { id: number } } | [media: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: destroy.url(args, {
+                    [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                        _method: 'DELETE',
+                        ...(options?.query ?? options?.mergeQuery ?? {}),
+                    }
+                }),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\MediaUploadController::destroy
+ * @see app/Http/Controllers/MediaUploadController.php:119
+ * @route '/media/{media}'
+ */
+        destroyForm.delete = (args: { media: number | { id: number } } | [media: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: destroy.url(args, {
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'DELETE',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'post',
+        })
+    
+    destroy.form = destroyForm
+const MediaUploadController = { index, upload, destroy }
 
 export default MediaUploadController

@@ -61,6 +61,7 @@ class TemplateController extends Controller
             'thumbnail' => 'nullable|string',
             'default_config' => 'required|array',
             'status' => 'required|string|in:published,draft',
+            'is_trending' => 'nullable|boolean',
         ]);
 
         Template::create($validated);
@@ -95,13 +96,30 @@ class TemplateController extends Controller
             $newTemplate->category = $request->input('category');
         }
         
-        // Set cloned template status to draft or specified status
+        // Cloned template starts as draft and not trending by default
+        $newTemplate->is_trending = false;
         $newTemplate->status = $request->input('status', 'draft');
         $newTemplate->created_at = now();
         $newTemplate->updated_at = now();
         $newTemplate->save();
 
         return redirect()->back()->with('status', 'Template cloned successfully as "' . $newTemplate->name . '".');
+    }
+
+    /**
+     * Toggle trending status for a template.
+     */
+    public function toggleTrending(Template $template)
+    {
+        $template->update([
+            'is_trending' => !$template->is_trending,
+        ]);
+
+        $message = $template->is_trending 
+            ? 'Template "' . $template->name . '" marked as Trending 🔥'
+            : 'Template "' . $template->name . '" removed from Trending.';
+
+        return redirect()->back()->with('status', $message);
     }
 
     /**
@@ -133,6 +151,7 @@ class TemplateController extends Controller
             'thumbnail' => 'nullable|string',
             'default_config' => 'required|array',
             'status' => 'required|string|in:published,draft',
+            'is_trending' => 'nullable|boolean',
         ]);
 
         $template->update($validated);

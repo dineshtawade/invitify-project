@@ -1,11 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Upload, Plus, SkipBack, Trash, Type, Image as ImageIcon, Loader2, X, Check, Grid, List, Search, Sparkles } from 'lucide-react';
+import { 
+    Play, Pause, Upload, Plus, SkipBack, Trash2, Trash, Type, Image as ImageIcon, 
+    Loader2, X, Check, Grid, List, Search, Sparkles, Layers, UploadCloud, Film, 
+    RotateCcw, Sliders, CheckCircle2, ChevronRight, SlidersHorizontal, Eye
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import axios from 'axios';
 import GoogleFontPicker from '@/components/GoogleFontPicker';
 import { getFontFamilyCss, loadGoogleFont } from '@/utils/font-utils';
+
+const animationStyles = `
+@keyframes vtbFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes vtbFadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes vtbZoomIn { from { opacity: 0; transform: scale(0.2); } to { opacity: 1; transform: scale(1); } }
+@keyframes vtbZoomOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.2); } }
+@keyframes vtbSlideUp { from { opacity: 0; transform: translateY(60px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes vtbSlideDown { from { opacity: 0; transform: translateY(-60px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes vtbSlideLeft { from { opacity: 0; transform: translateX(60px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes vtbSlideRight { from { opacity: 0; transform: translateX(-60px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes vtbBounceIn { 0% { opacity: 0; transform: scale(0.3); } 50% { opacity: 1; transform: scale(1.08); } 70% { transform: scale(0.92); } 100% { transform: scale(1); } }
+@keyframes vtbRotateIn { from { opacity: 0; transform: rotate(-180deg) scale(0.3); } to { opacity: 1; transform: rotate(0deg) scale(1); } }
+@keyframes vtbFlipIn { from { opacity: 0; transform: perspective(400px) rotateY(90deg); } to { opacity: 1; transform: perspective(400px) rotateY(0deg); } }
+@keyframes vtbFloat { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+@keyframes vtbPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@keyframes vtbShimmer { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+`;
 
 interface VideoTemplateBuilderProps {
     data: any;
@@ -29,7 +50,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
     const [timelineDrag, setTimelineDrag] = useState<{ id: string, type: 'start' | 'end', time: number } | null>(null);
 
     const updateConfig = (newElements: any[]) => {
-        setData('default_config', { ...data.default_config, elements: newElements });
+        setData?.('default_config', { ...data.default_config, elements: newElements });
     };
 
     // Preload Google Fonts used in video elements
@@ -50,13 +71,15 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
     const [mediaViewMode, setMediaViewMode] = useState<'grid' | 'list'>('grid');
     const [mediaSearch, setMediaSearch] = useState('');
     const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null);
-    const [assetTab, setAssetTab] = useState<'all' | 'png' | 'svg' | 'gif' | 'video'>('all');
+    const [assetTab, setAssetTab] = useState<'all' | 'png' | 'svg' | 'jpg' | 'video'>('all');
 
-    useEffect(() => {
-        if (!videoUrl && !isCustomerMode) {
-            fetchMediaLibrary();
-        }
-    }, [videoUrl, isCustomerMode]);
+    // Enhanced Asset Library & Animation Testing States
+    // developed by dinesh tawade
+    const [isAssetDialogOpen, setIsAssetDialogOpen] = useState(false);
+    const [targetElementForAsset, setTargetElementForAsset] = useState<string | null>(null);
+    const [assetUploadNotice, setAssetUploadNotice] = useState<{ message: string; isDuplicate?: boolean } | null>(null);
+    const [isUploadingAsset, setIsUploadingAsset] = useState(false);
+    const [previewAnimationElementId, setPreviewAnimationElementId] = useState<string | null>(null);
 
     const fetchMediaLibrary = async () => {
         try {
@@ -68,6 +91,193 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
         } finally {
             setIsLoadingMedia(false);
         }
+    };
+
+    useEffect(() => {
+        fetchMediaLibrary();
+    }, []);
+
+    // Asset upload with deduplication check
+    // developed by dinesh tawade
+    const handleUploadNewAsset = async (file: File, targetId?: string) => {
+        setIsUploadingAsset(true);
+        setAssetUploadNotice(null);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
+            const response = await axios.post('/media/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            });
+
+            const isDup = Boolean(response.data.is_duplicate);
+            setAssetUploadNotice({
+                message: isDup
+                    ? `Notice: Existing asset "${response.data.filename}" reused without duplicates.`
+                    : `Success: "${response.data.filename}" uploaded and saved to library.`,
+                isDuplicate: isDup,
+            });
+
+            await fetchMediaLibrary();
+
+            // If a target element was specified, apply this newly uploaded asset to it
+            if (targetId) {
+                const isVideo = file.type.startsWith('video/');
+                const updated = elements.map((e: any) => {
+                    if (e.id === targetId) {
+                        return {
+                            ...e,
+                            type: isVideo ? 'video' : 'image',
+                            src: response.data.url,
+                            customName: response.data.filename,
+                        };
+                    }
+                    return e;
+                });
+                updateConfig(updated);
+            }
+
+            return response.data;
+        } catch (err) {
+            console.error('Upload asset error:', err);
+            alert('Failed to upload file. Please check format and try again.');
+        } finally {
+            setIsUploadingAsset(false);
+        }
+    };
+
+    // Delete asset from library
+    // developed by dinesh tawade
+    const handleDeleteAsset = async (media: any, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (!confirm(`Delete asset "${media.filename || 'Untitled'}" from library? This cannot be undone.`)) {
+            return;
+        }
+        try {
+            const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
+            await axios.delete(`/media/${media.id}`, {
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            });
+            setMediaLibrary(prev => prev.filter(m => m.id !== media.id));
+            setAssetUploadNotice({
+                message: `Asset "${media.filename || 'Untitled'}" deleted from library.`,
+                isDuplicate: false,
+            });
+        } catch (err) {
+            console.error('Delete asset error:', err);
+            alert('Failed to delete asset.');
+        }
+    };
+
+    // Apply or add asset to canvas
+    // developed by dinesh tawade
+    const handleApplyAsset = (media: any) => {
+        const isVideo = media.type === 'video';
+        const isSvg = (media.filename || '').toLowerCase().endsWith('.svg');
+
+        const targetId = targetElementForAsset || (selectedElementId && elements.find((e: any) => e.id === selectedElementId)?.type !== 'text' ? selectedElementId : null);
+        
+        if (targetId) {
+            const updated = elements.map((e: any) => {
+                if (e.id === targetId) {
+                    return {
+                        ...e,
+                        type: isVideo ? 'video' : 'image',
+                        src: media.url,
+                        customName: media.filename,
+                    };
+                }
+                return e;
+            });
+            updateConfig(updated);
+            setAssetUploadNotice({
+                message: `Applied "${media.filename}" to selected layer.`,
+                isDuplicate: false
+            });
+        } else {
+            const newId = `${isVideo ? 'video' : 'image'}_${Date.now()}`;
+            const newElement = {
+                id: newId,
+                type: isVideo ? 'video' : 'image',
+                src: media.url,
+                customName: media.filename,
+                x: 50,
+                y: 50,
+                zIndex: 10,
+                width: isSvg ? 120 : 150,
+                height: isSvg ? 120 : 150,
+                startTime: parseFloat(currentTime.toFixed(1)),
+                endTime: parseFloat(Math.min(duration > 0 ? duration : 10, currentTime + 5).toFixed(1)),
+                animationIn: 'fade',
+                animationOut: 'fade',
+                animationDuration: 0.5,
+                loopAnimation: 'none',
+            };
+            updateConfig([...elements, newElement]);
+            setSelectedElementId(newId);
+        }
+        setIsAssetDialogOpen(false);
+        setTargetElementForAsset(null);
+    };
+
+    // Live instant test animation trigger
+    // developed by dinesh tawade
+    const handleTestAnimation = (elementId: string) => {
+        setPreviewAnimationElementId(elementId);
+        setTimeout(() => {
+            setPreviewAnimationElementId(null);
+        }, 1500);
+    };
+
+    // Compute keyframe animation string based on current playback time or test trigger
+    // developed by dinesh tawade
+    const getComputedElementAnimation = (el: any, time: number, isTesting: boolean) => {
+        const animDuration = el.animationDuration || 0.5;
+        const isEntering = isTesting || (time >= el.startTime && time < el.startTime + animDuration);
+        const isExiting = !isTesting && (time <= el.endTime && time > el.endTime - animDuration);
+
+        if (isEntering && el.animationIn && el.animationIn !== 'none') {
+            const inMap: Record<string, string> = {
+                'fade': `vtbFadeIn ${animDuration}s ease forwards`,
+                'zoom': `vtbZoomIn ${animDuration}s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`,
+                'slide': `vtbSlideUp ${animDuration}s cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+                'slide-up': `vtbSlideUp ${animDuration}s cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+                'slide-down': `vtbSlideDown ${animDuration}s cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+                'slide-left': `vtbSlideLeft ${animDuration}s cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+                'slide-right': `vtbSlideRight ${animDuration}s cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+                'bounce': `vtbBounceIn ${animDuration}s ease forwards`,
+                'rotate': `vtbRotateIn ${animDuration}s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`,
+                'flip': `vtbFlipIn ${animDuration}s ease-out forwards`,
+            };
+            return inMap[el.animationIn] || '';
+        }
+
+        if (isExiting && el.animationOut && el.animationOut !== 'none') {
+            const outMap: Record<string, string> = {
+                'fade': `vtbFadeOut ${animDuration}s ease forwards`,
+                'zoom': `vtbZoomOut ${animDuration}s ease forwards`,
+                'slide-up': `vtbSlideUp ${animDuration}s ease reverse forwards`,
+                'slide-down': `vtbSlideDown ${animDuration}s ease reverse forwards`,
+                'slide-left': `vtbSlideLeft ${animDuration}s ease reverse forwards`,
+                'slide-right': `vtbSlideRight ${animDuration}s ease reverse forwards`,
+                'rotate': `vtbRotateIn ${animDuration}s ease reverse forwards`,
+                'flip': `vtbFlipIn ${animDuration}s ease reverse forwards`,
+            };
+            return outMap[el.animationOut] || '';
+        }
+
+        if (el.loopAnimation && el.loopAnimation !== 'none') {
+            if (el.loopAnimation === 'float') return 'vtbFloat 3s ease-in-out infinite';
+            if (el.loopAnimation === 'pulse') return 'vtbPulse 2s ease-in-out infinite';
+            if (el.loopAnimation === 'shimmer') return 'vtbShimmer 2.5s ease-in-out infinite';
+        }
+
+        return '';
     };
 
     const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -324,6 +534,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
     if (isPreviewOnly) {
         return (
             <div className="w-full h-full bg-black relative overflow-hidden flex items-center justify-center" style={{ containerType: 'size' }}>
+                <style>{animationStyles}</style>
                 <div 
                     ref={containerRef} 
                     className="relative shadow-2xl bg-neutral-900 group shrink-0"
@@ -348,20 +559,9 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                     <div className="absolute inset-0 pointer-events-none overflow-hidden">
                         {elements.map((el: any) => {
                             const isVisible = currentTime >= el.startTime && currentTime <= el.endTime;
-                            const isEntering = currentTime >= el.startTime && currentTime < el.startTime + 0.5;
-                            const isExiting = currentTime <= el.endTime && currentTime > el.endTime - 0.5;
-
-                            let opacity = 1;
-                            let transform = 'translateY(0) scale(1)';
-
-                            if (el.animationIn === 'fade' && isEntering) opacity = (currentTime - el.startTime) / 0.5;
-                            else if (el.animationOut === 'fade' && isExiting) opacity = (el.endTime - currentTime) / 0.5;
-                            else if (el.animationIn === 'slide' && isEntering) transform = `translateY(${(0.5 - (currentTime - el.startTime)) * 100}px)`;
-                            else if (el.animationOut === 'slide' && isExiting) transform = `translateY(${-(0.5 - (el.endTime - currentTime)) * 100}px)`;
-                            else if (el.animationIn === 'zoom' && isEntering) transform = `scale(${0.5 + (currentTime - el.startTime)})`;
-                            else if (el.animationOut === 'zoom' && isExiting) transform = `scale(${0.5 + (el.endTime - currentTime)})`;
-
                             if (!isVisible) return null;
+
+                            const animStyle = getComputedElementAnimation(el, currentTime, false);
 
                             return (
                                 <div
@@ -371,41 +571,46 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                         zIndex: el.zIndex || 10,
                                         left: `${el.x}%`,
                                         top: `${el.y}%`,
-                                        opacity,
-                                        transform: `translate(-50%, -50%) ${transform.replace('translateY(0) scale(1)', '')}`,
-                                        transition: 'opacity 0.1s linear, transform 0.1s linear'
+                                        transform: 'translate(-50%, -50%)',
                                     }}
                                 >
-                                    {el.type === 'text' ? (
-                                        <div
-                                            style={{
-                                                fontFamily: getFontFamilyCss(el.fontFamily),
-                                                fontSize: el.fontSize || '24px',
-                                                color: el.color || '#ffffff',
-                                                fontWeight: el.fontWeight || 'normal',
-                                                textShadow: el.textShadow && el.textShadow !== 'none' ? el.textShadow : undefined,
-                                            }}
-                                            className="text-center whitespace-pre-wrap w-max max-w-xs"
-                                        >
-                                            {el.content}
-                                        </div>
-                                    ) : el.type === 'video' ? (
-                                        <video
-                                            src={el.src}
-                                            autoPlay
-                                            loop
-                                            muted
-                                            playsInline
-                                            style={{ width: el.width || 100, height: el.height || 100 }}
-                                            className="object-contain pointer-events-none"
-                                        />
-                                    ) : (
-                                        <img
-                                            src={el.src}
-                                            style={{ width: el.width || 100, height: el.height || 100 }}
-                                            className="object-contain pointer-events-none"
-                                        />
-                                    )}
+                                    <div
+                                        style={{
+                                            animation: animStyle,
+                                        }}
+                                    >
+                                        {el.type === 'text' ? (
+                                            <div
+                                                style={{
+                                                    fontFamily: getFontFamilyCss(el.fontFamily),
+                                                    fontSize: el.fontSize || '24px',
+                                                    color: el.color || '#ffffff',
+                                                    fontWeight: el.fontWeight || 'normal',
+                                                    textShadow: el.textShadow && el.textShadow !== 'none' ? el.textShadow : undefined,
+                                                }}
+                                                className="text-center whitespace-pre-wrap w-max max-w-xs"
+                                            >
+                                                {el.content}
+                                            </div>
+                                        ) : el.type === 'video' ? (
+                                            <video
+                                                src={el.src}
+                                                autoPlay
+                                                loop
+                                                muted
+                                                playsInline
+                                                style={{ width: el.width || 100, height: el.height || 100 }}
+                                                className="object-contain pointer-events-none"
+                                            />
+                                        ) : (
+                                            <img
+                                                src={el.src}
+                                                alt={el.customName || ''}
+                                                style={{ width: el.width || 100, height: el.height || 100 }}
+                                                className="object-contain pointer-events-none"
+                                            />
+                                        )}
+                                    </div>
                                 </div>
                             );
                         })}
@@ -434,92 +639,38 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
 
                 {/* Tools & Properties (Scrollable) */}
                 <div className="flex-1 flex flex-col overflow-y-auto">
-                    <div className="p-5 border-b border-gray-200 shrink-0 bg-white">
-                        <div className="flex items-center justify-between">
-                            <h3 className="font-bold text-gray-900 text-lg">
-                                {isCustomerMode ? "Personalize Content" : "Video Elements"}
-                            </h3>
+                    <div className="p-4 border-b border-gray-200 shrink-0 bg-white">
+                        <div className="flex items-center justify-between gap-2">
+                            <div>
+                                <h3 className="font-bold text-gray-900 text-base">
+                                    {isCustomerMode ? "Personalize Content" : "Video Elements & Layers"}
+                                </h3>
+                                <p className="text-[11px] text-gray-500">
+                                    {isCustomerMode ? "Replace placeholder content easily" : "Add text, graphics, icons, or videos with animations"}
+                                </p>
+                            </div>
                             {!isCustomerMode && (
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline" size="sm" className="h-8 text-xs font-bold border-indigo-200 text-indigo-600 hover:bg-indigo-50">
-                                            <ImageIcon className="size-3.5 mr-1.5" />
-                                            Asset Library
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="sm:max-w-xl">
-                                        <DialogHeader>
-                                            <DialogTitle>Asset Library</DialogTitle>
-                                        </DialogHeader>
-                                        <div className="mt-4">
-                                            <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 scrollbar-hide">
-                                                {['all', 'png', 'svg', 'gif', 'video'].map(tab => (
-                                                    <button
-                                                        key={tab}
-                                                        onClick={() => setAssetTab(tab as any)}
-                                                        className={`px-3 py-1.5 text-xs font-bold tracking-wider rounded-md whitespace-nowrap transition-colors ${assetTab === tab ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                                                    >
-                                                        {tab === 'all' ? 'ALL ASSETS' : tab.toUpperCase()}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 max-h-[60vh] overflow-y-auto pr-1">
-                                                {mediaLibrary.filter(media => {
-                                                    if (assetTab === 'all') return true;
-                                                    if (assetTab === 'video') return media.type === 'video';
-                                                    return media.filename?.toLowerCase().endsWith(`.${assetTab}`);
-                                                }).map(media => (
-                                                    <div
-                                                        key={media.id}
-                                                        onClick={() => {
-                                                            const isVideo = media.type === 'video';
-                                                            const newId = `${isVideo ? 'video' : 'image'}_${Date.now()}`;
-                                                            const newElement = {
-                                                                id: newId,
-                                                                type: isVideo ? 'video' : 'image',
-                                                                src: media.url,
-                                                                x: 50, y: 50,
-                                                                zIndex: 10,
-                                                                width: 100, height: 100,
-                                                                startTime: 0,
-                                                                endTime: duration > 0 ? duration : 5,
-                                                                animationIn: 'fade',
-                                                                animationOut: 'fade',
-                                                            };
-                                                            updateConfig([...elements, newElement]);
-                                                            setSelectedElementId(newId);
-                                                        }}
-                                                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-indigo-500 transition-all relative group"
-                                                        title={media.filename}
-                                                    >
-                                                        {media.type === 'video' ? (
-                                                            <video src={media.url} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <img src={media.url} className="w-full h-full object-cover" />
-                                                        )}
-                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                            <Plus className="size-5 text-white" />
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                                {mediaLibrary.length === 0 && (
-                                                    <div className="col-span-full text-center py-8 text-sm text-gray-500">
-                                                        No assets uploaded yet.
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        setTargetElementForAsset(null);
+                                        setIsAssetDialogOpen(true);
+                                    }}
+                                    className="h-8 text-xs font-semibold border-indigo-200 text-indigo-600 hover:bg-indigo-50 shadow-sm gap-1.5"
+                                >
+                                    <ImageIcon className="size-3.5" />
+                                    Asset Library
+                                    <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.2 rounded-full font-bold">
+                                        {mediaLibrary.length}
+                                    </span>
+                                </Button>
                             )}
                         </div>
-                        {isCustomerMode && (
-                            <p className="text-[11px] text-gray-500 mt-1">Replace placeholder contents. Overall styling and timings are secured.</p>
-                        )}
-                    </div>
-                    <div className="p-5 space-y-4">
+
+                        {/* Top quick actions */}
                         {!isCustomerMode && (
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-2 gap-2 mt-3">
                                 <Button
                                     type="button"
                                     onClick={() => {
@@ -528,64 +679,50 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                             id: newId,
                                             type: 'text',
                                             content: 'New Text Layer',
-                                            x: 20, y: 40,
+                                            x: 50,
+                                            y: 40,
                                             zIndex: 10,
                                             fontFamily: 'Playfair Display',
-                                            fontSize: '24px',
+                                            fontSize: '28px',
                                             color: '#ffffff',
-                                            startTime: 0,
-                                            endTime: duration > 0 ? duration : 5,
+                                            fontWeight: 'bold',
+                                            startTime: parseFloat(currentTime.toFixed(1)),
+                                            endTime: parseFloat(Math.min(duration > 0 ? duration : 10, currentTime + 5).toFixed(1)),
                                             animationIn: 'fade',
                                             animationOut: 'fade',
+                                            animationDuration: 0.5,
+                                            loopAnimation: 'none',
                                         };
                                         updateConfig([...elements, newElement]);
                                         setSelectedElementId(newId);
                                     }}
-                                    className="w-full bg-gray-900 text-white hover:bg-gray-800 font-bold gap-2 h-9 rounded-lg text-xs px-2"
+                                    className="w-full bg-gray-900 text-white hover:bg-gray-800 font-semibold gap-2 h-9 rounded-xl text-xs shadow-sm"
                                 >
                                     <Type className="size-4 shrink-0" /> Add Text
                                 </Button>
 
-                                <label className="w-full bg-indigo-600 text-white hover:bg-indigo-700 font-bold gap-2 h-9 rounded-lg flex items-center justify-center cursor-pointer transition-colors text-[10px] px-2 leading-tight text-center">
-                                    <ImageIcon className="size-4 shrink-0" /> Upload img/gif/svg/png/video
+                                <label className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold gap-1.5 h-9 rounded-xl flex items-center justify-center cursor-pointer transition-all text-xs shadow-sm shadow-indigo-100">
+                                    {isUploadingAsset ? (
+                                        <><Loader2 className="size-3.5 animate-spin" /> Uploading...</>
+                                    ) : (
+                                        <><UploadCloud className="size-3.5 shrink-0" /> Upload Asset</>
+                                    )}
                                     <input
                                         type="file"
                                         accept="image/png, image/jpeg, image/webp, image/gif, image/svg+xml, video/mp4, video/webm"
                                         className="hidden"
+                                        disabled={isUploadingAsset}
                                         onChange={async (e) => {
                                             const file = e.target.files?.[0];
                                             if (file) {
-                                                try {
-                                                    const formData = new FormData();
-                                                    formData.append('file', file);
-                                                    const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
-                                                    const response = await axios.post('/media/upload', formData, {
-                                                        headers: {
-                                                            'Content-Type': 'multipart/form-data',
-                                                            'X-CSRF-TOKEN': csrfToken
-                                                        }
+                                                const res = await handleUploadNewAsset(file);
+                                                if (res) {
+                                                    handleApplyAsset({
+                                                        id: res.id,
+                                                        url: res.url,
+                                                        filename: res.filename,
+                                                        type: file.type.startsWith('video/') ? 'video' : 'image'
                                                     });
-
-                                                    const isVideo = file.type.startsWith('video/');
-                                                    const newId = `${isVideo ? 'video' : 'image'}_${Date.now()}`;
-                                                    const newElement = {
-                                                        id: newId,
-                                                        type: isVideo ? 'video' : 'image',
-                                                        src: response.data.url,
-                                                        x: 50, y: 50,
-                                                        zIndex: 10,
-                                                        width: 100, height: 100,
-                                                        startTime: 0,
-                                                        endTime: duration > 0 ? duration : 5,
-                                                        animationIn: 'fade',
-                                                        animationOut: 'fade',
-                                                    };
-                                                    updateConfig([...elements, newElement]);
-                                                    setSelectedElementId(newId);
-                                                    fetchMediaLibrary();
-                                                } catch (error) {
-                                                    console.error("Failed to upload image:", error);
-                                                    alert("Failed to upload image. Please check format and size.");
                                                 }
                                             }
                                             e.target.value = '';
@@ -594,9 +731,230 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                 </label>
                             </div>
                         )}
+                    </div>
 
+                    {/* Modern Asset Library Dialog */}
+                    {/* developed by dinesh tawade */}
+                    <Dialog open={isAssetDialogOpen} onOpenChange={setIsAssetDialogOpen}>
+                        <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden bg-white rounded-2xl shadow-2xl">
+                            {/* Modal Header */}
+                            <div className="p-5 border-b border-gray-100 bg-white shrink-0 flex items-center justify-between">
+                                <div>
+                                    <DialogTitle className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                        <ImageIcon className="size-5 text-indigo-600" />
+                                        Invitify Asset Library
+                                    </DialogTitle>
+                                    <p className="text-xs text-gray-500 mt-0.5">
+                                        Search, upload, or remove PNGs, SVGs, stickers, photos, and video overlays.
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <label className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold cursor-pointer shadow-sm transition-colors">
+                                        {isUploadingAsset ? (
+                                            <><Loader2 className="size-3.5 animate-spin" /> Uploading...</>
+                                        ) : (
+                                            <><UploadCloud className="size-3.5" /> Upload New Asset</>
+                                        )}
+                                        <input
+                                            type="file"
+                                            accept="image/png, image/jpeg, image/webp, image/gif, image/svg+xml, video/mp4, video/webm"
+                                            className="hidden"
+                                            disabled={isUploadingAsset}
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    await handleUploadNewAsset(file, targetElementForAsset || undefined);
+                                                }
+                                                e.target.value = '';
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
 
+                            {/* Notice / Feedback Banner */}
+                            {assetUploadNotice && (
+                                <div className={`px-5 py-2.5 text-xs flex items-center justify-between border-b ${
+                                    assetUploadNotice.isDuplicate 
+                                        ? 'bg-amber-50 text-amber-800 border-amber-200' 
+                                        : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                }`}>
+                                    <div className="flex items-center gap-2 font-medium">
+                                        <CheckCircle2 className="size-4 shrink-0" />
+                                        <span>{assetUploadNotice.message}</span>
+                                    </div>
+                                    <button
+                                        onClick={() => setAssetUploadNotice(null)}
+                                        className="text-gray-400 hover:text-gray-600 p-1"
+                                    >
+                                        <X className="size-3.5" />
+                                    </button>
+                                </div>
+                            )}
 
+                            {/* Search & Filter Bar */}
+                            <div className="p-4 bg-gray-50/70 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                {/* Filter Tabs */}
+                                <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-hide">
+                                    {[
+                                        { id: 'all', label: 'All Assets' },
+                                        { id: 'png', label: 'PNG / Stickers' },
+                                        { id: 'svg', label: 'SVG Icons' },
+                                        { id: 'jpg', label: 'JPG / WebP' },
+                                        { id: 'video', label: 'Videos' },
+                                    ].map((tab) => (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => setAssetTab(tab.id as any)}
+                                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-all ${
+                                                assetTab === tab.id
+                                                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-100'
+                                                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            {tab.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Search Input */}
+                                <div className="relative w-full sm:w-64">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search by asset name..."
+                                        value={mediaSearch}
+                                        onChange={(e) => setMediaSearch(e.target.value)}
+                                        className="w-full h-8.5 bg-white border border-gray-200 rounded-xl pl-8.5 pr-8 text-xs text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm"
+                                    />
+                                    {mediaSearch && (
+                                        <button
+                                            onClick={() => setMediaSearch('')}
+                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        >
+                                            <X className="size-3.5" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Assets Grid */}
+                            <div className="flex-1 overflow-y-auto p-5 min-h-[300px]">
+                                {isLoadingMedia ? (
+                                    <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-2">
+                                        <Loader2 className="size-8 text-indigo-600 animate-spin" />
+                                        <span className="text-xs">Loading asset library...</span>
+                                    </div>
+                                ) : (
+                                    (() => {
+                                        const filtered = mediaLibrary.filter(media => {
+                                            const matchesSearch = !mediaSearch || 
+                                                (media.filename?.toLowerCase().includes(mediaSearch.toLowerCase())) ||
+                                                (media.title?.toLowerCase().includes(mediaSearch.toLowerCase()));
+                                            if (!matchesSearch) return false;
+
+                                            const fn = (media.filename || '').toLowerCase();
+                                            if (assetTab === 'all') return true;
+                                            if (assetTab === 'video') return media.type === 'video' || fn.endsWith('.mp4') || fn.endsWith('.webm');
+                                            if (assetTab === 'png') return fn.endsWith('.png') || fn.endsWith('.webp');
+                                            if (assetTab === 'svg') return fn.endsWith('.svg');
+                                            if (assetTab === 'jpg') return fn.endsWith('.jpg') || fn.endsWith('.jpeg');
+                                            return true;
+                                        });
+
+                                        if (filtered.length === 0) {
+                                            return (
+                                                <div className="text-center py-16 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+                                                    <div className="size-12 bg-gray-100 rounded-2xl mx-auto flex items-center justify-center text-gray-400 mb-3">
+                                                        <ImageIcon className="size-6" />
+                                                    </div>
+                                                    <p className="text-sm font-semibold text-gray-700">No matching assets found</p>
+                                                    <p className="text-xs text-gray-400 mt-1 max-w-sm mx-auto">
+                                                        {mediaSearch ? `No assets matching "${mediaSearch}" in this filter.` : "Upload PNGs, SVGs or MP4s to build your reusable asset library."}
+                                                    </p>
+                                                </div>
+                                            );
+                                        }
+
+                                        return (
+                                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3.5">
+                                                {filtered.map(media => {
+                                                    const isVideo = media.type === 'video';
+                                                    const ext = (media.filename || '').split('.').pop()?.toUpperCase() || 'FILE';
+
+                                                    return (
+                                                        <div
+                                                            key={media.id}
+                                                            onClick={() => handleApplyAsset(media)}
+                                                            className="group relative aspect-square bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:12px_12px] bg-gray-50 rounded-xl border border-gray-200 hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-100/50 transition-all cursor-pointer flex flex-col justify-between p-2 overflow-hidden"
+                                                            title={media.filename}
+                                                        >
+                                                            {/* Asset Preview */}
+                                                            <div className="flex-1 w-full flex items-center justify-center overflow-hidden">
+                                                                {isVideo ? (
+                                                                    <video src={media.url} className="max-h-full max-w-full object-contain pointer-events-none" />
+                                                                ) : (
+                                                                    <img src={media.url} alt={media.filename} className="max-h-full max-w-full object-contain pointer-events-none" />
+                                                                )}
+                                                            </div>
+
+                                                            {/* Badge & Info footer */}
+                                                            <div className="w-full flex items-center justify-between pt-1.5 border-t border-gray-100/70 bg-white/80 backdrop-blur-sm -mx-2 -mb-2 px-2 pb-1.5">
+                                                                <span className="text-[10px] text-gray-700 font-medium truncate max-w-[70%]">
+                                                                    {media.filename || 'Untitled'}
+                                                                </span>
+                                                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">
+                                                                    {ext}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Hover Overlay with Insert Action & Delete */}
+                                                            <div className="absolute inset-0 bg-indigo-900/40 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleApplyAsset(media);
+                                                                    }}
+                                                                    className="px-2.5 py-1.5 bg-white text-indigo-600 rounded-lg text-xs font-bold shadow-md hover:bg-indigo-50 flex items-center gap-1"
+                                                                >
+                                                                    <Plus className="size-3.5" />
+                                                                    {targetElementForAsset ? 'Replace' : 'Use'}
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => handleDeleteAsset(media, e)}
+                                                                    className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-md transition-colors"
+                                                                    title="Delete from Library"
+                                                                >
+                                                                    <Trash2 className="size-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        );
+                                    })()
+                                )}
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-3.5 border-t border-gray-100 bg-gray-50 flex items-center justify-between text-xs text-gray-500">
+                                <span>{mediaLibrary.length} assets available in storage</span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setIsAssetDialogOpen(false)}
+                                    className="h-8 text-xs font-semibold"
+                                >
+                                    Close
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+
+                    <div className="p-5 space-y-4">
                         {/* Customer Mode Personalization Panel */}
                         {isCustomerMode ? (
                             <div className="space-y-4">
@@ -671,136 +1029,174 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                 {(() => {
                                     const el = elements.find((e: any) => e.id === selectedElementId);
                                     if (!el) return null;
+
+                                    const isText = el.type === 'text';
+                                    const isVideo = el.type === 'video';
+                                    const isSvg = (el.src || '').toLowerCase().endsWith('.svg') || (el.customName || '').toLowerCase().endsWith('.svg');
+
                                     return (
-                                        <div className="space-y-3">
-                                            {el.type === 'text' && (
-                                                <Input
-                                                    value={el.content || ''}
-                                                    onChange={(e) => {
-                                                        const newEls = elements.map((x: any) => x.id === el.id ? { ...x, content: e.target.value } : x);
-                                                        updateConfig(newEls);
+                                        <div className="space-y-4">
+                                            {/* Layer Header Badge */}
+                                            <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                                                        isText ? 'bg-blue-100 text-blue-700' :
+                                                        isSvg ? 'bg-purple-100 text-purple-700' :
+                                                        isVideo ? 'bg-amber-100 text-amber-700' :
+                                                        'bg-emerald-100 text-emerald-700'
+                                                    }`}>
+                                                        {isText ? 'Text Layer' : isSvg ? 'SVG Icon' : isVideo ? 'Video Overlay' : 'Graphic / Sticker'}
+                                                    </span>
+                                                    <span className="text-xs font-semibold text-gray-700 truncate max-w-[120px]">
+                                                        {isText ? (el.content || 'Text') : (el.customName || el.type)}
+                                                    </span>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        updateConfig(elements.filter((x: any) => x.id !== el.id));
+                                                        setSelectedElementId(null);
                                                     }}
-                                                    className="bg-white border-gray-200"
-                                                    placeholder="Text content"
-                                                />
-                                            )}
-                                            <div className="grid grid-cols-3 gap-2">
-                                                <div>
-                                                    <label className="text-xs text-gray-500 mb-1 block">Start (s)</label>
-                                                    <Input
-                                                        type="number" step="0.1"
-                                                        value={el.startTime}
-                                                        onChange={(e) => {
-                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, startTime: parseFloat(e.target.value) } : x);
-                                                            updateConfig(newEls);
-                                                        }}
-                                                        className="bg-white border-gray-200 h-9 text-xs px-2"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-xs text-gray-500 mb-1 block">End (s)</label>
-                                                    <Input
-                                                        type="number" step="0.1"
-                                                        value={el.endTime}
-                                                        onChange={(e) => {
-                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, endTime: parseFloat(e.target.value) } : x);
-                                                            updateConfig(newEls);
-                                                        }}
-                                                        className="bg-white border-gray-200 h-9 text-xs px-2"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-xs text-gray-500 mb-1 block">Z-Index</label>
-                                                    <Input
-                                                        type="number" step="1"
-                                                        value={el.zIndex || 10}
-                                                        onChange={(e) => {
-                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, zIndex: parseInt(e.target.value) } : x);
-                                                            updateConfig(newEls);
-                                                        }}
-                                                        className="bg-white border-gray-200 h-9 text-xs px-2"
-                                                    />
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <div>
-                                                    <label className="text-xs text-gray-500 mb-1 block">Animation In</label>
-                                                    <select
-                                                        value={el.animationIn || 'none'}
-                                                        onChange={(e) => {
-                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, animationIn: e.target.value } : x);
-                                                            updateConfig(newEls);
-                                                        }}
-                                                        className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                                    >
-                                                        <option value="none">None</option>
-                                                        <option value="fade">Fade In</option>
-                                                        <option value="slide">Slide In (Up-Left)</option>
-                                                        <option value="zoom">Zoom In</option>
-                                                        <option value="bounce">Bounce In</option>
-                                                        <option value="slide-up">Slide Up</option>
-                                                        <option value="slide-down">Slide Down</option>
-                                                        <option value="slide-left">Slide Left</option>
-                                                        <option value="slide-right">Slide Right</option>
-                                                        <option value="rotate">Rotate In</option>
-                                                        <option value="flip">Flip In</option>
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label className="text-xs text-gray-500 mb-1 block">Animation Out</label>
-                                                    <select
-                                                        value={el.animationOut || 'none'}
-                                                        onChange={(e) => {
-                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, animationOut: e.target.value } : x);
-                                                            updateConfig(newEls);
-                                                        }}
-                                                        className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                                    >
-                                                        <option value="none">None</option>
-                                                        <option value="fade">Fade Out</option>
-                                                        <option value="slide">Slide Out (Down-Right)</option>
-                                                        <option value="zoom">Zoom Out</option>
-                                                        <option value="bounce">Bounce Out</option>
-                                                        <option value="slide-up">Slide Up Out</option>
-                                                        <option value="slide-down">Slide Down Out</option>
-                                                        <option value="slide-left">Slide Left Out</option>
-                                                        <option value="slide-right">Slide Right Out</option>
-                                                        <option value="rotate">Rotate Out</option>
-                                                        <option value="flip">Flip Out</option>
-                                                    </select>
-                                                </div>
+                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                    title="Delete this layer"
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                </button>
                                             </div>
 
-                                            {el.type === 'text' ? (
-                                                <>
-                                                    <div className="space-y-2">
-                                                        <div>
-                                                            <div className="flex items-center justify-between mb-1">
-                                                                <label className="text-xs text-gray-500 font-medium">Google Font Family</label>
-                                                                <span className="text-[10px] text-indigo-600 font-semibold flex items-center gap-1">
-                                                                    <Sparkles className="size-2.5" /> 1,950+ Fonts
-                                                                </span>
-                                                            </div>
-                                                            <GoogleFontPicker
-                                                                value={el.fontFamily || 'Playfair Display'}
-                                                                sampleText={el.content || 'The Wedding of Sarah & Alex'}
-                                                                onChange={(newFont) => {
-                                                                    loadGoogleFont(newFont);
-                                                                    const newEls = elements.map((x: any) => x.id === el.id ? { ...x, fontFamily: newFont } : x);
-                                                                    updateConfig(newEls);
+                                            {/* Media Replace Card (for Image/SVG/Video) */}
+                                            {!isText && (
+                                                <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm space-y-3">
+                                                    <label className="text-xs font-bold text-gray-700 block">Graphic Asset</label>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="size-16 rounded-xl border border-gray-200 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:8px_8px] bg-gray-50 flex items-center justify-center overflow-hidden shrink-0">
+                                                            {isVideo ? (
+                                                                <video src={el.src} className="size-full object-contain pointer-events-none" />
+                                                            ) : (
+                                                                <img src={el.src} alt="Asset" className="size-full object-contain pointer-events-none" />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 space-y-2">
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => {
+                                                                    setTargetElementForAsset(el.id);
+                                                                    setIsAssetDialogOpen(true);
                                                                 }}
-                                                            />
+                                                                className="w-full h-8 text-xs font-semibold border-indigo-200 text-indigo-600 hover:bg-indigo-50 shadow-sm gap-1.5"
+                                                            >
+                                                                <ImageIcon className="size-3.5" />
+                                                                Choose from Library
+                                                            </Button>
+
+                                                            <label className="w-full h-8 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg flex items-center justify-center cursor-pointer text-xs transition-colors gap-1.5">
+                                                                <UploadCloud className="size-3.5" />
+                                                                Replace File
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/png, image/jpeg, image/webp, image/gif, image/svg+xml, video/mp4, video/webm"
+                                                                    className="hidden"
+                                                                    onChange={async (e) => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (file) {
+                                                                            await handleUploadNewAsset(file, el.id);
+                                                                        }
+                                                                        e.target.value = '';
+                                                                    }}
+                                                                />
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Text Content & Typography (for Text) */}
+                                            {isText && (
+                                                <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm space-y-3">
+                                                    <div>
+                                                        <label className="text-xs text-gray-500 mb-1 block font-medium">Text Content</label>
+                                                        <Input
+                                                            value={el.content || ''}
+                                                            onChange={(e) => {
+                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, content: e.target.value } : x);
+                                                                updateConfig(newEls);
+                                                            }}
+                                                            className="bg-white border-gray-200 text-xs font-medium"
+                                                            placeholder="Enter invitation text..."
+                                                        />
+                                                    </div>
+
+                                                    <div>
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <label className="text-xs text-gray-500 font-medium">Font Family</label>
+                                                            <span className="text-[10px] text-indigo-600 font-semibold flex items-center gap-1">
+                                                                <Sparkles className="size-2.5" /> 1,950+ Fonts
+                                                            </span>
+                                                        </div>
+                                                        <GoogleFontPicker
+                                                            value={el.fontFamily || 'Playfair Display'}
+                                                            sampleText={el.content || 'The Wedding of Sarah & Alex'}
+                                                            onChange={(newFont) => {
+                                                                loadGoogleFont(newFont);
+                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, fontFamily: newFont } : x);
+                                                                updateConfig(newEls);
+                                                            }}
+                                                        />
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <div>
+                                                            <label className="text-xs text-gray-500 mb-1 block">Color & Size</label>
+                                                            <div className="flex gap-2">
+                                                                <Input
+                                                                    type="color"
+                                                                    value={el.color || '#ffffff'}
+                                                                    onChange={(e) => {
+                                                                        const newEls = elements.map((x: any) => x.id === el.id ? { ...x, color: e.target.value } : x);
+                                                                        updateConfig(newEls);
+                                                                    }}
+                                                                    className="w-10 h-9 p-0.5 bg-white border-gray-200 cursor-pointer rounded-md"
+                                                                />
+                                                                <Input
+                                                                    type="text"
+                                                                    value={el.fontSize || '24px'}
+                                                                    onChange={(e) => {
+                                                                        const newEls = elements.map((x: any) => x.id === el.id ? { ...x, fontSize: e.target.value } : x);
+                                                                        updateConfig(newEls);
+                                                                    }}
+                                                                    placeholder="24px"
+                                                                    className="w-20 bg-white border-gray-200 text-xs h-9"
+                                                                />
+                                                            </div>
                                                         </div>
                                                         <div>
-                                                            <label className="text-xs text-gray-500 mb-1 block">Text Shadow</label>
+                                                            <label className="text-xs text-gray-500 mb-1 block">Weight</label>
                                                             <select
-                                                                value={el.textShadow || 'none'}
+                                                                value={el.fontWeight || 'normal'}
+                                                                onChange={(e) => {
+                                                                    const newEls = elements.map((x: any) => x.id === el.id ? { ...x, fontWeight: e.target.value } : x);
+                                                                    updateConfig(newEls);
+                                                                }}
+                                                                className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                            >
+                                                                <option value="lighter">Light</option>
+                                                                <option value="normal">Regular</option>
+                                                                <option value="bold">Bold</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="text-xs text-gray-500 mb-1 block">Text Shadow</label>
+                                                        <select
+                                                            value={el.textShadow || 'none'}
                                                             onChange={(e) => {
                                                                 const newEls = elements.map((x: any) => x.id === el.id ? { ...x, textShadow: e.target.value } : x);
                                                                 updateConfig(newEls);
                                                             }}
-                                                            className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                            className="flex h-9 w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                                         >
                                                             <option value="none">None</option>
                                                             <option value="1px 1px 2px rgba(0,0,0,0.8)">Soft Shadow</option>
@@ -812,80 +1208,251 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-2 mt-2">
-                                                    <div>
-                                                        <label className="text-xs text-gray-500 mb-1 block">Color & Size</label>
-                                                        <div className="flex gap-2">
-                                                            <Input
-                                                                type="color"
-                                                                value={el.color}
-                                                                onChange={(e) => {
-                                                                    const newEls = elements.map((x: any) => x.id === el.id ? { ...x, color: e.target.value } : x);
-                                                                    updateConfig(newEls);
-                                                                }}
-                                                                className="w-10 h-9 p-0.5 bg-white border-gray-200 cursor-pointer rounded-md"
-                                                            />
-                                                            <Input
-                                                                type="text"
-                                                                value={el.fontSize}
-                                                                onChange={(e) => {
-                                                                    const newEls = elements.map((x: any) => x.id === el.id ? { ...x, fontSize: e.target.value } : x);
-                                                                    updateConfig(newEls);
-                                                                }}
-                                                                placeholder="Size (24px)"
-                                                                title="Font Size"
-                                                                className="w-16 bg-white border-gray-200 text-xs h-9"
-                                                            />
-                                                            <select
-                                                                value={el.fontWeight || 'normal'}
-                                                                onChange={(e) => {
-                                                                    const newEls = elements.map((x: any) => x.id === el.id ? { ...x, fontWeight: e.target.value } : x);
-                                                                    updateConfig(newEls);
-                                                                }}
-                                                                title="Font Weight"
-                                                                className="flex-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                                            >
-                                                                <option value="normal">Normal</option>
-                                                                <option value="bold">Bold</option>
-                                                                <option value="lighter">Light</option>
-                                                            </select>
-                                                        </div>
+                                            )}
+
+                                            {/* Z-Index & Layer Depth Stepper */}
+                                            {/* developed by dinesh tawade */}
+                                            <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                                                        <Layers className="size-3.5 text-indigo-600" />
+                                                        Layer Depth / Z-Index
+                                                    </label>
+                                                    <span className="text-[11px] font-mono text-gray-400">
+                                                        Current: {el.zIndex || 10}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            const currentZ = el.zIndex || 10;
+                                                            const newZ = Math.max(1, currentZ - 1);
+                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, zIndex: newZ } : x);
+                                                            updateConfig(newEls);
+                                                        }}
+                                                        className="h-8 px-2.5 text-xs font-bold border-gray-200 hover:bg-gray-50"
+                                                        title="Lower Layer"
+                                                    >
+                                                        -
+                                                    </Button>
+                                                    <div className="flex-1 flex items-center justify-center bg-gray-50 rounded-lg h-8 border border-gray-200">
+                                                        <span className="text-xs font-bold font-mono text-gray-800">
+                                                            Z: {el.zIndex || 10}
+                                                        </span>
                                                     </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            const currentZ = el.zIndex || 10;
+                                                            const newZ = currentZ + 1;
+                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, zIndex: newZ } : x);
+                                                            updateConfig(newEls);
+                                                        }}
+                                                        className="h-8 px-2.5 text-xs font-bold border-gray-200 hover:bg-gray-50"
+                                                        title="Raise Layer"
+                                                    >
+                                                        +
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, zIndex: 1 } : x);
+                                                            updateConfig(newEls);
+                                                        }}
+                                                        className="h-8 text-[11px] px-2 text-gray-500 hover:text-gray-900 border-gray-200"
+                                                        title="Send to Bottom"
+                                                    >
+                                                        Min
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            const maxZ = Math.max(...elements.map((e: any) => e.zIndex || 10), 10);
+                                                            const newEls = elements.map((x: any) => x.id === el.id ? { ...x, zIndex: maxZ + 5 } : x);
+                                                            updateConfig(newEls);
+                                                        }}
+                                                        className="h-8 text-[11px] px-2 text-indigo-600 font-semibold border-indigo-200 hover:bg-indigo-50"
+                                                        title="Bring to Front"
+                                                    >
+                                                        Top
+                                                    </Button>
+                                                </div>
+                                            </div>
+
+                                            {/* Layer Motion & Animations Card */}
+                                            {/* developed by dinesh tawade */}
+                                            <div className="bg-gradient-to-br from-indigo-50/60 to-purple-50/40 p-3.5 rounded-xl border border-indigo-100 shadow-sm space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Sliders className="size-4 text-indigo-600" />
+                                                        <h5 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                                                            Motion & Animations
+                                                        </h5>
                                                     </div>
-                                                </>
-                                            ) : (
-                                                <div className="grid grid-cols-2 gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleTestAnimation(el.id)}
+                                                        className="flex items-center gap-1 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-bold shadow-sm transition-all"
+                                                        title="Preview entrance animation immediately on the video"
+                                                    >
+                                                        <Play className="size-3 fill-white" />
+                                                        Test Live
+                                                    </button>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-2.5">
                                                     <div>
-                                                        <label className="text-xs text-gray-500 mb-1 block">Width (px)</label>
-                                                        <Input
-                                                            type="number"
-                                                            value={el.width || 100}
+                                                        <label className="text-[11px] font-semibold text-gray-600 mb-1 block">Entrance Motion</label>
+                                                        <select
+                                                            value={el.animationIn || 'none'}
                                                             onChange={(e) => {
-                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, width: parseFloat(e.target.value) } : x);
+                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, animationIn: e.target.value } : x);
                                                                 updateConfig(newEls);
                                                             }}
-                                                            className="bg-white border-gray-200"
+                                                            className="flex h-8.5 w-full rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                        >
+                                                            <option value="none">None</option>
+                                                            <option value="fade">Fade In</option>
+                                                            <option value="zoom">Zoom In</option>
+                                                            <option value="slide-up">Slide Up</option>
+                                                            <option value="slide-down">Slide Down</option>
+                                                            <option value="slide-left">Slide Left</option>
+                                                            <option value="slide-right">Slide Right</option>
+                                                            <option value="bounce">Bounce In</option>
+                                                            <option value="rotate">Rotate In</option>
+                                                            <option value="flip">3D Flip In</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[11px] font-semibold text-gray-600 mb-1 block">Exit Motion</label>
+                                                        <select
+                                                            value={el.animationOut || 'none'}
+                                                            onChange={(e) => {
+                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, animationOut: e.target.value } : x);
+                                                                updateConfig(newEls);
+                                                            }}
+                                                            className="flex h-8.5 w-full rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                        >
+                                                            <option value="none">None</option>
+                                                            <option value="fade">Fade Out</option>
+                                                            <option value="zoom">Zoom Out</option>
+                                                            <option value="slide-up">Slide Up Out</option>
+                                                            <option value="slide-down">Slide Down Out</option>
+                                                            <option value="slide-left">Slide Left Out</option>
+                                                            <option value="slide-right">Slide Right Out</option>
+                                                            <option value="rotate">Rotate Out</option>
+                                                            <option value="flip">3D Flip Out</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-2.5">
+                                                    <div>
+                                                        <label className="text-[11px] font-semibold text-gray-600 mb-1 block">Animation Speed</label>
+                                                        <select
+                                                            value={el.animationDuration || 0.5}
+                                                            onChange={(e) => {
+                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, animationDuration: parseFloat(e.target.value) } : x);
+                                                                updateConfig(newEls);
+                                                            }}
+                                                            className="flex h-8.5 w-full rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                        >
+                                                            <option value={0.3}>0.3s (Snappy)</option>
+                                                            <option value={0.5}>0.5s (Standard)</option>
+                                                            <option value={0.8}>0.8s (Smooth)</option>
+                                                            <option value={1.2}>1.2s (Cinematic)</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[11px] font-semibold text-gray-600 mb-1 block">Continuous Loop</label>
+                                                        <select
+                                                            value={el.loopAnimation || 'none'}
+                                                            onChange={(e) => {
+                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, loopAnimation: e.target.value } : x);
+                                                                updateConfig(newEls);
+                                                            }}
+                                                            className="flex h-8.5 w-full rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                        >
+                                                            <option value="none">None</option>
+                                                            <option value="float">Floating Effect</option>
+                                                            <option value="pulse">Pulse Effect</option>
+                                                            <option value="shimmer">Shimmer Glow</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Timing & Coordinates */}
+                                            <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm space-y-3">
+                                                <label className="text-xs font-bold text-gray-700 block">Timing & Placement</label>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <label className="text-xs text-gray-500 mb-1 block">Start (s)</label>
+                                                        <Input
+                                                            type="number" step="0.1"
+                                                            value={el.startTime}
+                                                            onChange={(e) => {
+                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, startTime: parseFloat(e.target.value) } : x);
+                                                                updateConfig(newEls);
+                                                            }}
+                                                            className="bg-white border-gray-200 h-8.5 text-xs px-2"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="text-xs text-gray-500 mb-1 block">Height (px)</label>
+                                                        <label className="text-xs text-gray-500 mb-1 block">End (s)</label>
                                                         <Input
-                                                            type="number"
-                                                            value={el.height || 100}
+                                                            type="number" step="0.1"
+                                                            value={el.endTime}
                                                             onChange={(e) => {
-                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, height: parseFloat(e.target.value) } : x);
+                                                                const newEls = elements.map((x: any) => x.id === el.id ? { ...x, endTime: parseFloat(e.target.value) } : x);
                                                                 updateConfig(newEls);
                                                             }}
-                                                            className="bg-white border-gray-200"
+                                                            className="bg-white border-gray-200 h-8.5 text-xs px-2"
                                                         />
                                                     </div>
                                                 </div>
-                                            )}
 
+                                                {!isText && (
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <div>
+                                                            <label className="text-xs text-gray-500 mb-1 block">Width (px)</label>
+                                                            <Input
+                                                                type="number"
+                                                                value={el.width || 100}
+                                                                onChange={(e) => {
+                                                                    const newEls = elements.map((x: any) => x.id === el.id ? { ...x, width: parseFloat(e.target.value) } : x);
+                                                                    updateConfig(newEls);
+                                                                }}
+                                                                className="bg-white border-gray-200 h-8.5 text-xs px-2"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs text-gray-500 mb-1 block">Height (px)</label>
+                                                            <Input
+                                                                type="number"
+                                                                value={el.height || 100}
+                                                                onChange={(e) => {
+                                                                    const newEls = elements.map((x: any) => x.id === el.id ? { ...x, height: parseFloat(e.target.value) } : x);
+                                                                    updateConfig(newEls);
+                                                                }}
+                                                                className="bg-white border-gray-200 h-8.5 text-xs px-2"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
 
-                                                <div className="flex gap-2">
+                                                <div className="grid grid-cols-2 gap-2">
                                                     <div>
-                                                        <label className="text-xs text-gray-500 mb-1 block">X (%)</label>
+                                                        <label className="text-xs text-gray-500 mb-1 block">Position X (%)</label>
                                                         <Input
                                                             type="number"
                                                             value={el.x}
@@ -893,11 +1460,11 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                 const newEls = elements.map((x: any) => x.id === el.id ? { ...x, x: parseFloat(e.target.value) } : x);
                                                                 updateConfig(newEls);
                                                             }}
-                                                            className="bg-white border-gray-200"
+                                                            className="bg-white border-gray-200 h-8.5 text-xs px-2"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="text-xs text-gray-500 mb-1 block">Y (%)</label>
+                                                        <label className="text-xs text-gray-500 mb-1 block">Position Y (%)</label>
                                                         <Input
                                                             type="number"
                                                             value={el.y}
@@ -905,11 +1472,12 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                                 const newEls = elements.map((x: any) => x.id === el.id ? { ...x, y: parseFloat(e.target.value) } : x);
                                                                 updateConfig(newEls);
                                                             }}
-                                                            className="bg-white border-gray-200"
+                                                            className="bg-white border-gray-200 h-8.5 text-xs px-2"
                                                         />
                                                     </div>
                                                 </div>
-                                            
+                                            </div>
+
                                             <Button
                                                 type="button"
                                                 variant="destructive"
@@ -917,9 +1485,9 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                                     updateConfig(elements.filter((x: any) => x.id !== el.id));
                                                     setSelectedElementId(null);
                                                 }}
-                                                className="w-full gap-2 bg-red-600 hover:bg-red-700 text-white"
+                                                className="w-full gap-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs h-9 font-semibold"
                                             >
-                                                <Trash className="size-4" /> Delete Layer
+                                                <Trash2 className="size-4" /> Delete Layer
                                             </Button>
                                         </div>
                                     );
@@ -1058,6 +1626,7 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
 
             {/* Right Side - Live Preview */}
             <div className="flex-1 flex items-center justify-center relative p-4 lg:p-8 overflow-hidden" style={{ containerType: 'size' }}>
+                <style>{animationStyles}</style>
                 <div 
                     ref={containerRef} 
                     className="video-template-preview-container relative rounded-2xl overflow-hidden shadow-2xl border border-gray-800 bg-neutral-900 shrink-0"
@@ -1088,10 +1657,13 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                     {/* Overlay elements */}
                     {elements.map((el: any) => {
                         const isVisible = currentTime >= el.startTime && currentTime <= el.endTime;
-                        if (!isVisible) return null;
+                        const isTesting = previewAnimationElementId === el.id;
+                        if (!isVisible && !isTesting) return null;
 
                         const displayX = dragPos?.id === el.id ? dragPos.x : el.x;
                         const displayY = dragPos?.id === el.id ? dragPos.y : el.y;
+
+                        const animStyle = getComputedElementAnimation(el, currentTime, isTesting);
 
                         return (
                             <div
@@ -1132,52 +1704,47 @@ export default function VideoTemplateBuilder({ data, setData, isCustomerMode = f
                                     document.addEventListener('mousemove', handleMouseMove);
                                     document.addEventListener('mouseup', handleMouseUp);
                                 }}
-                                className={`absolute ${isCustomerMode ? '' : 'cursor-pointer'} p-2 ${!dragPos ? 'transition-colors duration-300' : ''} ${selectedElementId === el.id && !isCustomerMode ? 'ring-2 ring-indigo-500 bg-indigo-500/10 border border-indigo-400 border-dashed cursor-move' : ''}`}
+                                className={`absolute ${isCustomerMode ? '' : 'cursor-pointer'} p-2 select-none ${!dragPos ? 'transition-all duration-150' : ''} ${selectedElementId === el.id && !isCustomerMode ? 'ring-2 ring-indigo-500 bg-indigo-500/10 border border-indigo-400 border-dashed rounded-xl cursor-move' : ''}`}
                                 style={{
                                     zIndex: el.zIndex || 10,
                                     left: `${displayX}%`,
                                     top: `${displayY}%`,
-                                    ...(el.type === 'text' ? {
-                                        fontFamily: getFontFamilyCss(el.fontFamily),
-                                        fontSize: el.fontSize,
-                                        fontWeight: el.fontWeight || 'normal',
-                                        color: el.color,
-                                        textShadow: el.textShadow && el.textShadow !== 'none' ? el.textShadow : undefined,
-                                    } : {}),
                                     transform: 'translate(-50%, -50%)',
-                                    animation: el.animationIn === 'fade' ? 'fadeIn 0.5s ease'
-                                        : el.animationIn === 'slide' ? 'slideIn 0.5s ease'
-                                        : el.animationIn === 'zoom' ? 'zoomIn 0.5s ease'
-                                        : el.animationIn === 'bounce' ? 'bounceIn 1s ease'
-                                        : el.animationIn === 'slide-up' ? 'slideUp 0.5s ease'
-                                        : el.animationIn === 'slide-down' ? 'slideDown 0.5s ease'
-                                        : el.animationIn === 'slide-left' ? 'slideLeft 0.5s ease'
-                                        : el.animationIn === 'slide-right' ? 'slideRight 0.5s ease'
-                                        : el.animationIn === 'rotate' ? 'rotateIn 0.5s ease'
-                                        : el.animationIn === 'flip' ? 'flipIn 0.5s ease'
-                                        : undefined
                                 }}
                             >
-                                {el.type === 'image' ? (
-                                    <img
-                                        src={el.src}
-                                        alt=""
-                                        style={{ width: el.width || 100, height: el.height || 100 }}
-                                        className="object-contain pointer-events-none"
-                                    />
-                                ) : el.type === 'video' ? (
-                                    <video
-                                        src={el.src}
-                                        autoPlay
-                                        loop
-                                        muted
-                                        playsInline
-                                        style={{ width: el.width || 100, height: el.height || 100 }}
-                                        className="object-contain pointer-events-none"
-                                    />
-                                ) : (
-                                    el.content
-                                )}
+                                <div
+                                    style={{
+                                        animation: animStyle,
+                                        ...(el.type === 'text' ? {
+                                            fontFamily: getFontFamilyCss(el.fontFamily),
+                                            fontSize: el.fontSize || '24px',
+                                            fontWeight: el.fontWeight || 'normal',
+                                            color: el.color || '#ffffff',
+                                            textShadow: el.textShadow && el.textShadow !== 'none' ? el.textShadow : undefined,
+                                        } : {}),
+                                    }}
+                                >
+                                    {el.type === 'image' ? (
+                                        <img
+                                            src={el.src}
+                                            alt={el.customName || ''}
+                                            style={{ width: el.width || 100, height: el.height || 100 }}
+                                            className="object-contain pointer-events-none"
+                                        />
+                                    ) : el.type === 'video' ? (
+                                        <video
+                                            src={el.src}
+                                            autoPlay
+                                            loop
+                                            muted
+                                            playsInline
+                                            style={{ width: el.width || 100, height: el.height || 100 }}
+                                            className="object-contain pointer-events-none"
+                                        />
+                                    ) : (
+                                        <span className="whitespace-pre-wrap">{el.content}</span>
+                                    )}
+                                </div>
                             </div>
                         );
                     })}

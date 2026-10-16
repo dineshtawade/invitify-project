@@ -32,7 +32,8 @@ import {
     Edit3,
     Menu,
     X,
-    Copy
+    Copy,
+    Flame
 } from 'lucide-react';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -58,6 +59,7 @@ interface Template {
     bg_gradient: string;
     type?: string;
     encrypted_id?: string;
+    is_trending?: boolean;
     default_config: {
         title: string;
         hosts: string;
@@ -189,10 +191,11 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
 
     // Card templates category states
     const [selectedCategory, setSelectedCategory] = useState('all');
-    const categoriesList = ['all', ...categories.map(c => c.slug)];
+    const categoriesList = ['all', 'trending', ...categories.map(c => c.slug)];
 
     const getCategoryName = (slug: string) => {
         if (slug === 'all') return 'All Cards';
+        if (slug === 'trending') return 'Trending';
         const found = categories.find(c => c.slug === slug);
         return found ? found.name : slug.replace('_', ' ');
     };
@@ -203,7 +206,9 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
 
     const searchedTemplates = (selectedCategory === 'all'
         ? templates
-        : templates.filter(t => t.category === selectedCategory))
+        : selectedCategory === 'trending'
+            ? templates.filter(t => Boolean(t.is_trending))
+            : templates.filter(t => t.category === selectedCategory))
         .filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             (t.default_config && t.default_config.title && t.default_config.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
             (t.default_config && t.default_config.guest_of_honor && t.default_config.guest_of_honor.toLowerCase().includes(searchQuery.toLowerCase())));
@@ -729,11 +734,16 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                     <button
                                         key={cat}
                                         onClick={() => setSelectedCategory(cat)}
-                                        className={`px-4 py-1.5 rounded-full text-xs font-serif font-bold uppercase tracking-widest transition-all border ${selectedCategory === cat
-                                            ? 'bg-[#4a4238] text-[#fdfbf7] border-[#4a4238]'
-                                            : 'bg-transparent text-[#706557] border-[#ebd9c1] hover:bg-[#ebd9c1]'
+                                        className={`px-4 py-1.5 rounded-full text-xs font-serif font-bold uppercase tracking-widest transition-all border flex items-center gap-1.5 ${selectedCategory === cat
+                                            ? cat === 'trending'
+                                                ? 'bg-gradient-to-r from-amber-600 to-rose-600 text-white border-transparent shadow-sm'
+                                                : 'bg-[#4a4238] text-[#fdfbf7] border-[#4a4238]'
+                                            : cat === 'trending'
+                                                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100 shadow-2xs'
+                                                : 'bg-transparent text-[#706557] border-[#ebd9c1] hover:bg-[#ebd9c1]'
                                             }`}
                                     >
+                                        {cat === 'trending' && <Flame className={`size-3.5 ${selectedCategory === 'trending' ? 'fill-white text-white' : 'fill-amber-500 text-amber-600'}`} />}
                                         {getCategoryName(cat)}
                                     </button>
                                 ))}
@@ -775,6 +785,11 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                                     className="w-[60vw] max-w-[260px] sm:w-auto sm:min-w-0 shrink-0 snap-center sm:snap-align-none group relative flex flex-col items-center hover:-translate-y-1 transition-transform duration-300 cursor-pointer"
                                                 >
                                                     <div className={`relative w-full aspect-[4/5] p-6 ${t.type !== 'video' ? `bg-gradient-to-tr ${t.bg_gradient}` : 'bg-neutral-900'} rounded-t-xl rounded-b shadow-md overflow-hidden flex flex-col items-center justify-center`}>
+                                                        {Boolean(t.is_trending) && (
+                                                            <div className="absolute top-2.5 left-2.5 z-30 bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-md flex items-center gap-1 uppercase tracking-wider">
+                                                                <Flame className="size-3 fill-white" /> Trending
+                                                            </div>
+                                                        )}
                                                         {/* Quick Preview Hover Overlay */}
                                                         <div className="absolute inset-0 bg-[#3e3832]/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-2 z-20 p-4">
                                                             <button
@@ -819,6 +834,11 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                                     className="w-[60vw] max-w-[260px] sm:w-auto sm:min-w-0 shrink-0 snap-center sm:snap-align-none group relative flex flex-col items-center hover:-translate-y-1 transition-transform duration-300 cursor-pointer"
                                                 >
                                                     <div className={`relative w-full aspect-[4/5] p-6 bg-neutral-900 rounded-t-xl rounded-b shadow-md overflow-hidden flex flex-col items-center justify-center`}>
+                                                        {Boolean(t.is_trending) && (
+                                                            <div className="absolute top-2.5 left-2.5 z-30 bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-md flex items-center gap-1 uppercase tracking-wider">
+                                                                <Flame className="size-3 fill-white" /> Trending
+                                                            </div>
+                                                        )}
                                                         {t.default_config?.video_url && (
                                                             <video
                                                                 src={t.default_config.video_url}

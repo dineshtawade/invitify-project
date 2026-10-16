@@ -18,7 +18,8 @@ import {
     Smile, Link as LinkIcon, MapPin, Compass, Gift, Calendar, Clock,
     Music, Wine, Star, Bell, ZoomIn, ZoomOut, Check, ArrowRight,
     Laptop, Tablet, Smartphone, Settings, PlayCircle, Play, ShieldAlert, Search,
-    Copy, Eye, EyeOff, Lock, Unlock, ArrowUp, ArrowDown, ChevronUp, ChevronDown, CheckCircle2
+    Copy, Eye, EyeOff, Lock, Unlock, ArrowUp, ArrowDown, ChevronUp, ChevronDown, CheckCircle2,
+    Flame, UploadCloud
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
@@ -38,6 +39,17 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+interface MediaAsset {
+    id: number;
+    filename: string;
+    url: string;
+    path: string;
+    size?: number;
+    type?: string;
+    mime_type?: string;
+    created_at?: string;
+}
+
 interface Template {
     id: number;
     name: string;
@@ -47,6 +59,8 @@ interface Template {
     bg_gradient: string;
     thumbnail: string | null;
     default_config: any;
+    status?: string;
+    is_trending?: boolean;
 }
 
 interface Category {
@@ -205,6 +219,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
         thumbnail: '' as string | null,
         default_config: normalizeConfig(null),
         status: 'published' as 'published' | 'draft',
+        is_trending: false as boolean,
     });
 
     const activePage = data.default_config.pages[activePageIndex] || data.default_config.pages[0];
@@ -219,6 +234,41 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
     const iconLayerCount = activePage?.elements.filter(e => e.type === 'icon' || e.type === 'divider').length || 0;
     const linkLayerCount = activePage?.elements.filter(e => e.type === 'link').length || 0;
     const totalLayerCount = activePage?.elements.length || 0;
+
+    // Saved Assets / Media Library states
+    // developed by dinesh tawade
+    const [savedAssets, setSavedAssets] = useState<MediaAsset[]>([]);
+    const [isLoadingAssets, setIsLoadingAssets] = useState<boolean>(false);
+    const [assetSearchQuery, setAssetSearchQuery] = useState<string>('');
+    const [assetUploadNotice, setAssetUploadNotice] = useState<{ message: string; isDuplicate?: boolean } | null>(null);
+    const [isUploadingAsset, setIsUploadingAsset] = useState<boolean>(false);
+
+    const fetchSavedAssets = async () => {
+        setIsLoadingAssets(true);
+        try {
+            const res = await fetch('/media?type=image');
+            if (res.ok) {
+                const json = await res.json();
+                if (json.media) {
+                    setSavedAssets(json.media);
+                }
+            }
+        } catch (err) {
+            console.error('Failed to fetch media assets:', err);
+        } finally {
+            setIsLoadingAssets(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchSavedAssets();
+    }, []);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchSavedAssets();
+        }
+    }, [isOpen]);
 
     // Monitor card scale factor dynamically
     useEffect(() => {
@@ -290,6 +340,8 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
             bg_gradient: 'from-stone-100 to-rose-50 text-neutral-800',
             thumbnail: '',
             default_config: normalizeConfig(null),
+            status: 'published',
+            is_trending: false,
         });
         setBgType('preset');
         setActivePageIndex(0);
@@ -315,6 +367,8 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
             bg_gradient: template.bg_gradient,
             thumbnail: template.thumbnail || '',
             default_config: normConfig,
+            status: (template.status as 'published' | 'draft') || 'published',
+            is_trending: Boolean(template.is_trending),
         });
 
         // Detect custom gradient
@@ -398,7 +452,8 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
         const payload = {
             ...data,
             thumbnail: thumbnailUrl,
-            status: submitStatusRef.current
+            status: submitStatusRef.current,
+            is_trending: Boolean(data.is_trending),
         };
 
         if (editingTemplate) {
@@ -416,6 +471,13 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                 },
             });
         }
+    };
+
+    const handleToggleTrending = (t: Template, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        router.post(`/super-admin/templates/${t.id}/toggle-trending`, {}, {
+            preserveScroll: true,
+        });
     };
 
     const handleDelete = (id: number) => {
@@ -765,33 +827,186 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
         setSelectedElementId(null);
     };
 
+    // Z-Index / Layer Depth Controller component
+    // developed by dinesh tawade
+    const renderZIndexController = (element: ElementConfig) => {
+        const currentZ = element.zIndex !== undefined ? element.zIndex : 10;
+        return (
+            <div className="flex items-center justify-between gap-2 border-t pt-2.5 border-neutral-200 dark:border-neutral-800 bg-neutral-100/60 dark:bg-neutral-900/60 p-2 rounded-lg">
+                <div className="flex items-center gap-1.5">
+                    <Layers className="size-3.5 text-indigo-600" />
+                    <span className="text-[10px] font-bold uppercase text-neutral-600 dark:text-neutral-400">Layer Depth (Z-Index)</span>
+                </div>
+                <div className="flex items-center gap-1">
+                    <button
+                        type="button"
+                        title="Send to Bottom (Back)"
+                        onClick={() => handleUpdateElement(element.id, { zIndex: 1 })}
+                        className="px-1.5 py-0.5 text-[9px] font-bold uppercase bg-white dark:bg-neutral-800 border rounded hover:bg-neutral-50 text-neutral-600 dark:text-neutral-300 shadow-2xs"
+                    >
+                        Min
+                    </button>
+                    <button
+                        type="button"
+                        title="Step down"
+                        onClick={() => handleUpdateElement(element.id, { zIndex: Math.max(1, currentZ - 1) })}
+                        className="size-6 flex items-center justify-center font-bold bg-white dark:bg-neutral-800 border rounded hover:bg-neutral-50 text-xs shadow-2xs"
+                    >
+                        -
+                    </button>
+                    <input
+                        type="number"
+                        min="1"
+                        max="999"
+                        value={currentZ}
+                        onChange={(e) => handleUpdateElement(element.id, { zIndex: parseInt(e.target.value) || 1 })}
+                        className="w-11 h-6 border bg-white dark:bg-neutral-800 rounded text-xs text-center font-bold font-mono shadow-2xs"
+                    />
+                    <button
+                        type="button"
+                        title="Step up"
+                        onClick={() => handleUpdateElement(element.id, { zIndex: currentZ + 1 })}
+                        className="size-6 flex items-center justify-center font-bold bg-white dark:bg-neutral-800 border rounded hover:bg-neutral-50 text-xs shadow-2xs"
+                    >
+                        +
+                    </button>
+                    <button
+                        type="button"
+                        title="Bring to Top (Front)"
+                        onClick={() => {
+                            const allZ = activePage?.elements.map(e => e.zIndex || 10) || [10];
+                            const maxZ = Math.max(...allZ, 10);
+                            handleUpdateElement(element.id, { zIndex: maxZ + 5 });
+                        }}
+                        className="px-1.5 py-0.5 text-[9px] font-bold uppercase bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 shadow-2xs"
+                    >
+                        Top
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, elementId: string) => {
         const file = e.target.files?.[0];
         if (file) {
-            const formData = new FormData();
-            formData.append('file', file);
+            await handleUploadNewAsset(file, elementId);
+        }
+    };
 
-            try {
-                handleUpdateElement(elementId, { url: 'uploading' });
+    // Asset Library Upload & Deduplication Handler
+    // developed by dinesh tawade
+    const handleUploadNewAsset = async (file: File, targetElementId?: string) => {
+        setIsUploadingAsset(true);
+        setAssetUploadNotice(null);
+        const formData = new FormData();
+        formData.append('file', file);
 
-                const response = await fetch('/media/upload', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
-                    },
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    throw new Error('Upload failed');
-                }
-
-                const result = await response.json();
-                handleUpdateElement(elementId, { url: result.url });
-            } catch (err) {
-                console.error(err);
-                alert('Failed to upload image. Please check format (PNG, JPG, JPEG, SVG) and try again.');
+        try {
+            if (targetElementId) {
+                handleUpdateElement(targetElementId, { url: 'uploading' });
             }
+
+            const response = await fetch('/media/upload', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+
+            const result = await response.json();
+
+            if (targetElementId) {
+                handleUpdateElement(targetElementId, { 
+                    url: result.url,
+                    customName: result.filename 
+                });
+            }
+
+            // Set user-friendly deduplication notice
+            if (result.is_duplicate) {
+                setAssetUploadNotice({
+                    message: `Notice: Existing asset "${result.filename}" reused (no duplicate created).`,
+                    isDuplicate: true,
+                });
+            } else {
+                setAssetUploadNotice({
+                    message: `Success: "${result.filename}" uploaded and saved to library.`,
+                    isDuplicate: false,
+                });
+            }
+
+            // Refresh library
+            fetchSavedAssets();
+            return result;
+        } catch (err) {
+            console.error('Asset upload error:', err);
+            alert('Failed to upload image. Please check format (PNG, JPG, JPEG, SVG) and try again.');
+            if (targetElementId) {
+                handleUpdateElement(targetElementId, { url: '' });
+            }
+        } finally {
+            setIsUploadingAsset(false);
+        }
+    };
+
+    // Quick add new image layer from asset library
+    // developed by dinesh tawade
+    const handleAddElementWithImage = (url: string, filename?: string) => {
+        const newElement: ElementConfig = {
+            id: `elem-${Math.random().toString(36).substr(2, 9)}`,
+            type: 'image',
+            x: 25,
+            y: 25,
+            w: 45,
+            h: 35,
+            url: url,
+            customName: filename,
+            isEditable: false,
+        };
+        const updatedPages = [...data.default_config.pages];
+        updatedPages[activePageIndex] = {
+            ...activePage,
+            elements: [...activePage.elements, newElement]
+        };
+        setData('default_config', { ...data.default_config, pages: updatedPages });
+        setSelectedElementId(newElement.id);
+        setActiveTab('image');
+    };
+
+    // Delete asset from library
+    // developed by dinesh tawade
+    const handleDeleteAsset = async (asset: MediaAsset, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (!confirm(`Delete asset "${asset.filename}" from library? This cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/media/${asset.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+            });
+
+            if (response.ok) {
+                setSavedAssets(prev => prev.filter(a => a.id !== asset.id));
+                setAssetUploadNotice({
+                    message: `Asset "${asset.filename}" deleted from library.`,
+                    isDuplicate: false,
+                });
+            } else {
+                alert('Failed to delete asset. Please try again.');
+            }
+        } catch (err) {
+            console.error('Delete asset error:', err);
+            alert('Failed to delete asset.');
         }
     };
 
@@ -1002,10 +1217,15 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                         return (
                                             <tr key={t.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/15 transition-colors">
                                                 <td className="px-6 py-4 font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                                                    <Layers className="size-4.5 text-neutral-400" /> 
-                                                    {t.name}
+                                                    <Layers className="size-4.5 text-neutral-400 shrink-0" /> 
+                                                    <span>{t.name}</span>
+                                                    {Boolean(t.is_trending) && (
+                                                        <span className="ml-1.5 px-2 py-0.5 bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[10px] font-bold rounded-full flex items-center gap-1 shadow-2xs">
+                                                            <Flame className="size-3 fill-white" /> Trending
+                                                        </span>
+                                                    )}
                                                     {t.status === 'draft' && (
-                                                        <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] uppercase font-bold rounded-full">
+                                                        <span className="ml-1 px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] uppercase font-bold rounded-full">
                                                             Draft
                                                         </span>
                                                     )}
@@ -1068,6 +1288,20 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                             })()
                                                         ) : (
                                                             <>
+                                                                <Button
+                                                                    onClick={() => handleToggleTrending(t)}
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className={`flex items-center gap-1 rounded-lg text-xs font-semibold shadow-2xs transition-all ${
+                                                                        t.is_trending
+                                                                            ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400'
+                                                                            : 'border-neutral-200 text-neutral-500 hover:text-amber-600 hover:border-amber-300 hover:bg-amber-50/50 dark:border-neutral-800'
+                                                                    }`}
+                                                                    title={t.is_trending ? 'Remove from Trending on Home page' : 'Feature as Trending on Home page'}
+                                                                >
+                                                                    <Flame className={`size-3.5 ${t.is_trending ? 'fill-amber-500 text-amber-600' : ''}`} />
+                                                                    {t.is_trending ? 'Trending 🔥' : 'Set Trending'}
+                                                                </Button>
                                                                 <Button
                                                                     onClick={() => handleOpenEdit(t)}
                                                                     variant="outline"
@@ -1404,8 +1638,11 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                                                 </span>
                                                                                             )}
                                                                                         </div>
-                                                                                        <p className="text-[10px] text-neutral-400 font-mono mt-0.5 truncate">
-                                                                                            {elem.type.toUpperCase()} • X:{Math.round(elem.x)}% Y:{Math.round(elem.y)}% | W:{Math.round(elem.w)}%
+                                                                                        <p className="text-[10px] text-neutral-400 font-mono mt-0.5 truncate flex items-center gap-1.5">
+                                                                                            <span>{elem.type.toUpperCase()} • X:{Math.round(elem.x)}% Y:{Math.round(elem.y)}%</span>
+                                                                                            <span className="px-1.5 py-0.2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 font-bold rounded text-[9px] border border-indigo-150 dark:border-indigo-900/50">
+                                                                                                Z: {elem.zIndex !== undefined ? elem.zIndex : (originalIndex + 1) * 5}
+                                                                                            </span>
                                                                                         </p>
                                                                                     </div>
                                                                                 </div>
@@ -1940,6 +2177,8 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                     </div>
                                                                 </div>
 
+                                                                {renderZIndexController(selectedElement)}
+
                                                                 <Button
                                                                     type="button"
                                                                     variant="destructive"
@@ -1960,22 +2199,63 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
 
                                                 {activeTab === 'image' && (
                                                     <div className="flex flex-col gap-4">
+                                                        {/* Header with Add Image Box */}
                                                         <div className="flex justify-between items-center pb-2 border-b">
-                                                            <Label className="text-sm font-bold text-neutral-800 dark:text-neutral-200">Graphic Images</Label>
-                                                            <Button
-                                                                type="button"
-                                                                onClick={() => handleAddElement('image')}
-                                                                size="sm"
-                                                                className="bg-indigo-700 hover:bg-indigo-700 text-white text-xs flex items-center gap-1.5 rounded-lg"
-                                                            >
-                                                                <Plus className="size-3.5" /> Add Image Box
-                                                            </Button>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <ImageIcon className="size-4 text-indigo-600" />
+                                                                <Label className="text-sm font-bold text-neutral-800 dark:text-neutral-200">Graphic Images & Assets</Label>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <Button
+                                                                    type="button"
+                                                                    onClick={() => handleAddElement('image')}
+                                                                    size="sm"
+                                                                    className="bg-indigo-700 hover:bg-indigo-800 text-white text-xs flex items-center gap-1.5 rounded-lg shadow-2xs"
+                                                                >
+                                                                    <Plus className="size-3.5" /> Add Image Box
+                                                                </Button>
+                                                            </div>
                                                         </div>
 
-                                                        {selectedElement && selectedElement.type === 'image' ? (
-                                                            <div className="border border-neutral-200 rounded-xl p-4 bg-neutral-50/50 dark:border-neutral-800 dark:bg-neutral-950/20 flex flex-col gap-4">
-                                                                <div className="grid gap-2">
-                                                                    <Label htmlFor="imgUpload" className="text-xs font-semibold">Upload Image File (PNG, JPG, SVG)</Label>
+                                                        {/* Upload & Deduplication Feedback Banner */}
+                                                        {assetUploadNotice && (
+                                                            <div className={`p-3 rounded-xl border text-xs flex items-start justify-between gap-2 shadow-2xs animate-in fade-in duration-200 ${
+                                                                assetUploadNotice.isDuplicate
+                                                                    ? 'bg-amber-50/90 border-amber-300 text-amber-900 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-200'
+                                                                    : 'bg-emerald-50/90 border-emerald-300 text-emerald-900 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-200'
+                                                            }`}>
+                                                                <div className="flex items-center gap-2">
+                                                                    {assetUploadNotice.isDuplicate ? (
+                                                                        <Sparkles className="size-4 shrink-0 text-amber-600" />
+                                                                    ) : (
+                                                                        <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+                                                                    )}
+                                                                    <span className="font-medium">{assetUploadNotice.message}</span>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setAssetUploadNotice(null)}
+                                                                    className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 font-bold p-0.5"
+                                                                >
+                                                                    ✕
+                                                                </button>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Selected Element Controls (if an image element is currently selected) */}
+                                                        {selectedElement && selectedElement.type === 'image' && (
+                                                            <div className="border border-indigo-200 rounded-xl p-3.5 bg-indigo-50/30 dark:border-indigo-900/40 dark:bg-indigo-950/15 flex flex-col gap-3">
+                                                                <div className="flex items-center justify-between">
+                                                                    <span className="text-xs font-bold text-indigo-700 dark:text-indigo-400 flex items-center gap-1">
+                                                                        <ImageIcon className="size-3.5" /> Active Image Layer
+                                                                    </span>
+                                                                    <span className="text-[10px] text-neutral-500 font-mono truncate max-w-[150px]">
+                                                                        {selectedElement.customName || 'Custom Layer'}
+                                                                    </span>
+                                                                </div>
+
+                                                                <div className="grid gap-1.5">
+                                                                    <Label htmlFor="imgUpload" className="text-xs font-semibold">Replace Layer with New File (PNG, JPG, SVG)</Label>
                                                                     <Input
                                                                         id="imgUpload"
                                                                         type="file"
@@ -1986,7 +2266,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                 </div>
 
                                                                 <div className="grid gap-1">
-                                                                    <Label htmlFor="imgUrl" className="text-xs font-semibold">Or Paste Image URL</Label>
+                                                                    <Label htmlFor="imgUrl" className="text-xs font-semibold">Or Image URL</Label>
                                                                     <Input
                                                                         id="imgUrl"
                                                                         type="url"
@@ -2012,7 +2292,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                     />
                                                                 </div>
 
-                                                                <div className="border-t pt-3 mt-1 flex flex-col gap-2.5">
+                                                                <div className="border-t border-indigo-100 dark:border-indigo-900/50 pt-2.5 flex flex-col gap-2">
                                                                     <label className="flex items-center gap-1.5 text-xs font-bold cursor-pointer text-indigo-700 dark:text-indigo-400">
                                                                         <input
                                                                             type="checkbox"
@@ -2038,7 +2318,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                 </div>
 
                                                                 {/* Coordinates Controller */}
-                                                                <div className="grid grid-cols-4 gap-2 border-t pt-3 border-neutral-200 dark:border-neutral-800 bg-neutral-100/50 p-2 rounded-lg">
+                                                                <div className="grid grid-cols-4 gap-2 border-t pt-2.5 border-indigo-100 dark:border-indigo-900/50 bg-white/70 dark:bg-neutral-900/50 p-2 rounded-lg">
                                                                     <div className="flex flex-col gap-0.5">
                                                                         <span className="text-[9px] text-neutral-400 font-bold uppercase text-center">X (%)</span>
                                                                         <input type="number" value={selectedElement.x} onChange={(e) => handleUpdateElement(selectedElement.id, { x: parseInt(e.target.value) || 0 })} className="w-full h-7 border bg-white rounded text-xs text-center font-bold" />
@@ -2057,6 +2337,8 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                     </div>
                                                                 </div>
 
+                                                                {renderZIndexController(selectedElement)}
+
                                                                 <Button
                                                                     type="button"
                                                                     variant="destructive"
@@ -2067,11 +2349,151 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                     <Trash className="size-3.5" /> Delete Image Box
                                                                 </Button>
                                                             </div>
-                                                        ) : (
-                                                            <p className="text-xs text-neutral-450 text-center py-10 italic">
-                                                                Select an image element on the canvas or click "Add Image Box" above.
-                                                            </p>
                                                         )}
+
+                                                        {/* Saved Assets Library Section (Deduplication + Saved Asset Browser + Delete) */}
+                                                        {/* developed by dinesh tawade */}
+                                                        <div className="border border-neutral-200 rounded-xl p-4 bg-white dark:border-neutral-800 dark:bg-neutral-950 flex flex-col gap-3 shadow-2xs">
+                                                            <div className="flex items-center justify-between">
+                                                                <div>
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <Layers className="size-4 text-indigo-600" />
+                                                                        <Label className="text-xs font-bold text-neutral-900 dark:text-neutral-100">
+                                                                            Saved Assets Library
+                                                                        </Label>
+                                                                        <span className="text-[10px] font-bold px-1.5 py-0.2 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 rounded-full">
+                                                                            {savedAssets.length}
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="text-[10px] text-neutral-500 mt-0.5">
+                                                                        All uploaded PNG & graphics preserved with original names. No duplicates!
+                                                                    </p>
+                                                                </div>
+                                                                <label className="cursor-pointer bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/50 text-xs font-semibold px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors border border-indigo-200 dark:border-indigo-800 shrink-0">
+                                                                    <UploadCloud className="size-3.5" />
+                                                                    <span>{isUploadingAsset ? 'Uploading...' : 'Upload Asset'}</span>
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        className="hidden"
+                                                                        disabled={isUploadingAsset}
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) handleUploadNewAsset(file);
+                                                                            e.target.value = '';
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                            </div>
+
+                                                            {/* Search Assets */}
+                                                            <div className="relative">
+                                                                <Search className="absolute left-2.5 top-2.5 size-3.5 text-neutral-400" />
+                                                                <Input
+                                                                    type="text"
+                                                                    placeholder="Search saved assets by name..."
+                                                                    value={assetSearchQuery}
+                                                                    onChange={(e) => setAssetSearchQuery(e.target.value)}
+                                                                    className="pl-8 h-8 text-xs bg-neutral-50 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800"
+                                                                />
+                                                            </div>
+
+                                                            {/* Asset Library Grid */}
+                                                            <div className="max-h-72 overflow-y-auto pr-1">
+                                                                {isLoadingAssets ? (
+                                                                    <div className="py-8 text-center text-xs text-neutral-400 flex flex-col items-center gap-2">
+                                                                        <div className="size-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                                                                        <span>Loading saved assets...</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    (() => {
+                                                                        const filteredAssets = savedAssets.filter(a =>
+                                                                            (a.filename || '').toLowerCase().includes(assetSearchQuery.toLowerCase())
+                                                                        );
+
+                                                                        if (filteredAssets.length === 0) {
+                                                                            return (
+                                                                                <div className="p-6 text-center border border-dashed rounded-xl border-neutral-300 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-900/20">
+                                                                                    <UploadCloud className="size-7 text-neutral-400 mx-auto mb-1.5" />
+                                                                                    <p className="text-xs font-semibold text-neutral-600 dark:text-neutral-300">No assets found</p>
+                                                                                    <p className="text-[11px] text-neutral-400 mt-1 max-w-[260px] mx-auto">
+                                                                                        Upload PNGs, logos, stickers, floral artwork, or photos. They will be saved with their name and can be reused anytime.
+                                                                                    </p>
+                                                                                </div>
+                                                                            );
+                                                                        }
+
+                                                                        return (
+                                                                            <div className="grid grid-cols-3 gap-2">
+                                                                                {filteredAssets.map(asset => {
+                                                                                    const isSelected = selectedElement && selectedElement.url === asset.url;
+                                                                                    return (
+                                                                                        <div
+                                                                                            key={asset.id}
+                                                                                            onClick={() => {
+                                                                                                if (selectedElement && selectedElement.type === 'image') {
+                                                                                                    handleUpdateElement(selectedElement.id, {
+                                                                                                        url: asset.url,
+                                                                                                        customName: asset.filename
+                                                                                                    });
+                                                                                                } else {
+                                                                                                    handleAddElementWithImage(asset.url, asset.filename);
+                                                                                                }
+                                                                                            }}
+                                                                                            className={`group relative border rounded-xl overflow-hidden bg-neutral-50/80 dark:bg-neutral-900/50 hover:border-indigo-400 hover:shadow-xs transition-all cursor-pointer p-1.5 flex flex-col items-center ${
+                                                                                                isSelected
+                                                                                                    ? 'ring-2 ring-indigo-500 border-indigo-500 bg-indigo-50/30'
+                                                                                                    : 'border-neutral-200 dark:border-neutral-800'
+                                                                                            }`}
+                                                                                            title={selectedElement && selectedElement.type === 'image' ? `Click to apply "${asset.filename}" to selected box` : `Click to add "${asset.filename}" to canvas`}
+                                                                                        >
+                                                                                            {/* Checkerboard preview container for transparent PNGs */}
+                                                                                            <div className="w-full aspect-square rounded-lg overflow-hidden bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:6px_6px] dark:bg-neutral-950 flex items-center justify-center p-1.5 relative">
+                                                                                                <img
+                                                                                                    src={asset.url}
+                                                                                                    alt={asset.filename}
+                                                                                                    className="w-full h-full object-contain pointer-events-none group-hover:scale-105 transition-transform"
+                                                                                                    loading="lazy"
+                                                                                                />
+                                                                                                {/* Delete Button */}
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    onClick={(e) => handleDeleteAsset(asset, e)}
+                                                                                                    className="absolute top-1 right-1 p-1 rounded-md bg-white/90 hover:bg-rose-50 text-neutral-400 hover:text-rose-600 shadow-xs opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                                                                                    title={`Delete "${asset.filename}" from library`}
+                                                                                                >
+                                                                                                    <Trash className="size-3" />
+                                                                                                </button>
+                                                                                                {isSelected && (
+                                                                                                    <div className="absolute inset-0 bg-indigo-600/10 flex items-center justify-center">
+                                                                                                        <span className="bg-indigo-600 text-white rounded-full p-0.5">
+                                                                                                            <Check className="size-3" />
+                                                                                                        </span>
+                                                                                                    </div>
+                                                                                                )}
+                                                                                            </div>
+
+                                                                                            {/* Filename & size */}
+                                                                                            <span className="text-[10px] font-medium text-neutral-700 dark:text-neutral-300 truncate w-full text-center mt-1" title={asset.filename}>
+                                                                                                {asset.filename}
+                                                                                            </span>
+                                                                                            {asset.size ? (
+                                                                                                <span className="text-[9px] text-neutral-400 font-mono">
+                                                                                                    {(asset.size / 1024).toFixed(0)} KB
+                                                                                                </span>
+                                                                                            ) : null}
+                                                                                        </div>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                        );
+                                                                    })()
+                                                                )}
+                                                            </div>
+                                                            <p className="text-[10px] text-neutral-450 italic text-center">
+                                                                Click any asset to insert as a new layer or apply to currently selected box.
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 )}
 
@@ -2182,6 +2604,8 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                         <input type="number" value={selectedElement.h} onChange={(e) => handleUpdateElement(selectedElement.id, { h: parseInt(e.target.value) || 0 })} className="w-full h-7 border bg-white rounded text-xs text-center font-bold" />
                                                                     </div>
                                                                 </div>
+
+                                                                {renderZIndexController(selectedElement)}
 
                                                                 <Button
                                                                     type="button"
@@ -2338,6 +2762,8 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                         <input type="number" value={selectedElement.h} onChange={(e) => handleUpdateElement(selectedElement.id, { h: parseInt(e.target.value) || 0 })} className="w-full h-7 border bg-white rounded text-xs text-center font-bold" />
                                                                     </div>
                                                                 </div>
+
+                                                                {renderZIndexController(selectedElement)}
 
                                                                 <Button
                                                                     type="button"
@@ -2548,7 +2974,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                     )}
 
                                                     {/* Layer elements */}
-                                                    {activePage?.elements.map((elem) => {
+                                                    {activePage?.elements.map((elem, elemIndex) => {
                                                         const isSelected = selectedElementId === elem.id;
                                                         if (elem.hidden && !isSelected) {
                                                             return null;
@@ -2571,7 +2997,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                             fontStyle: elem.isItalic ? 'italic' : 'normal',
                                                             textShadow: elem.type === 'text' && elem.textShadow && elem.textShadow !== 'none' ? elem.textShadow : undefined,
                                                             opacity: elem.hidden ? 0.35 : (elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1),
-                                                            zIndex: isSelected ? 50 : (elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25),
+                                                            zIndex: isSelected ? 1000 : (elem.zIndex !== undefined ? elem.zIndex : (elem.isBackground ? 2 : (elemIndex + 1) * 5)),
                                                         };
 
                                                         return (
@@ -2581,7 +3007,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                 onMouseDown={(e) => handleCanvasMouseDown(elem.id, e, false)}
                                                                 onClick={(e) => e.stopPropagation()}
                                                                 className={`transition-all duration-75 relative group border p-0.5 leading-tight select-none break-words overflow-hidden ${elem.locked ? 'cursor-default' : 'cursor-move'} ${isSelected
-                                                                    ? 'border-indigo-700 bg-indigo-500/10 shadow-xs z-30'
+                                                                    ? 'border-indigo-700 bg-indigo-500/10 shadow-xs'
                                                                     : 'border-transparent hover:border-dashed hover:border-neutral-400 hover:z-20'
                                                                     } ${elem.hidden ? 'border-dashed border-neutral-400/60' : ''} ${elem.animation && elem.animation !== 'none' ? elem.animation : ''}`}
                                                             >
@@ -2692,6 +3118,21 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                         <div className="grid gap-1 w-[100px]">
                                             <Label htmlFor="price_footer" className="text-[10px] uppercase font-bold text-neutral-500">Price (₹)</Label>
                                             <Input id="price_footer" type="number" step="0.01" min="0" value={data.price} onChange={(e) => setData('price', e.target.value)} required className="h-8.5 rounded-lg text-xs bg-white dark:bg-neutral-950" />
+                                        </div>
+                                        <div className="grid gap-1 w-[110px]">
+                                            <Label htmlFor="trending_footer" className="text-[10px] uppercase font-bold text-neutral-500">Feature</Label>
+                                            <label htmlFor="trending_footer" className="flex items-center gap-1.5 h-8.5 px-2.5 rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950 cursor-pointer text-xs font-semibold hover:border-amber-400 transition-colors">
+                                                <input
+                                                    id="trending_footer"
+                                                    type="checkbox"
+                                                    checked={Boolean(data.is_trending)}
+                                                    onChange={(e) => setData('is_trending', e.target.checked)}
+                                                    className="rounded border-neutral-300 text-amber-600 focus:ring-amber-500 size-3.5"
+                                                />
+                                                <span className="flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-400">
+                                                    <Flame className="size-3 fill-amber-500 text-amber-500" /> Trending
+                                                </span>
+                                            </label>
                                         </div>
                                         {data.type !== 'video' && (
                                             <div className="grid gap-1 w-[130px]">

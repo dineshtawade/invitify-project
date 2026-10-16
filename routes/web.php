@@ -72,6 +72,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
     // Media Upload & Library
     Route::get('/media', [\App\Http\Controllers\MediaUploadController::class, 'index'])->name('media.index');
     Route::post('/media/upload', [\App\Http\Controllers\MediaUploadController::class, 'upload'])->name('media.upload');
+    Route::delete('/media/{media}', [\App\Http\Controllers\MediaUploadController::class, 'destroy'])->name('media.destroy');
 
     // Referral Code Validation
     Route::post('/apply-referral', function (\Illuminate\Http\Request $request) {
@@ -137,6 +138,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('super-admin.templates.store');
         Route::post('super-admin/templates/{template}/clone', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'clone'])
             ->name('super-admin.templates.clone');
+        Route::post('super-admin/templates/{template}/toggle-trending', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'toggleTrending'])
+            ->name('super-admin.templates.toggle-trending');
         Route::put('super-admin/templates/{template}', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'update'])
             ->name('super-admin.templates.update');
         Route::delete('super-admin/templates/{template}', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'destroy'])
