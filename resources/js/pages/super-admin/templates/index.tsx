@@ -20,8 +20,9 @@ import {
     Music, Wine, Star, Bell, ZoomIn, ZoomOut, Check, ArrowRight,
     Laptop, Tablet, Smartphone, Settings, PlayCircle, Play, ShieldAlert, Search,
     Copy, Eye, EyeOff, Lock, Unlock, ArrowUp, ArrowDown, ChevronUp, ChevronDown, CheckCircle2,
-    Flame, UploadCloud, Loader2, X
+    Flame, UploadCloud, Loader2, X, HelpCircle
 } from 'lucide-react';
+import InvitationTemplateHelpModal from '@/Components/InvitationTemplateHelpModal';
 import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
@@ -164,6 +165,7 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
     const [searchVal, setSearchVal] = useState(filters?.search || '');
     const [statusVal, setStatusVal] = useState(filters?.status || 'all');
     const [myIcons, setMyIcons] = useState(customIcons);
+    const [showHelpModal, setShowHelpModal] = useState(false);
 
     // Dynamic categories state with support for inline adding new categories
     // developed by dinesh tawade
@@ -1224,9 +1226,19 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                         <h1 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-neutral-50">Invitation Templates</h1>
                         <p className="text-neutral-500 dark:text-neutral-400 text-sm">Add, edit, or delete invitation layouts and set reseller pricing tiers.</p>
                     </div>
-                    <Button onClick={handleOpenAdd} className="font-semibold shadow-md flex items-center gap-1.5 rounded-xl">
-                        <Plus className="size-4.5" /> Add Design Template
-                    </Button>
+                    <div className="flex items-center gap-2.5">
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setShowHelpModal(true)} 
+                            className="flex items-center gap-2 border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl h-10 px-4 text-xs font-semibold shadow-2xs"
+                        >
+                            <HelpCircle className="size-4 text-indigo-600 dark:text-indigo-400" />
+                            <span>How to Create Guide (?)</span>
+                        </Button>
+                        <Button onClick={handleOpenAdd} className="font-semibold shadow-md flex items-center gap-1.5 rounded-xl h-10">
+                            <Plus className="size-4.5" /> Add Design Template
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Filter and Search Bar */}
@@ -1461,6 +1473,17 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
 
                     {templateMode === 'select' ? (
                         <div className="flex-1 flex flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-950 p-6 relative">
+                            <div className="absolute top-6 left-6">
+                                <Button
+                                    onClick={() => setShowHelpModal(true)}
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex items-center gap-1.5 rounded-xl text-xs font-semibold border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-300 shadow-2xs"
+                                >
+                                    <HelpCircle className="size-3.5 text-indigo-600 dark:text-indigo-400" />
+                                    <span>Template Guide (?)</span>
+                                </Button>
+                            </div>
                             <Button
                                 onClick={() => setIsOpen(false)}
                                 variant="ghost"
@@ -1503,10 +1526,21 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                     ) : (
                         <>
                             <DialogHeader className="px-6 pt-5 pb-3 shrink-0 border-b flex flex-row items-center justify-between bg-white dark:bg-neutral-900">
-                                <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                                    <Sparkles className="size-5.5 text-indigo-600 animate-pulse" />
-                                    {editingTemplate ? `Edit Template: ${data.name}` : `Invitify ${data.type === 'video' ? 'Video' : 'Image'} Template Creator`}
-                                </DialogTitle>
+                                <div className="flex items-center gap-3">
+                                    <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                                        <Sparkles className="size-5.5 text-indigo-600 animate-pulse" />
+                                        {editingTemplate ? `Edit Template: ${data.name}` : `Invitify ${data.type === 'video' ? 'Video' : 'Image'} Template Creator`}
+                                    </DialogTitle>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowHelpModal(true)}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 transition-colors cursor-pointer"
+                                        title="How to Create Templates (Guide & Instructions)"
+                                    >
+                                        <HelpCircle className="size-3.5 text-indigo-600 dark:text-indigo-400" />
+                                        <span>Template Guide (?)</span>
+                                    </button>
+                                </div>
                             </DialogHeader>
 
                             <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -3369,6 +3403,9 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* How to Create Invitation Templates Instructions Modal */}
+            <InvitationTemplateHelpModal open={showHelpModal} onOpenChange={setShowHelpModal} />
         </AppLayout>
     );
 }

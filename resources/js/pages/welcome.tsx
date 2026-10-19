@@ -248,31 +248,13 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
     } | null>(null);
 
     const handleSelectWebsite = (w: WelcomeMiniWebsiteTemplate) => {
-        if (auth?.user) {
-            router.visit(`/customer/mini-websites?template_id=${w.id}`);
-        } else {
-            setAuthPromptTarget({
-                name: w.name,
-                type: 'website',
-                targetUrl: `/customer/mini-websites?template_id=${w.id}`,
-                pendingId: w.id,
-            });
-            setIsAuthPromptOpen(true);
-        }
+        router.visit(`/create-invitation-website?template_id=${w.id}`);
     };
 
+    // developed by dinesh tawade
     const handleSelectBusinessCard = (card: any) => {
-        if (auth?.user) {
-            router.visit(`/customer/static-templates`);
-        } else {
-            setAuthPromptTarget({
-                name: card.name || 'Digital Visiting Card',
-                type: 'card',
-                targetUrl: `/customer/static-templates`,
-                pendingId: card.id,
-            });
-            setIsAuthPromptOpen(true);
-        }
+        const templateId = card?.id || 1;
+        router.visit(`/create-visiting-card?template=${templateId}`);
     };
 
     const handleAuthRedirect = (path: '/login' | '/register') => {

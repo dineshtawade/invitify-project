@@ -38,9 +38,16 @@ Route::get('/cookie-policy', function () {
 
 Route::get('templates/{encryptedId}/customize', [\App\Http\Controllers\Customer\TemplateController::class, 'edit'])
     ->name('customer.templates.customize');
+Route::post('templates/quick-checkout-auth', [\App\Http\Controllers\Customer\TemplateController::class, 'quickCheckoutAuth'])
+    ->name('customer.templates.quick-auth');
 
 Route::get('invitations/view/{encryptedId}', [\App\Http\Controllers\Customer\TemplateController::class, 'viewShared'])
     ->name('invitations.view');
+
+// Public Invitation Website Builder Routing (Guest + Authenticated)
+// developed by dinesh tawade
+Route::get('create-invitation-website', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'createGuestWebsite'])->name('mini-websites.guest-builder');
+Route::post('mini-websites/quick-checkout-auth', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'quickCheckoutAuth'])->name('mini-websites.quick-auth');
 
 // Public Invitation Website (Invitations) Routing
 Route::get('mini-website/{slug}/{page?}', [\App\Http\Controllers\PublicSiteController::class, 'show'])->name('public.site.show');
@@ -56,6 +63,17 @@ Route::get('card/{slug}', [\App\Http\Controllers\PublicCardController::class, 's
 Route::post('card/{slug}/feedback', [\App\Http\Controllers\PublicCardController::class, 'submitFeedback'])->name('public.card.feedback');
 Route::get('card/{slug}/vcard', [\App\Http\Controllers\PublicCardController::class, 'downloadVcard'])->name('public.card.vcard');
 
+// Public Digital Business Cards Designer / Builder Routing (Guest + Authenticated)
+// developed by dinesh tawade
+Route::get('create-visiting-card', [\App\Http\Controllers\Customer\BusinessCardController::class, 'createCard'])->name('business-cards.create-card');
+Route::get('business-cards/builder', [\App\Http\Controllers\Customer\BusinessCardController::class, 'createCard'])->name('business-cards.builder');
+Route::post('business-cards/checkout', [\App\Http\Controllers\Customer\BusinessCardController::class, 'checkout'])->name('business-cards.checkout');
+Route::post('business-cards/{business_card}/verify-checkout', [\App\Http\Controllers\Customer\BusinessCardController::class, 'verifyCheckout'])->name('business-cards.verify-checkout');
+Route::post('business-cards/quick-login', [\App\Http\Controllers\Customer\BusinessCardController::class, 'quickLogin'])->name('business-cards.quick-login');
+
+// Media Upload (Accessible publicly for card builder / guest designs)
+Route::post('/media/upload', [\App\Http\Controllers\MediaUploadController::class, 'upload'])->name('media.upload');
+
 // Serve storage files directly as a fallback for Windows/XAMPP symlink issues
 Route::get('/storage/media/{filename}', function ($filename) {
     $path = storage_path('app/public/media/' . $filename);
@@ -69,9 +87,8 @@ Route::get('/storage/media/{filename}', function ($filename) {
 });
 
 Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::class])->group(function () {
-    // Media Upload & Library
+    // Media Library (Management)
     Route::get('/media', [\App\Http\Controllers\MediaUploadController::class, 'index'])->name('media.index');
-    Route::post('/media/upload', [\App\Http\Controllers\MediaUploadController::class, 'upload'])->name('media.upload');
     Route::delete('/media/{media}', [\App\Http\Controllers\MediaUploadController::class, 'destroy'])->name('media.destroy');
 
     // Referral Code Validation

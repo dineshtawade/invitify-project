@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Head, useForm, router, usePage, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import MiniWebsitePreview from '@/Components/MiniWebsitePreview';
+import MiniWebsiteHelpModal from '@/Components/MiniWebsiteHelpModal';
 import type { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import {
     Plus, Trash, Trash2, Globe, Pencil, Save, ShieldAlert, Clock, Search,
     Monitor, Tablet, Smartphone, Code, Sparkles, ChevronUp, ChevronDown,
-    X, Type, AlignLeft, Layers, LayoutGrid, List
+    X, Type, AlignLeft, Layers, LayoutGrid, List, HelpCircle
 } from 'lucide-react';
 import { SharedEditor } from '@/components/design-editor/SharedEditor';
 import type { Block } from '@/components/design-editor/types';
@@ -21,7 +22,8 @@ import {
     DEFAULT_RSVP_CONFIG,
     DEFAULT_RSVP_QUESTIONS,
     normalizeRsvpConfig,
-    generateRsvpPreviewHtml
+    generateRsvpPreviewHtml,
+    generateRsvpSectionSnippet,
 } from '@/utils/rsvp-builder';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -86,6 +88,7 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
     };
 
     const [isOpen, setIsOpen] = useState(false);
+    const [showHelpModal, setShowHelpModal] = useState(false);
     const [editorTab, setEditorTab] = useState<'html' | 'rsvp'>('html');
     const [deviceType, setDeviceType] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
     const [editingTemplate, setEditingTemplate] = useState<MiniWebsiteTemplate | null>(null);
@@ -212,14 +215,78 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
         updateRsvpConfig({ questions: currentQuestions });
     };
 
-    // Live preview generator with RSVP form included/excluded
-    const previewDoc = useMemo(() => {
+    const iframeRef = useRef<HTMLIFrameElement>(null);
+    const [debouncedHtml, setDebouncedHtml] = useState(data.config?.html || '');
+
+    // Debounce HTML edits so typing in the HTML code editor does not freeze the browser
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedHtml(data.config?.html || '');
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [data.config?.html]);
+
+    // Base preview document: only regenerates when base HTML changes or dialog opens
+    const [previewDoc, setPreviewDoc] = useState(() => {
         return generateRsvpPreviewHtml(data.config?.html || '', data.config?.rsvp);
-    }, [data.config?.html, data.config?.rsvp]);
+    });
+
+    useEffect(() => {
+        setPreviewDoc(generateRsvpPreviewHtml(debouncedHtml, data.config?.rsvp));
+    }, [debouncedHtml]);
+
+    // Live in-place RSVP form DOM updater: eliminates iframe reload & scroll jump!
+    // developed by dinesh tawade
+    useEffect(() => {
+        const iframe = iframeRef.current;
+        if (!iframe) return;
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!doc || !doc.body) return;
+
+        const norm = normalizeRsvpConfig(data.config?.rsvp);
+        const existingSection = doc.getElementById('invitify-rsvp-section');
+
+        if (!norm.enabled) {
+            if (existingSection) existingSection.remove();
+            return;
+        }
+
+        const snippet = generateRsvpSectionSnippet(norm);
+
+        if (existingSection) {
+            const temp = doc.createElement('div');
+            temp.innerHTML = snippet;
+            const newSection = temp.querySelector('#invitify-rsvp-section');
+            if (newSection) {
+                existingSection.replaceWith(newSection);
+            }
+        } else {
+            doc.body.insertAdjacentHTML('beforeend', snippet);
+        }
+
+        // Trigger font & theme adaptation
+        if (doc.defaultView && (doc.defaultView as any).adaptRsvpTheme) {
+            (doc.defaultView as any).adaptRsvpTheme();
+        }
+    }, [data.config?.rsvp]);
+
+    // When clicking RSVP tab, smoothly scroll the preview to the RSVP section
+    useEffect(() => {
+        if (editorTab === 'rsvp') {
+            setTimeout(() => {
+                const doc = iframeRef.current?.contentDocument || iframeRef.current?.contentWindow?.document;
+                const section = doc?.getElementById('invitify-rsvp-section');
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 180);
+        }
+    }, [editorTab]);
 
     const handleOpenAdd = () => {
         setEditingTemplate(null);
         reset();
+        const initialRsvp = { ...DEFAULT_RSVP_CONFIG };
         setData({
             name: '',
             status: 'published',
@@ -229,9 +296,11 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
             config: {
                 html: '',
                 variables: [],
-                rsvp: { ...DEFAULT_RSVP_CONFIG },
+                rsvp: initialRsvp,
             },
         });
+        setDebouncedHtml('');
+        setPreviewDoc(generateRsvpPreviewHtml('', initialRsvp));
         setEditorTab('html');
         setIsOpen(true);
     };
@@ -257,6 +326,8 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                 rsvp: rsvpConfig,
             },
         });
+        setDebouncedHtml(parsedConfig.html || '');
+        setPreviewDoc(generateRsvpPreviewHtml(parsedConfig.html || '', rsvpConfig));
         setEditorTab('html');
         setIsOpen(true);
     };
@@ -280,9 +351,19 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                         </h1>
                         <p className="text-neutral-500 text-sm">Design single-page invitation templates.</p>
                     </div>
-                    <Button onClick={handleOpenAdd} className="bg-pink-600 hover:bg-pink-700 text-white">
-                        <Plus className="size-4 mr-2" /> Design Template
-                    </Button>
+                    <div className="flex items-center gap-2.5">
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setShowHelpModal(true)} 
+                            className="flex items-center gap-2 border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 h-9"
+                        >
+                            <HelpCircle className="size-4 text-pink-600 dark:text-pink-400" />
+                            <span>How to Create Guide (?)</span>
+                        </Button>
+                        <Button onClick={handleOpenAdd} className="bg-pink-600 hover:bg-pink-700 text-white h-9">
+                            <Plus className="size-4 mr-2" /> Design Template
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Filter and Search Bar */}
@@ -442,10 +523,21 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
 
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
                     <DialogContent aria-describedby={undefined} className="max-w-[99vw] w-[99vw] h-[99vh] flex flex-col p-0">
-                        <DialogHeader className="p-6 border-b flex-row justify-between">
-                            <DialogTitle className="text-xl font-bold mt-1.5">
-                                {editingTemplate ? `Edit: ${editingTemplate.name}` : 'New Mini Template'}
-                            </DialogTitle>
+                        <DialogHeader className="px-6 py-4 border-b flex-row items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <DialogTitle className="text-xl font-bold">
+                                    {editingTemplate ? `Edit: ${editingTemplate.name}` : 'New Mini Template'}
+                                </DialogTitle>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowHelpModal(true)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 dark:bg-pink-950/40 dark:text-pink-300 dark:border-pink-800 transition-colors cursor-pointer"
+                                    title="How to Create Mini Website (Guide & Placeholders)"
+                                >
+                                    <HelpCircle className="size-3.5 text-pink-600" />
+                                    <span>Template Guide (?)</span>
+                                </button>
+                            </div>
                         </DialogHeader>
 
                         <div className="flex-1 overflow-hidden flex bg-neutral-50 dark:bg-neutral-900">
@@ -850,7 +942,16 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                                         }`}
                                 >
                                     <iframe
+                                        ref={iframeRef}
                                         srcDoc={previewDoc}
+                                        onLoad={() => {
+                                            const iframe = iframeRef.current;
+                                            if (!iframe) return;
+                                            const doc = iframe.contentDocument || iframe.contentWindow?.document;
+                                            if (doc && doc.defaultView && (doc.defaultView as any).adaptRsvpTheme) {
+                                                (doc.defaultView as any).adaptRsvpTheme();
+                                            }
+                                        }}
                                         className="w-full h-full border-0"
                                         sandbox="allow-scripts allow-same-origin"
                                     />
@@ -919,6 +1020,9 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
+
+                {/* How to Create Mini Website Instructions Modal */}
+                <MiniWebsiteHelpModal open={showHelpModal} onOpenChange={setShowHelpModal} />
             </div>
         </AppLayout>
     );

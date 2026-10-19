@@ -1,5 +1,60 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
+* @see \App\Http\Controllers\MediaUploadController::upload
+ * @see app/Http/Controllers/MediaUploadController.php:37
+ * @route '/media/upload'
+ */
+export const upload = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: upload.url(options),
+    method: 'post',
+})
+
+upload.definition = {
+    methods: ["post"],
+    url: '/media/upload',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\MediaUploadController::upload
+ * @see app/Http/Controllers/MediaUploadController.php:37
+ * @route '/media/upload'
+ */
+upload.url = (options?: RouteQueryOptions) => {
+    return upload.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\MediaUploadController::upload
+ * @see app/Http/Controllers/MediaUploadController.php:37
+ * @route '/media/upload'
+ */
+upload.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: upload.url(options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\MediaUploadController::upload
+ * @see app/Http/Controllers/MediaUploadController.php:37
+ * @route '/media/upload'
+ */
+    const uploadForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: upload.url(options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\MediaUploadController::upload
+ * @see app/Http/Controllers/MediaUploadController.php:37
+ * @route '/media/upload'
+ */
+        uploadForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: upload.url(options),
+            method: 'post',
+        })
+    
+    upload.form = uploadForm
+/**
 * @see \App\Http\Controllers\MediaUploadController::index
  * @see app/Http/Controllers/MediaUploadController.php:12
  * @route '/media'
@@ -77,61 +132,6 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
     
     index.form = indexForm
-/**
-* @see \App\Http\Controllers\MediaUploadController::upload
- * @see app/Http/Controllers/MediaUploadController.php:37
- * @route '/media/upload'
- */
-export const upload = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
-    url: upload.url(options),
-    method: 'post',
-})
-
-upload.definition = {
-    methods: ["post"],
-    url: '/media/upload',
-} satisfies RouteDefinition<["post"]>
-
-/**
-* @see \App\Http\Controllers\MediaUploadController::upload
- * @see app/Http/Controllers/MediaUploadController.php:37
- * @route '/media/upload'
- */
-upload.url = (options?: RouteQueryOptions) => {
-    return upload.definition.url + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\MediaUploadController::upload
- * @see app/Http/Controllers/MediaUploadController.php:37
- * @route '/media/upload'
- */
-upload.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
-    url: upload.url(options),
-    method: 'post',
-})
-
-    /**
-* @see \App\Http\Controllers\MediaUploadController::upload
- * @see app/Http/Controllers/MediaUploadController.php:37
- * @route '/media/upload'
- */
-    const uploadForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-        action: upload.url(options),
-        method: 'post',
-    })
-
-            /**
-* @see \App\Http\Controllers\MediaUploadController::upload
- * @see app/Http/Controllers/MediaUploadController.php:37
- * @route '/media/upload'
- */
-        uploadForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
-            action: upload.url(options),
-            method: 'post',
-        })
-    
-    upload.form = uploadForm
 /**
 * @see \App\Http\Controllers\MediaUploadController::destroy
  * @see app/Http/Controllers/MediaUploadController.php:119
@@ -221,6 +221,6 @@ destroy.delete = (args: { media: number | { id: number } } | [media: number | { 
         })
     
     destroy.form = destroyForm
-const MediaUploadController = { index, upload, destroy }
+const MediaUploadController = { upload, index, destroy }
 
 export default MediaUploadController

@@ -277,34 +277,32 @@ class PublicSiteController extends Controller
             if ($qType === 'text') {
                 $renderedQuestions .= <<<HTML
                 <div style="margin-bottom: 18px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #473e35; margin-bottom: 7px;">
+                    <label class="rsvp-label" style="display: flex; justify-content: space-between; font-family: inherit; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: inherit; opacity: 0.88; margin-bottom: 7px;">
                         <span>{$qLabel} {$reqMarker}</span>
                     </label>
                     <input 
                         type="text" 
                         name="{$inputName}" 
+                        class="rsvp-input-field"
                         {$reqAttr} 
                         placeholder="{$placeholder}" 
-                        style="box-sizing: border-box; width: 100%; height: 48px; padding: 0 16px; border: 1.5px solid #e7ded2; border-radius: 14px; font-size: 14px; font-weight: 500; background: #faf8f5; color: #1e1b18; outline: none; transition: all 0.2s ease;"
-                        onfocus="this.style.borderColor='#d4af37'; this.style.backgroundColor='#ffffff'; this.style.boxShadow='0 0 0 3px rgba(212,175,55,0.15)';" 
-                        onblur="this.style.borderColor='#e7ded2'; this.style.backgroundColor='#faf8f5'; this.style.boxShadow='none';"
+                        style="box-sizing: border-box; width: 100%; height: 48px; padding: 0 16px; border: 1.5px solid rgba(0,0,0,0.12); border-radius: 14px; font-family: inherit; font-size: 14px; font-weight: 500; background: rgba(255,255,255,0.75); color: inherit; outline: none; transition: all 0.2s ease;"
                     />
                 </div>
 HTML;
             } elseif ($qType === 'textarea') {
                 $renderedQuestions .= <<<HTML
                 <div style="margin-bottom: 18px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #473e35; margin-bottom: 7px;">
+                    <label class="rsvp-label" style="display: flex; justify-content: space-between; font-family: inherit; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: inherit; opacity: 0.88; margin-bottom: 7px;">
                         <span>{$qLabel} {$reqMarker}</span>
                     </label>
                     <textarea 
                         name="{$inputName}" 
+                        class="rsvp-input-field"
                         rows="3" 
                         {$reqAttr} 
                         placeholder="{$placeholder}" 
-                        style="box-sizing: border-box; width: 100%; padding: 14px 16px; border: 1.5px solid #e7ded2; border-radius: 14px; font-size: 14px; font-weight: 500; background: #faf8f5; color: #1e1b18; outline: none; transition: all 0.2s ease; resize: vertical; min-height: 80px;"
-                        onfocus="this.style.borderColor='#d4af37'; this.style.backgroundColor='#ffffff'; this.style.boxShadow='0 0 0 3px rgba(212,175,55,0.15)';" 
-                        onblur="this.style.borderColor='#e7ded2'; this.style.backgroundColor='#faf8f5'; this.style.boxShadow='none';"
+                        style="box-sizing: border-box; width: 100%; padding: 14px 16px; border: 1.5px solid rgba(0,0,0,0.12); border-radius: 14px; font-family: inherit; font-size: 14px; font-weight: 500; background: rgba(255,255,255,0.75); color: inherit; outline: none; transition: all 0.2s ease; resize: vertical; min-height: 80px;"
                     ></textarea>
                 </div>
 HTML;
@@ -324,18 +322,18 @@ HTML;
                         $checkedAttr = $isFirst ? 'checked' : '';
 
                         $cardsHtml .= <<<HTML
-                        <label class="rsvp-option-card {$groupClass}" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 10px; border: 1.5px solid #e7ded2; border-radius: 14px; background: #faf8f5; transition: all 0.2s ease; text-align: center; box-shadow: none; opacity: 0.88;">
+                        <label class="rsvp-option-card {$groupClass} {$checkedAttr}" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 10px; border: 1.5px solid rgba(0,0,0,0.12); border-radius: 14px; background: rgba(255,255,255,0.7); transition: all 0.2s ease; text-align: center; box-shadow: none; opacity: 0.85; font-family: inherit;">
                             <input type="radio" name="{$inputName}" value="{$optValue}" {$checkedAttr} style="display: none;" onchange="handleRsvpCardSelect(this, '{$groupClass}', '{$inputName}')" />
                             {$optIcon}
-                            <span style="font-size: 13px; font-weight: 800; color: #1e1b18; margin-top: 2px;">{$optLabel}</span>
-                            {$optSubtext}
+                            <span class="rsvp-opt-title" style="font-size: 13px; font-weight: 700; color: inherit; font-family: inherit; margin-top: 2px;">{$optLabel}</span>
+                            <span class="rsvp-opt-sub" style="font-size: 10px; font-weight: 500; opacity: 0.7; font-family: inherit;">{$optSubtext}</span>
                         </label>
 HTML;
                     }
 
                     $renderedQuestions .= <<<HTML
                     <div style="margin-bottom: 18px;">
-                        <label style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #473e35; margin-bottom: 9px;">
+                        <label class="rsvp-label" style="display: flex; justify-content: space-between; font-family: inherit; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: inherit; opacity: 0.88; margin-bottom: 9px;">
                             <span>{$qLabel} {$reqMarker}</span>
                         </label>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(95px, 1fr)); gap: 10px;">
@@ -355,15 +353,15 @@ HTML;
                         $checkedAttr = $isFirst ? 'checked' : '';
 
                         $listHtml .= <<<HTML
-                        <label class="rsvp-list-card {$groupClass}" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1.5px solid #e7ded2; border-radius: 12px; background: #faf8f5; transition: all 0.2s ease;">
+                        <label class="rsvp-list-card {$groupClass} {$checkedAttr}" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1.5px solid rgba(0,0,0,0.12); border-radius: 12px; background: rgba(255,255,255,0.7); transition: all 0.2s ease; font-family: inherit;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 {$optIcon}
                                 <div>
-                                    <div style="font-size: 13px; font-weight: 800; color: #1e1b18;">{$optLabel}</div>
-                                    {$optSubtext}
+                                    <div class="rsvp-opt-title" style="font-size: 13px; font-weight: 700; color: inherit; font-family: inherit;">{$optLabel}</div>
+                                    <div class="rsvp-opt-sub" style="font-size: 10px; font-weight: 500; opacity: 0.7; font-family: inherit;">{$optSubtext}</div>
                                 </div>
                             </div>
-                            <div class="rsvp-radio-circle" style="width: 18px; height: 18px; border-radius: 50%; border: 2px solid #d1c7bc; background: transparent; display: flex; align-items: center; justify-content: center;"></div>
+                            <div class="rsvp-radio-circle" style="width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.25); background: transparent; display: flex; align-items: center; justify-content: center;"></div>
                             <input type="radio" name="{$inputName}" value="{$optValue}" {$checkedAttr} style="display: none;" onchange="handleRsvpListSelect(this, '{$groupClass}', '{$inputName}')" />
                         </label>
 HTML;
@@ -371,7 +369,7 @@ HTML;
 
                     $renderedQuestions .= <<<HTML
                     <div style="margin-bottom: 18px;">
-                        <label style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #473e35; margin-bottom: 9px;">
+                        <label class="rsvp-label" style="display: flex; justify-content: space-between; font-family: inherit; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: inherit; opacity: 0.88; margin-bottom: 9px;">
                             <span>{$qLabel} {$reqMarker}</span>
                         </label>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -384,13 +382,13 @@ HTML;
         }
 
         $badgeHtml = !empty($badge) ? <<<HTML
-        <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 16px; background: #fbf6ec; color: #9b7824; border: 1px solid #ebd9aa; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(155, 120, 36, 0.06);">
+        <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 16px; background: rgba(212, 175, 55, 0.12); color: #9b7824; border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; font-family: inherit;">
             <span>✨</span> <span>{$badge}</span> <span>✨</span>
         </div>
 HTML : '';
 
         $subheadingHtml = !empty($subheading) ? <<<HTML
-        <p style="margin: 10px auto 0; font-size: 13px; color: #786f66; line-height: 1.6; max-width: 420px;">
+        <p class="rsvp-subheading" style="margin: 10px auto 0; font-family: inherit; font-size: 13px; color: inherit; opacity: 0.75; line-height: 1.6; max-width: 420px;">
             {$subheading}
         </p>
 HTML : '';
@@ -398,12 +396,12 @@ HTML : '';
         $rsvpSnippet = <<<HTML
 <!-- Invitify Premium RSVP Section -->
 <!-- developed by dinesh tawade -->
-<section id="invitify-rsvp-section" style="box-sizing: border-box; width: 100%; padding: 70px 16px 90px; background: radial-gradient(circle at 50% 0%, #fffdf9 0%, #f7f3ec 60%, #eee6d9 100%); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #2c2723; position: relative;">
+<section id="invitify-rsvp-section" style="box-sizing: border-box; width: 100%; padding: 70px 16px 90px; background: transparent; font-family: inherit; color: inherit; position: relative;">
     
     <!-- Canvas Confetti Library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
-    <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 28px; padding: 40px 32px; box-shadow: 0 25px 60px -15px rgba(184, 134, 11, 0.12), 0 0 0 1px rgba(212, 175, 55, 0.28); position: relative; overflow: hidden;">
+    <div class="invitify-rsvp-card" style="box-sizing: border-box; max-width: 520px; margin: 0 auto; background: rgba(255, 255, 255, 0.90); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-radius: 28px; padding: 40px 32px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(212, 175, 55, 0.28); position: relative; overflow: hidden; font-family: inherit; color: inherit;">
         
         <!-- Luxury Shimmer Border at Top -->
         <div style="position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, #c59b27 0%, #f4d068 50%, #b38719 100%);"></div>
@@ -411,7 +409,7 @@ HTML : '';
         <!-- Header -->
         <div style="text-align: center; margin-bottom: 30px;">
             {$badgeHtml}
-            <h2 style="margin: 0; font-size: 28px; font-weight: 800; color: #1a1612; letter-spacing: -0.5px;">
+            <h2 class="rsvp-heading" style="margin: 0; font-family: inherit; font-size: 28px; font-weight: 700; color: inherit; letter-spacing: -0.3px;">
                 {$heading}
             </h2>
             {$subheadingHtml}
@@ -443,7 +441,7 @@ HTML : '';
             <button 
                 type="submit" 
                 id="rsvpSubmitBtn" 
-                style="box-sizing: border-box; width: 100%; height: 50px; margin-top: 10px; border: none; border-radius: 14px; background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); color: #ffffff; font-size: 15px; font-weight: 800; letter-spacing: 0.8px; cursor: pointer; box-shadow: 0 10px 25px -5px rgba(184,134,11,0.4); transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase;"
+                style="box-sizing: border-box; width: 100%; height: 50px; margin-top: 10px; border: none; border-radius: 14px; background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); color: #ffffff; font-family: inherit; font-size: 15px; font-weight: 800; letter-spacing: 0.8px; cursor: pointer; box-shadow: 0 10px 25px -5px rgba(184,134,11,0.4); transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase;"
                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 14px 28px -4px rgba(184,134,11,0.48)';"
                 onmouseout="this.style.transform='none'; this.style.boxShadow='0 10px 25px -5px rgba(184,134,11,0.4)';"
             >
@@ -468,28 +466,31 @@ HTML : '';
 function handleRsvpCardSelect(radio, groupClass, name) {
     var cards = document.querySelectorAll('.' + groupClass);
     cards.forEach(function(card) {
-        card.style.border = '1.5px solid #e7ded2';
-        card.style.background = '#faf8f5';
+        card.style.border = '1.5px solid rgba(0,0,0,0.12)';
+        card.style.background = 'rgba(255,255,255,0.7)';
         card.style.boxShadow = 'none';
-        card.style.opacity = '0.88';
+        card.style.opacity = '0.85';
+        card.classList.remove('is-selected');
     });
     var parent = radio.closest('.' + groupClass);
     if (parent) {
         parent.style.border = '2px solid #10b981';
-        parent.style.background = '#ecfdf5';
+        parent.style.background = 'rgba(236,253,245,0.9)';
         parent.style.boxShadow = '0 4px 12px rgba(16,185,129,0.15)';
         parent.style.opacity = '1';
+        parent.classList.add('is-selected');
     }
 }
 
 function handleRsvpListSelect(radio, groupClass, name) {
     var items = document.querySelectorAll('.' + groupClass);
     items.forEach(function(item) {
-        item.style.border = '1.5px solid #e7ded2';
-        item.style.background = '#faf8f5';
+        item.style.border = '1.5px solid rgba(0,0,0,0.12)';
+        item.style.background = 'rgba(255,255,255,0.7)';
+        item.classList.remove('is-selected');
         var circle = item.querySelector('.rsvp-radio-circle');
         if (circle) {
-            circle.style.borderColor = '#d1c7bc';
+            circle.style.borderColor = 'rgba(0,0,0,0.25)';
             circle.style.background = 'transparent';
             circle.innerHTML = '';
         }
@@ -497,7 +498,8 @@ function handleRsvpListSelect(radio, groupClass, name) {
     var parent = radio.closest('.' + groupClass);
     if (parent) {
         parent.style.border = '2px solid #10b981';
-        parent.style.background = '#ecfdf5';
+        parent.style.background = 'rgba(236,253,245,0.9)';
+        parent.classList.add('is-selected');
         var circle = parent.querySelector('.rsvp-radio-circle');
         if (circle) {
             circle.style.borderColor = '#10b981';
@@ -505,6 +507,66 @@ function handleRsvpListSelect(radio, groupClass, name) {
             circle.innerHTML = '<div style="width: 6px; height: 6px; border-radius: 50%; background: #ffffff;"></div>';
         }
     }
+}
+
+// Auto-adapt RSVP font style and background from website code
+function adaptRsvpTheme() {
+    try {
+        var section = document.getElementById('invitify-rsvp-section');
+        if (!section) return;
+        var body = document.body;
+        if (!body) return;
+        var bodyStyle = window.getComputedStyle(body);
+
+        // Inherit fonts
+        var headingElem = document.querySelector('h1, h2:not(.rsvp-heading)');
+        var headingFont = headingElem ? window.getComputedStyle(headingElem).fontFamily : bodyStyle.fontFamily;
+        if (headingFont) {
+            section.querySelectorAll('.rsvp-heading').forEach(function(el){ el.style.fontFamily = headingFont; });
+        }
+        if (bodyStyle.fontFamily) {
+            section.style.fontFamily = bodyStyle.fontFamily;
+        }
+
+        // Detect background color
+        var bodyBg = bodyStyle.backgroundColor;
+        var card = section.querySelector('.invitify-rsvp-card');
+        if (!card) return;
+
+        var rgb = bodyBg.match(/\\d+/g);
+        var isDark = false;
+        if (rgb && rgb.length >= 3) {
+            var lum = (0.299 * parseInt(rgb[0]) + 0.587 * parseInt(rgb[1]) + 0.114 * parseInt(rgb[2]));
+            if (lum < 130) isDark = true;
+        }
+
+        if (isDark) {
+            card.style.background = 'rgba(22, 24, 32, 0.88)';
+            card.style.borderColor = 'rgba(255, 255, 255, 0.14)';
+            card.style.color = '#f9fafb';
+            card.style.boxShadow = '0 25px 60px -15px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)';
+            section.querySelectorAll('.rsvp-heading').forEach(function(el){ el.style.color = '#ffffff'; });
+            section.querySelectorAll('.rsvp-subheading').forEach(function(el){ el.style.color = 'rgba(255, 255, 255, 0.7)'; });
+            section.querySelectorAll('.rsvp-label').forEach(function(el){ el.style.color = 'rgba(255, 255, 255, 0.85)'; });
+            section.querySelectorAll('.rsvp-input-field').forEach(function(el){
+                el.style.background = 'rgba(255, 255, 255, 0.08)';
+                el.style.borderColor = 'rgba(255, 255, 255, 0.18)';
+                el.style.color = '#ffffff';
+            });
+            section.querySelectorAll('.rsvp-option-card, .rsvp-list-card').forEach(function(el){
+                if (!el.classList.contains('is-selected')) {
+                    el.style.background = 'rgba(255, 255, 255, 0.06)';
+                    el.style.borderColor = 'rgba(255, 255, 255, 0.14)';
+                }
+            });
+        }
+    } catch(e) {}
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', adaptRsvpTheme);
+} else {
+    adaptRsvpTheme();
 }
 
 function fireCelebrationConfetti() {

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::view
- * @see app/Http/Controllers/Customer/TemplateController.php:285
+ * @see app/Http/Controllers/Customer/TemplateController.php:360
  * @route '/invitations/view/{encryptedId}'
  */
 export const view = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ view.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::view
- * @see app/Http/Controllers/Customer/TemplateController.php:285
+ * @see app/Http/Controllers/Customer/TemplateController.php:360
  * @route '/invitations/view/{encryptedId}'
  */
 view.url = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -44,7 +44,7 @@ view.url = (args: { encryptedId: string | number } | [encryptedId: string | numb
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::view
- * @see app/Http/Controllers/Customer/TemplateController.php:285
+ * @see app/Http/Controllers/Customer/TemplateController.php:360
  * @route '/invitations/view/{encryptedId}'
  */
 view.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -53,7 +53,7 @@ view.get = (args: { encryptedId: string | number } | [encryptedId: string | numb
 })
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::view
- * @see app/Http/Controllers/Customer/TemplateController.php:285
+ * @see app/Http/Controllers/Customer/TemplateController.php:360
  * @route '/invitations/view/{encryptedId}'
  */
 view.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -63,7 +63,7 @@ view.head = (args: { encryptedId: string | number } | [encryptedId: string | num
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::view
- * @see app/Http/Controllers/Customer/TemplateController.php:285
+ * @see app/Http/Controllers/Customer/TemplateController.php:360
  * @route '/invitations/view/{encryptedId}'
  */
     const viewForm = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -73,7 +73,7 @@ view.head = (args: { encryptedId: string | number } | [encryptedId: string | num
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::view
- * @see app/Http/Controllers/Customer/TemplateController.php:285
+ * @see app/Http/Controllers/Customer/TemplateController.php:360
  * @route '/invitations/view/{encryptedId}'
  */
         viewForm.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -82,7 +82,7 @@ view.head = (args: { encryptedId: string | number } | [encryptedId: string | num
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::view
- * @see app/Http/Controllers/Customer/TemplateController.php:285
+ * @see app/Http/Controllers/Customer/TemplateController.php:360
  * @route '/invitations/view/{encryptedId}'
  */
         viewForm.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

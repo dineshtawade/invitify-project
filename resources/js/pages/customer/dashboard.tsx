@@ -55,8 +55,20 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [], i
         const pendingMiniWebsite = localStorage.getItem('pending_mini_website_template_id');
         if (pendingMiniWebsite) {
             localStorage.removeItem('pending_mini_website_template_id');
-            router.visit(`/customer/mini-websites?template_id=${pendingMiniWebsite}`);
+            router.visit(`/create-invitation-website?template_id=${pendingMiniWebsite}`);
             return;
+        }
+
+        // Check for any guest mini-website drafts
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('guest_mini_website_draft_')) {
+                const templateId = key.replace('guest_mini_website_draft_', '');
+                if (templateId) {
+                    router.visit(`/create-invitation-website?template_id=${templateId}`);
+                    return;
+                }
+            }
         }
 
         const pendingRedirect = sessionStorage.getItem('pending_redirect_url');

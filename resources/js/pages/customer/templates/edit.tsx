@@ -18,7 +18,7 @@ import {
     ImageIcon, Star, Compass, Gift, Calendar, Clock,
     Music, Wine, Bell, XCircle, Smile, Shield,
     Layers, Palette, PenTool, Eye, CheckCircle2,
-    Loader2, Copy, Share2, Download, Crown
+    Loader2, Copy, Share2, Download, Crown, User
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
@@ -33,11 +33,13 @@ interface Template {
     price: string | number;
     bg_gradient: string;
     default_config: any;
+    encrypted_id?: string;
+    type?: string;
 }
 
 interface UserTemplate {
-    id: number;
-    user_id: number;
+    id: number | null;
+    user_id: number | null;
     template_id: number;
     custom_config: any;
     is_purchased: boolean;
@@ -51,6 +53,7 @@ interface PageProps {
         code: string;
         discount: number;
     }>;
+    autoOpenCheckout?: boolean;
 }
 
 const fontStyles: Record<string, string> = {
@@ -66,9 +69,11 @@ const fontStyles: Record<string, string> = {
     pinyon: "'Pinyon Script', cursive",
 };
 
-export default function TemplateCustomize({ template, userTemplate, coupons = [] }: PageProps) {
-    const { auth } = usePage().props;
-    const isGuest = !auth.user;
+export default function TemplateCustomize({ template, userTemplate, coupons = [], autoOpenCheckout = false }: PageProps) {
+    const { auth } = usePage().props as any;
+    const [currentUser, setCurrentUser] = useState(auth?.user);
+    const [currentUserTemplate, setCurrentUserTemplate] = useState(userTemplate);
+    const isGuest = !currentUser;
 
     const [couponCode, setCouponCode] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
@@ -80,6 +85,13 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
     const [cardWidth, setCardWidth] = useState(350);
     const [isSaved, setIsSaved] = useState(false);
     const [saveAnimation, setSaveAnimation] = useState(false);
+
+    // In-Modal Quick Auth States for Guests
+    const [authMode, setAuthMode] = useState<'register' | 'login'>('register');
+    const [guestAuthName, setGuestAuthName] = useState('');
+    const [guestAuthEmail, setGuestAuthEmail] = useState('');
+    const [guestAuthPassword, setGuestAuthPassword] = useState('');
+    const [authError, setAuthError] = useState('');
 
     const cardRef = useRef<HTMLDivElement>(null);
 
@@ -116,6 +128,35 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
         : (ratioData?.targetWidth || 350);
 
     const scaleRatio = cardWidth / targetWidth;
+
+    // Restore draft from localStorage if guest just logged in or registered
+    useEffect(() => {
+        if (autoOpenCheckout) {
+            setIsCheckoutOpen(true);
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('checkout') === 'true') {
+            setIsCheckoutOpen(true);
+        }
+    }, [autoOpenCheckout]);
+
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem('guest_draft');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed.template_id === template.id && parsed.custom_config) {
+                    setData('custom_config', parsed.custom_config);
+                    if (parsed.auto_checkout) {
+                        setIsCheckoutOpen(true);
+                    }
+                    localStorage.removeItem('guest_draft');
+                }
+            }
+        } catch (e) {
+            console.error('Error restoring draft:', e);
+        }
+    }, [template.id]);
 
     // Preload Google Fonts used in customer customized template
     // developed by dinesh tawade
@@ -189,7 +230,7 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
             return;
         }
         setSaveAnimation(true);
-        put(`/customer/user-templates/${userTemplate.id}/save-draft`, {
+        put(`/customer/user-templates/${currentUserTemplate.id}/save-draft`, {
             onSuccess: () => {
                 setIsSaved(true);
                 setSaveAnimation(false);
@@ -200,113 +241,171 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
     };
 
     const handleBuyClick = () => {
-        if (isGuest) {
-            setIsGuestAlertOpen(true);
-            return;
-        }
         setIsCheckoutOpen(true);
     };
 
-    const handleConfirmPurchase = () => {
+    const handleConfirmPurchase = async () => {
         setIsCheckingOut(true);
-        put(`/customer/user-templates/${userTemplate.id}/save-draft`, {
-            onSuccess: async () => {
-                try {
-                    const response = await fetch(`/customer/user-templates/${userTemplate.id}/create-order`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            ...getCsrfHeaders()
-                        },
-                        body: JSON.stringify({
-                            referral_code: couponCode || undefined,
-                        })
-                    });
+        setAuthError('');
 
-                    if (!response.ok) {
-                        let errorMessage = 'Failed to create payment order.';
-                        try {
-                            const contentType = response.headers.get('content-type');
-                            if (contentType && contentType.includes('application/json')) {
-                                const errData = await response.json();
-                                errorMessage = errData.error || errorMessage;
-                            } else {
-                                const textData = await response.text();
-                                errorMessage = `Server Error (${response.status}): ${textData.substring(0, 100)}`;
-                            }
-                        } catch (e) {
-                            errorMessage = `Error (${response.status}): ${response.statusText}`;
-                        }
-                        alert(errorMessage);
+        let effectiveUserTemplateId = currentUserTemplate?.id;
+
+        // If guest user, authenticate or register first via quick API
+        if (isGuest) {
+            if (!guestAuthEmail || !guestAuthPassword) {
+                setAuthError('Please enter your email and password to proceed.');
+                setIsCheckingOut(false);
+                return;
+            }
+            if (authMode === 'register' && !guestAuthName) {
+                setAuthError('Please enter your full name.');
+                setIsCheckingOut(false);
+                return;
+            }
+
+            try {
+                const authRes = await fetch('/templates/quick-checkout-auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        ...getCsrfHeaders()
+                    },
+                    body: JSON.stringify({
+                        mode: authMode,
+                        template_id: template.id,
+                        custom_config: data.custom_config,
+                        name: guestAuthName,
+                        email: guestAuthEmail,
+                        password: guestAuthPassword,
+                    })
+                });
+
+                const authData = await authRes.json();
+                if (!authRes.ok) {
+                    setAuthError(authData.error || 'Authentication failed. Please check your credentials.');
+                    setIsCheckingOut(false);
+                    return;
+                }
+
+                setCurrentUser(authData.user);
+                setCurrentUserTemplate((prev: any) => ({ ...prev, id: authData.user_template_id }));
+                effectiveUserTemplateId = authData.user_template_id;
+            } catch (err: any) {
+                setAuthError(err.message || 'Network error during authentication.');
+                setIsCheckingOut(false);
+                return;
+            }
+        }
+
+        // Proceed to order creation & Razorpay payment
+        try {
+            if (effectiveUserTemplateId) {
+                // Ensure latest edits are persisted to backend
+                await fetch(`/customer/user-templates/${effectiveUserTemplateId}/save-draft`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        ...getCsrfHeaders()
+                    },
+                    body: JSON.stringify({
+                        custom_config: data.custom_config
+                    })
+                });
+            }
+
+            const response = await fetch(`/customer/user-templates/${effectiveUserTemplateId}/create-order`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    ...getCsrfHeaders()
+                },
+                body: JSON.stringify({
+                    referral_code: couponCode || undefined,
+                })
+            });
+
+            if (!response.ok) {
+                let errorMessage = 'Failed to create payment order.';
+                try {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const errData = await response.json();
+                        errorMessage = errData.error || errorMessage;
+                    } else {
+                        const textData = await response.text();
+                        errorMessage = `Server Error (${response.status}): ${textData.substring(0, 100)}`;
+                    }
+                } catch (e) {
+                    errorMessage = `Error (${response.status}): ${response.statusText}`;
+                }
+                alert(errorMessage);
+                setIsCheckingOut(false);
+                return;
+            }
+
+            const orderData = await response.json();
+
+            if (orderData.mock) {
+                router.post(`/customer/user-templates/${effectiveUserTemplateId}/verify-payment`, {
+                    mock: true
+                });
+            } else {
+                if (!(window as any).Razorpay) {
+                    const loaded = await loadRazorpayScript();
+                    if (!loaded) {
+                        alert('Failed to load Razorpay payment SDK.');
                         setIsCheckingOut(false);
                         return;
                     }
-
-                    const orderData = await response.json();
-
-                    if (orderData.mock) {
-                        router.post(`/customer/user-templates/${userTemplate.id}/verify-payment`, {
-                            mock: true
-                        });
-                    } else {
-                        if (!(window as any).Razorpay) {
-                            const loaded = await loadRazorpayScript();
-                            if (!loaded) {
-                                alert('Failed to load Razorpay payment SDK.');
-                                setIsCheckingOut(false);
-                                return;
-                            }
-                        }
-
-                        const options = {
-                            key: orderData.key_id,
-                            amount: orderData.amount,
-                            currency: 'INR',
-                            name: 'Invitify',
-                            description: `Purchase Template: ${template.name}`,
-                            order_id: orderData.order_id,
-                            handler: function (response: any) {
-                                router.post(`/customer/user-templates/${userTemplate.id}/verify-payment`, {
-                                    razorpay_payment_id: response.razorpay_payment_id,
-                                    razorpay_order_id: response.razorpay_order_id,
-                                    razorpay_signature: response.razorpay_signature,
-                                    mock: false
-                                });
-                            },
-                            prefill: {
-                                name: auth.user?.name || '',
-                                email: auth.user?.email || '',
-                            },
-                            theme: {
-                                color: '#000000',
-                            },
-                            modal: {
-                                ondismiss: function () {
-                                    setIsCheckingOut(false);
-                                }
-                            }
-                        };
-
-                        const rzp = new (window as any).Razorpay(options);
-                        rzp.open();
-                    }
-                } catch (error: any) {
-                    console.error('Payment checkout error:', error);
-                    alert(error.message || 'An unexpected error occurred during checkout.');
-                    setIsCheckingOut(false);
                 }
-            },
-            onError: () => {
-                setIsCheckingOut(false);
+
+                const options = {
+                    key: orderData.key_id,
+                    amount: orderData.amount,
+                    currency: 'INR',
+                    name: 'Invitify',
+                    description: `Purchase Template: ${template.name}`,
+                    order_id: orderData.order_id,
+                    handler: function (response: any) {
+                        router.post(`/customer/user-templates/${effectiveUserTemplateId}/verify-payment`, {
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature,
+                            mock: false
+                        });
+                    },
+                    prefill: {
+                        name: currentUser?.name || guestAuthName || '',
+                        email: currentUser?.email || guestAuthEmail || '',
+                    },
+                    theme: {
+                        color: '#000000',
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            setIsCheckingOut(false);
+                        }
+                    }
+                };
+
+                const rzp = new (window as any).Razorpay(options);
+                rzp.open();
             }
-        });
+        } catch (error: any) {
+            console.error('Payment checkout error:', error);
+            alert(error.message || 'An unexpected error occurred during checkout.');
+            setIsCheckingOut(false);
+        }
     };
 
     const handleGuestRedirect = (targetPath: '/register' | '/login') => {
         const guestDraft = {
             template_id: template.id,
             custom_config: data.custom_config,
+            auto_checkout: true,
         };
         localStorage.setItem('guest_draft', JSON.stringify(guestDraft));
         window.location.href = targetPath;
@@ -892,6 +991,79 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                             </div>
                         </div>
 
+                        {isGuest && (
+                            <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-4 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
+                                        <User className="size-3.5 text-blue-600" /> Account for Instant Access
+                                    </span>
+                                    <div className="flex bg-white rounded-lg p-0.5 border border-blue-200 text-xs font-semibold">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setAuthMode('register'); setAuthError(''); }}
+                                            className={`px-2.5 py-1 rounded-md transition-all ${authMode === 'register' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                                        >
+                                            New Account
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setAuthMode('login'); setAuthError(''); }}
+                                            className={`px-2.5 py-1 rounded-md transition-all ${authMode === 'login' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                                        >
+                                            Sign In
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {authError && (
+                                    <p className="text-xs text-red-600 font-semibold bg-red-50 p-2 rounded-lg border border-red-200">
+                                        {authError}
+                                    </p>
+                                )}
+
+                                <div className="space-y-2">
+                                    {authMode === 'register' && (
+                                        <div>
+                                            <Label className="text-xs font-medium text-slate-700">Full Name</Label>
+                                            <Input
+                                                type="text"
+                                                placeholder="Your Name"
+                                                value={guestAuthName}
+                                                onChange={(e) => setGuestAuthName(e.target.value)}
+                                                className="h-8 text-xs rounded-lg bg-white"
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <div>
+                                            <Label className="text-xs font-medium text-slate-700">Email Address *</Label>
+                                            <Input
+                                                type="email"
+                                                placeholder="you@example.com"
+                                                value={guestAuthEmail}
+                                                onChange={(e) => setGuestAuthEmail(e.target.value)}
+                                                className="h-8 text-xs rounded-lg bg-white"
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label className="text-xs font-medium text-slate-700">Password (min 6 chars) *</Label>
+                                            <Input
+                                                type="password"
+                                                placeholder="••••••••"
+                                                value={guestAuthPassword}
+                                                onChange={(e) => setGuestAuthPassword(e.target.value)}
+                                                className="h-8 text-xs rounded-lg bg-white"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p className="text-[11px] text-blue-700/80 flex items-center gap-1">
+                                    <CheckCircle2 className="size-3 text-blue-600" /> Your customized edits will be automatically saved to your account!
+                                </p>
+                            </div>
+                        )}
+
                         <div className="flex items-center gap-2 text-xs text-gray-400">
                             <Shield className="size-3.5" />
                             <span>Secure payment • Lifetime access</span>
@@ -904,7 +1076,7 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                             variant="outline"
                             onClick={() => setIsCheckoutOpen(false)}
                             disabled={isCheckingOut}
-                            className="rounded-xl text-sm font-medium border-gray-300 text-white"
+                            className="rounded-xl text-sm font-medium border-gray-300 text-gray-700 hover:bg-gray-100"
                         >
                             Cancel
                         </Button>
@@ -920,7 +1092,7 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                                     Processing...
                                 </>
                             ) : (
-                                'Confirm Purchase'
+                                isGuest ? (authMode === 'register' ? 'Create Account & Pay' : 'Sign In & Pay') : 'Confirm Purchase'
                             )}
                         </Button>
                     </DialogFooter>
@@ -955,7 +1127,7 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                         <Button
                             type="button"
                             variant="outline"
-                            className="w-full sm:w-auto rounded-xl text-sm font-medium border-gray-300 text-white bg-black"
+                            className="w-full sm:w-auto rounded-xl text-sm font-medium border-gray-300 text-gray-700 bg-white hover:bg-gray-100"
                             onClick={() => setIsGuestAlertOpen(false)}
                         >
                             Cancel
