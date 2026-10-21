@@ -6,8 +6,10 @@ use App\Models\MiniWebsite;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\SerializesModels;
 
 class MiniWebsitePurchaseMail extends Mailable
@@ -33,8 +35,13 @@ class MiniWebsitePurchaseMail extends Mailable
     public function envelope(): Envelope
     {
         $siteTitle = $this->miniWebsite->title ?? 'Invitation Website';
+        $fromAddress = config('mail.from.address');
+        $fromName = config('mail.from.name', 'Invitify');
+
         return new Envelope(
-            subject: "🌐 Congratulations! Your Invitation Website '{$siteTitle}' is Live - Invitify",
+            from: new Address($fromAddress, $fromName),
+            replyTo: [new Address($fromAddress, $fromName)],
+            subject: "Hosting Confirmation: Your Website '{$siteTitle}' is Ready - Invitify",
         );
     }
 
@@ -45,6 +52,21 @@ class MiniWebsitePurchaseMail extends Mailable
     {
         return new Content(
             view: 'emails.mini-website-purchased',
+            text: 'emails.mini-website-purchased-text',
+        );
+    }
+
+    /**
+     * Custom transactional email headers to ensure Primary Inbox delivery.
+     */
+    public function headers(): Headers
+    {
+        return new Headers(
+            text: [
+                'X-Auto-Response-Suppress' => 'All',
+                'Auto-Submitted' => 'auto-generated',
+                'Feedback-ID' => 'websites:invitify',
+            ],
         );
     }
 

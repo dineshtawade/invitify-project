@@ -36,7 +36,7 @@ Route::get('/cookie-policy', function () {
 
 
 
-Route::get('templates/{encryptedId}/customize', [\App\Http\Controllers\Customer\TemplateController::class, 'edit'])
+Route::match(['get', 'post'], 'templates/{encryptedId}/customize', [\App\Http\Controllers\Customer\TemplateController::class, 'edit'])
     ->name('customer.templates.customize');
 Route::post('templates/quick-checkout-auth', [\App\Http\Controllers\Customer\TemplateController::class, 'quickCheckoutAuth'])
     ->name('customer.templates.quick-auth');

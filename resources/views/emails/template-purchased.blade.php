@@ -195,7 +195,7 @@
                 You can manage all your invitations anytime from your <a href="{{ url('/customer/my-invitations') }}">Invitify Customer Dashboard</a>.
             </p>
             <p style="margin: 0; font-size: 11px; opacity: 0.8;">
-                © {{ date('Y') }} Invitify. All rights reserved. • Sent automatically from dineshaiits@gmail.com
+                © {{ date('Y') }} Invitify. All rights reserved. • Sent automatically from {{ config('mail.from.address') }}
             </p>
         </div>
     </div>

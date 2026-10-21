@@ -764,20 +764,62 @@ class MiniWebsiteController extends Controller
      * Send congratulatory purchase email to customer with their live website link.
      * developed by dinesh tawade
      */
-    private function sendPurchaseEmail(MiniWebsite $miniWebsite, ?string $orderId = null, ?float $amount = null, ?int $days = null): void
+    private function sendPurchaseEmail(MiniWebsite $miniWebsite, ?string $orderId = null, ?float $amount = null, ?int $days = null): array
     {
-        try {
-            $user = auth()->user() ?? $miniWebsite->user;
-            if (!$user || empty($user->email)) {
-                return;
-            }
+        $user = auth()->user() ?? $miniWebsite->user;
+        $recipientEmail = $user?->email;
 
-            $websiteUrl = url('/mini-website/' . $miniWebsite->slug);
-
-            Mail::to($user->email)
-                ->send(new MiniWebsitePurchaseMail($user, $miniWebsite, $websiteUrl, $orderId, $amount, $days));
-        } catch (\Throwable $e) {
-            Log::error("Failed to send mini website purchase email to {$miniWebsite->user_id}: " . $e->getMessage());
+        if (!$user || empty($recipientEmail)) {
+            $status = [
+                'sent' => false,
+                'to' => null,
+                'from' => config('mail.from.address'),
+                'error' => 'No user email found for this mini-website.',
+                'message' => 'User email is missing.'
+            ];
+            session()->flash('mail_status', $status);
+            Log::warning("Mini website email skipped - no user email found: ", $status);
+            return $status;
         }
+
+        $websiteUrl = url('/mini-website/' . $miniWebsite->slug);
+        $siteTitle = $miniWebsite->title ?? 'Invitation Website';
+
+        try {
+            $mail = new MiniWebsitePurchaseMail($user, $miniWebsite, $websiteUrl, $orderId, $amount, $days);
+
+            $fromAddress = config('mail.from.address');
+            Mail::to($recipientEmail)->send($mail);
+
+            $status = [
+                'sent' => true,
+                'to' => $recipientEmail,
+                'from' => $fromAddress,
+                'item' => "{$siteTitle} (Invitation Website)",
+                'website' => $siteTitle,
+                'order_id' => $orderId,
+                'amount' => $amount,
+                'days' => $days,
+                'url' => $websiteUrl,
+                'timestamp' => now()->toDateTimeString(),
+                'message' => "Congratulations email successfully sent to {$recipientEmail}"
+            ];
+            Log::info("📧 Mini-Website Purchase Email Sent: ", $status);
+        } catch (\Throwable $e) {
+            $status = [
+                'sent' => false,
+                'to' => $recipientEmail,
+                'from' => config('mail.from.address'),
+                'item' => $siteTitle,
+                'order_id' => $orderId,
+                'error' => $e->getMessage(),
+                'timestamp' => now()->toDateTimeString(),
+                'message' => "Failed to deliver website purchase email: " . $e->getMessage()
+            ];
+            Log::error("❌ Mini-Website Purchase Email Failed: ", $status);
+        }
+
+        session()->flash('mail_status', $status);
+        return $status;
     }
 }

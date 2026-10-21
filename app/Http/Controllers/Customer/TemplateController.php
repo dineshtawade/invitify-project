@@ -660,9 +660,11 @@ class TemplateController extends Controller
 
             // Send congratulatory purchase email with invitation link
             // developed by dinesh tawade
-            $this->sendPurchaseEmail($userTemplate, $transaction->order_id, (float) $finalAmount);
+            $mailStatus = $this->sendPurchaseEmail($userTemplate, $transaction->order_id, (float) $finalAmount);
 
-            return redirect()->route('customer.my-invitations')->with('status', 'Template purchased successfully! (Mock checkout)');
+            return redirect()->route('customer.my-invitations')
+                ->with('status', 'Template purchased successfully! (Mock checkout)')
+                ->with('mail_status', $mailStatus);
         }
 
         // Verify Razorpay Payment Signature
@@ -702,9 +704,11 @@ class TemplateController extends Controller
 
             // Send congratulatory purchase email with invitation link
             // developed by dinesh tawade
-            $this->sendPurchaseEmail($userTemplate, $orderId, (float) $finalAmount);
+            $mailStatus = $this->sendPurchaseEmail($userTemplate, $orderId, (float) $finalAmount);
 
-            return redirect()->route('customer.my-invitations')->with('status', 'Template purchased successfully!');
+            return redirect()->route('customer.my-invitations')
+                ->with('status', 'Template purchased successfully!')
+                ->with('mail_status', $mailStatus);
         }
 
         abort(400, 'Payment signature verification failed.');
@@ -741,21 +745,64 @@ class TemplateController extends Controller
      * Send congratulatory purchase email to customer with their live invitation URL.
      * developed by dinesh tawade
      */
-    private function sendPurchaseEmail(UserTemplate $userTemplate, ?string $orderId = null, ?float $amount = null): void
+    private function sendPurchaseEmail(UserTemplate $userTemplate, ?string $orderId = null, ?float $amount = null): array
     {
-        try {
-            $user = auth()->user() ?? $userTemplate->user;
-            if (!$user || empty($user->email)) {
-                return;
-            }
+        $user = auth()->user() ?? $userTemplate->user;
+        $recipientEmail = $user?->email;
 
-            $userTemplate->loadMissing('template');
-            $invitationUrl = route('invitations.view', $userTemplate->encrypted_id);
-
-            Mail::to($user->email)
-                ->send(new TemplatePurchaseMail($user, $userTemplate, $invitationUrl, $orderId, $amount));
-        } catch (\Throwable $e) {
-            Log::error("Failed to send template purchase email to {$userTemplate->user_id}: " . $e->getMessage());
+        if (!$user || empty($recipientEmail)) {
+            $status = [
+                'sent' => false,
+                'to' => null,
+                'from' => config('mail.from.address'),
+                'error' => 'No authenticated user or email found for this purchase.',
+                'message' => 'User email is missing.'
+            ];
+            session()->flash('mail_status', $status);
+            Log::warning("Purchase email skipped - no user email found: ", $status);
+            return $status;
         }
+
+        $userTemplate->loadMissing('template');
+        $invitationUrl = route('invitations.view', $userTemplate->encrypted_id);
+        $templateName = $userTemplate->template?->name ?? 'Digital Invitation';
+        $templateType = ucfirst($userTemplate->template?->type ?? 'Card');
+
+        try {
+            $mail = new TemplatePurchaseMail($user, $userTemplate, $invitationUrl, $orderId, $amount);
+
+            $fromAddress = config('mail.from.address');
+            Mail::to($recipientEmail)->send($mail);
+
+            $status = [
+                'sent' => true,
+                'to' => $recipientEmail,
+                'from' => $fromAddress,
+                'item' => "{$templateName} ({$templateType})",
+                'template' => $templateName,
+                'type' => $templateType,
+                'order_id' => $orderId,
+                'amount' => $amount,
+                'url' => $invitationUrl,
+                'timestamp' => now()->toDateTimeString(),
+                'message' => "Congratulations email successfully sent to {$recipientEmail}"
+            ];
+            Log::info("📧 Template Purchase Email Sent: ", $status);
+        } catch (\Throwable $e) {
+            $status = [
+                'sent' => false,
+                'to' => $recipientEmail,
+                'from' => config('mail.from.address'),
+                'item' => $templateName,
+                'order_id' => $orderId,
+                'error' => $e->getMessage(),
+                'timestamp' => now()->toDateTimeString(),
+                'message' => "Failed to deliver email: " . $e->getMessage()
+            ];
+            Log::error("❌ Template Purchase Email Failed: ", $status);
+        }
+
+        session()->flash('mail_status', $status);
+        return $status;
     }
 }

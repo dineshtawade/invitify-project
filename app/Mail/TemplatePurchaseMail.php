@@ -6,8 +6,10 @@ use App\Models\User;
 use App\Models\UserTemplate;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\SerializesModels;
 
 class TemplatePurchaseMail extends Mailable
@@ -32,8 +34,13 @@ class TemplatePurchaseMail extends Mailable
     public function envelope(): Envelope
     {
         $templateName = $this->userTemplate->template?->name ?? 'Digital Invitation';
+        $fromAddress = config('mail.from.address');
+        $fromName = config('mail.from.name', 'Invitify');
+
         return new Envelope(
-            subject: "🎉 Congratulations! Your {$templateName} is Ready - Invitify",
+            from: new Address($fromAddress, $fromName),
+            replyTo: [new Address($fromAddress, $fromName)],
+            subject: "Order Confirmation: Your {$templateName} Access Details - Invitify",
         );
     }
 
@@ -44,6 +51,21 @@ class TemplatePurchaseMail extends Mailable
     {
         return new Content(
             view: 'emails.template-purchased',
+            text: 'emails.template-purchased-text',
+        );
+    }
+
+    /**
+     * Custom transactional email headers to ensure Primary Inbox delivery.
+     */
+    public function headers(): Headers
+    {
+        return new Headers(
+            text: [
+                'X-Auto-Response-Suppress' => 'All',
+                'Auto-Submitted' => 'auto-generated',
+                'Feedback-ID' => 'orders:invitify',
+            ],
         );
     }
 

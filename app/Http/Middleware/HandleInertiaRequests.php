@@ -79,6 +79,10 @@ class HandleInertiaRequests extends Middleware
             ],
             'global_coupon' => $globalCoupon,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'flash' => [
+                'status' => fn () => $request->session()->get('status'),
+                'mail_status' => fn () => $request->session()->get('mail_status'),
+            ],
         ];
     }
 }

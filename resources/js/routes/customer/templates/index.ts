@@ -10,9 +10,9 @@ export const customize = (args: { encryptedId: string | number } | [encryptedId:
 })
 
 customize.definition = {
-    methods: ["get","head"],
+    methods: ["get","post","head"],
     url: '/templates/{encryptedId}/customize',
-} satisfies RouteDefinition<["get","head"]>
+} satisfies RouteDefinition<["get","post","head"]>
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
@@ -56,6 +56,15 @@ customize.get = (args: { encryptedId: string | number } | [encryptedId: string |
  * @see app/Http/Controllers/Customer/TemplateController.php:63
  * @route '/templates/{encryptedId}/customize'
  */
+customize.post = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: customize.url(args, options),
+    method: 'post',
+})
+/**
+* @see \App\Http\Controllers\Customer\TemplateController::customize
+ * @see app/Http/Controllers/Customer/TemplateController.php:63
+ * @route '/templates/{encryptedId}/customize'
+ */
 customize.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: customize.url(args, options),
     method: 'head',
@@ -79,6 +88,15 @@ customize.head = (args: { encryptedId: string | number } | [encryptedId: string 
         customizeForm.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: customize.url(args, options),
             method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Customer\TemplateController::customize
+ * @see app/Http/Controllers/Customer/TemplateController.php:63
+ * @route '/templates/{encryptedId}/customize'
+ */
+        customizeForm.post = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: customize.url(args, options),
+            method: 'post',
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize

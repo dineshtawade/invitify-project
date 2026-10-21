@@ -745,11 +745,31 @@ export default function MiniWebsiteEdit({ auth, website: initialWebsite, customB
 
             const orderData = await response.json();
 
+            const logWebsiteMailStatus = (page: any) => {
+                const s = page?.props?.flash?.mail_status;
+                if (s) {
+                    if (s.sent) {
+                        console.log('%c📧 [INVITIFY EMAIL STATUS] SUCCESS! Email sent to: ' + s.to, 'background: #15803d; color: #fff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                        console.table({
+                            'Status': 'Delivered via SMTP',
+                            'Recipient (User Email)': s.to,
+                            'Sender Email': s.from,
+                            'Website': s.website || s.item,
+                            'Live Link': s.url
+                        });
+                    } else {
+                        console.error('%c❌ [INVITIFY EMAIL STATUS] FAILED! Error: ' + (s.error || s.message), 'background: #b91c1c; color: #fff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                        console.table(s);
+                    }
+                }
+            };
+
             if (orderData.mock) {
                 router.post(`/customer/mini-websites/${activeWebsiteUuid}/verify-payment`, { mock: true }, {
-                    onSuccess: () => {
+                    onSuccess: (page) => {
                         setIsCheckoutOpen(false);
                         setIsCheckingOut(false);
+                        logWebsiteMailStatus(page);
                         router.visit(`/customer/mini-websites/${activeWebsiteUuid}/edit`);
                     },
                     onError: () => { setIsCheckingOut(false); }
@@ -773,9 +793,10 @@ export default function MiniWebsiteEdit({ auth, website: initialWebsite, customB
                             razorpay_signature: response.razorpay_signature,
                             mock: false
                         }, {
-                            onSuccess: () => {
+                            onSuccess: (page) => {
                                 setIsCheckoutOpen(false);
                                 setIsCheckingOut(false);
+                                logWebsiteMailStatus(page);
                                 router.visit(`/customer/mini-websites/${activeWebsiteUuid}/edit`);
                             },
                             onError: () => { setIsCheckingOut(false); }

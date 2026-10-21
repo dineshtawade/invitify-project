@@ -10,9 +10,9 @@ export const edit = (args: { encryptedId: string | number } | [encryptedId: stri
 })
 
 edit.definition = {
-    methods: ["get","head"],
+    methods: ["get","post","head"],
     url: '/templates/{encryptedId}/customize',
-} satisfies RouteDefinition<["get","head"]>
+} satisfies RouteDefinition<["get","post","head"]>
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit
@@ -56,6 +56,15 @@ edit.get = (args: { encryptedId: string | number } | [encryptedId: string | numb
  * @see app/Http/Controllers/Customer/TemplateController.php:63
  * @route '/templates/{encryptedId}/customize'
  */
+edit.post = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: edit.url(args, options),
+    method: 'post',
+})
+/**
+* @see \App\Http\Controllers\Customer\TemplateController::edit
+ * @see app/Http/Controllers/Customer/TemplateController.php:63
+ * @route '/templates/{encryptedId}/customize'
+ */
 edit.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit.url(args, options),
     method: 'head',
@@ -79,6 +88,15 @@ edit.head = (args: { encryptedId: string | number } | [encryptedId: string | num
         editForm.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: edit.url(args, options),
             method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\Customer\TemplateController::edit
+ * @see app/Http/Controllers/Customer/TemplateController.php:63
+ * @route '/templates/{encryptedId}/customize'
+ */
+        editForm.post = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: edit.url(args, options),
+            method: 'post',
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::edit

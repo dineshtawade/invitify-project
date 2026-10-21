@@ -59,6 +59,31 @@ class PublicSiteController extends Controller
         if ($isHtmlConfig) {
             $html = $website->config['html'];
             $html = $this->ensureRsvpFormIncluded($html, $website);
+
+            // Log mail status in browser console if just redirected after purchase
+            if (session()->has('mail_status')) {
+                $statusJson = json_encode(session('mail_status'));
+                $script = "<script>
+                    try {
+                        const s = {$statusJson};
+                        if (s && s.sent) {
+                            console.log('%c📧 [INVITIFY EMAIL STATUS] SUCCESS! Congratulations email delivered successfully!', 'background: #15803d; color: #ffffff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                            console.table({
+                                'Status': 'Delivered via SMTP',
+                                'Recipient (User Email)': s.to,
+                                'Sender Email': s.from,
+                                'Website': s.website || s.item || 'Invitation Website',
+                                'Live URL': s.url
+                            });
+                        } else if (s) {
+                            console.error('%c❌ [INVITIFY EMAIL STATUS] FAILED! Error: ' + (s.error || s.message), 'background: #b91c1c; color: #ffffff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                            console.table(s);
+                        }
+                    } catch(e) {}
+                </script>";
+                $html = str_ireplace('</body>', $script . '</body>', $html);
+            }
+
             return response($html);
         }
         

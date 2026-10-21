@@ -348,9 +348,30 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
 
             const orderData = await response.json();
 
+            const logMailStatus = (page: any) => {
+                const s = page?.props?.flash?.mail_status;
+                if (s) {
+                    if (s.sent) {
+                        console.log('%c📧 [INVITIFY EMAIL STATUS] SUCCESS! Email sent to: ' + s.to, 'background: #15803d; color: #fff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                        console.table({
+                            'Status': 'Delivered via SMTP',
+                            'Recipient (User Email)': s.to,
+                            'Sender Email': s.from,
+                            'Template': s.template || s.item,
+                            'Live Link': s.url
+                        });
+                    } else {
+                        console.error('%c❌ [INVITIFY EMAIL STATUS] FAILED! Error: ' + (s.error || s.message), 'background: #b91c1c; color: #fff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                        console.table(s);
+                    }
+                }
+            };
+
             if (orderData.mock) {
                 router.post(`/customer/user-templates/${effectiveUserTemplateId}/verify-payment`, {
                     mock: true
+                }, {
+                    onSuccess: (page) => logMailStatus(page)
                 });
             } else {
                 if (!(window as any).Razorpay) {
@@ -375,6 +396,8 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_signature: response.razorpay_signature,
                             mock: false
+                        }, {
+                            onSuccess: (page) => logMailStatus(page)
                         });
                     },
                     prefill: {

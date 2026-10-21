@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -102,6 +102,30 @@ const fontStyles: Record<string, string> = {
 
 // developed by dinesh tawade
 export default function PurchasedInvitations({ purchasedTemplates, businessCards = [], miniWebsites = [], rsvps = [] }: PageProps) {
+    const { flash } = usePage<any>().props;
+    const [mailBanner, setMailBanner] = useState<any>(null);
+
+    useEffect(() => {
+        if (flash?.mail_status) {
+            const s = flash.mail_status;
+            setMailBanner(s);
+            if (s.sent) {
+                console.log('%c📧 [INVITIFY EMAIL STATUS] SUCCESS! Congratulations email delivered successfully!', 'background: #15803d; color: #ffffff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                console.table({
+                    'Status': 'Delivered via SMTP',
+                    'Recipient (User Email)': s.to,
+                    'Sender Email': s.from,
+                    'Item Purchased': s.item || s.template || 'Digital Invitation',
+                    'Order ID': s.order_id || 'N/A',
+                    'Live URL': s.url
+                });
+            } else {
+                console.error('%c❌ [INVITIFY EMAIL STATUS] FAILED! Error: ' + (s.error || s.message), 'background: #b91c1c; color: #ffffff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                console.table(s);
+            }
+        }
+    }, [flash]);
+
     const [activeTab, setActiveTab] = useState<'all' | 'invitations' | 'mini-websites' | 'business-cards' | 'guest-list'>('all');
     const [guestSearch, setGuestSearch] = useState('');
     const [guestStatusFilter, setGuestStatusFilter] = useState<'all' | 'yes' | 'maybe' | 'no'>('all');
@@ -564,6 +588,38 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="My Invitations & Guest List" />
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                {mailBanner && (
+                    <div className={`p-4 rounded-xl border flex items-center justify-between gap-3 text-sm shadow-sm ${
+                        mailBanner.sent
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-900 dark:bg-emerald-950/30 dark:border-emerald-800 dark:text-emerald-300'
+                            : 'bg-rose-50 border-rose-200 text-rose-900 dark:bg-rose-950/30 dark:border-rose-800 dark:text-rose-300'
+                    }`}>
+                        <div className="flex items-center gap-3">
+                            {mailBanner.sent ? (
+                                <CheckCircle2 className="size-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                            ) : (
+                                <XCircle className="size-5 text-rose-600 dark:text-rose-400 shrink-0" />
+                            )}
+                            <div>
+                                <p className="font-semibold">
+                                    {mailBanner.sent ? 'Order Confirmed & Email Sent!' : 'Email Notification Notice'}
+                                </p>
+                                <p className="text-xs opacity-90">
+                                    {mailBanner.sent
+                                        ? `A confirmation email with your invitation link was sent to ${mailBanner.to}. (Check your Inbox & Spam folder)`
+                                        : (mailBanner.message || 'Could not dispatch email')}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setMailBanner(null)}
+                            className="text-xs opacity-70 hover:opacity-100 font-bold px-2 py-1 rounded"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                )}
+
                 <div className="flex flex-col gap-4 border-b border-neutral-200 dark:border-neutral-800 pb-2">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white flex items-center gap-2">
