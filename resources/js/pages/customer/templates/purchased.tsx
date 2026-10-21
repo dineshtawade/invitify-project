@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -10,15 +10,16 @@ import {
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
-import { 
-    Mail, Share2, Printer, Sparkles, Download, PlayCircle, Video, 
-    Copy, Check, QrCode, Loader2, Users, UserCheck, Heart, Phone, Search, 
+import {
+    Mail, Share2, Printer, Sparkles, Download, PlayCircle, Video,
+    Copy, Check, QrCode, Loader2, Users, UserCheck, Heart, Phone, Search,
     CheckCircle2, XCircle, HelpCircle, Globe, Layers, ArrowUpRight
 } from 'lucide-react';
 import { normalizeConfig } from '@/utils/builder-utils';
 import { toPng } from 'html-to-image';
 import VideoGenerator from '@/components/video-generator';
 import { Input } from '@/components/ui/input';
+import { getFontFamilyCss, getFontFamilyName, loadGoogleFont } from '@/utils/font-utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -101,6 +102,30 @@ const fontStyles: Record<string, string> = {
 
 // developed by dinesh tawade
 export default function PurchasedInvitations({ purchasedTemplates, businessCards = [], miniWebsites = [], rsvps = [] }: PageProps) {
+    const { flash } = usePage<any>().props;
+    const [mailBanner, setMailBanner] = useState<any>(null);
+
+    useEffect(() => {
+        if (flash?.mail_status) {
+            const s = flash.mail_status;
+            setMailBanner(s);
+            if (s.sent) {
+                console.log('%c📧 [INVITIFY EMAIL STATUS] SUCCESS! Congratulations email delivered successfully!', 'background: #15803d; color: #ffffff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                console.table({
+                    'Status': 'Delivered via SMTP',
+                    'Recipient (User Email)': s.to,
+                    'Sender Email': s.from,
+                    'Item Purchased': s.item || s.template || 'Digital Invitation',
+                    'Order ID': s.order_id || 'N/A',
+                    'Live URL': s.url
+                });
+            } else {
+                console.error('%c❌ [INVITIFY EMAIL STATUS] FAILED! Error: ' + (s.error || s.message), 'background: #b91c1c; color: #ffffff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                console.table(s);
+            }
+        }
+    }, [flash]);
+
     const [activeTab, setActiveTab] = useState<'all' | 'invitations' | 'mini-websites' | 'business-cards' | 'guest-list'>('all');
     const [guestSearch, setGuestSearch] = useState('');
     const [guestStatusFilter, setGuestStatusFilter] = useState<'all' | 'yes' | 'maybe' | 'no'>('all');
@@ -113,14 +138,45 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
     const [selectedDownloadInvitation, setSelectedDownloadInvitation] = useState<UserTemplate | null>(null);
     const [isDownloadOpen, setIsDownloadOpen] = useState(false);
     const [isDownloadingIndex, setIsDownloadingIndex] = useState<number | null>(null);
-    const [downloadingQRId, setDownloadingQRId] = useState<number | null>(null);
-
     const [isVideoOpen, setIsVideoOpen] = useState(false);
     const [selectedVideoTemplate, setSelectedVideoTemplate] = useState<UserTemplate | null>(null);
+
+    // QR Code Customizer Modal state
+    // developed by dinesh tawade
+    interface QRItem {
+        id: number;
+        title: string;
+        url: string;
+        slug?: string;
+        displayPath?: string;
+        badgeText?: string;
+        subtitleText?: string;
+        type?: 'website' | 'video' | 'card';
+    }
+
+    const [isQROpen, setIsQROpen] = useState(false);
+    const [selectedQRTarget, setSelectedQRTarget] = useState<QRItem | null>(null);
+    const [qrTheme, setQrTheme] = useState<'gold' | 'black'>('gold');
+    const [isGeneratingQR, setIsGeneratingQR] = useState(false);
+
+    const handleOpenQRModal = (target: QRItem) => {
+        setSelectedQRTarget(target);
+        setIsQROpen(true);
+    };
 
     const handleOpenDownload = (invitation: UserTemplate) => {
         setSelectedDownloadInvitation(invitation);
         setIsDownloadOpen(true);
+        // Preload any Google Fonts in invitation
+        if (invitation.custom_config?.pages) {
+            invitation.custom_config.pages.forEach((p: any) => {
+                p.elements?.forEach((elem: any) => {
+                    if (elem.type === 'text' && elem.fontStyle) {
+                        loadGoogleFont(elem.fontStyle);
+                    }
+                });
+            });
+        }
     };
 
     const handleDownloadPage = async (pageIdx: number) => {
@@ -177,15 +233,27 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
         }
     };
 
-    const downloadQRCode = async (websiteId: number, slug: string, title: string) => {
+    // Generate & Download styled QR Code (Luxury Gold or Sleek Black)
+    // developed by dinesh tawade
+    const downloadQRCode = async (target: QRItem, theme: 'gold' | 'black' = 'gold') => {
         try {
-            setDownloadingQRId(websiteId);
-            const url = `${window.location.origin}/mini-website/${slug}`;
-            const qrUrl = `https://quickchart.io/qr?size=500&text=${encodeURIComponent(url)}&dark=D4AF37&light=111111&margin=0`;
-            
+            setIsGeneratingQR(true);
+            const url = target.url;
+            const title = target.title;
+            const badge = target.badgeText || (target.type === 'video' ? '✨ VIDEO INVITATION ✨' : '✨ WEDDING INVITATION ✨');
+            const subtitle = target.subtitleText || (target.type === 'video' ? 'Scan to Watch Video Invite' : 'Scan to Open Invite');
+            const displayLabel = target.displayPath || (target.slug ? `/${target.slug}` : '/invitation');
+
+            // Generate QR code with matching colors and smooth borders
+            // Gold: Dark #d4af37 (rich gold), Light #ffffff (clean white for high scannability)
+            // Black: Dark #111111 (deep obsidian), Light #ffffff with rounded corners
+            const darkColor = theme === 'gold' ? 'c59b27' : '111111';
+            const lightColor = 'ffffff';
+            const qrUrl = `https://quickchart.io/qr?size=600&text=${encodeURIComponent(url)}&dark=${darkColor}&light=${lightColor}&margin=1&ecLevel=H`;
+
             const img = new Image();
             img.crossOrigin = 'Anonymous';
-            
+
             await new Promise((resolve, reject) => {
                 img.onload = resolve;
                 img.onerror = reject;
@@ -196,63 +264,215 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
             const ctx = canvas.getContext('2d');
             if (!ctx) throw new Error('Canvas not supported');
 
-            const width = 600;
-            const height = 750;
+            const width = 640;
+            const height = 820;
             canvas.width = width;
             canvas.height = height;
 
-            // Background
-            ctx.fillStyle = '#111111';
-            ctx.fillRect(0, 0, width, height);
+            if (theme === 'gold') {
+                // LUXURY 3D GOLD CARD THEME
+                // Rich background with subtle gradient
+                const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+                bgGrad.addColorStop(0, '#ffffff');
+                bgGrad.addColorStop(0.5, '#fcfaf6');
+                bgGrad.addColorStop(1, '#f7f2e7');
+                ctx.fillStyle = bgGrad;
+                ctx.fillRect(0, 0, width, height);
 
-            // Border
-            ctx.strokeStyle = '#D4AF37';
-            ctx.lineWidth = 3;
-            if (ctx.roundRect) {
-                ctx.beginPath();
-                ctx.roundRect(20, 20, 560, 710, 24);
-                ctx.stroke();
+                // Luxury Double Border with Gold Shimmer
+                const goldGrad = ctx.createLinearGradient(0, 0, width, height);
+                goldGrad.addColorStop(0, '#d4af37');
+                goldGrad.addColorStop(0.3, '#f4d068');
+                goldGrad.addColorStop(0.6, '#aa7c11');
+                goldGrad.addColorStop(1, '#e5c158');
+
+                // Outer decorative border
+                ctx.strokeStyle = goldGrad;
+                ctx.lineWidth = 4;
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(24, 24, width - 48, height - 48, 28);
+                    ctx.stroke();
+                } else {
+                    ctx.strokeRect(24, 24, width - 48, height - 48);
+                }
+
+                // Inner fine border
+                ctx.strokeStyle = 'rgba(212, 175, 55, 0.35)';
+                ctx.lineWidth = 1.5;
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(34, 34, width - 68, height - 68, 22);
+                    ctx.stroke();
+                }
+
+                // Header Badge
+                ctx.fillStyle = '#fbf5e6';
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(width / 2 - 100, 52, 200, 32, 16);
+                    ctx.fill();
+                    ctx.strokeStyle = '#ebd9aa';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+                ctx.fillStyle = '#9b7824';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(badge, width / 2, 73);
+
+                // Title Text
+                ctx.fillStyle = '#1c1712';
+                ctx.font = 'bold 30px serif';
+                ctx.fillText(subtitle, width / 2, 122);
+
+                ctx.fillStyle = '#84786d';
+                ctx.font = '500 16px sans-serif';
+                ctx.fillText(title.length > 35 ? title.substring(0, 32) + '...' : title, width / 2, 150);
+
+                // QR Container Card with gold drop shadow
+                ctx.shadowColor = 'rgba(212, 175, 55, 0.25)';
+                ctx.shadowBlur = 25;
+                ctx.shadowOffsetY = 10;
+                ctx.fillStyle = '#ffffff';
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(85, 185, 470, 470, 24);
+                    ctx.fill();
+                    ctx.shadowColor = 'transparent';
+                    ctx.strokeStyle = goldGrad;
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                } else {
+                    ctx.fillRect(85, 185, 470, 470);
+                }
+                ctx.shadowColor = 'transparent';
+
+                // Draw QR Code
+                ctx.drawImage(img, 105, 205, 430, 430);
+
+                // URL pill
+                ctx.fillStyle = '#f7f4ed';
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(width / 2 - 160, 680, 320, 36, 18);
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(212, 175, 55, 0.3)';
+                    ctx.stroke();
+                }
+                ctx.fillStyle = '#8c702a';
+                ctx.font = 'bold 13px monospace';
+                ctx.fillText(displayLabel, width / 2, 703);
+
+                // Footer Text
+                ctx.fillStyle = '#b3a08b';
+                ctx.font = '600 13px sans-serif';
+                ctx.fillText('Created with Invitify.com', width / 2, 755);
+
             } else {
-                ctx.strokeRect(20, 20, 560, 710);
+                // SLEEK MODERN BLACK THEME
+                // Dark obsidian gradient
+                const darkBg = ctx.createLinearGradient(0, 0, width, height);
+                darkBg.addColorStop(0, '#141416');
+                darkBg.addColorStop(1, '#0a0a0c');
+                ctx.fillStyle = darkBg;
+                ctx.fillRect(0, 0, width, height);
+
+                // Modern neon-white rim
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                ctx.lineWidth = 2;
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(24, 24, width - 48, height - 48, 28);
+                    ctx.stroke();
+                } else {
+                    ctx.strokeRect(24, 24, width - 48, height - 48);
+                }
+
+                // Header Badge
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(width / 2 - 100, 52, 200, 32, 16);
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+                ctx.fillStyle = '#e5e7eb';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(badge.replace(/✨/g, '').trim(), width / 2, 72);
+
+                // Title Text
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 30px sans-serif';
+                ctx.fillText(subtitle, width / 2, 122);
+
+                ctx.fillStyle = '#9ca3af';
+                ctx.font = '500 16px sans-serif';
+                ctx.fillText(title.length > 35 ? title.substring(0, 32) + '...' : title, width / 2, 150);
+
+                // QR Container Card (Clean White rounded background for high contrast scanning)
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 30;
+                ctx.shadowOffsetY = 12;
+                ctx.fillStyle = '#ffffff';
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(85, 185, 470, 470, 24);
+                    ctx.fill();
+                    ctx.shadowColor = 'transparent';
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else {
+                    ctx.fillRect(85, 185, 470, 470);
+                }
+                ctx.shadowColor = 'transparent';
+
+                // Draw QR Code
+                ctx.drawImage(img, 105, 205, 430, 430);
+
+                // URL pill
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(width / 2 - 160, 680, 320, 36, 18);
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                    ctx.stroke();
+                }
+                ctx.fillStyle = '#d1d5db';
+                ctx.font = 'bold 13px monospace';
+                ctx.fillText(displayLabel, width / 2, 703);
+
+                // Footer Text
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '600 13px sans-serif';
+                ctx.fillText('Invitify Digital Invite', width / 2, 755);
             }
-
-            // Header Text
-            ctx.fillStyle = '#D4AF37';
-            ctx.font = 'bold 32px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('Scan to View', width / 2, 85);
-            
-            ctx.fillStyle = '#bfa55a';
-            ctx.font = '18px sans-serif';
-            ctx.fillText(title.length > 40 ? title.substring(0, 37) + '...' : title, width / 2, 120);
-
-            // QR Code
-            ctx.drawImage(img, 50, 150, 500, 500);
-
-            // Footer Text
-            ctx.fillStyle = '#8a763a';
-            ctx.font = '15px sans-serif';
-            ctx.fillText('Sponsored by Invitify.com', width / 2, 700);
 
             canvas.toBlob((blob) => {
                 if (!blob) {
-                    setDownloadingQRId(null);
+                    setIsGeneratingQR(false);
                     return;
                 }
                 const blobUrl = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = blobUrl;
-                link.download = `${slug}-QR.png`;
+                const cleanFileBase = (target.slug || target.title || 'invitation').replace(/[^a-zA-Z0-9_-]/g, '_');
+                link.download = `${cleanFileBase}-QR-${theme.toUpperCase()}.png`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
                 URL.revokeObjectURL(blobUrl);
-                setDownloadingQRId(null);
+                setIsGeneratingQR(false);
             }, 'image/png');
 
         } catch (error) {
             console.error('Failed to download QR Code', error);
-            setDownloadingQRId(null);
+            setIsGeneratingQR(false);
             alert('Failed to generate QR code. Please check your network and try again.');
         }
     };
@@ -262,6 +482,9 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
         const printWindow = window.open('', '_blank');
         if (printWindow) {
             let pagesHtml = '';
+            const fontFamilies = Array.from(new Set(cfg.pages.flatMap(p => p.elements.filter(e => e.type === 'text' && e.fontStyle).map(e => getFontFamilyName(e.fontStyle)))));
+            const dynamicFontLinks = fontFamilies.map(f => `<link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(f)}:ital,wght@0,300;0,400;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet" />`).join('\n');
+
             cfg.pages.forEach((page) => {
                 let elementsHtml = '';
                 page.elements.forEach(elem => {
@@ -275,7 +498,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                         align-items: center;
                         justify-content: ${elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center'};
                         text-align: ${elem.textAlign || 'center'};
-                        font-family: ${fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair};
+                        font-family: ${getFontFamilyCss(elem.fontStyle)};
                         color: ${elem.textColor || '#1f2937'};
                         font-size: ${elem.fontSize ? elem.fontSize + 'px' : '12px'};
                         font-weight: ${elem.fontWeight || 'normal'};
@@ -309,6 +532,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                         <link rel="preconnect" href="https://fonts.googleapis.com" />
                         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&display=swap" rel="stylesheet" />
+                        ${dynamicFontLinks}
                         <style>
                             @media print {
                                 body { margin: 0; padding: 0; background: none; }
@@ -364,6 +588,38 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="My Invitations & Guest List" />
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                {mailBanner && (
+                    <div className={`p-4 rounded-xl border flex items-center justify-between gap-3 text-sm shadow-sm ${
+                        mailBanner.sent
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-900 dark:bg-emerald-950/30 dark:border-emerald-800 dark:text-emerald-300'
+                            : 'bg-rose-50 border-rose-200 text-rose-900 dark:bg-rose-950/30 dark:border-rose-800 dark:text-rose-300'
+                    }`}>
+                        <div className="flex items-center gap-3">
+                            {mailBanner.sent ? (
+                                <CheckCircle2 className="size-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                            ) : (
+                                <XCircle className="size-5 text-rose-600 dark:text-rose-400 shrink-0" />
+                            )}
+                            <div>
+                                <p className="font-semibold">
+                                    {mailBanner.sent ? 'Order Confirmed & Email Sent!' : 'Email Notification Notice'}
+                                </p>
+                                <p className="text-xs opacity-90">
+                                    {mailBanner.sent
+                                        ? `A confirmation email with your invitation link was sent to ${mailBanner.to}. (Check your Inbox & Spam folder)`
+                                        : (mailBanner.message || 'Could not dispatch email')}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setMailBanner(null)}
+                            className="text-xs opacity-70 hover:opacity-100 font-bold px-2 py-1 rounded"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                )}
+
                 <div className="flex flex-col gap-4 border-b border-neutral-200 dark:border-neutral-800 pb-2">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white flex items-center gap-2">
@@ -376,11 +632,10 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                         <button
                             type="button"
                             onClick={() => setActiveTab('all')}
-                            className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                                activeTab === 'all'
-                                    ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
-                                    : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
-                            }`}
+                            className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'all'
+                                ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                                : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
+                                }`}
                         >
                             <Sparkles className="size-4" />
                             All Items
@@ -389,11 +644,10 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('invitations')}
-                                className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                                    activeTab === 'invitations'
-                                        ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
-                                        : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
-                                }`}
+                                className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'invitations'
+                                    ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                                    : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
+                                    }`}
                             >
                                 <Mail className="size-4" />
                                 Invitations ({purchasedTemplates.length})
@@ -403,25 +657,23 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('mini-websites')}
-                                className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                                    activeTab === 'mini-websites'
-                                        ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
-                                        : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
-                                }`}
+                                className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'mini-websites'
+                                    ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                                    : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
+                                    }`}
                             >
                                 <Globe className="size-4" />
-                                Mini Websites ({miniWebsites.length})
+                                Invitation Website ({miniWebsites.length})
                             </button>
                         )}
                         {businessCards.length > 0 && (
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('business-cards')}
-                                className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                                    activeTab === 'business-cards'
-                                        ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
-                                        : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
-                                }`}
+                                className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'business-cards'
+                                    ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                                    : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
+                                    }`}
                             >
                                 <Sparkles className="size-4" />
                                 Business Cards ({businessCards.length})
@@ -430,11 +682,10 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                         <button
                             type="button"
                             onClick={() => setActiveTab('guest-list')}
-                            className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                                activeTab === 'guest-list'
-                                    ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
-                                    : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
-                            }`}
+                            className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'guest-list'
+                                ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                                : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400'
+                                }`}
                         >
                             <Users className="size-4 text-emerald-600" />
                             Guest List (RSVPs)
@@ -554,29 +805,48 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                 </Link>
                                             )}
                                         </div>
-                                        <div className={`grid gap-2 mt-1 ${isVideo ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                        <div className="grid grid-cols-2 gap-2 mt-1">
                                             <Button
                                                 onClick={() => handleOpenShare(t)}
-                                                className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 text-white flex items-center justify-center gap-2 text-xs font-semibold h-10 rounded-xl shadow-md"
+                                                className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 text-white flex items-center justify-center gap-1.5 text-xs font-semibold h-10 rounded-xl shadow-md"
                                             >
-                                                <Share2 className="size-4" /> Share Link
+                                                <Share2 className="size-3.5" /> Share Link
                                             </Button>
 
-                                            {isVideo && (
-                                                t.video_url ? (
+                                            <Button
+                                                onClick={() => handleOpenQRModal({
+                                                    id: t.id,
+                                                    title: t.template.name,
+                                                    url: `${window.location.origin}/invitations/view/${t.encrypted_id}`,
+                                                    displayPath: `/invitations/view/${t.encrypted_id.substring(0, 10)}...`,
+                                                    badgeText: isVideo ? '✨ VIDEO INVITATION ✨' : '✨ WEDDING INVITATION ✨',
+                                                    subtitleText: isVideo ? 'Scan to Watch Video' : 'Scan to Open Invite',
+                                                    type: isVideo ? 'video' : 'card'
+                                                })}
+                                                variant="outline"
+                                                className="border-amber-400/60 dark:border-amber-600/60 bg-amber-50/60 hover:bg-amber-100 dark:bg-amber-950/30 dark:hover:bg-amber-950/50 text-amber-900 dark:text-amber-300 flex items-center justify-center gap-1.5 text-xs font-semibold h-10 rounded-xl shadow-xs"
+                                                title="Luxury QR Code Card"
+                                            >
+                                                <QrCode className="size-3.5 text-amber-600 dark:text-amber-400" /> QR Code
+                                            </Button>
+                                        </div>
+
+                                        {isVideo && (
+                                            <div className="mt-2">
+                                                {t.video_url ? (
                                                     <div className="grid grid-cols-2 gap-2">
                                                         <a
                                                             href={t.video_url}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-400 flex items-center justify-center gap-1.5 text-xs h-10 rounded-xl font-semibold transition-colors"
+                                                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-400 flex items-center justify-center gap-1.5 text-xs h-10 rounded-xl font-semibold transition-colors shadow-xs"
                                                         >
                                                             <PlayCircle className="size-4" /> Play
                                                         </a>
                                                         <a
                                                             href={t.video_url}
                                                             download
-                                                            className="bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400 flex items-center justify-center gap-1.5 text-xs h-10 rounded-xl font-semibold transition-colors"
+                                                            className="bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400 flex items-center justify-center gap-1.5 text-xs h-10 rounded-xl font-semibold transition-colors shadow-xs"
                                                         >
                                                             <Download className="size-4" /> Save
                                                         </a>
@@ -584,13 +854,13 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                 ) : (
                                                     <Button
                                                         onClick={() => { setSelectedVideoTemplate(t); setIsVideoOpen(true); }}
-                                                        className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-1.5 text-xs font-semibold h-10 rounded-xl shadow-md shadow-indigo-600/20"
+                                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-1.5 text-xs font-semibold h-10 rounded-xl shadow-md shadow-indigo-600/20"
                                                     >
                                                         <Video className="size-4" /> Gen MP4
                                                     </Button>
-                                                )
-                                            )}
-                                        </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             );
@@ -673,7 +943,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                 <div className="flex flex-col gap-6 p-6 pt-0 border-t border-neutral-200 dark:border-neutral-800 mt-6">
                     <div className="flex flex-col gap-2 mt-6">
                         <h2 className="text-xl font-bold tracking-tight text-neutral-900 flex items-center gap-2">
-                            My Mini Websites <Sparkles className="size-4 text-emerald-500" />
+                            My Invitation Website <Sparkles className="size-4 text-emerald-500" />
                         </h2>
                     </div>
 
@@ -715,7 +985,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                     )}
                                                 </div>
                                             </td>
-                                            
+
                                             <td className="px-6 py-4">
                                                 <div className="flex flex-col gap-1.5">
                                                     <h3 className="text-base font-bold text-neutral-900 tracking-tight">
@@ -772,15 +1042,20 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                     </a>
                                                     <button
                                                         type="button"
-                                                        onClick={() => downloadQRCode(site.id, site.slug, site.title)}
-                                                        disabled={downloadingQRId === site.id}
-                                                        className="px-3 py-2 bg-neutral-900 text-white hover:bg-neutral-800 rounded-lg font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                                                        onClick={() => handleOpenQRModal({
+                                                            id: site.id,
+                                                            slug: site.slug,
+                                                            title: site.title,
+                                                            url: `${window.location.origin}/mini-website/${site.slug}`,
+                                                            displayPath: `/${site.slug}`,
+                                                            badgeText: '✨ WEDDING INVITATION ✨',
+                                                            subtitleText: 'Scan to Celebrate',
+                                                            type: 'website'
+                                                        })}
+                                                        className="px-3 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg font-semibold text-xs transition-all flex items-center gap-1.5 shadow-xs shadow-amber-500/20 active:scale-95"
+                                                        title="Download QR code in Gold or Black"
                                                     >
-                                                        {downloadingQRId === site.id ? (
-                                                            <Loader2 className="size-3.5 animate-spin" />
-                                                        ) : (
-                                                            <QrCode className="size-3.5" />
-                                                        )}
+                                                        <QrCode className="size-3.5" />
                                                         QR
                                                     </button>
                                                 </div>
@@ -842,7 +1117,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                     onChange={(e) => setSelectedWebsiteFilter(e.target.value)}
                                     className="h-9 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-3 text-xs font-semibold text-neutral-700 dark:text-neutral-200 focus:outline-none"
                                 >
-                                    <option value="all">All Mini Websites</option>
+                                    <option value="all">All Invitation Website</option>
                                     {miniWebsites.map((w) => (
                                         <option key={w.id} value={String(w.id)}>
                                             {w.title} ({w.rsvps_count || 0})
@@ -1091,6 +1366,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                 className={`w-full aspect-[3/4.2] rounded-2xl shadow-md bg-gradient-to-tr ${page.bg_gradient} relative overflow-hidden border border-neutral-200 dark:border-neutral-800`}
                                             >
                                                 {page.elements.map((elem) => {
+                                                    if (elem.hidden) return null;
                                                     const style: React.CSSProperties = {
                                                         position: 'absolute',
                                                         left: `${elem.x}%`,
@@ -1101,7 +1377,7 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                         alignItems: 'center',
                                                         justifyContent: elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center',
                                                         textAlign: elem.textAlign || 'center',
-                                                        fontFamily: fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair,
+                                                        fontFamily: getFontFamilyCss(elem.fontStyle),
                                                         color: elem.textColor || '#1f2937',
                                                         fontSize: elem.fontSize ? `${elem.fontSize * 0.95}px` : '12px',
                                                         fontWeight: elem.fontWeight || 'normal',
@@ -1167,6 +1443,193 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                     <DialogFooter className="shrink-0 border-t pt-3 mt-2">
                         <Button type="button" variant="outline" onClick={() => setIsDownloadOpen(false)} className="w-full">
                             Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* QR Code Customizer & Download Dialog */}
+            {/* developed by dinesh tawade */}
+            <Dialog open={isQROpen} onOpenChange={setIsQROpen}>
+                <DialogContent className="max-w-md sm:max-w-lg max-h-[92vh] flex flex-col bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 p-0 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden">
+                    <DialogHeader className="p-4 sm:p-5 pb-3 sm:pb-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 shrink-0">
+                        <div className="flex items-center gap-2.5">
+                            <div className="size-9 sm:size-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                                <QrCode className="size-4 sm:size-5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <DialogTitle className="text-base sm:text-lg font-bold text-neutral-900 dark:text-white truncate">
+                                    Download QR Code
+                                </DialogTitle>
+                                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 truncate">
+                                    Choose color theme for printed invites & digital cards
+                                </p>
+                            </div>
+                        </div>
+                    </DialogHeader>
+
+                    {selectedQRTarget && (
+                        <div className="p-4 sm:p-5 overflow-y-auto flex-1 space-y-4">
+                            {/* Color / Theme Selector Cards */}
+                            <div>
+                                <label className="text-[11px] sm:text-xs font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider mb-2 block">
+                                    Select QR Color Theme
+                                </label>
+                                <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                                    {/* Gold Theme Option */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setQrTheme('gold')}
+                                        className={`group relative p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border-2 text-left transition-all flex flex-col justify-between ${qrTheme === 'gold'
+                                            ? 'border-amber-500 bg-gradient-to-b from-amber-50/80 to-amber-100/30 dark:from-amber-950/30 dark:to-neutral-900 shadow-sm'
+                                            : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 bg-white dark:bg-neutral-900'
+                                            }`}
+                                    >
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="size-7 sm:size-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-amber-600 via-yellow-400 to-amber-200 shadow-xs flex items-center justify-center text-white">
+                                                <Sparkles className="size-3.5 sm:size-4" />
+                                            </div>
+                                            {qrTheme === 'gold' && (
+                                                <span className="flex size-4 sm:size-5 items-center justify-center rounded-full bg-amber-500 text-white">
+                                                    <Check className="size-2.5 sm:size-3 stroke-[3]" />
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-xs sm:text-sm text-neutral-900 dark:text-white flex items-center gap-1">
+                                                Royal Gold
+                                                <span className="text-[9px] sm:text-[10px] font-semibold px-1 sm:px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">
+                                                    Luxury
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </button>
+
+                                    {/* Black Theme Option */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setQrTheme('black')}
+                                        className={`group relative p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border-2 text-left transition-all flex flex-col justify-between ${qrTheme === 'black'
+                                            ? 'border-neutral-900 dark:border-neutral-100 bg-neutral-50 dark:bg-neutral-900 shadow-sm'
+                                            : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 bg-white dark:bg-neutral-900'
+                                            }`}
+                                    >
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="size-7 sm:size-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-neutral-900 via-neutral-800 to-neutral-700 text-white shadow-xs flex items-center justify-center border border-neutral-700">
+                                                <QrCode className="size-3.5 sm:size-4" />
+                                            </div>
+                                            {qrTheme === 'black' && (
+                                                <span className="flex size-4 sm:size-5 items-center justify-center rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900">
+                                                    <Check className="size-2.5 sm:size-3 stroke-[3]" />
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-xs sm:text-sm text-neutral-900 dark:text-white flex items-center gap-1">
+                                                Sleek Black
+                                                <span className="text-[9px] sm:text-[10px] font-semibold px-1 sm:px-1.5 py-0.2 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
+                                                    Modern
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Live Card Preview Box */}
+                            <div className="flex flex-col items-center justify-center">
+                                <div
+                                    className={`w-full max-w-[240px] sm:max-w-[260px] p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl transition-all duration-300 text-center shadow-md relative overflow-hidden ${qrTheme === 'gold'
+                                        ? 'bg-gradient-to-b from-white via-[#fcfaf6] to-[#f7f2e7] border-2 border-amber-300/80 shadow-amber-900/10'
+                                        : 'bg-gradient-to-b from-[#141416] to-[#0a0a0c] border border-neutral-700 shadow-black/50'
+                                        }`}
+                                >
+                                    {/* Badge */}
+                                    <div className="mb-1.5">
+                                        <span
+                                            className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase ${qrTheme === 'gold'
+                                                ? 'bg-amber-100 text-amber-800 border border-amber-300/60'
+                                                : 'bg-white/10 text-neutral-200 border border-white/15'
+                                                }`}
+                                        >
+                                            {selectedQRTarget.badgeText || (selectedQRTarget.type === 'video' ? '✨ Video Invitation ✨' : (qrTheme === 'gold' ? '✨ Wedding Invitation ✨' : 'Digital Invitation'))}
+                                        </span>
+                                    </div>
+
+                                    <h4
+                                        className={`font-bold text-sm sm:text-base line-clamp-1 ${qrTheme === 'gold' ? 'text-amber-950 font-serif' : 'text-white'
+                                            }`}
+                                    >
+                                        {selectedQRTarget.subtitleText || (selectedQRTarget.type === 'video' ? 'Scan to Watch Video' : 'Scan to Celebrate')}
+                                    </h4>
+                                    <p
+                                        className={`text-[11px] truncate max-w-[190px] mx-auto mt-0.5 ${qrTheme === 'gold' ? 'text-amber-800/80' : 'text-neutral-400'
+                                            }`}
+                                    >
+                                        {selectedQRTarget.title}
+                                    </p>
+
+                                    {/* QR Image Box */}
+                                    <div
+                                        className={`my-2.5 p-2 rounded-xl sm:rounded-2xl mx-auto w-[150px] h-[150px] sm:w-[165px] sm:h-[165px] flex items-center justify-center shadow-xs ${qrTheme === 'gold'
+                                            ? 'bg-white border-2 border-amber-200'
+                                            : 'bg-white border border-neutral-200'
+                                            }`}
+                                    >
+                                        <img
+                                            src={`https://quickchart.io/qr?size=300&text=${encodeURIComponent(
+                                                selectedQRTarget.url
+                                            )}&dark=${qrTheme === 'gold' ? 'c59b27' : '111111'}&light=ffffff&ecLevel=H&margin=1`}
+                                            alt="QR Preview"
+                                            className="w-full h-full object-contain"
+                                        />
+                                    </div>
+
+                                    {/* Slug pill */}
+                                    <div
+                                        className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono font-medium truncate max-w-[200px] ${qrTheme === 'gold'
+                                            ? 'bg-amber-100/70 text-amber-900 border border-amber-300/50'
+                                            : 'bg-white/5 text-neutral-300 border border-white/10'
+                                            }`}
+                                    >
+                                        {selectedQRTarget.displayPath || (selectedQRTarget.slug ? `/${selectedQRTarget.slug}` : '/invitation')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <DialogFooter className="p-3 sm:p-4 px-4 sm:px-6 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 shrink-0 flex flex-col sm:flex-row gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsQROpen(false)}
+                            className="w-full sm:w-auto h-9 text-xs sm:text-sm"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            disabled={isGeneratingQR}
+                            onClick={() => {
+                                if (selectedQRTarget) {
+                                    downloadQRCode(selectedQRTarget, qrTheme);
+                                }
+                            }}
+                            className={`w-full sm:flex-1 h-9 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 text-white shadow-sm ${qrTheme === 'gold'
+                                ? 'bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 shadow-amber-500/20'
+                                : 'bg-neutral-900 hover:bg-black dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100'
+                                }`}
+                        >
+                            {isGeneratingQR ? (
+                                <>
+                                    <Loader2 className="size-4 animate-spin" /> Generating High-Res PNG...
+                                </>
+                            ) : (
+                                <>
+                                    <Download className="size-4" /> Download {qrTheme === 'gold' ? 'Royal Gold' : 'Sleek Black'} QR (PNG)
+                                </>
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

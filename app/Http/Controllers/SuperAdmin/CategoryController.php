@@ -13,16 +13,30 @@ class CategoryController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:categories,slug',
+            'slug' => 'nullable|string|max:255',
         ]);
 
-        if (empty($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['name']);
-        } else {
-            $validated['slug'] = Str::slug($validated['slug']);
+        $name = trim($validated['name']);
+        $slug = !empty($validated['slug']) 
+            ? Str::slug($validated['slug'], '_') 
+            : Str::slug($name, '_');
+
+        if (empty($slug)) {
+            $slug = 'cat_' . time();
         }
 
-        Category::create($validated);
+        $category = Category::firstOrCreate(
+            ['slug' => $slug],
+            ['name' => $name]
+        );
+
+        if ($request->wantsJson() || $request->ajax() || $request->isJson()) {
+            return response()->json([
+                'success' => true,
+                'category' => $category,
+                'message' => 'Category added successfully.',
+            ]);
+        }
 
         return redirect()->back()->with('status', 'Category created successfully.');
     }

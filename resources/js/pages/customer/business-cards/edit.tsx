@@ -1,34 +1,30 @@
 import { useState, useEffect, useRef } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import axios from 'axios';
+import BusinessCardHelpModal from '@/components/BusinessCardHelpModal';
 import {
     ChevronLeft, ChevronRight, Save, Upload, Trash2, Plus,
     Smartphone, Tablet, Laptop, Check, AlertCircle, FileText,
-    Layers, User, Share2, CreditCard, ShoppingBag, ShoppingCart, Image as ImageIcon, Eye, ExternalLink, Download
+    Layers, User, Share2, CreditCard, ShoppingBag, ShoppingCart, 
+    Image as ImageIcon, Eye, ExternalLink, Download, CheckCircle2,
+    Lock, ShieldCheck, Loader2, Copy, Sparkles, HelpCircle
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Customer Dashboard',
-        href: '/customer/dashboard',
-    },
-    {
-        title: 'Digital Business Cards',
-        href: '/customer/business-cards',
-    },
-    {
-        title: 'Card Designer',
-        href: '#',
-    },
-];
 
 interface Template {
     id: number;
     name: string;
     css_file: string;
     thumbnail: string;
+}
+
+interface Plan {
+    id: number;
+    name: string;
+    duration_months: number;
+    price: number;
+    description: string | null;
 }
 
 interface BusinessCard {
@@ -52,7 +48,10 @@ interface BusinessCard {
 interface PageProps {
     card: BusinessCard | null;
     templates: Template[];
+    plans?: Plan[];
     razorpayKeyId?: string;
+    coupons?: any[];
+    preselectedTemplate?: number;
 }
 
 const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.85): Promise<File> => {
@@ -126,39 +125,129 @@ const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.
     });
 };
 
-export default function BusinessCardEdit({ card, templates = [], razorpayKeyId = '' }: PageProps) {
+// developed by dinesh tawade
+export default function BusinessCardEdit({ card, templates = [], plans = [], razorpayKeyId = '', coupons = [], preselectedTemplate = 1 }: PageProps) {
+    const { auth } = usePage().props as { auth: { user: any } };
+    const isGuest = !auth?.user;
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: isGuest ? 'Home' : 'Customer Dashboard',
+            href: isGuest ? '/' : '/customer/dashboard',
+        },
+        {
+            title: 'Digital Business Cards',
+            href: isGuest ? '/#digital-business-cards' : '/customer/business-cards',
+        },
+        {
+            title: 'Card Designer',
+            href: '#',
+        },
+    ];
+
+    const availablePlans: Plan[] = plans && plans.length > 0 ? plans : [
+        { id: 1, name: '6-Month Plan', duration_months: 6, price: 499, description: 'Full access for 6 months. Includes all features.' },
+        { id: 2, name: '1-Year Plan', duration_months: 12, price: 899, description: 'Best value! Full access for 12 months. Includes all features.' }
+    ];
+
     const [currentStep, setCurrentStep] = useState(1);
     const [previewMode, setPreviewMode] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
+    const [step8MobileView, setStep8MobileView] = useState<'checkout' | 'preview'>('checkout');
+    const [showHelpModal, setShowHelpModal] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [missingFields, setMissingFields] = useState<string[]>([]);
     const [csrfToken, setCsrfToken] = useState('');
 
-    // State matching our Eloquent model fields
-    const [cardState, setCardState] = useState<Partial<BusinessCard>>({
-        id: card?.id,
-        company_name: card?.company_name || '',
-        slug: card?.slug || '',
-        theme_css: card?.theme_css || 'card_css1.css',
-        logo_path: card?.logo_path || null,
-        personal_details: card?.personal_details || {
-            first_name: '', last_name: '', designation: '', phone_1: '', phone_2: '',
-            whatsapp: '', address: '', email: '', website: '', location_map: '', est_date: '', about_us: ''
-        },
-        social_links: card?.social_links || {
-            facebook: '', twitter: '', instagram: '', linkedin: '', youtube: '', pinterest: '', map_review: ''
-        },
-        youtube_videos: card?.youtube_videos || ['', '', '', '', ''],
-        payment_details: card?.payment_details || {
-            paytm_number: '', gpay_number: '', phonepe_number: '', bank_name: '', holder_name: '', account_number: '', ifsc: '', gst: ''
-        },
-        qr_codes: card?.qr_codes || { paytm_qr_path: '', gpay_qr_path: '', phonepe_qr_path: '' },
-        services: card?.services || [],
-        ecommerce_products: card?.ecommerce_products || [],
-        gallery: card?.gallery || [],
-        status: card?.status || 'active',
-        payment_status: card?.payment_status || 'Created',
+    const [selectedPlanId, setSelectedPlanId] = useState<number>(() => {
+        return availablePlans.length > 1 ? availablePlans[1].id : availablePlans[0].id;
     });
+    const selectedPlan = availablePlans.find(p => p.id === selectedPlanId) || availablePlans[0];
+
+    // Guest Auth / Registration fields on Step 8
+    const [guestName, setGuestName] = useState('');
+    const [guestEmail, setGuestEmail] = useState('');
+    const [guestPhone, setGuestPhone] = useState('');
+    const [guestPassword, setGuestPassword] = useState('');
+    const [authMode, setAuthMode] = useState<'register' | 'login'>('register');
+    const [loginEmail, setLoginEmail] = useState('');
+    const [loginPassword, setLoginPassword] = useState('');
+    const [loginLoading, setLoginLoading] = useState(false);
+    const [loginError, setLoginError] = useState('');
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [checkoutError, setCheckoutError] = useState('');
+    const [paymentSuccess, setPaymentSuccess] = useState(card?.payment_status === 'Success');
+
+    // Initial state calculation with localStorage draft support
+    const getInitialCardState = (): Partial<BusinessCard> => {
+        if (card?.id) {
+            return {
+                id: card.id,
+                company_name: card.company_name || '',
+                slug: card.slug || '',
+                theme_css: card.theme_css || `card_css${preselectedTemplate}.css`,
+                logo_path: card.logo_path || null,
+                personal_details: card.personal_details || {
+                    first_name: '', last_name: '', designation: '', phone_1: '', phone_2: '',
+                    whatsapp: '', address: '', email: '', website: '', location_map: '', est_date: '', about_us: ''
+                },
+                social_links: card.social_links || {
+                    facebook: '', twitter: '', instagram: '', linkedin: '', youtube: '', pinterest: '', map_review: ''
+                },
+                youtube_videos: card.youtube_videos || ['', '', '', '', ''],
+                payment_details: card.payment_details || {
+                    paytm_number: '', gpay_number: '', phonepe_number: '', bank_name: '', holder_name: '', account_number: '', ifsc: '', gst: ''
+                },
+                qr_codes: card.qr_codes || { paytm_qr_path: '', gpay_qr_path: '', phonepe_qr_path: '' },
+                services: (card.services && card.services.length > 0) ? card.services : [{ name: '', image_path: '' }],
+                ecommerce_products: (card.ecommerce_products && card.ecommerce_products.length > 0) ? card.ecommerce_products : [{ name: '', mrp: '', price: '', image_path: '' }],
+                gallery: card.gallery || [],
+                status: card.status || 'active',
+                payment_status: card.payment_status || 'Created',
+            };
+        }
+
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('invitify_guest_card_draft');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    return {
+                        ...parsed,
+                        id: undefined,
+                        theme_css: parsed.theme_css || `card_css${preselectedTemplate}.css`,
+                    };
+                } catch (e) {}
+            }
+        }
+
+        return {
+            company_name: '',
+            slug: '',
+            theme_css: `card_css${preselectedTemplate}.css`,
+            logo_path: null,
+            personal_details: {
+                first_name: '', last_name: '', designation: '', phone_1: '', phone_2: '',
+                whatsapp: '', address: '', email: '', website: '', location_map: '', est_date: '', about_us: ''
+            },
+            social_links: {
+                facebook: '', twitter: '', instagram: '', linkedin: '', youtube: '', pinterest: '', map_review: ''
+            },
+            youtube_videos: ['', '', '', '', ''],
+            payment_details: {
+                paytm_number: '', gpay_number: '', phonepe_number: '', bank_name: '', holder_name: '', account_number: '', ifsc: '', gst: ''
+            },
+            qr_codes: { paytm_qr_path: '', gpay_qr_path: '', phonepe_qr_path: '' },
+            services: [{ name: '', image_path: '' }],
+            ecommerce_products: [{ name: '', mrp: '', price: '', image_path: '' }],
+            gallery: [],
+            status: 'draft',
+            payment_status: 'Pending',
+        };
+    };
+
+    const [cardState, setCardState] = useState<Partial<BusinessCard>>(getInitialCardState);
 
     useEffect(() => {
         const tokenMeta = document.querySelector('meta[name="csrf-token"]');
@@ -168,8 +257,25 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
     }, []);
 
     useEffect(() => {
-        document.title = `Design Card - ${cardState.company_name || ''}`;
+        document.title = `Design Card - ${cardState.company_name || 'New Visiting Card'}`;
     }, [cardState.company_name]);
+
+    // Auto-fill guest fields when reaching step 8
+    useEffect(() => {
+        if (currentStep === 8 && isGuest) {
+            const pd = cardState.personal_details || {};
+            if (!guestName && (pd.first_name || pd.last_name)) {
+                setGuestName(`${pd.first_name || ''} ${pd.last_name || ''}`.trim());
+            }
+            if (!guestEmail && pd.email) {
+                setGuestEmail(pd.email);
+                setLoginEmail(pd.email);
+            }
+            if (!guestPhone && pd.phone_1) {
+                setGuestPhone(pd.phone_1);
+            }
+        }
+    }, [currentStep]);
 
     // Step configuration
     const steps = [
@@ -180,109 +286,313 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
         { id: 5, label: 'Products & Services', icon: ShoppingBag },
         { id: 6, label: 'Order Page', icon: ShoppingCart },
         { id: 7, label: 'Image Gallery', icon: ImageIcon },
-        { id: 8, label: 'Preview Card', icon: Eye },
+        { id: 8, label: 'Preview & Plan', icon: Eye },
     ];
 
-    // Autosave function using axios
-    const saveDraft = async (targetStep?: number) => {
-        if (!cardState.id) return;
+    // Mandatory Field Validation across all steps
+    const validateStep = (step: number): { valid: boolean; message: string; fields: string[] } => {
+        const missing: string[] = [];
 
-        if (currentStep === 2 && targetStep && targetStep > 2) {
+        if (step === 1) {
+            if (!cardState.theme_css) {
+                missing.push('Select a Theme Template');
+            }
+        } else if (step === 2) {
             const pd = cardState.personal_details || {};
-            if (!pd.first_name || !pd.last_name || !pd.phone_1 || !pd.about_us) {
-                setErrorMessage("Please fill in First Name, Last Name, Primary Phone, and About Us before proceeding.");
-                setTimeout(() => setErrorMessage(''), 4000);
-                return;
+            if (!cardState.company_name?.trim()) missing.push('Company / Business Name');
+            if (!pd.first_name?.trim()) missing.push('First Name');
+            if (!pd.last_name?.trim()) missing.push('Last Name');
+            if (!pd.designation?.trim()) missing.push('Designation / Position');
+            if (!pd.phone_1?.trim()) missing.push('Primary Phone Number');
+            if (!pd.whatsapp?.trim()) missing.push('WhatsApp Number');
+            if (!pd.email?.trim()) missing.push('Email Address');
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pd.email)) missing.push('Valid Email Address format');
+            if (!pd.address?.trim()) missing.push('Full Address');
+            if (!pd.about_us?.trim()) missing.push('About Us / Description');
+        } else if (step === 3) {
+            const sl = cardState.social_links || {};
+            if (!sl.facebook?.trim()) missing.push('Facebook Profile Link');
+            if (!sl.instagram?.trim()) missing.push('Instagram Profile Link');
+        } else if (step === 4) {
+            const pay = cardState.payment_details || {};
+            const hasUpi = pay.paytm_number?.trim() || pay.gpay_number?.trim() || pay.phonepe_number?.trim();
+            if (!hasUpi) missing.push('At least one UPI Number (Paytm, Google Pay, or PhonePe)');
+            if (!pay.bank_name?.trim()) missing.push('Bank Name');
+            if (!pay.holder_name?.trim()) missing.push('Account Holder Name');
+            if (!pay.account_number?.trim()) missing.push('Account Number');
+            if (!pay.ifsc?.trim()) missing.push('Bank IFSC Code');
+        } else if (step === 5) {
+            const services = cardState.services || [];
+            if (services.length === 0) {
+                missing.push('Add at least 1 Product / Service item');
+            } else {
+                const hasEmpty = services.some((s: any) => !s.name?.trim());
+                if (hasEmpty) missing.push('Name for every added Product / Service item');
+            }
+        } else if (step === 6) {
+            const products = cardState.ecommerce_products || [];
+            if (products.length === 0) {
+                missing.push('Add at least 1 Store Product');
+            } else {
+                const hasEmpty = products.some((p: any) => !p.name?.trim() || !p.price);
+                if (hasEmpty) missing.push('Name and Selling Price for all added Store Products');
+            }
+        } else if (step === 7) {
+            const gallery = cardState.gallery || [];
+            const videos = (cardState.youtube_videos || []).filter((v: string) => v && v.trim());
+            if (gallery.length === 0 && videos.length === 0) {
+                missing.push('Upload at least 1 Photo Gallery Image or YouTube Video link');
             }
         }
 
-        setIsSaving(true);
-        setSaveMessage('');
-        try {
-            const response = await axios.put(`/customer/business-cards/${cardState.id}`, cardState);
-            if (response.data.success) {
-                setSaveMessage('Draft saved successfully!');
-                if (targetStep) {
-                    setCurrentStep(targetStep);
+        if (missing.length > 0) {
+            return {
+                valid: false,
+                message: `Please fill in all mandatory fields before proceeding to the next step:\n• ${missing.join('\n• ')}`,
+                fields: missing,
+            };
+        }
+
+        return { valid: true, message: '', fields: [] };
+    };
+
+    // Check if all mandatory fields across steps 1 to 7 are completed
+    const areAllMandatoryStepsFilled = (): boolean => {
+        for (let s = 1; s <= 7; s++) {
+            if (!validateStep(s).valid) return false;
+        }
+        return true;
+    };
+
+    const isFieldMissing = (keyword: string) => {
+        return missingFields.some(f => f.toLowerCase().includes(keyword.toLowerCase()));
+    };
+
+    // Autosave & Step Navigation
+    const saveDraft = async (targetStep?: number) => {
+        // If moving forward or jumping steps, validate all steps up to targetStep - 1
+        if (targetStep && targetStep > currentStep) {
+            for (let s = 1; s < targetStep; s++) {
+                const validation = validateStep(s);
+                if (!validation.valid) {
+                    setErrorMessage(`Step ${s} (${steps[s - 1].label}) has missing mandatory fields.`);
+                    setMissingFields(validation.fields);
+                    setCurrentStep(s);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    setTimeout(() => setErrorMessage(''), 7000);
+                    return;
                 }
             }
-        } catch (error) {
-            console.error('Error saving draft', error);
-            setSaveMessage('Failed to save draft.');
-        } finally {
-            setIsSaving(false);
-            setTimeout(() => setSaveMessage(''), 3000);
+        }
+
+        setErrorMessage('');
+        setMissingFields([]);
+
+        // Save locally to persist guest form
+        try {
+            localStorage.setItem('invitify_guest_card_draft', JSON.stringify(cardState));
+        } catch (e) {}
+
+        // If card exists in DB and user is authenticated, save via API
+        if (cardState.id) {
+            setIsSaving(true);
+            setSaveMessage('');
+            try {
+                const response = await axios.put(`/customer/business-cards/${cardState.id}`, cardState);
+                if (response.data.success) {
+                    setSaveMessage('Draft saved!');
+                }
+            } catch (error) {
+                console.error('Error saving draft', error);
+            } finally {
+                setIsSaving(false);
+                setTimeout(() => setSaveMessage(''), 2500);
+            }
+        }
+
+        if (targetStep) {
+            setCurrentStep(targetStep);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
-    const handlePayment = async () => {
-        if (!cardState.id) return;
-        setIsSaving(true); // Using isSaving to block buttons
-        setSaveMessage('Initiating payment...');
+    // Step 8: Plan Purchase & Razorpay Checkout
+    const handlePlanCheckout = async () => {
+        // Validate steps 1 to 7 first
+        for (let s = 1; s <= 7; s++) {
+            const val = validateStep(s);
+            if (!val.valid) {
+                setErrorMessage(`Step ${s} (${steps[s - 1].label}) is incomplete. Please fill all required fields.`);
+                setMissingFields(val.fields);
+                setCurrentStep(s);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+        }
+
+        if (!selectedPlan) {
+            setErrorMessage('Please select a plan to proceed.');
+            return;
+        }
+
+        if (isGuest && authMode === 'register') {
+            if (!guestName.trim()) {
+                setErrorMessage('Please enter your Full Name.');
+                return;
+            }
+            if (!guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+                setErrorMessage('Please enter a valid Email Address.');
+                return;
+            }
+            if (!guestPassword || guestPassword.length < 6) {
+                setErrorMessage('Please provide a Password with at least 6 characters.');
+                return;
+            }
+        }
+
+        setIsCheckingOut(true);
+        setCheckoutError('');
+
         try {
-            // First save any unsaved changes
-            await axios.put(`/customer/business-cards/${cardState.id}`, cardState);
-
-            // 1. Create order
-            const orderRes = await fetch(`/customer/business-cards/${cardState.id}/create-order`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }
-            });
-            const orderData = await orderRes.json();
-            if (!orderRes.ok) throw new Error(orderData.error || 'Order creation failed.');
-
-            const verifyPayment = async (payload: object) => {
-                const res = await fetch(`/customer/business-cards/${cardState.id}/verify-payment`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Payment verification failed.');
-                setSaveMessage('Payment Successful!');
-                window.location.reload(); // Reload to reflect paid status
+            const payload = {
+                plan_id: selectedPlan.id,
+                company_name: cardState.company_name,
+                theme_css: cardState.theme_css,
+                card_id: cardState.id || undefined,
+                logo_path: cardState.logo_path,
+                personal_details: cardState.personal_details,
+                social_links: cardState.social_links,
+                youtube_videos: cardState.youtube_videos,
+                payment_details: cardState.payment_details,
+                qr_codes: cardState.qr_codes,
+                services: cardState.services,
+                ecommerce_products: cardState.ecommerce_products,
+                gallery: cardState.gallery,
+                guest_name: isGuest ? guestName : undefined,
+                guest_email: isGuest ? guestEmail : undefined,
+                guest_phone: isGuest ? guestPhone : undefined,
+                guest_password: isGuest ? guestPassword : undefined,
             };
 
-            if (orderData.mock) {
+            const response = await axios.post('/business-cards/checkout', payload, {
+                headers: { 'X-CSRF-TOKEN': csrfToken }
+            });
+
+            const data = response.data;
+            if (!data || !data.order_id) {
+                throw new Error(data?.error || 'Failed to initialize payment order.');
+            }
+
+            const cardId = data.card_id;
+            const cardSlug = data.card_slug;
+
+            setCardState(prev => ({
+                ...prev,
+                id: cardId,
+                slug: cardSlug,
+            }));
+
+            const verifyPayment = async (verifyPayload: object) => {
+                const vRes = await axios.post(`/business-cards/${cardId}/verify-checkout`, verifyPayload, {
+                    headers: { 'X-CSRF-TOKEN': csrfToken }
+                });
+
+                if (vRes.data.success) {
+                    setCardState(prev => ({
+                        ...prev,
+                        status: 'active',
+                        payment_status: 'Success',
+                        slug: vRes.data.slug || cardSlug,
+                    }));
+                    setPaymentSuccess(true);
+                    try {
+                        localStorage.removeItem('invitify_guest_card_draft');
+                    } catch (e) {}
+                } else {
+                    throw new Error(vRes.data.error || 'Payment verification failed.');
+                }
+            };
+
+            if (data.mock) {
                 await verifyPayment({ mock: true });
+                setIsCheckingOut(false);
                 return;
             }
 
-            // 2. Open Razorpay checkout
-            const RazorpayConstructor = (window as any).Razorpay;
-            if (!RazorpayConstructor) {
+            // Load Razorpay SDK
+            if (!(window as any).Razorpay) {
                 await new Promise<void>((resolve, reject) => {
                     const script = document.createElement('script');
                     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
                     script.onload = () => resolve();
-                    script.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
+                    script.onerror = () => reject(new Error('Failed to load Razorpay payment SDK'));
                     document.head.appendChild(script);
                 });
             }
 
             const rzp = new (window as any).Razorpay({
-                key: orderData.key_id || razorpayKeyId,
-                amount: orderData.amount,
+                key: data.key_id || razorpayKeyId,
+                amount: data.amount,
                 currency: 'INR',
-                name: 'Invitify Digital Card',
-                description: `Business Card Payment`,
-                order_id: orderData.order_id,
-                handler: async (response: any) => {
-                    setSaveMessage('Verifying payment...');
-                    await verifyPayment({
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_order_id: response.razorpay_order_id,
-                        razorpay_signature: response.razorpay_signature,
-                        mock: false,
-                    });
+                name: 'Invitify',
+                description: `Digital Business Card - ${selectedPlan.name}`,
+                order_id: data.order_id,
+                handler: async (resp: any) => {
+                    try {
+                        await verifyPayment({
+                            razorpay_payment_id: resp.razorpay_payment_id,
+                            razorpay_order_id: resp.razorpay_order_id,
+                            razorpay_signature: resp.razorpay_signature,
+                            mock: false,
+                        });
+                    } catch (e: any) {
+                        setCheckoutError(e.message || 'Payment verification failed.');
+                    } finally {
+                        setIsCheckingOut(false);
+                    }
                 },
-                theme: { color: '#2563eb' },
-                modal: { ondismiss: () => { setIsSaving(false); setSaveMessage(''); } },
+                prefill: {
+                    name: isGuest ? guestName : auth?.user?.name || '',
+                    email: isGuest ? guestEmail : auth?.user?.email || '',
+                    contact: isGuest ? guestPhone : cardState.personal_details?.phone_1 || '',
+                },
+                theme: { color: '#0f172a' },
+                modal: {
+                    ondismiss: () => {
+                        setIsCheckingOut(false);
+                    }
+                }
             });
+
             rzp.open();
         } catch (err: any) {
-            setSaveMessage(err.message || 'Payment failed.');
-            setIsSaving(false);
+            console.error('Checkout error:', err);
+            const msg = err.response?.data?.error || err.message || 'Checkout failed. Please try again.';
+            setCheckoutError(msg);
+            setErrorMessage(msg);
+            setIsCheckingOut(false);
+        }
+    };
+
+    // Quick login for existing users on Step 8
+    const handleQuickLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoginLoading(true);
+        setLoginError('');
+        try {
+            const res = await axios.post('/business-cards/quick-login', {
+                email: loginEmail,
+                password: loginPassword,
+            }, {
+                headers: { 'X-CSRF-TOKEN': csrfToken }
+            });
+            if (res.data.success) {
+                window.location.reload();
+            }
+        } catch (err: any) {
+            setLoginError(err.response?.data?.error || 'Invalid email or password.');
+        } finally {
+            setLoginLoading(false);
         }
     };
 
@@ -630,28 +940,40 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
             <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)] overflow-y-auto lg:overflow-hidden bg-slate-50">
                 {/* Left Side Editing Wizard */}
-                <div className={`${currentStep === 8 ? 'w-full lg:w-1/2' : 'w-full'} flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200 bg-white h-auto lg:h-full min-h-[80vh] transition-all duration-500 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10`}>
+                <div className={`${currentStep === 8 ? (step8MobileView === 'preview' ? 'hidden lg:flex lg:w-1/2' : 'w-full lg:w-1/2 flex') : 'w-full flex'} flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200 bg-white h-auto lg:h-full min-h-[80vh] transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10`}>
                     {/* Header */}
-                    <div className="p-4 sm:px-8 sm:py-4 border-b border-slate-100 flex flex-wrap sm:flex-nowrap items-center justify-between gap-4 bg-white/80 backdrop-blur-md sticky top-0 z-20">
+                    <div className="p-3.5 sm:px-8 sm:py-4 border-b border-slate-100 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4 bg-white/90 backdrop-blur-md sticky top-0 z-20">
                         <div className="w-full sm:w-auto">
-                            <h2 className="text-lg sm:text-2xl font-black text-slate-800 tracking-tight truncate">{cardState.company_name || 'New Design'}</h2>
-                            <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">
+                            <h2 className="text-base sm:text-2xl font-black text-slate-800 tracking-tight truncate">{cardState.company_name || 'New Design'}</h2>
+                            <p className="text-xs sm:text-sm font-medium text-slate-500 mt-0.5 sm:mt-1 flex items-center gap-2">
                                 <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-bold whitespace-nowrap">Step {currentStep} of {steps.length}</span>
                                 <span className="truncate">{steps[currentStep - 1].label}</span>
                             </p>
                         </div>
-                        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end overflow-x-auto pb-1 sm:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             {isSaving && <span className="text-xs font-medium text-slate-400 animate-pulse flex items-center gap-1 whitespace-nowrap"><div className="size-1.5 bg-slate-400 rounded-full animate-bounce"></div> Saving...</span>}
                             {saveMessage && <span className="text-xs text-emerald-500 font-bold bg-emerald-50 px-2 py-1 rounded-md whitespace-nowrap">{saveMessage}</span>}
 
-                            {cardState.payment_status === 'Pending' && (
-                                <button
-                                    onClick={handlePayment}
-                                    disabled={isSaving}
-                                    className="inline-flex items-center justify-center gap-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md shadow-emerald-500/20 px-3 py-1.5 sm:px-5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap flex-shrink-0"
-                                >
-                                    <CreditCard className="size-3.5 sm:size-4" /> Publish & Pay
-                                </button>
+                            {cardState.payment_status === 'Pending' && !paymentSuccess ? (
+                                (currentStep === 8 || areAllMandatoryStepsFilled()) ? (
+                                    <button
+                                        onClick={() => {
+                                            if (currentStep !== 8) {
+                                                saveDraft(8);
+                                            } else {
+                                                handlePlanCheckout();
+                                            }
+                                        }}
+                                        disabled={isSaving || isCheckingOut}
+                                        className="inline-flex items-center justify-center gap-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md shadow-emerald-500/20 px-3 py-1.5 sm:px-5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap flex-shrink-0 animate-in fade-in duration-300"
+                                    >
+                                        <CreditCard className="size-3.5 sm:size-4" /> {currentStep === 8 ? 'Pay & Activate' : 'Review & Pay'}
+                                    </button>
+                                ) : null
+                            ) : (
+                                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg whitespace-nowrap">
+                                    <CheckCircle2 className="size-3.5 text-emerald-500" /> Card Active
+                                </span>
                             )}
 
                             <button
@@ -660,6 +982,16 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                 className="inline-flex items-center justify-center gap-1.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-slate-700 transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap flex-shrink-0"
                             >
                                 <Save className="size-3.5 sm:size-4 text-slate-500" /> Save Draft
+                            </button>
+
+                            {/* Help & User Guide Button */}
+                            <button
+                                type="button"
+                                onClick={() => setShowHelpModal(true)}
+                                className="inline-flex items-center justify-center size-7 sm:size-9 rounded-lg sm:rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 hover:border-blue-300 text-blue-700 hover:text-blue-900 shadow-sm transition-all active:scale-95 flex-shrink-0"
+                                title="User Guide & Help (यूज़र गाइड)"
+                            >
+                                <HelpCircle className="size-4 sm:size-4.5" />
                             </button>
                         </div>
                     </div>
@@ -691,17 +1023,43 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                     </div>
 
                     {/* Step Content */}
-                    <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 custom-scrollbar">
+
+                        {/* Missing fields notification */}
+                        {missingFields.length > 0 && (
+                            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl text-red-700 shadow-sm animate-pulse">
+                                <div className="flex items-start gap-2.5">
+                                    <AlertCircle className="size-5 flex-shrink-0 mt-0.5 text-red-600" />
+                                    <div>
+                                        <h4 className="text-xs font-bold uppercase tracking-wider text-red-800">Please fill all mandatory fields to continue:</h4>
+                                        <ul className="mt-1 list-disc list-inside text-xs space-y-0.5 text-red-600 font-medium">
+                                            {missingFields.map((f, i) => (
+                                                <li key={i}>{f}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* STEP 1: IDENTITY & THEME */}
                         {currentStep === 1 && (
                             <div className="space-y-6 max-w-7xl mx-auto">
                                 <div>
                                     <div className="mb-6">
-                                        <h3 className="text-lg font-bold text-slate-800">Choose a Theme</h3>
-                                        <p className="text-sm">Select a design template for your business card. You can preview it on the right.</p>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Step 1 of 8</span>
+                                            <span className="text-xs font-bold text-red-500">* Required</span>
+                                        </div>
+                                        <h3 className="text-lg font-bold text-slate-800">Choose a Theme Template <span className="text-red-500">*</span></h3>
+                                        <p className="text-sm text-slate-500">Select a design template for your business card. You can preview it on the right.</p>
+                                        {isFieldMissing('Theme') && (
+                                            <p className="text-xs text-red-500 font-bold mt-2 flex items-center gap-1">
+                                                <AlertCircle className="size-4" /> Please select a theme template to proceed.
+                                            </p>
+                                        )}
                                     </div>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-5 mt-4">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-5 mt-4">
                                         {templates.map((temp) => {
                                             const isSelected = cardState.theme_css === temp.css_file;
                                             return (
@@ -745,28 +1103,32 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                         {/* STEP 2: COMPANY & PERSONAL DETAILS */}
                         {currentStep === 2 && (
-                            <div className="space-y-4">
+                            <div className="space-y-4 max-w-4xl">
                                 <div>
-                                    <label className="block text-xs font-bold text-neutral-1000">Company / Business Name *</label>
+                                    <label className="block text-xs font-bold text-neutral-800">
+                                        Company / Business Name <span className="text-red-500">*</span>
+                                    </label>
                                     <input
                                         type="text"
                                         required
                                         value={cardState.company_name}
                                         onChange={(e) => setCardState(prev => ({ ...prev, company_name: e.target.value }))}
-                                        className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm focus:border-blue-500 focus:outline-none"
+                                        placeholder="e.g. Acme Innovations Pvt Ltd"
+                                        className={`mt-1 w-full rounded-xl border ${isFieldMissing('Company') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                     />
+                                    {isFieldMissing('Company') && <p className="text-xs text-red-500 font-semibold mt-1">Company name is required.</p>}
                                 </div>
 
-                                <div className="flex items-center gap-4">
-                                    <div className="size-20 rounded-xl border border-neutral-200  flex items-center justify-center overflow-hidden bg-neutral-50  relative">
+                                <div className="flex items-center gap-4 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                                    <div className="size-16 sm:size-20 rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden bg-white relative flex-shrink-0 shadow-sm">
                                         {cardState.logo_path ? (
                                             <img src={cardState.logo_path} alt="Logo" className="w-full h-full object-contain" />
                                         ) : (
-                                            <span className="text-[10px] text-neutral-450">LOGO</span>
+                                            <span className="text-[10px] font-bold text-slate-400">LOGO</span>
                                         )}
                                     </div>
                                     <div>
-                                        <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold cursor-pointer shadow-sm">
+                                        <label className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold cursor-pointer shadow-sm transition-all active:scale-95">
                                             <Upload className="size-3.5" /> Upload Logo
                                             <input
                                                 type="file"
@@ -775,201 +1137,259 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                                 onChange={(e) => handleFileUpload(e, (url) => setCardState(prev => ({ ...prev, logo_path: url })))}
                                             />
                                         </label>
+                                        <p className="text-[11px] text-slate-500 mt-1">Optional • PNG, JPG or SVG</p>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">First Name *</label>
+                                        <label className="block text-xs font-bold text-neutral-800">
+                                            First Name <span className="text-red-500">*</span>
+                                        </label>
                                         <input
                                             type="text"
+                                            required
                                             value={cardState.personal_details?.first_name || ''}
                                             onChange={(e) => updatePersonalDetails('first_name', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="e.g. Rahul"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('First Name') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
+                                        {isFieldMissing('First Name') && <p className="text-xs text-red-500 font-semibold mt-1">First name is required.</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Last Name *</label>
+                                        <label className="block text-xs font-bold text-neutral-800">
+                                            Last Name <span className="text-red-500">*</span>
+                                        </label>
                                         <input
                                             type="text"
+                                            required
                                             value={cardState.personal_details?.last_name || ''}
                                             onChange={(e) => updatePersonalDetails('last_name', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="e.g. Sharma"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('Last Name') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
+                                        {isFieldMissing('Last Name') && <p className="text-xs text-red-500 font-semibold mt-1">Last name is required.</p>}
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Designation / Position</label>
+                                        <label className="block text-xs font-bold text-neutral-800">
+                                            Designation / Position <span className="text-red-500">*</span>
+                                        </label>
                                         <input
                                             type="text"
+                                            required
                                             value={cardState.personal_details?.designation || ''}
                                             onChange={(e) => updatePersonalDetails('designation', e.target.value)}
-                                            placeholder="e.g. Director, Manager"
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="e.g. Founder & CEO"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('Designation') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
+                                        {isFieldMissing('Designation') && <p className="text-xs text-red-500 font-semibold mt-1">Designation is required.</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Est. Start Date</label>
+                                        <label className="block text-xs font-bold text-neutral-800">Est. Start Date</label>
                                         <input
                                             type="date"
                                             value={cardState.personal_details?.est_date || ''}
                                             onChange={(e) => updatePersonalDetails('est_date', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Primary Phone *</label>
+                                        <label className="block text-xs font-bold text-neutral-800">
+                                            Primary Phone <span className="text-red-500">*</span>
+                                        </label>
                                         <input
-                                            type="text"
+                                            type="tel"
+                                            required
                                             value={cardState.personal_details?.phone_1 || ''}
                                             onChange={(e) => updatePersonalDetails('phone_1', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="+91 9876543210"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('Primary Phone') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
+                                        {isFieldMissing('Primary Phone') && <p className="text-xs text-red-500 font-semibold mt-1">Primary phone is required.</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">WhatsApp No</label>
+                                        <label className="block text-xs font-bold text-neutral-800">
+                                            WhatsApp No <span className="text-red-500">*</span>
+                                        </label>
                                         <input
-                                            type="text"
+                                            type="tel"
+                                            required
                                             value={cardState.personal_details?.whatsapp || ''}
                                             onChange={(e) => updatePersonalDetails('whatsapp', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="+91 9876543210"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('WhatsApp') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
+                                        {isFieldMissing('WhatsApp') && <p className="text-xs text-red-500 font-semibold mt-1">WhatsApp number is required.</p>}
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Alternate Phone</label>
+                                        <label className="block text-xs font-bold text-neutral-800">Alternate Phone</label>
                                         <input
-                                            type="text"
+                                            type="tel"
                                             value={cardState.personal_details?.phone_2 || ''}
                                             onChange={(e) => updatePersonalDetails('phone_2', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="Optional phone number"
+                                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Email Address</label>
+                                        <label className="block text-xs font-bold text-neutral-800">
+                                            Email Address <span className="text-red-500">*</span>
+                                        </label>
                                         <input
                                             type="email"
+                                            required
                                             value={cardState.personal_details?.email || ''}
                                             onChange={(e) => updatePersonalDetails('email', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="business@example.com"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('Email') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
+                                        {isFieldMissing('Email') && <p className="text-xs text-red-500 font-semibold mt-1">Valid email address is required.</p>}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-neutral-1000">Website Address</label>
+                                    <label className="block text-xs font-bold text-neutral-800">Website Address</label>
                                     <input
                                         type="text"
                                         value={cardState.personal_details?.website || ''}
                                         onChange={(e) => updatePersonalDetails('website', e.target.value)}
-                                        placeholder="e.g. www.mycompany.com"
-                                        className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                        placeholder="e.g. https://www.mycompany.com"
+                                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-neutral-1000">Google Map Link / Location</label>
+                                    <label className="block text-xs font-bold text-neutral-800">Google Map Link / Location</label>
                                     <input
                                         type="text"
                                         value={cardState.personal_details?.location_map || ''}
                                         onChange={(e) => updatePersonalDetails('location_map', e.target.value)}
-                                        placeholder="Google Maps Embed or Link URL"
-                                        className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                        placeholder="https://maps.google.com/..."
+                                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-neutral-1000">Full Address</label>
+                                    <label className="block text-xs font-bold text-neutral-800">
+                                        Full Address <span className="text-red-500">*</span>
+                                    </label>
                                     <textarea
+                                        required
                                         value={cardState.personal_details?.address || ''}
                                         onChange={(e) => updatePersonalDetails('address', e.target.value)}
                                         rows={2}
-                                        className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                        placeholder="Shop No., Street, City, State, Pincode"
+                                        className={`mt-1 w-full rounded-xl border ${isFieldMissing('Address') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                     />
+                                    {isFieldMissing('Address') && <p className="text-xs text-red-500 font-semibold mt-1">Full address is required.</p>}
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-neutral-1000">About Us / Description *</label>
+                                    <label className="block text-xs font-bold text-neutral-800">
+                                        About Us / Description <span className="text-red-500">*</span>
+                                    </label>
                                     <textarea
+                                        required
                                         value={cardState.personal_details?.about_us || ''}
                                         onChange={(e) => updatePersonalDetails('about_us', e.target.value)}
                                         rows={3}
-                                        className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                        placeholder="Brief description about your business, products or services..."
+                                        className={`mt-1 w-full rounded-xl border ${isFieldMissing('About Us') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                     />
+                                    {isFieldMissing('About Us') && <p className="text-xs text-red-500 font-semibold mt-1">About Us description is required.</p>}
                                 </div>
                             </div>
                         )}
 
                         {/* STEP 3: SOCIAL MEDIA & YOUTUBE EMBEDS */}
                         {currentStep === 3 && (
-                            <div className="space-y-4">
-                                <h3 className="text-sm font-bold text-neutral-700 ">Social Profile Links</h3>
-                                <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-4 max-w-4xl">
+                                <div>
+                                    <h3 className="text-sm font-bold text-slate-900">Social Profile Links</h3>
+                                    <p className="text-xs text-slate-500">Facebook and Instagram profile links are required for your digital visiting card.</p>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Facebook Link</label>
+                                        <label className="block text-xs font-bold text-neutral-800">
+                                            Facebook Profile Link <span className="text-red-500">*</span>
+                                        </label>
                                         <input
                                             type="text"
+                                            required
                                             value={cardState.social_links?.facebook || ''}
                                             onChange={(e) => updateSocialLinks('facebook', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="https://facebook.com/yourprofile"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('Facebook') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
+                                        {isFieldMissing('Facebook') && <p className="text-xs text-red-500 font-semibold mt-1">Facebook link is required.</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Instagram Link</label>
+                                        <label className="block text-xs font-bold text-neutral-800">
+                                            Instagram Profile Link <span className="text-red-500">*</span>
+                                        </label>
                                         <input
                                             type="text"
+                                            required
                                             value={cardState.social_links?.instagram || ''}
                                             onChange={(e) => updateSocialLinks('instagram', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="https://instagram.com/yourprofile"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('Instagram') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
+                                        {isFieldMissing('Instagram') && <p className="text-xs text-red-500 font-semibold mt-1">Instagram link is required.</p>}
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">LinkedIn Link</label>
+                                        <label className="block text-xs font-bold text-neutral-800">LinkedIn Link</label>
                                         <input
                                             type="text"
                                             value={cardState.social_links?.linkedin || ''}
                                             onChange={(e) => updateSocialLinks('linkedin', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="https://linkedin.com/in/..."
+                                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Pinterest Link</label>
+                                        <label className="block text-xs font-bold text-neutral-800">Pinterest Link</label>
                                         <input
                                             type="text"
                                             value={cardState.social_links?.pinterest || ''}
                                             onChange={(e) => updateSocialLinks('pinterest', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="https://pinterest.com/..."
+                                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Twitter Link</label>
+                                        <label className="block text-xs font-bold text-neutral-800">Twitter / X Link</label>
                                         <input
                                             type="text"
                                             value={cardState.social_links?.twitter || ''}
                                             onChange={(e) => updateSocialLinks('twitter', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="https://x.com/..."
+                                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Google Map Review Link</label>
+                                        <label className="block text-xs font-bold text-neutral-800">Google Map Review Link</label>
                                         <input
                                             type="text"
                                             value={cardState.social_links?.map_review || ''}
                                             onChange={(e) => updateSocialLinks('map_review', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="https://g.page/r/..."
+                                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm"
                                         />
                                     </div>
                                 </div>
@@ -978,97 +1398,126 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                         {/* STEP 4: BANK ACCOUNT & PAYMENTS QR CODES */}
                         {currentStep === 4 && (
-                            <div className="space-y-4">
-                                <h3 className="text-sm font-bold text-neutral-700 ">UPI Numbers</h3>
-                                <div className="grid grid-cols-3 gap-3">
+                            <div className="space-y-5 max-w-4xl">
+                                <div>
+                                    <h3 className="text-sm font-bold text-slate-900">
+                                        UPI Numbers <span className="text-red-500">* (Enter at least one UPI number)</span>
+                                    </h3>
+                                    {isFieldMissing('UPI') && <p className="text-xs text-red-500 font-semibold mt-1">Please enter at least one UPI number (Paytm, Google Pay, or PhonePe).</p>}
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Paytm No</label>
+                                        <label className="block text-xs font-bold text-neutral-800">Paytm No</label>
                                         <input
                                             type="text"
                                             value={cardState.payment_details?.paytm_number || ''}
                                             onChange={(e) => updatePaymentDetails('paytm_number', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="9876543210"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('UPI') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Google Pay No</label>
+                                        <label className="block text-xs font-bold text-neutral-800">Google Pay No</label>
                                         <input
                                             type="text"
                                             value={cardState.payment_details?.gpay_number || ''}
                                             onChange={(e) => updatePaymentDetails('gpay_number', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="9876543210"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('UPI') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">PhonePe No</label>
+                                        <label className="block text-xs font-bold text-neutral-800">PhonePe No</label>
                                         <input
                                             type="text"
                                             value={cardState.payment_details?.phonepe_number || ''}
                                             onChange={(e) => updatePaymentDetails('phonepe_number', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="9876543210"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('UPI') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
                                     </div>
                                 </div>
 
-                                <h3 className="text-sm font-bold text-neutral-700  pt-3 border-t border-neutral-100 ">Bank Details</h3>
-                                <div className="grid grid-cols-2 gap-4">
+                                <h3 className="text-sm font-bold text-slate-900 pt-4 border-t border-slate-100">
+                                    Bank Details <span className="text-red-500">*</span>
+                                </h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Bank Name</label>
+                                        <label className="block text-xs font-bold text-neutral-800">
+                                            Bank Name <span className="text-red-500">*</span>
+                                        </label>
                                         <input
                                             type="text"
+                                            required
                                             value={cardState.payment_details?.bank_name || ''}
                                             onChange={(e) => updatePaymentDetails('bank_name', e.target.value)}
-                                            placeholder="e.g. HDFC Bank"
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="e.g. HDFC Bank, SBI"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('Bank Name') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
+                                        {isFieldMissing('Bank Name') && <p className="text-xs text-red-500 font-semibold mt-1">Bank name is required.</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Account Holder Name</label>
+                                        <label className="block text-xs font-bold text-neutral-800">
+                                            Account Holder Name <span className="text-red-500">*</span>
+                                        </label>
                                         <input
                                             type="text"
+                                            required
                                             value={cardState.payment_details?.holder_name || ''}
                                             onChange={(e) => updatePaymentDetails('holder_name', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="e.g. Rahul Sharma"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('Holder Name') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
+                                        {isFieldMissing('Holder Name') && <p className="text-xs text-red-500 font-semibold mt-1">Account holder name is required.</p>}
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Account Number</label>
+                                        <label className="block text-xs font-bold text-neutral-800">
+                                            Account Number <span className="text-red-500">*</span>
+                                        </label>
                                         <input
                                             type="text"
+                                            required
                                             value={cardState.payment_details?.account_number || ''}
                                             onChange={(e) => updatePaymentDetails('account_number', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="123456789012"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('Account Number') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
+                                        {isFieldMissing('Account Number') && <p className="text-xs text-red-500 font-semibold mt-1">Account number is required.</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Bank IFSC Code</label>
+                                        <label className="block text-xs font-bold text-neutral-800">
+                                            Bank IFSC Code <span className="text-red-500">*</span>
+                                        </label>
                                         <input
                                             type="text"
+                                            required
                                             value={cardState.payment_details?.ifsc || ''}
                                             onChange={(e) => updatePaymentDetails('ifsc', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            placeholder="HDFC0001234"
+                                            className={`mt-1 w-full rounded-xl border ${isFieldMissing('IFSC') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                         />
+                                        {isFieldMissing('IFSC') && <p className="text-xs text-red-500 font-semibold mt-1">Bank IFSC code is required.</p>}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-neutral-1000">GST / Account Type</label>
+                                    <label className="block text-xs font-bold text-neutral-800">GST / Account Type</label>
                                     <input
                                         type="text"
                                         value={cardState.payment_details?.gst || ''}
                                         onChange={(e) => updatePaymentDetails('gst', e.target.value)}
-                                        placeholder="GST Number"
-                                        className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                        placeholder="Optional GST number or Account Type"
+                                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm"
                                     />
                                 </div>
 
-                                <h3 className="text-sm font-bold text-neutral-700  pt-3 border-t border-neutral-100 ">QR Code Image Uploads</h3>
-                                <div className="grid grid-cols-3 gap-3">
-                                    <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">Paytm QR</label>
+                                <h3 className="text-sm font-bold text-slate-900 pt-4 border-t border-slate-100">QR Code Image Uploads (Optional)</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                                        <label className="block text-xs font-bold text-neutral-800 mb-1">Paytm QR</label>
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -1076,11 +1525,11 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                                 ...prev,
                                                 qr_codes: { ...prev.qr_codes, paytm_qr_path: url }
                                             })))}
-                                            className="mt-1 text-xs block w-full text-neutral-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-neutral-100 hover:file:bg-neutral-200"
+                                            className="text-xs block w-full text-neutral-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-white file:border-slate-200 file:shadow-sm hover:file:bg-slate-100"
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">GPay QR</label>
+                                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                                        <label className="block text-xs font-bold text-neutral-800 mb-1">GPay QR</label>
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -1088,11 +1537,11 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                                 ...prev,
                                                 qr_codes: { ...prev.qr_codes, gpay_qr_path: url }
                                             })))}
-                                            className="mt-1 text-xs block w-full text-neutral-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-neutral-100 hover:file:bg-neutral-200"
+                                            className="text-xs block w-full text-neutral-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-white file:border-slate-200 file:shadow-sm hover:file:bg-slate-100"
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-neutral-1000">PhonePe QR</label>
+                                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                                        <label className="block text-xs font-bold text-neutral-800 mb-1">PhonePe QR</label>
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -1100,7 +1549,7 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                                 ...prev,
                                                 qr_codes: { ...prev.qr_codes, phonepe_qr_path: url }
                                             })))}
-                                            className="mt-1 text-xs block w-full text-neutral-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-neutral-100 hover:file:bg-neutral-200"
+                                            className="text-xs block w-full text-neutral-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-white file:border-slate-200 file:shadow-sm hover:file:bg-slate-100"
                                         />
                                     </div>
                                 </div>
@@ -1109,46 +1558,64 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                         {/* STEP 5: PRODUCTS & SERVICES LIST */}
                         {currentStep === 5 && (
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="text-sm font-bold text-neutral-700 ">Products & Services ({cardState.services?.length || 0}/10)</h3>
+                            <div className="space-y-4 max-w-4xl">
+                                <div className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-2">
+                                    <div>
+                                        <h3 className="text-sm font-bold text-slate-900">
+                                            Products & Services <span className="text-red-500">*</span> ({cardState.services?.length || 0}/10)
+                                        </h3>
+                                        <p className="text-xs text-slate-500">At least 1 product or service is required.</p>
+                                    </div>
                                     <button
                                         type="button"
                                         onClick={addService}
-                                        className="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-lg text-xs font-semibold"
+                                        className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-95"
                                     >
                                         <Plus className="size-3.5" /> Add Item
                                     </button>
                                 </div>
 
+                                {isFieldMissing('Product / Service') && (
+                                    <p className="text-xs text-red-500 font-semibold flex items-center gap-1">
+                                        <AlertCircle className="size-4" /> Please add at least 1 Product / Service with a name.
+                                    </p>
+                                )}
+
                                 <div className="space-y-4">
                                     {(cardState.services || []).map((service: any, index: number) => (
-                                        <div key={index} className="p-4 border border-neutral-200  rounded-xl space-y-3 bg-neutral-50  relative">
-                                            <button
-                                                type="button"
-                                                onClick={() => removeService(index)}
-                                                className="absolute top-2 right-2 p-1 text-red-500 hover:bg-red-50 :bg-red-950/30 rounded"
-                                            >
-                                                <Trash2 className="size-4" />
-                                            </button>
+                                        <div key={index} className="p-4 sm:p-5 border border-slate-200 rounded-2xl space-y-3 bg-white shadow-sm relative">
+                                            {cardState.services.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeService(index)}
+                                                    className="absolute top-3 right-3 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                    title="Remove"
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                </button>
+                                            )}
 
-                                            <div className="grid grid-cols-2 gap-3 items-center">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 items-center">
                                                 <div>
-                                                    <label className="block text-xs font-bold text-neutral-1000">Service Name</label>
+                                                    <label className="block text-xs font-bold text-neutral-800">
+                                                        Service Name <span className="text-red-500">*</span>
+                                                    </label>
                                                     <input
                                                         type="text"
+                                                        required
                                                         value={service.name || ''}
                                                         onChange={(e) => updateService(index, 'name', e.target.value)}
-                                                        className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-xs"
+                                                        placeholder="e.g. Website Design, Consultation"
+                                                        className={`mt-1 w-full rounded-xl border ${!service.name?.trim() && isFieldMissing('Product / Service') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-bold text-neutral-1000">Image</label>
+                                                    <label className="block text-xs font-bold text-neutral-800">Image (Optional)</label>
                                                     <input
                                                         type="file"
                                                         accept="image/*"
                                                         onChange={(e) => handleFileUpload(e, (url) => updateService(index, 'image_path', url))}
-                                                        className="mt-1 text-xs block w-full text-neutral-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-neutral-100 hover:file:bg-neutral-200"
+                                                        className="mt-1 text-xs block w-full text-neutral-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
                                                     />
                                                 </div>
                                             </div>
@@ -1160,67 +1627,90 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                         {/* STEP 6: ECOMMERCE PRODUCTS */}
                         {currentStep === 6 && (
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="text-sm font-bold text-neutral-700 ">Ecommerce Store Products ({cardState.ecommerce_products?.length || 0}/20)</h3>
+                            <div className="space-y-4 max-w-4xl">
+                                <div className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-2">
+                                    <div>
+                                        <h3 className="text-sm font-bold text-slate-900">
+                                            Store Products <span className="text-red-500">*</span> ({cardState.ecommerce_products?.length || 0}/20)
+                                        </h3>
+                                        <p className="text-xs text-slate-500">At least 1 product with name and selling price is required.</p>
+                                    </div>
                                     <button
                                         type="button"
                                         onClick={addProduct}
-                                        className="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-lg text-xs font-semibold"
+                                        className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-95"
                                     >
                                         <Plus className="size-3.5" /> Add Product
                                     </button>
                                 </div>
 
+                                {isFieldMissing('Store Product') && (
+                                    <p className="text-xs text-red-500 font-semibold flex items-center gap-1">
+                                        <AlertCircle className="size-4" /> Please add at least 1 Store Product with Name and Selling Price.
+                                    </p>
+                                )}
+
                                 <div className="space-y-4">
                                     {(cardState.ecommerce_products || []).map((prod: any, index: number) => (
-                                        <div key={index} className="p-4 border border-neutral-200  rounded-xl space-y-3 bg-neutral-50  relative">
-                                            <button
-                                                type="button"
-                                                onClick={() => removeProduct(index)}
-                                                className="absolute top-2 right-2 p-1 text-red-500 hover:bg-red-50 :bg-red-950/30 rounded"
-                                            >
-                                                <Trash2 className="size-4" />
-                                            </button>
+                                        <div key={index} className="p-4 sm:p-5 border border-slate-200 rounded-2xl space-y-3 bg-white shadow-sm relative">
+                                            {cardState.ecommerce_products.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeProduct(index)}
+                                                    className="absolute top-3 right-3 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                    title="Remove"
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                </button>
+                                            )}
 
-                                            <div className="grid grid-cols-2 gap-3">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                                 <div>
-                                                    <label className="block text-xs font-bold text-neutral-1000">Product Name</label>
+                                                    <label className="block text-xs font-bold text-neutral-800">
+                                                        Product Name <span className="text-red-500">*</span>
+                                                    </label>
                                                     <input
                                                         type="text"
+                                                        required
                                                         value={prod.name || ''}
                                                         onChange={(e) => updateProduct(index, 'name', e.target.value)}
-                                                        className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-xs"
+                                                        placeholder="e.g. Leather Wallet"
+                                                        className={`mt-1 w-full rounded-xl border ${!prod.name?.trim() && isFieldMissing('Store Product') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-bold text-neutral-1000">Image</label>
+                                                    <label className="block text-xs font-bold text-neutral-800">Image (Optional)</label>
                                                     <input
                                                         type="file"
                                                         accept="image/*"
                                                         onChange={(e) => handleFileUpload(e, (url) => updateProduct(index, 'image_path', url))}
-                                                        className="mt-1 text-xs block w-full text-neutral-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-neutral-100 hover:file:bg-neutral-200"
+                                                        className="mt-1 text-xs block w-full text-neutral-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
                                                     />
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-3">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                                 <div>
-                                                    <label className="block text-xs font-bold text-neutral-1000">MRP (Original Price)</label>
+                                                    <label className="block text-xs font-bold text-neutral-800">MRP (Original Price)</label>
                                                     <input
                                                         type="number"
                                                         value={prod.mrp || ''}
                                                         onChange={(e) => updateProduct(index, 'mrp', e.target.value)}
-                                                        className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-xs"
+                                                        placeholder="e.g. 999"
+                                                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-bold text-neutral-1000">Selling Price</label>
+                                                    <label className="block text-xs font-bold text-neutral-800">
+                                                        Selling Price <span className="text-red-500">*</span>
+                                                    </label>
                                                     <input
                                                         type="number"
+                                                        required
                                                         value={prod.price || ''}
                                                         onChange={(e) => updateProduct(index, 'price', e.target.value)}
-                                                        className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-xs"
+                                                        placeholder="e.g. 599"
+                                                        className={`mt-1 w-full rounded-xl border ${!prod.price && isFieldMissing('Store Product') ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-slate-200'} bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm`}
                                                     />
                                                 </div>
                                             </div>
@@ -1232,10 +1722,15 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
 
                         {/* STEP 7: IMAGE GALLERY */}
                         {currentStep === 7 && (
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="text-sm font-bold text-neutral-700 ">Photo Gallery ({cardState.gallery?.length || 0}/10)</h3>
-                                    <label className="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer shadow-sm">
+                            <div className="space-y-5 max-w-4xl">
+                                <div className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-2">
+                                    <div>
+                                        <h3 className="text-sm font-bold text-slate-900">
+                                            Photo Gallery <span className="text-red-500">*</span> ({cardState.gallery?.length || 0}/10)
+                                        </h3>
+                                        <p className="text-xs text-slate-500">Upload at least 1 image or add 1 YouTube video link below.</p>
+                                    </div>
+                                    <label className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold cursor-pointer shadow-sm transition-all active:scale-95">
                                         <Plus className="size-3.5" /> Upload Image
                                         <input
                                             type="file"
@@ -1246,25 +1741,35 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                     </label>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-3">
-                                    {(cardState.gallery || []).map((imgUrl: string, index: number) => (
-                                        <div key={index} className="group relative aspect-square border border-neutral-200  rounded-xl overflow-hidden bg-neutral-100">
-                                            <img src={imgUrl} alt="Gallery item" className="w-full h-full object-cover" />
-                                            <button
-                                                type="button"
-                                                onClick={() => removeGalleryImage(index)}
-                                                className="absolute top-1 right-1 p-1 bg-red-650 hover:bg-red-700 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                <Trash2 className="size-3.5" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
+                                {isFieldMissing('Gallery') && (
+                                    <p className="text-xs text-red-500 font-semibold flex items-center gap-1">
+                                        <AlertCircle className="size-4" /> Upload at least 1 Photo Gallery Image or YouTube Video link.
+                                    </p>
+                                )}
 
-                                <h3 className="text-sm font-bold text-neutral-700  pt-5 border-t border-neutral-100 ">YouTube Video Links (Up to 5)</h3>
+                                {cardState.gallery && cardState.gallery.length > 0 && (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                                        {cardState.gallery.map((imgUrl: string, index: number) => (
+                                            <div key={index} className="group relative aspect-square border border-slate-200 rounded-2xl overflow-hidden bg-slate-100 shadow-sm">
+                                                <img src={imgUrl} alt="Gallery item" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeGalleryImage(index)}
+                                                    className="absolute top-2 right-2 p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                                                >
+                                                    <Trash2 className="size-3.5" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <h3 className="text-sm font-bold text-slate-900 pt-5 border-t border-slate-100">
+                                    YouTube Video Links (Up to 5)
+                                </h3>
                                 {[0, 1, 2, 3, 4].map((idx) => (
                                     <div key={idx}>
-                                        <label className="block text-xs font-bold text-neutral-1000">Video Link {idx + 1}</label>
+                                        <label className="block text-xs font-bold text-neutral-800">Video Link {idx + 1}</label>
                                         <input
                                             type="text"
                                             value={cardState.youtube_videos?.[idx] || ''}
@@ -1274,112 +1779,493 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                                                 setCardState(prev => ({ ...prev, youtube_videos: newVideos }));
                                             }}
                                             placeholder="https://www.youtube.com/watch?v=..."
-                                            className="mt-1 w-full rounded-lg border border-neutral-200  bg-white  p-2 text-sm"
+                                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 sm:p-3 text-sm focus:border-slate-900 focus:outline-none transition-all shadow-sm"
                                         />
                                     </div>
                                 ))}
                             </div>
                         )}
 
-                        {/* STEP 8: PREVIEW CARD */}
+                        {/* STEP 8: PREVIEW & PLAN CHECKOUT */}
                         {currentStep === 8 && (
-                            <div className="space-y-6 text-center py-6">
-                                <div className="inline-flex items-center justify-center size-16 rounded-full bg-emerald-100  text-emerald-600  mb-2">
-                                    <Check className="size-8" />
-                                </div>
-                                <div className="space-y-2">
-                                    <h2 className="text-xl font-bold text-neutral-900 ">Smart Business Card Active!</h2>
-                                    <p className="text-sm text-neutral-500 max-w-sm mx-auto">Your premium digital vCard is live and ready to be shared with customers, clients, and partners.</p>
-                                </div>
+                            <div className="space-y-6 py-2">
+                                {paymentSuccess || cardState.payment_status === 'Success' ? (
+                                    /* ACTIVE & PAID SUCCESS STATE */
+                                    <div className="space-y-6 text-center py-6">
+                                        <div className="relative inline-flex items-center justify-center size-20 rounded-full bg-emerald-100 text-emerald-600 mb-2 shadow-lg shadow-emerald-500/20">
+                                            <CheckCircle2 className="size-10" />
+                                            <Sparkles className="size-5 absolute -top-1 -right-1 text-amber-500 animate-spin" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                                <Check className="size-3.5" /> Plan Active & Paid
+                                            </span>
+                                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Your Smart Business Card is Live!</h2>
+                                            <p className="text-sm text-slate-500 max-w-md mx-auto">
+                                                Congratulations! Your digital visiting card has been published and is ready to share with customers, clients, and partners.
+                                            </p>
+                                        </div>
 
-                                <div className="max-w-md mx-auto border border-neutral-200  rounded-2xl p-6 bg-neutral-50  space-y-4">
-                                    <div className="flex flex-col items-center justify-center">
-                                        <img
-                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/card/' + cardState.slug)}`}
-                                            alt="Scan QR Code"
-                                            className="size-36 border border-neutral-200  rounded-xl bg-white p-2"
-                                        />
-                                        <p className="text-[10px] text-neutral-450 mt-2">Scan with phone camera to view</p>
-                                    </div>
+                                        <div className="max-w-md mx-auto border border-slate-200 rounded-3xl p-6 bg-slate-50 shadow-sm space-y-5">
+                                            {/* QR Code */}
+                                            <div className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                                                <img
+                                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(window.location.origin + '/card/' + cardState.slug)}`}
+                                                    alt="Scan QR Code"
+                                                    className="size-40 border border-slate-100 rounded-xl bg-white p-2"
+                                                />
+                                                <p className="text-xs font-semibold text-slate-600 mt-3 flex items-center gap-1.5">
+                                                    <Smartphone className="size-3.5 text-blue-500" /> Scan with phone camera to view
+                                                </p>
+                                            </div>
 
-                                    <div className="space-y-2">
-                                        <label className="block text-xs font-bold text-neutral-1000 text-left">Live vCard URL Link</label>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                value={`${window.location.origin}/card/${cardState.slug}`}
-                                                className="w-full text-xs font-mono select-all bg-white  border border-neutral-200  rounded-lg px-3 py-2 text-neutral-600  focus:outline-none"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(`${window.location.origin}/card/${cardState.slug}`);
-                                                    setSaveMessage('Copied link to clipboard!');
-                                                    setTimeout(() => setSaveMessage(''), 2000);
-                                                }}
-                                                className="px-3 py-2 border border-neutral-200  rounded-lg bg-white  hover:bg-neutral-100 :bg-neutral-800 text-xs font-bold text-neutral-600 "
-                                            >
-                                                Copy
-                                            </button>
+                                            {/* Live Link */}
+                                            <div className="space-y-2 text-left">
+                                                <label className="block text-xs font-bold text-slate-700">Live Card URL</label>
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="text"
+                                                        readOnly
+                                                        value={`${window.location.origin}/card/${cardState.slug}`}
+                                                        className="w-full text-xs font-mono select-all bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-700 focus:outline-none"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(`${window.location.origin}/card/${cardState.slug}`);
+                                                            setSaveMessage('Copied link to clipboard!');
+                                                            setTimeout(() => setSaveMessage(''), 2500);
+                                                        }}
+                                                        className="px-4 py-2.5 border border-slate-200 rounded-xl bg-white hover:bg-slate-100 text-xs font-bold text-slate-700 flex items-center gap-1.5 transition-colors shadow-sm"
+                                                    >
+                                                        <Copy className="size-3.5" /> Copy
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Action buttons */}
+                                            <div className="flex flex-wrap gap-3 justify-center pt-2">
+                                                <a
+                                                    href={`/card/${cardState.slug}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition-all active:scale-95"
+                                                >
+                                                    <ExternalLink className="size-4" /> View Live Card
+                                                </a>
+                                                <a
+                                                    href={`/card/${cardState.slug}/vcard`}
+                                                    className="inline-flex items-center gap-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 px-5 py-3 rounded-xl text-xs font-bold transition-all active:scale-95"
+                                                >
+                                                    <Download className="size-4" /> Download vCard
+                                                </a>
+                                                <Link
+                                                    href="/customer/business-cards"
+                                                    className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 rounded-xl text-xs font-bold shadow-md shadow-slate-900/20 transition-all active:scale-95"
+                                                >
+                                                    Go to Dashboard <ChevronRight className="size-4" />
+                                                </Link>
+                                            </div>
                                         </div>
                                     </div>
+                                ) : (
+                                    /* SUBSCRIPTION PLAN SELECTION & CHECKOUT FLOW */
+                                    <div className="space-y-6 sm:space-y-8">
+                                        {/* Mobile View Toggle on Step 8 */}
+                                        <div className="lg:hidden flex p-1 bg-slate-100 rounded-xl border border-slate-200">
+                                            <button
+                                                type="button"
+                                                onClick={() => setStep8MobileView('checkout')}
+                                                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                                                    step8MobileView === 'checkout'
+                                                        ? 'bg-white text-slate-900 shadow-sm'
+                                                        : 'text-slate-500 hover:text-slate-800'
+                                                }`}
+                                            >
+                                                <CreditCard className="size-3.5" /> Plan & Payment
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setStep8MobileView('preview')}
+                                                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                                                    step8MobileView === 'preview'
+                                                        ? 'bg-white text-slate-900 shadow-sm'
+                                                        : 'text-slate-500 hover:text-slate-800'
+                                                }`}
+                                            >
+                                                <Eye className="size-3.5" /> Live Card Preview
+                                            </button>
+                                        </div>
 
-                                    <div className="flex flex-wrap gap-3 justify-center pt-2">
-                                        <a
-                                            href={`/card/${cardState.slug}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1.5 bg-[#009ef7] hover:bg-blue-600 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm shadow-[#009ef7]/20"
-                                        >
-                                            <ExternalLink className="size-4" /> View Live Card
-                                        </a>
-                                        <a
-                                            href={`/card/${cardState.slug}/vcard`}
-                                            className="inline-flex items-center gap-1.5 bg-neutral-100 hover:bg-neutral-200  :bg-neutral-750 text-neutral-700  px-4 py-2.5 rounded-xl text-xs font-semibold"
-                                        >
-                                            <Download className="size-4" /> Download vCard
-                                        </a>
+                                        {/* Header */}
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Step 8 of 8</span>
+                                                <span className="text-xs font-semibold text-slate-400">Final Step</span>
+                                            </div>
+                                            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1.5">
+                                                Choose Your Plan & Publish Card
+                                            </h2>
+                                            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                                                Select a subscription plan below to activate your smart digital visiting card with custom QR code, unlimited shares, and lead generation.
+                                            </p>
+                                        </div>
+
+                                        {/* Subscription Plans Grid */}
+                                        <div className="space-y-3">
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                                                1. Select Subscription Plan <span className="text-red-500">*</span>
+                                            </label>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {availablePlans.map((plan) => {
+                                                    const isSelected = selectedPlanId === plan.id;
+                                                    const isYearly = plan.duration_months >= 12;
+                                                    return (
+                                                        <div
+                                                            key={plan.id}
+                                                            onClick={() => setSelectedPlanId(plan.id)}
+                                                            className={`relative cursor-pointer rounded-2xl p-5 border-2 transition-all duration-200 flex flex-col justify-between ${
+                                                                isSelected
+                                                                    ? 'border-blue-600 bg-blue-50/40 shadow-lg shadow-blue-500/10 ring-2 ring-blue-600/20'
+                                                                    : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-md'
+                                                            }`}
+                                                        >
+                                                            {isYearly && (
+                                                                <div className="absolute -top-3 right-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+                                                                    <Sparkles className="size-3" /> Best Value
+                                                                </div>
+                                                            )}
+
+                                                            <div>
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className={`size-5 rounded-full border flex items-center justify-center transition-colors ${
+                                                                            isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300 bg-white'
+                                                                        }`}>
+                                                                            {isSelected && <Check className="size-3.5 stroke-[3]" />}
+                                                                        </div>
+                                                                        <h3 className="text-base font-bold text-slate-900">{plan.name}</h3>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <span className="text-2xl font-black text-slate-900">₹{plan.price}</span>
+                                                                        <span className="text-xs text-slate-500 block">
+                                                                            /{plan.duration_months ? `${plan.duration_months} mo` : 'plan'}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+
+                                                                <p className="text-xs text-slate-500 mt-2">
+                                                                    {plan.description || `Full access for ${plan.duration_months} months with all features.`}
+                                                                </p>
+
+                                                                <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <CheckCircle2 className="size-3.5 text-emerald-500 flex-shrink-0" />
+                                                                        <span>Live Digital Visiting Card & Custom URL</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <CheckCircle2 className="size-3.5 text-emerald-500 flex-shrink-0" />
+                                                                        <span>Scan & Save QR Code + .vcf vCard Download</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <CheckCircle2 className="size-3.5 text-emerald-500 flex-shrink-0" />
+                                                                        <span>Direct Call, WhatsApp, Email & Google Maps</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <CheckCircle2 className="size-3.5 text-emerald-500 flex-shrink-0" />
+                                                                        <span>Products Showcase & Online Order Cart</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <CheckCircle2 className="size-3.5 text-emerald-500 flex-shrink-0" />
+                                                                        <span>Photo Gallery & YouTube Videos Embeds</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <CheckCircle2 className="size-3.5 text-emerald-500 flex-shrink-0" />
+                                                                        <span>Integrated UPI & Bank Payment Details</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        {/* Account Section */}
+                                        {isGuest ? (
+                                            <div className="border border-slate-200 rounded-2xl p-5 bg-white shadow-sm space-y-4">
+                                                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                                                    <div>
+                                                        <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                                            <Lock className="size-4 text-blue-600" />
+                                                            2. Account Setup (Save & Manage Card)
+                                                        </h3>
+                                                        <p className="text-xs text-slate-500 mt-0.5">
+                                                            {authMode === 'register' 
+                                                                ? 'Create your customer account to manage, edit, and access your card anytime.' 
+                                                                : 'Log into your existing account to link this card.'}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex bg-slate-100 p-0.5 rounded-lg text-xs font-semibold">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setAuthMode('register')}
+                                                            className={`px-3 py-1 rounded-md transition-colors ${authMode === 'register' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-900'}`}
+                                                        >
+                                                            New Account
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setAuthMode('login')}
+                                                            className={`px-3 py-1 rounded-md transition-colors ${authMode === 'login' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-900'}`}
+                                                        >
+                                                            Sign In
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {authMode === 'register' ? (
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-slate-700">
+                                                                Your Full Name <span className="text-red-500">*</span>
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                required
+                                                                value={guestName}
+                                                                onChange={(e) => setGuestName(e.target.value)}
+                                                                placeholder="e.g. Rahul Sharma"
+                                                                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs focus:border-blue-500 focus:outline-none"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-slate-700">
+                                                                Email Address <span className="text-red-500">*</span>
+                                                            </label>
+                                                            <input
+                                                                type="email"
+                                                                required
+                                                                value={guestEmail}
+                                                                onChange={(e) => setGuestEmail(e.target.value)}
+                                                                placeholder="rahul@example.com"
+                                                                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs focus:border-blue-500 focus:outline-none"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-slate-700">
+                                                                Phone / Mobile
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                value={guestPhone}
+                                                                onChange={(e) => setGuestPhone(e.target.value)}
+                                                                placeholder="+91 9876543210"
+                                                                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs focus:border-blue-500 focus:outline-none"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-slate-700">
+                                                                Create Password <span className="text-red-500">*</span>
+                                                            </label>
+                                                            <input
+                                                                type="password"
+                                                                required
+                                                                minLength={6}
+                                                                value={guestPassword}
+                                                                onChange={(e) => setGuestPassword(e.target.value)}
+                                                                placeholder="Min. 6 characters"
+                                                                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs focus:border-blue-500 focus:outline-none"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <form onSubmit={handleQuickLogin} className="space-y-4">
+                                                        {loginError && (
+                                                            <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-medium flex items-center gap-2">
+                                                                <AlertCircle className="size-4 flex-shrink-0" /> {loginError}
+                                                            </div>
+                                                        )}
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-slate-700">Email Address</label>
+                                                                <input
+                                                                    type="email"
+                                                                    required
+                                                                    value={loginEmail}
+                                                                    onChange={(e) => setLoginEmail(e.target.value)}
+                                                                    placeholder="your@email.com"
+                                                                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs focus:border-blue-500 focus:outline-none"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-slate-700">Password</label>
+                                                                <input
+                                                                    type="password"
+                                                                    required
+                                                                    value={loginPassword}
+                                                                    onChange={(e) => setLoginPassword(e.target.value)}
+                                                                    placeholder="Your account password"
+                                                                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs focus:border-blue-500 focus:outline-none"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex justify-end">
+                                                            <button
+                                                                type="submit"
+                                                                disabled={loginLoading}
+                                                                className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-xl text-xs font-bold disabled:opacity-50"
+                                                            >
+                                                                {loginLoading && <Loader2 className="size-3.5 animate-spin" />} Sign In to Continue
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="border border-emerald-200 bg-emerald-50/50 rounded-2xl p-4 flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="size-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm">
+                                                        {auth?.user?.name ? auth.user.name.charAt(0).toUpperCase() : 'U'}
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-xs font-bold text-emerald-900 block">Logged in as {auth?.user?.name}</span>
+                                                        <span className="text-xs text-emerald-700">{auth?.user?.email}</span>
+                                                    </div>
+                                                </div>
+                                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">
+                                                    <Check className="size-3" /> Account Ready
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        {/* Order Summary & Pay Card */}
+                                        <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50 space-y-4">
+                                            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                                3. Order Summary & Payment
+                                            </h3>
+                                            
+                                            <div className="space-y-2 bg-white rounded-xl p-4 border border-slate-200 text-xs">
+                                                <div className="flex justify-between items-center text-slate-600">
+                                                    <span>Selected Plan:</span>
+                                                    <span className="font-bold text-slate-900">{selectedPlan.name} ({selectedPlan.duration_months} Months)</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-slate-600">
+                                                    <span>Card URL Slug:</span>
+                                                    <span className="font-mono text-slate-700">/card/{cardState.slug || 'auto-generated'}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-slate-600">
+                                                    <span>Taxes & GST:</span>
+                                                    <span className="text-emerald-600 font-semibold">Included</span>
+                                                </div>
+                                                <div className="pt-2 border-t border-slate-100 flex justify-between items-center text-sm font-black text-slate-900">
+                                                    <span>Total Payable Amount:</span>
+                                                    <span className="text-lg text-blue-600">₹{selectedPlan.price}</span>
+                                                </div>
+                                            </div>
+
+                                            {checkoutError && (
+                                                <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-semibold flex items-center gap-2">
+                                                    <AlertCircle className="size-4 flex-shrink-0" />
+                                                    {checkoutError}
+                                                </div>
+                                            )}
+
+                                            <button
+                                                type="button"
+                                                onClick={handlePlanCheckout}
+                                                disabled={isCheckingOut}
+                                                className="w-full inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 px-6 rounded-xl text-sm shadow-xl shadow-blue-500/25 transition-all active:scale-[0.99] disabled:opacity-50"
+                                            >
+                                                {isCheckingOut ? (
+                                                    <>
+                                                        <Loader2 className="size-5 animate-spin" />
+                                                        Processing Payment Order...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <CreditCard className="size-5" />
+                                                        Pay ₹{selectedPlan.price} & Activate Card Now
+                                                    </>
+                                                )}
+                                            </button>
+
+                                            <div className="flex items-center justify-center gap-4 text-[11px] text-slate-400 pt-1">
+                                                <span className="flex items-center gap-1">
+                                                    <ShieldCheck className="size-3.5 text-emerald-500" /> 100% Secure Checkout
+                                                </span>
+                                                <span>•</span>
+                                                <span>Razorpay / UPI / Cards</span>
+                                                <span>•</span>
+                                                <span>Instant Activation</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         )}
                     </div>
 
                     {/* Step Navigation Actions */}
-                    <div className="px-8 py-5 border-t border-slate-200 flex items-center justify-between bg-white z-20 sticky bottom-0">
+                    <div className="px-4 sm:px-8 py-3.5 sm:py-5 border-t border-slate-200 flex items-center justify-between bg-white z-20 sticky bottom-0 shadow-[0_-4px_16px_rgba(0,0,0,0.03)]">
                         <button
                             type="button"
                             disabled={currentStep === 1}
                             onClick={() => saveDraft(currentStep - 1)}
-                            className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-800 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                            className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 disabled:opacity-30 disabled:pointer-events-none transition-colors"
                         >
-                            <ChevronLeft className="size-5" /> Back
+                            <ChevronLeft className="size-4 sm:size-5" /> Back
                         </button>
 
                         {currentStep < steps.length ? (
                             <button
                                 type="button"
                                 onClick={() => saveDraft(currentStep + 1)}
-                                className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-slate-900/20 transition-all active:scale-95"
+                                className="inline-flex items-center gap-1.5 sm:gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-slate-900/20 transition-all active:scale-95"
                             >
-                                Next Step <ChevronRight className="size-5" />
+                                Next Step <ChevronRight className="size-4 sm:size-5" />
                             </button>
-                        ) : (
+                        ) : (paymentSuccess || cardState.payment_status === 'Success') ? (
                             <Link
                                 href="/customer/business-cards"
-                                className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 transition-all active:scale-95"
+                                className="inline-flex items-center gap-1.5 sm:gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-slate-900/20 transition-all active:scale-95"
                             >
-                                Finish & Exit <Check className="size-5" />
+                                Go to Dashboard <ChevronRight className="size-4 sm:size-5" />
                             </Link>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={handlePlanCheckout}
+                                disabled={isCheckingOut}
+                                className="inline-flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 disabled:opacity-50"
+                            >
+                                {isCheckingOut ? (
+                                    <>
+                                        <Loader2 className="size-4 animate-spin" /> Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        Pay ₹{selectedPlan?.price || 499} & Activate <CreditCard className="size-4" />
+                                    </>
+                                )}
+                            </button>
                         )}
                     </div>
                 </div>
 
                 {/* Right Side Responsive Live Preview Device Mockup */}
-                <div className={`${currentStep === 8 ? 'w-full lg:w-1/2 flex' : 'hidden'} bg-neutral-950 flex-col items-center justify-between p-6 relative transition-all duration-300 min-h-[100vh] lg:min-h-0`}>
-                    <div className="w-full flex items-center justify-between border-b border-neutral-900 pb-3 text-neutral-400 mb-6">
-                        <span className="text-xs font-bold tracking-wider">Live Preview Viewport</span>
+                <div className={`${currentStep === 8 ? (step8MobileView === 'preview' ? 'flex w-full' : 'hidden lg:flex lg:w-1/2') : 'hidden'} bg-neutral-950 flex-col items-center justify-between p-4 sm:p-6 relative transition-all duration-300 min-h-[85vh] lg:min-h-0`}>
+                    <div className="w-full flex items-center justify-between border-b border-neutral-900 pb-3 text-neutral-400 mb-4 sm:mb-6">
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setStep8MobileView('checkout')}
+                                className="lg:hidden inline-flex items-center gap-1 bg-neutral-850 hover:bg-neutral-800 text-white px-2.5 py-1 rounded-md text-xs font-semibold mr-1 transition-all active:scale-95"
+                            >
+                                <ChevronLeft className="size-3.5" /> Back to Payment
+                            </button>
+                            <span className="text-xs font-bold tracking-wider text-neutral-300">Live Preview</span>
+                        </div>
                         <div className="flex gap-1.5 border border-neutral-800 rounded-lg p-0.5">
                             <button
                                 onClick={() => setPreviewMode('mobile')}
@@ -1409,14 +2295,14 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                     <div className="flex-1 w-full flex items-center justify-center overflow-hidden">
                         <div
                             className={`h-full border border-neutral-900 bg-neutral-900 shadow-2xl flex flex-col transition-all duration-300 relative ${previewMode === 'mobile'
-                                ? 'w-[390px] max-h-[800px] rounded-[40px] p-3'
+                                ? 'w-full max-w-[390px] min-h-[550px] max-h-[800px] rounded-[32px] sm:rounded-[40px] p-2.5 sm:p-3'
                                 : previewMode === 'tablet'
-                                    ? 'w-[768px] rounded-2xl'
+                                    ? 'w-full max-w-[768px] rounded-2xl'
                                     : 'w-full rounded-xl'
                                 }`}
                         >
                             {previewMode === 'mobile' && (
-                                <div className="absolute top-5 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-full z-20 flex items-center justify-center">
+                                <div className="absolute top-4 sm:top-5 left-1/2 -translate-x-1/2 w-28 sm:w-32 h-5 sm:h-6 bg-black rounded-full z-20 flex items-center justify-center">
                                     <div className="size-2 bg-neutral-800 rounded-full mr-2"></div>
                                 </div>
                             )}
@@ -1430,6 +2316,9 @@ export default function BusinessCardEdit({ card, templates = [], razorpayKeyId =
                     </div>
                 </div>
             </div>
+
+            {/* Interactive User Guide Modal */}
+            <BusinessCardHelpModal open={showHelpModal} onOpenChange={setShowHelpModal} />
         </AppLayout>
     );
 }

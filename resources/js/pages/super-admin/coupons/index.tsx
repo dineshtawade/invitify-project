@@ -82,7 +82,7 @@ export default function CouponsIndex({ coupons, templates, imageTemplates, miniW
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (editingCoupon) {
             put(`/super-admin/coupons/${editingCoupon.id}`, {
                 onSuccess: () => setIsDialogOpen(false),
@@ -246,7 +246,7 @@ export default function CouponsIndex({ coupons, templates, imageTemplates, miniW
                                     <option value="all">All Products</option>
                                     <option value="templates">Video Templates</option>
                                     <option value="image_templates">Image Templates</option>
-                                    <option value="mini_websites">Mini Websites</option>
+                                    <option value="mini_websites">Invitation Website</option>
                                     <option value="virtual_cards">Virtual Card Plans</option>
                                 </select>
                                 {errors.target_type && <p className="text-sm text-red-500">{errors.target_type}</p>}
@@ -264,8 +264,8 @@ export default function CouponsIndex({ coupons, templates, imageTemplates, miniW
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 max-h-48 overflow-y-auto">
                                         {templates.map(item => (
                                             <Label key={item.id} className="flex items-center gap-2 p-2 border rounded hover:bg-muted cursor-pointer">
-                                                <input 
-                                                    type="checkbox" 
+                                                <input
+                                                    type="checkbox"
                                                     checked={data.target_ids.includes(item.id)}
                                                     onChange={() => toggleTargetId(item.id)}
                                                     className="rounded"
@@ -289,8 +289,8 @@ export default function CouponsIndex({ coupons, templates, imageTemplates, miniW
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 max-h-48 overflow-y-auto">
                                         {imageTemplates.map(item => (
                                             <Label key={item.id} className="flex items-center gap-2 p-2 border rounded hover:bg-muted cursor-pointer">
-                                                <input 
-                                                    type="checkbox" 
+                                                <input
+                                                    type="checkbox"
                                                     checked={data.target_ids.includes(item.id)}
                                                     onChange={() => toggleTargetId(item.id)}
                                                     className="rounded"
@@ -305,7 +305,7 @@ export default function CouponsIndex({ coupons, templates, imageTemplates, miniW
                             {data.target_type === 'mini_websites' && (
                                 <div className="space-y-2 md:col-span-2 bg-muted/30 p-4 rounded-lg">
                                     <div className="flex items-center justify-between">
-                                        <Label>Select Mini Websites (Leave empty to apply to all mini websites)</Label>
+                                        <Label>Select Invitation Website (Leave empty to apply to all Invitation Website)</Label>
                                         <div className="flex gap-2">
                                             <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleSelectAll(miniWebsites)}>Select All</Button>
                                             <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={handleClearAll}>Clear</Button>
@@ -314,8 +314,8 @@ export default function CouponsIndex({ coupons, templates, imageTemplates, miniW
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 max-h-48 overflow-y-auto">
                                         {miniWebsites.map(item => (
                                             <Label key={item.id} className="flex items-center gap-2 p-2 border rounded hover:bg-muted cursor-pointer">
-                                                <input 
-                                                    type="checkbox" 
+                                                <input
+                                                    type="checkbox"
                                                     checked={data.target_ids.includes(item.id)}
                                                     onChange={() => toggleTargetId(item.id)}
                                                     className="rounded"
@@ -339,8 +339,8 @@ export default function CouponsIndex({ coupons, templates, imageTemplates, miniW
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 max-h-48 overflow-y-auto">
                                         {virtualCards.map(item => (
                                             <Label key={item.id} className="flex items-center gap-2 p-2 border rounded hover:bg-muted cursor-pointer">
-                                                <input 
-                                                    type="checkbox" 
+                                                <input
+                                                    type="checkbox"
                                                     checked={data.target_ids.includes(item.id)}
                                                     onChange={() => toggleTargetId(item.id)}
                                                     className="rounded"

@@ -19,6 +19,7 @@ class Template extends Model
         'thumbnail',
         'default_config',
         'status',
+        'is_trending',
     ];
 
     protected $appends = ['encrypted_id'];
@@ -34,6 +35,7 @@ class Template extends Model
             'default_config' => 'array',
             'price' => 'decimal:2',
             'reseller_price' => 'decimal:2',
+            'is_trending' => 'boolean',
         ];
     }
 

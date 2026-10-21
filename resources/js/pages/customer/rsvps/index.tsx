@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { 
-    Users, UserCheck, MessageSquare, ExternalLink, Calendar, 
+import {
+    Users, UserCheck, MessageSquare, ExternalLink, Calendar,
     Phone, Mail, Heart, Filter, ArrowUpRight, Search, CheckCircle2, XCircle, HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -44,7 +44,7 @@ interface PageProps {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/customer/dashboard' },
-    { title: 'My Mini Websites', href: '/customer/mini-websites' },
+    { title: 'My Invitation Website', href: '/customer/mini-websites' },
     { title: 'RSVP Responses', href: '/customer/rsvps' },
 ];
 
@@ -74,7 +74,7 @@ export default function RsvpsIndex({ websites = [], rsvps = [], selectedWebsiteI
     const noCount = rsvps.filter(r => isDeclined(r.status)).length;
 
     const filteredRsvps = rsvps.filter(r => {
-        const matchesSearch = 
+        const matchesSearch =
             r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             (r.mobile_number && r.mobile_number.includes(searchQuery)) ||
             (r.message && r.message.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -93,7 +93,7 @@ export default function RsvpsIndex({ websites = [], rsvps = [], selectedWebsiteI
             <Head title="Guest RSVP Responses - Invitify" />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
-                
+
                 {/* Header section */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
                     <div>
@@ -102,7 +102,7 @@ export default function RsvpsIndex({ websites = [], rsvps = [], selectedWebsiteI
                             Guest RSVP Responses
                         </h1>
                         <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-                            Live guest list and wishes submitted directly from your wedding mini websites.
+                            Live guest list and wishes submitted directly from your wedding Invitation Website.
                         </p>
                     </div>
 
@@ -267,7 +267,17 @@ export default function RsvpsIndex({ websites = [], rsvps = [], selectedWebsiteI
                                         return (
                                             <tr key={r.id} className="hover:bg-neutral-50/60 dark:hover:bg-neutral-800/30 transition-colors">
                                                 <td className="px-5 py-4 font-bold text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
-                                                    {r.name}
+                                                    <div>{r.name}</div>
+                                                    {r.answers && Object.keys(r.answers).length > 0 && (
+                                                        <div className="flex flex-wrap gap-1 mt-1 max-w-[280px]">
+                                                            {Object.entries(r.answers).map(([k, v]) => (
+                                                                <span key={k} className="inline-flex items-center gap-1 text-[10px] bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-1.5 py-0.5 rounded font-medium border border-neutral-200 dark:border-neutral-700">
+                                                                    <span className="font-bold capitalize">{k.replace(/_/g, ' ')}:</span>
+                                                                    <span>{String(v)}</span>
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </td>
                                                 <td className="px-5 py-4 font-mono font-medium text-neutral-800 dark:text-neutral-200 whitespace-nowrap">
                                                     {r.mobile_number ? (

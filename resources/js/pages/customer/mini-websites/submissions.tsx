@@ -38,7 +38,7 @@ interface PageProps {
 
 export default function SubmissionsIndex({ website }: PageProps) {
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'My Mini Websites', href: '/customer/mini-websites' },
+        { title: 'My Invitation Website', href: '/customer/mini-websites' },
         { title: `${website.title} Submissions`, href: `/customer/mini-websites/${website.id}/submissions` },
     ];
 
@@ -63,7 +63,7 @@ export default function SubmissionsIndex({ website }: PageProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`${website.title} - Inbox`} />
             <div className="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6">
-                
+
                 {/* Header Actions */}
                 <div className="flex items-center gap-1 border-b border-neutral-150 pb-4 dark:border-neutral-850">
                     <div className="flex flex-col gap-1">
@@ -82,7 +82,7 @@ export default function SubmissionsIndex({ website }: PageProps) {
                 {/* 1. Rendering Invitation RSVPs */}
                 {isInvitation && (
                     <div className="flex flex-col gap-6">
-                        
+
                         {/* Summary Widgets */}
                         <div className="grid gap-4 sm:grid-cols-4">
                             <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 flex items-center justify-between gap-3">
@@ -166,7 +166,17 @@ export default function SubmissionsIndex({ website }: PageProps) {
                                                 return (
                                                     <tr key={r.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20">
                                                         <td className="px-6 py-4 font-bold text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
-                                                            {r.name}
+                                                            <div>{r.name}</div>
+                                                            {r.answers && Object.keys(r.answers).length > 0 && (
+                                                                <div className="flex flex-wrap gap-1 mt-1 max-w-[280px]">
+                                                                    {Object.entries(r.answers).map(([k, v]) => (
+                                                                        <span key={k} className="inline-flex items-center gap-1 text-[10px] bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-1.5 py-0.5 rounded font-medium border border-neutral-200 dark:border-neutral-700">
+                                                                            <span className="font-bold capitalize">{k.replace(/_/g, ' ')}:</span>
+                                                                            <span>{String(v)}</span>
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
                                                         </td>
                                                         <td className="px-6 py-4 font-mono font-medium text-neutral-800 dark:text-neutral-200 whitespace-nowrap">
                                                             {r.mobile_number || (r.email ? r.email : '-')}

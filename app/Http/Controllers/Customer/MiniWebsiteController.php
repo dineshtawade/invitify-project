@@ -8,12 +8,156 @@ use App\Models\MiniWebsiteTemplate;
 use App\Models\SystemSetting;
 use App\Models\ReferralCode;
 use App\Models\Transaction;
+use App\Models\User;
+use App\Mail\MiniWebsitePurchaseMail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 
 class MiniWebsiteController extends Controller
 {
+    /**
+     * Public Guest Builder for Invitation Websites (Mini Websites)
+     * allows unauthenticated visitors from the landing page to customize first,
+     * and only login / pay when ready.
+     * developed by dinesh tawade
+     */
+    public function createGuestWebsite(Request $request)
+    {
+        $templateId = $request->query('template_id');
+        $template = MiniWebsiteTemplate::find($templateId) ?? MiniWebsiteTemplate::where('status', 'published')->first();
+        if (!$template) {
+            return redirect()->route('home');
+        }
+
+        if (auth()->check()) {
+            $website = MiniWebsite::firstOrCreate([
+                'user_id' => auth()->id(),
+                'template_id' => $template->id,
+                'is_published' => false,
+            ], [
+                'type' => 'invitation',
+                'title' => $template->name,
+                'slug' => Str::slug($template->name) . '-' . Str::lower(Str::random(5)),
+                'theme' => 'cozy',
+                'config' => $template->config,
+                'expires_at' => null,
+            ]);
+
+            return redirect()->route('customer.mini-websites.edit', $website);
+        }
+
+        // Mock guest website
+        $website = [
+            'id' => 0,
+            'uuid' => 'guest-' . Str::lower(Str::random(10)),
+            'type' => 'invitation',
+            'title' => $template->name,
+            'slug' => Str::slug($template->name) . '-' . Str::lower(Str::random(5)),
+            'theme' => 'cozy',
+            'config' => $template->config,
+            'is_published' => false,
+            'template' => $template,
+        ];
+
+        $now = now();
+        $coupons = \App\Models\Coupon::where('is_active', true)
+            ->where(function ($q) use ($now) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
+            })
+            ->where(function ($q) use ($now) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
+            })
+            ->whereIn('target_type', ['all', 'mini_websites'])
+            ->get();
+
+        return Inertia::render('customer/mini-websites/edit', [
+            'website' => $website,
+            'customBlocks' => \App\Models\CustomBlock::orderBy('name')->get(),
+            'coupons' => $coupons,
+            'isGuest' => true,
+        ]);
+    }
+
+    /**
+     * Authenticate or register guest during mini-website checkout,
+     * create their website in the database with their custom config, and return website details.
+     * developed by dinesh tawade
+     */
+    public function quickCheckoutAuth(Request $request)
+    {
+        $validated = $request->validate([
+            'mode' => 'required|in:login,register',
+            'template_id' => 'required|exists:mini_website_templates,id',
+            'title' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:50',
+            'theme' => 'nullable|string',
+            'config' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|string|min:6',
+            'name' => 'nullable|string|max:255',
+        ]);
+
+        if ($validated['mode'] === 'register') {
+            if (User::where('email', $validated['email'])->exists()) {
+                return response()->json(['error' => 'An account with this email already exists. Please choose "Sign In".'], 422);
+            }
+
+            $user = User::create([
+                'name' => $validated['name'] ?? explode('@', $validated['email'])[0],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => 'customer',
+                'is_approved' => true,
+            ]);
+
+            Auth::login($user);
+        } else {
+            if (!Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']])) {
+                return response()->json(['error' => 'Invalid email or password.'], 422);
+            }
+        }
+
+        $request->session()->regenerate();
+
+        $baseSlug = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['title']);
+        $uniqueSlug = $baseSlug;
+        $counter = 1;
+        while (MiniWebsite::where('slug', $uniqueSlug)->exists()) {
+            $uniqueSlug = $baseSlug . '-' . $counter++;
+        }
+
+        $website = MiniWebsite::create([
+            'user_id' => auth()->id(),
+            'template_id' => $validated['template_id'],
+            'type' => 'invitation',
+            'title' => $validated['title'],
+            'slug' => $uniqueSlug,
+            'theme' => $validated['theme'] ?? 'cozy',
+            'config' => $validated['config'],
+            'is_published' => false,
+            'expires_at' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'id' => auth()->user()->id,
+                'name' => auth()->user()->name,
+                'email' => auth()->user()->email,
+            ],
+            'website_id' => $website->id,
+            'website_uuid' => $website->uuid,
+            'website_slug' => $website->slug,
+            'redirect_url' => route('customer.mini-websites.edit', $website),
+            'message' => 'Account created and website saved successfully!',
+        ]);
+    }
+
     public function index()
     {
         $websites = MiniWebsite::where('user_id', auth()->id())
@@ -442,6 +586,10 @@ class MiniWebsiteController extends Controller
             // Credit commission to referral partner's wallet
             $this->creditReferralCommission($referralCodeId, $commissionAmount, $transaction);
 
+            // Send congratulatory purchase email with website URL
+            // developed by dinesh tawade
+            $this->sendPurchaseEmail($mini_website, $transaction->order_id, (float) $finalAmount, $days);
+
             return Inertia::location('/mini-website/' . $mini_website->slug);
         }
 
@@ -478,6 +626,10 @@ class MiniWebsiteController extends Controller
 
             // Credit commission to referral partner's wallet
             $this->creditReferralCommission($referralCodeId, $commissionAmount, $transaction);
+
+            // Send congratulatory purchase email with website URL
+            // developed by dinesh tawade
+            $this->sendPurchaseEmail($mini_website, $orderId, (float) $finalAmount, $days);
 
             return Inertia::location('/mini-website/' . $mini_website->slug);
         }
@@ -606,5 +758,68 @@ class MiniWebsiteController extends Controller
                 $transaction
             );
         }
+    }
+
+    /**
+     * Send congratulatory purchase email to customer with their live website link.
+     * developed by dinesh tawade
+     */
+    private function sendPurchaseEmail(MiniWebsite $miniWebsite, ?string $orderId = null, ?float $amount = null, ?int $days = null): array
+    {
+        $user = auth()->user() ?? $miniWebsite->user;
+        $recipientEmail = $user?->email;
+
+        if (!$user || empty($recipientEmail)) {
+            $status = [
+                'sent' => false,
+                'to' => null,
+                'from' => config('mail.from.address'),
+                'error' => 'No user email found for this mini-website.',
+                'message' => 'User email is missing.'
+            ];
+            session()->flash('mail_status', $status);
+            Log::warning("Mini website email skipped - no user email found: ", $status);
+            return $status;
+        }
+
+        $websiteUrl = url('/mini-website/' . $miniWebsite->slug);
+        $siteTitle = $miniWebsite->title ?? 'Invitation Website';
+
+        try {
+            $mail = new MiniWebsitePurchaseMail($user, $miniWebsite, $websiteUrl, $orderId, $amount, $days);
+
+            $fromAddress = config('mail.from.address');
+            Mail::to($recipientEmail)->send($mail);
+
+            $status = [
+                'sent' => true,
+                'to' => $recipientEmail,
+                'from' => $fromAddress,
+                'item' => "{$siteTitle} (Invitation Website)",
+                'website' => $siteTitle,
+                'order_id' => $orderId,
+                'amount' => $amount,
+                'days' => $days,
+                'url' => $websiteUrl,
+                'timestamp' => now()->toDateTimeString(),
+                'message' => "Congratulations email successfully sent to {$recipientEmail}"
+            ];
+            Log::info("📧 Mini-Website Purchase Email Sent: ", $status);
+        } catch (\Throwable $e) {
+            $status = [
+                'sent' => false,
+                'to' => $recipientEmail,
+                'from' => config('mail.from.address'),
+                'item' => $siteTitle,
+                'order_id' => $orderId,
+                'error' => $e->getMessage(),
+                'timestamp' => now()->toDateTimeString(),
+                'message' => "Failed to deliver website purchase email: " . $e->getMessage()
+            ];
+            Log::error("❌ Mini-Website Purchase Email Failed: ", $status);
+        }
+
+        session()->flash('mail_status', $status);
+        return $status;
     }
 }

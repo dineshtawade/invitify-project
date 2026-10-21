@@ -133,7 +133,7 @@ export default function SubscriptionsIndex({ activeSubscription }: PageProps) {
                         Subscription Plans <Sparkles className="size-6 text-amber-500" />
                     </h1>
                     <p className="text-neutral-500 dark:text-neutral-400">
-                        Choose a premium plan in Rupees (₹) to publish your dynamic invitation cards or multi-page business websites.
+                        Choose a premium plan in Rupees (₹) to publish your dynamic Invitation Cards & Videos  or multi-page business websites.
                     </p>
                 </div>
 
@@ -168,13 +168,12 @@ export default function SubscriptionsIndex({ activeSubscription }: PageProps) {
                         return (
                             <div
                                 key={p.type}
-                                className={`relative flex flex-col justify-between rounded-3xl border bg-white p-8 shadow-xs dark:bg-neutral-900 ${
-                                    isActive
+                                className={`relative flex flex-col justify-between rounded-3xl border bg-white p-8 shadow-xs dark:bg-neutral-900 ${isActive
                                         ? 'border-emerald-500 dark:border-emerald-400 ring-2 ring-emerald-500/20'
                                         : p.popular
-                                        ? 'border-blue-600 dark:border-blue-500 ring-1 ring-blue-600/30'
-                                        : 'border-neutral-200 dark:border-neutral-800'
-                                }`}
+                                            ? 'border-blue-600 dark:border-blue-500 ring-1 ring-blue-600/30'
+                                            : 'border-neutral-200 dark:border-neutral-800'
+                                    }`}
                             >
                                 {p.popular && (
                                     <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-blue-600 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white shadow-xs">
@@ -191,9 +190,9 @@ export default function SubscriptionsIndex({ activeSubscription }: PageProps) {
                                             </span>
                                         )}
                                     </div>
-                                    
+
                                     <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400 min-h-[40px]">{p.description}</p>
-                                    
+
                                     <div className="mt-6 flex items-baseline gap-1 text-neutral-900 dark:text-neutral-50">
                                         <span className="text-4xl font-black tracking-tight">₹{p.price}</span>
                                         <span className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">/ month</span>
@@ -215,13 +214,12 @@ export default function SubscriptionsIndex({ activeSubscription }: PageProps) {
                                     <Button
                                         onClick={() => handleOpenCheckout(p)}
                                         disabled={isActive}
-                                        className={`w-full font-bold py-6 text-sm rounded-xl transition-all ${
-                                            isActive
+                                        className={`w-full font-bold py-6 text-sm rounded-xl transition-all ${isActive
                                                 ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-50 dark:bg-emerald-950/20 dark:text-emerald-400 cursor-default'
                                                 : p.popular
-                                                ? 'bg-gradient-to-r ' + p.color + ' hover:opacity-90 text-white'
-                                                : 'bg-neutral-900 hover:bg-neutral-850 text-white dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100'
-                                        }`}
+                                                    ? 'bg-gradient-to-r ' + p.color + ' hover:opacity-90 text-white'
+                                                    : 'bg-neutral-900 hover:bg-neutral-850 text-white dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100'
+                                            }`}
                                     >
                                         {isActive ? 'Current Plan' : 'Subscribe Now'}
                                     </Button>
@@ -244,7 +242,7 @@ export default function SubscriptionsIndex({ activeSubscription }: PageProps) {
                     {selectedPlan && (
                         <div className="py-4 flex flex-col gap-4 text-sm text-neutral-600 dark:text-neutral-400">
                             <p>You are about to subscribe to the plan: <strong className="text-neutral-950 dark:text-neutral-50">{selectedPlan.name}</strong>.</p>
-                            
+
                             <div className="rounded-lg bg-neutral-50 p-4 dark:bg-neutral-950 flex flex-col gap-2 border border-neutral-150 dark:border-neutral-850">
                                 <div className="flex justify-between font-medium">
                                     <span>Plan Cost</span>

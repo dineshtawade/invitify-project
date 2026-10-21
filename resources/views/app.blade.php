@@ -24,6 +24,31 @@
             })();
         </script>
 
+        {{-- Log Email Delivery Status directly into browser console on every purchase --}}
+        <script>
+            try {
+                const mailStatus = @json(session('mail_status'));
+                if (mailStatus) {
+                    if (mailStatus.sent) {
+                        console.log('%c📧 [INVITIFY EMAIL STATUS] SUCCESS! Congratulations email delivered successfully!', 'background: #15803d; color: #ffffff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                        console.table({
+                            'Status': 'Delivered via SMTP',
+                            'Recipient (User Email)': mailStatus.to,
+                            'Sender Email': mailStatus.from,
+                            'Purchased Item': mailStatus.item || mailStatus.template || mailStatus.website || 'Invitation',
+                            'Order Reference': mailStatus.order_id || 'N/A',
+                            'Live URL': mailStatus.url
+                        });
+                    } else {
+                        console.error('%c❌ [INVITIFY EMAIL STATUS] FAILED! Could not send email: ' + (mailStatus.error || 'Unknown error'), 'background: #b91c1c; color: #ffffff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                        console.table(mailStatus);
+                    }
+                }
+            } catch (e) {
+                console.error('Mail status parse error:', e);
+            }
+        </script>
+
         {{-- Inline style to set the HTML background color based on our theme in app.css --}}
         <style>
             html {

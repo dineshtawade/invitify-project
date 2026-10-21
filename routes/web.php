@@ -36,13 +36,20 @@ Route::get('/cookie-policy', function () {
 
 
 
-Route::get('templates/{encryptedId}/customize', [\App\Http\Controllers\Customer\TemplateController::class, 'edit'])
+Route::match(['get', 'post'], 'templates/{encryptedId}/customize', [\App\Http\Controllers\Customer\TemplateController::class, 'edit'])
     ->name('customer.templates.customize');
+Route::post('templates/quick-checkout-auth', [\App\Http\Controllers\Customer\TemplateController::class, 'quickCheckoutAuth'])
+    ->name('customer.templates.quick-auth');
 
 Route::get('invitations/view/{encryptedId}', [\App\Http\Controllers\Customer\TemplateController::class, 'viewShared'])
     ->name('invitations.view');
 
-// Public Mini Websites (Invitations) Routing
+// Public Invitation Website Builder Routing (Guest + Authenticated)
+// developed by dinesh tawade
+Route::get('create-invitation-website', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'createGuestWebsite'])->name('mini-websites.guest-builder');
+Route::post('mini-websites/quick-checkout-auth', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'quickCheckoutAuth'])->name('mini-websites.quick-auth');
+
+// Public Invitation Website (Invitations) Routing
 Route::get('mini-website/{slug}/{page?}', [\App\Http\Controllers\PublicSiteController::class, 'show'])->name('public.site.show');
 Route::post('mini-website/{slug}/rsvp', [\App\Http\Controllers\PublicSiteController::class, 'rsvp'])->name('public.site.rsvp');
 Route::post('mini-website/{slug}/contact', [\App\Http\Controllers\PublicSiteController::class, 'contact'])->name('public.site.contact');
@@ -55,6 +62,17 @@ Route::post('business/{slug}/contact', [\App\Http\Controllers\PublicBusinessSite
 Route::get('card/{slug}', [\App\Http\Controllers\PublicCardController::class, 'show'])->name('public.card.show');
 Route::post('card/{slug}/feedback', [\App\Http\Controllers\PublicCardController::class, 'submitFeedback'])->name('public.card.feedback');
 Route::get('card/{slug}/vcard', [\App\Http\Controllers\PublicCardController::class, 'downloadVcard'])->name('public.card.vcard');
+
+// Public Digital Business Cards Designer / Builder Routing (Guest + Authenticated)
+// developed by dinesh tawade
+Route::get('create-visiting-card', [\App\Http\Controllers\Customer\BusinessCardController::class, 'createCard'])->name('business-cards.create-card');
+Route::get('business-cards/builder', [\App\Http\Controllers\Customer\BusinessCardController::class, 'createCard'])->name('business-cards.builder');
+Route::post('business-cards/checkout', [\App\Http\Controllers\Customer\BusinessCardController::class, 'checkout'])->name('business-cards.checkout');
+Route::post('business-cards/{business_card}/verify-checkout', [\App\Http\Controllers\Customer\BusinessCardController::class, 'verifyCheckout'])->name('business-cards.verify-checkout');
+Route::post('business-cards/quick-login', [\App\Http\Controllers\Customer\BusinessCardController::class, 'quickLogin'])->name('business-cards.quick-login');
+
+// Media Upload (Accessible publicly for card builder / guest designs)
+Route::post('/media/upload', [\App\Http\Controllers\MediaUploadController::class, 'upload'])->name('media.upload');
 
 // Serve storage files directly as a fallback for Windows/XAMPP symlink issues
 Route::get('/storage/media/{filename}', function ($filename) {
@@ -69,9 +87,9 @@ Route::get('/storage/media/{filename}', function ($filename) {
 });
 
 Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::class])->group(function () {
-    // Media Upload & Library
+    // Media Library (Management)
     Route::get('/media', [\App\Http\Controllers\MediaUploadController::class, 'index'])->name('media.index');
-    Route::post('/media/upload', [\App\Http\Controllers\MediaUploadController::class, 'upload'])->name('media.upload');
+    Route::delete('/media/{media}', [\App\Http\Controllers\MediaUploadController::class, 'destroy'])->name('media.destroy');
 
     // Referral Code Validation
     Route::post('/apply-referral', function (\Illuminate\Http\Request $request) {
@@ -135,6 +153,10 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('super-admin.templates');
         Route::post('super-admin/templates', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'store'])
             ->name('super-admin.templates.store');
+        Route::post('super-admin/templates/{template}/clone', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'clone'])
+            ->name('super-admin.templates.clone');
+        Route::post('super-admin/templates/{template}/toggle-trending', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'toggleTrending'])
+            ->name('super-admin.templates.toggle-trending');
         Route::put('super-admin/templates/{template}', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'update'])
             ->name('super-admin.templates.update');
         Route::delete('super-admin/templates/{template}', [\App\Http\Controllers\SuperAdmin\TemplateController::class, 'destroy'])
@@ -277,7 +299,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
         Route::post('reseller/websites/{type}/{id}/host', [\App\Http\Controllers\Reseller\HostingController::class, 'host'])
             ->name('reseller.websites.host');
 
-        // Reseller Mini Websites editor
+        // Reseller Invitation Website editor
         Route::get('reseller/mini-websites/{mini_website}/download-zip', [\App\Http\Controllers\Reseller\MiniWebsiteController::class, 'downloadInviteZip'])
             ->name('reseller.mini-websites.download-zip');
         Route::get('reseller/mini-websites/{mini_website}/edit', [\App\Http\Controllers\Reseller\MiniWebsiteController::class, 'edit'])
@@ -368,7 +390,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
         Route::post('customer/subscriptions', [\App\Http\Controllers\Customer\SubscriptionController::class, 'subscribe'])
             ->name('customer.subscriptions.subscribe');
 
-        // Customer Mini Websites
+        // Customer Invitation Website
         Route::get('customer/mini-websites/{mini_website}/download-zip', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'downloadInviteZip'])
             ->name('customer.mini-websites.download-zip');
         Route::resource('customer/mini-websites', \App\Http\Controllers\Customer\MiniWebsiteController::class, [

@@ -98,28 +98,28 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                     <button
                         onClick={() => setActiveTab('invitations')}
                         className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'invitations'
-                                ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
-                                : 'border-transparent text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-205'
+                            ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                            : 'border-transparent text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-205'
                             }`}
                     >
                         <Layers className="size-4" />
-                        Invitation Cards ({templates.length})
+                        Invitation Cards & Videos  ({templates.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('mini-websites')}
                         className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'mini-websites'
-                                ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
-                                : 'border-transparent text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-205'
+                            ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                            : 'border-transparent text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-205'
                             }`}
                     >
                         <Globe className="size-4" />
-                        Mini Websites ({miniTemplates.length})
+                        Invitation Website ({miniTemplates.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('business-websites')}
                         className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'business-websites'
-                                ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
-                                : 'border-transparent text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-205'
+                            ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                            : 'border-transparent text-neutral-500 hover:text-neutral-850 dark:text-neutral-400 dark:hover:text-neutral-205'
                             }`}
                     >
                         <Briefcase className="size-4" />
@@ -137,8 +137,8 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
                                     className={`px-4 py-2 text-sm font-semibold capitalize border-b-2 transition-all -mb-px whitespace-nowrap ${selectedCategory === cat
-                                            ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
-                                            : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
+                                        ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                                        : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
                                         }`}
                                 >
                                     {getCategoryName(cat)}
@@ -146,7 +146,7 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                             ))}
                         </div>
 
-                        {/* Invitation Cards Grid */}
+                        {/* Invitation Cards & Videos  Grid */}
                         {filteredTemplates.length === 0 ? (
                             <div className="flex h-64 flex-col items-center justify-center rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700">
                                 <span className="text-neutral-400">No card templates available.</span>
@@ -239,8 +239,8 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                                     key={cat}
                                     onClick={() => setSelectedWebsiteCategory(cat)}
                                     className={`px-4 py-2 text-sm font-semibold capitalize border-b-2 transition-all -mb-px whitespace-nowrap ${selectedWebsiteCategory === cat
-                                            ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
-                                            : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
+                                        ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                                        : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
                                         }`}
                                 >
                                     {cat === 'all'
@@ -253,7 +253,7 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                             ))}
                         </div>
 
-                        {/* Mini Websites Grid */}
+                        {/* Invitation Website Grid */}
                         {filteredWebsites.length === 0 ? (
                             <div className="flex h-64 flex-col items-center justify-center rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700">
                                 <span className="text-neutral-400">No mini website templates available.</span>
@@ -304,8 +304,8 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                                                         {w.name}
                                                     </h3>
                                                     <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shrink-0 ${w.type === 'invitation'
-                                                            ? 'bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-400'
-                                                            : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400'
+                                                        ? 'bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-400'
+                                                        : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400'
                                                         }`}>
                                                         {w.type === 'invitation' ? 'Event' : 'Business'}
                                                     </span>

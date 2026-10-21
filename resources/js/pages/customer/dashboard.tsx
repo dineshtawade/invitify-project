@@ -46,9 +46,36 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [], i
                 const parsed = JSON.parse(guestDraft);
                 localStorage.removeItem('guest_draft');
                 router.post('/customer/user-templates/claim', parsed);
+                return;
             } catch (e) {
                 console.error(e);
             }
+        }
+
+        const pendingMiniWebsite = localStorage.getItem('pending_mini_website_template_id');
+        if (pendingMiniWebsite) {
+            localStorage.removeItem('pending_mini_website_template_id');
+            router.visit(`/create-invitation-website?template_id=${pendingMiniWebsite}`);
+            return;
+        }
+
+        // Check for any guest mini-website drafts
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('guest_mini_website_draft_')) {
+                const templateId = key.replace('guest_mini_website_draft_', '');
+                if (templateId) {
+                    router.visit(`/create-invitation-website?template_id=${templateId}`);
+                    return;
+                }
+            }
+        }
+
+        const pendingRedirect = sessionStorage.getItem('pending_redirect_url');
+        if (pendingRedirect) {
+            sessionStorage.removeItem('pending_redirect_url');
+            router.visit(pendingRedirect);
+            return;
         }
     }, []);
 
@@ -145,11 +172,11 @@ export default function CustomerDashboard({ templates = [], miniWebsites = [], i
                     )}
                 </div>
 
-                {/* Recent Mini Websites Section */}
+                {/* Recent Invitation Website Section */}
                 <div className="flex flex-col gap-4 mt-6">
                     <div className="flex items-center justify-between gap-4">
                         <h3 className="text-lg font-bold font-serif text-[#3e3832] flex items-center gap-2">
-                            <Globe className="size-5 text-[#d3c0a3]" /> My Recent Mini Websites
+                            <Globe className="size-5 text-[#d3c0a3]" /> My Recent Invitation Website
                         </h3>
                         <Link
                             href="/customer/mini-websites"

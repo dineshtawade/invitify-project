@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Head, useForm, router, usePage, Link } from '@inertiajs/react';
+import axios from 'axios';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -17,12 +18,17 @@ import {
     Cake, Baby, Award, Move, Type, Image as ImageIcon,
     Smile, Link as LinkIcon, MapPin, Compass, Gift, Calendar, Clock,
     Music, Wine, Star, Bell, ZoomIn, ZoomOut, Check, ArrowRight,
-    Laptop, Tablet, Smartphone, Settings, PlayCircle, Play, ShieldAlert, Search
+    Laptop, Tablet, Smartphone, Settings, PlayCircle, Play, ShieldAlert, Search,
+    Copy, Eye, EyeOff, Lock, Unlock, ArrowUp, ArrowDown, ChevronUp, ChevronDown, CheckCircle2,
+    Flame, UploadCloud, Loader2, X, HelpCircle
 } from 'lucide-react';
+import InvitationTemplateHelpModal from '@/Components/InvitationTemplateHelpModal';
 import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
 import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
 import html2canvas from 'html2canvas';
+import GoogleFontPicker from '@/components/GoogleFontPicker';
+import { getFontFamilyCss, loadGoogleFont } from '@/utils/font-utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -35,6 +41,17 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+interface MediaAsset {
+    id: number;
+    filename: string;
+    url: string;
+    path: string;
+    size?: number;
+    type?: string;
+    mime_type?: string;
+    created_at?: string;
+}
+
 interface Template {
     id: number;
     name: string;
@@ -44,6 +61,8 @@ interface Template {
     bg_gradient: string;
     thumbnail: string | null;
     default_config: any;
+    status?: string;
+    is_trending?: boolean;
 }
 
 interface Category {
@@ -84,7 +103,7 @@ interface PageProps {
     filters?: { search: string };
 }
 
-const fontStyles: Record<string, string> = {
+const fontStyles: Record<string, string> = new Proxy({
     playfair: "'Playfair Display', serif",
     vibes: "'Great Vibes', cursive",
     montserrat: "'Montserrat', sans-serif",
@@ -100,7 +119,15 @@ const fontStyles: Record<string, string> = {
     poppins: "'Poppins', sans-serif",
     pacifico: "'Pacifico', cursive",
     sacramento: "'Sacramento', cursive",
-};
+}, {
+    get(target: any, prop: string) {
+        if (typeof prop === 'string') {
+            if (prop in target) return target[prop];
+            return getFontFamilyCss(prop);
+        }
+        return target[prop];
+    }
+});
 
 const fontLabels: Record<string, string> = {
     playfair: "Playfair Display (Serif)",
@@ -132,12 +159,81 @@ const validIconNames = Object.keys(LucideIcons).filter(
     key => key !== 'createLucideIcon' && key !== 'default' && key !== 'Icon' && key === key.charAt(0).toUpperCase() + key.slice(1)
 );
 
-export default function TemplatesIndex({ templates, categories, editorRequests = [], customIcons = [], filters }: PageProps) {
+export default function TemplatesIndex({ templates, categories = [], editorRequests = [], customIcons = [], filters }: PageProps) {
     const auth = usePage().props.auth as any;
     const isEditor = auth?.user?.role === 'editor';
     const [searchVal, setSearchVal] = useState(filters?.search || '');
     const [statusVal, setStatusVal] = useState(filters?.status || 'all');
     const [myIcons, setMyIcons] = useState(customIcons);
+    const [showHelpModal, setShowHelpModal] = useState(false);
+
+    // Dynamic categories state with support for inline adding new categories
+    // developed by dinesh tawade
+    const [categoriesList, setCategoriesList] = useState<Category[]>(categories || []);
+    const [isAddingNewCategory, setIsAddingNewCategory] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [isSavingCategory, setIsSavingCategory] = useState(false);
+    const [categoryNotice, setCategoryNotice] = useState('');
+
+    useEffect(() => {
+        if (categories && categories.length > 0) {
+            setCategoriesList(categories);
+        }
+    }, [categories]);
+
+    // Handle inline adding new category
+    // developed by dinesh tawade
+    const handleAddNewCategory = async () => {
+        const trimmed = newCategoryName.trim();
+        if (!trimmed) return;
+
+        setIsSavingCategory(true);
+        try {
+            const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
+            const res = await axios.post('/super-admin/categories', { name: trimmed }, {
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            });
+
+            if (res.data && res.data.category) {
+                const newCat: Category = res.data.category;
+                setCategoriesList(prev => {
+                    const exists = prev.find(c => c.slug === newCat.slug);
+                    if (exists) return prev;
+                    return [...prev, newCat];
+                });
+                setData('category', newCat.slug);
+                setCategoryNotice(`Added "${newCat.name}"!`);
+                setTimeout(() => setCategoryNotice(''), 3500);
+                setNewCategoryName('');
+                setIsAddingNewCategory(false);
+            }
+        } catch (err: any) {
+            console.error('Failed to create category:', err);
+            // Fallback: create slug locally so template saving is not blocked and TemplateController will auto-create on save
+            const fallbackSlug = trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+            const fallbackCat: Category = {
+                id: Date.now(),
+                name: trimmed,
+                slug: fallbackSlug || 'cat_' + Date.now()
+            };
+            setCategoriesList(prev => {
+                const exists = prev.find(c => c.slug === fallbackCat.slug);
+                if (exists) return prev;
+                return [...prev, fallbackCat];
+            });
+            setData('category', fallbackCat.slug);
+            setCategoryNotice(`Set to "${fallbackCat.name}"!`);
+            setTimeout(() => setCategoryNotice(''), 3500);
+            setNewCategoryName('');
+            setIsAddingNewCategory(false);
+        } finally {
+            setIsSavingCategory(false);
+        }
+    };
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -153,7 +249,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
     const [isOpen, setIsOpen] = useState(false);
     const [templateMode, setTemplateMode] = useState<'select' | 'editor'>('select');
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
-    const [activeTab, setActiveTab] = useState<'pages' | 'text' | 'image' | 'icon' | 'link'>('pages');
+    const [activeTab, setActiveTab] = useState<'layers' | 'pages' | 'text' | 'image' | 'icon' | 'link'>('layers');
     const [iconSearch, setIconSearch] = useState('');
 
     const filteredIcons = validIconNames.filter(name =>
@@ -188,17 +284,62 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
     const { data, setData, post, put, reset, processing, errors } = useForm({
         name: '',
         type: 'image' as 'image' | 'video',
-        category: categories[0]?.slug || 'wedding',
+        category: (categories && categories[0]?.slug) || 'wedding',
         price: '9.99',
         bg_gradient: 'from-stone-100 to-rose-50 text-neutral-800',
         thumbnail: '' as string | null,
         default_config: normalizeConfig(null),
         status: 'published' as 'published' | 'draft',
+        is_trending: false as boolean,
     });
 
     const activePage = data.default_config.pages[activePageIndex] || data.default_config.pages[0];
     const selectedElement = activePage?.elements.find(e => e.id === selectedElementId) || null;
     const ratioData = ASPECT_RATIOS[data.default_config.aspectRatio] || ASPECT_RATIOS.standard;
+
+    // Layer category counts
+    // developed by dinesh tawade
+    const textLayerCount = activePage?.elements.filter(e => e.type === 'text').length || 0;
+    const imageLayerCount = activePage?.elements.filter(e => e.type === 'image' && !e.isBackground).length || 0;
+    const bgImageLayerCount = activePage?.elements.filter(e => e.isBackground).length || 0;
+    const iconLayerCount = activePage?.elements.filter(e => e.type === 'icon' || e.type === 'divider').length || 0;
+    const linkLayerCount = activePage?.elements.filter(e => e.type === 'link').length || 0;
+    const totalLayerCount = activePage?.elements.length || 0;
+
+    // Saved Assets / Media Library states
+    // developed by dinesh tawade
+    const [savedAssets, setSavedAssets] = useState<MediaAsset[]>([]);
+    const [isLoadingAssets, setIsLoadingAssets] = useState<boolean>(false);
+    const [assetSearchQuery, setAssetSearchQuery] = useState<string>('');
+    const [assetUploadNotice, setAssetUploadNotice] = useState<{ message: string; isDuplicate?: boolean } | null>(null);
+    const [isUploadingAsset, setIsUploadingAsset] = useState<boolean>(false);
+
+    const fetchSavedAssets = async () => {
+        setIsLoadingAssets(true);
+        try {
+            const res = await fetch('/media?type=image');
+            if (res.ok) {
+                const json = await res.json();
+                if (json.media) {
+                    setSavedAssets(json.media);
+                }
+            }
+        } catch (err) {
+            console.error('Failed to fetch media assets:', err);
+        } finally {
+            setIsLoadingAssets(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchSavedAssets();
+    }, []);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchSavedAssets();
+        }
+    }, [isOpen]);
 
     // Monitor card scale factor dynamically
     useEffect(() => {
@@ -215,6 +356,20 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
 
         return () => observer.disconnect();
     }, [isOpen, activePageIndex, previewViewport, data.default_config.aspectRatio, data.default_config.width]);
+
+    // Preload Google Fonts used in template pages
+    // developed by dinesh tawade
+    useEffect(() => {
+        if (data.default_config?.pages) {
+            data.default_config.pages.forEach((p: any) => {
+                p.elements?.forEach((elem: any) => {
+                    if (elem.type === 'text' && elem.fontStyle) {
+                        loadGoogleFont(elem.fontStyle);
+                    }
+                });
+            });
+        }
+    }, [data.default_config]);
 
     // Target width for scaling calculation
     const targetWidth = data.default_config.aspectRatio === 'custom'
@@ -251,12 +406,17 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
         setData({
             name: '',
             type: 'image',
-            category: categories[0]?.slug || 'wedding',
+            category: categoriesList[0]?.slug || (categories && categories[0]?.slug) || 'wedding',
             price: '9.99',
             bg_gradient: 'from-stone-100 to-rose-50 text-neutral-800',
             thumbnail: '',
             default_config: normalizeConfig(null),
+            status: 'published',
+            is_trending: false,
         });
+        setIsAddingNewCategory(false);
+        setNewCategoryName('');
+        setCategoryNotice('');
         setBgType('preset');
         setActivePageIndex(0);
         setSelectedElementId(null);
@@ -281,6 +441,8 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
             bg_gradient: template.bg_gradient,
             thumbnail: template.thumbnail || '',
             default_config: normConfig,
+            status: (template.status as 'published' | 'draft') || 'published',
+            is_trending: Boolean(template.is_trending),
         });
 
         // Detect custom gradient
@@ -364,7 +526,8 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
         const payload = {
             ...data,
             thumbnail: thumbnailUrl,
-            status: submitStatusRef.current
+            status: submitStatusRef.current,
+            is_trending: Boolean(data.is_trending),
         };
 
         if (editingTemplate) {
@@ -384,10 +547,171 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
         }
     };
 
+    const handleToggleTrending = (t: Template, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        router.post(`/super-admin/templates/${t.id}/toggle-trending`, {}, {
+            preserveScroll: true,
+        });
+    };
+
     const handleDelete = (id: number) => {
         if (confirm('Are you sure you want to delete this template?')) {
             router.delete(`/super-admin/templates/${id}`);
         }
+    };
+
+    // Template Clone Handlers
+    // developed by dinesh tawade
+    const handleCloneTemplate = (t: Template, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (confirm(`Clone template "${t.name}"? A duplicate copy will be created as Draft so you can safely edit its design.`)) {
+            router.post(`/super-admin/templates/${t.id}/clone`, {}, {
+                preserveScroll: true,
+            });
+        }
+    };
+
+    const handleSaveAsClone = async () => {
+        const copyName = prompt('Enter a name for the cloned template:', `${data.name} (Copy)`);
+        if (!copyName) return;
+
+        let thumbnailUrl = data.thumbnail;
+        const elementToCapture = data.type === 'video'
+            ? document.querySelector('.video-template-preview-container') || cardRef.current
+            : cardRef.current;
+
+        if (elementToCapture) {
+            try {
+                const canvas = await html2canvas(elementToCapture as HTMLElement, {
+                    useCORS: true,
+                    scale: 1.5,
+                    backgroundColor: null,
+                });
+                const dataUrl = canvas.toDataURL('image/png');
+                const file = dataURLtoFile(dataUrl, `template-thumb-${Date.now()}.png`);
+                const formData = new FormData();
+                formData.append('file', file);
+                const response = await fetch('/media/upload', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                    },
+                    body: formData,
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    thumbnailUrl = result.url;
+                }
+            } catch (err) {
+                console.error("Failed to capture thumbnail on clone:", err);
+            }
+        }
+
+        const payload = {
+            ...data,
+            name: copyName,
+            thumbnail: thumbnailUrl,
+            status: 'draft',
+        };
+
+        if (editingTemplate) {
+            router.post(`/super-admin/templates/${editingTemplate.id}/clone`, payload, {
+                onSuccess: () => {
+                    setIsOpen(false);
+                    reset();
+                }
+            });
+        } else {
+            router.post('/super-admin/templates', payload, {
+                onSuccess: () => {
+                    setIsOpen(false);
+                    reset();
+                }
+            });
+        }
+    };
+
+    // Layer management methods
+    // developed by dinesh tawade
+    const handleMoveLayer = (elementId: string, direction: 'up' | 'down' | 'top' | 'bottom') => {
+        if (!activePage) return;
+        const elements = [...activePage.elements];
+        const index = elements.findIndex(e => e.id === elementId);
+        if (index === -1) return;
+
+        if (direction === 'up') {
+            // Bring forward in z-index (higher index in array)
+            if (index < elements.length - 1) {
+                const temp = elements[index];
+                elements[index] = elements[index + 1];
+                elements[index + 1] = temp;
+            }
+        } else if (direction === 'down') {
+            // Send backward in z-index (lower index in array)
+            if (index > 0) {
+                const temp = elements[index];
+                elements[index] = elements[index - 1];
+                elements[index - 1] = temp;
+            }
+        } else if (direction === 'top') {
+            const [item] = elements.splice(index, 1);
+            elements.push(item);
+        } else if (direction === 'bottom') {
+            const [item] = elements.splice(index, 1);
+            elements.unshift(item);
+        }
+
+        const updatedPages = [...data.default_config.pages];
+        updatedPages[activePageIndex] = {
+            ...activePage,
+            elements
+        };
+        setData('default_config', {
+            ...data.default_config,
+            pages: updatedPages
+        });
+    };
+
+    const handleToggleLayerVisibility = (elementId: string, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        const elem = activePage.elements.find(el => el.id === elementId);
+        if (!elem) return;
+        handleUpdateElement(elementId, { hidden: !elem.hidden });
+    };
+
+    const handleToggleLayerLock = (elementId: string, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        const elem = activePage.elements.find(el => el.id === elementId);
+        if (!elem) return;
+        handleUpdateElement(elementId, { locked: !elem.locked });
+    };
+
+    const handleDuplicateElement = (elementId: string, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        const elem = activePage.elements.find(el => el.id === elementId);
+        if (!elem) return;
+
+        const newElement: ElementConfig = {
+            ...elem,
+            id: `elem-${Math.random().toString(36).substr(2, 9)}`,
+            x: Math.min(90, (elem.x || 0) + 4),
+            y: Math.min(90, (elem.y || 0) + 4),
+            content: elem.content ? `${elem.content}` : undefined,
+            hidden: false,
+            locked: false,
+        };
+
+        const updatedPages = [...data.default_config.pages];
+        updatedPages[activePageIndex] = {
+            ...activePage,
+            elements: [...activePage.elements, newElement]
+        };
+
+        setData('default_config', {
+            ...data.default_config,
+            pages: updatedPages
+        });
+        setSelectedElementId(newElement.id);
     };
 
     // Canvas layout methods
@@ -577,33 +901,186 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
         setSelectedElementId(null);
     };
 
+    // Z-Index / Layer Depth Controller component
+    // developed by dinesh tawade
+    const renderZIndexController = (element: ElementConfig) => {
+        const currentZ = element.zIndex !== undefined ? element.zIndex : 10;
+        return (
+            <div className="flex items-center justify-between gap-2 border-t pt-2.5 border-neutral-200 dark:border-neutral-800 bg-neutral-100/60 dark:bg-neutral-900/60 p-2 rounded-lg">
+                <div className="flex items-center gap-1.5">
+                    <Layers className="size-3.5 text-indigo-600" />
+                    <span className="text-[10px] font-bold uppercase text-neutral-600 dark:text-neutral-400">Layer Depth (Z-Index)</span>
+                </div>
+                <div className="flex items-center gap-1">
+                    <button
+                        type="button"
+                        title="Send to Bottom (Back)"
+                        onClick={() => handleUpdateElement(element.id, { zIndex: 1 })}
+                        className="px-1.5 py-0.5 text-[9px] font-bold uppercase bg-white dark:bg-neutral-800 border rounded hover:bg-neutral-50 text-neutral-600 dark:text-neutral-300 shadow-2xs"
+                    >
+                        Min
+                    </button>
+                    <button
+                        type="button"
+                        title="Step down"
+                        onClick={() => handleUpdateElement(element.id, { zIndex: Math.max(1, currentZ - 1) })}
+                        className="size-6 flex items-center justify-center font-bold bg-white dark:bg-neutral-800 border rounded hover:bg-neutral-50 text-xs shadow-2xs"
+                    >
+                        -
+                    </button>
+                    <input
+                        type="number"
+                        min="1"
+                        max="999"
+                        value={currentZ}
+                        onChange={(e) => handleUpdateElement(element.id, { zIndex: parseInt(e.target.value) || 1 })}
+                        className="w-11 h-6 border bg-white dark:bg-neutral-800 rounded text-xs text-center font-bold font-mono shadow-2xs"
+                    />
+                    <button
+                        type="button"
+                        title="Step up"
+                        onClick={() => handleUpdateElement(element.id, { zIndex: currentZ + 1 })}
+                        className="size-6 flex items-center justify-center font-bold bg-white dark:bg-neutral-800 border rounded hover:bg-neutral-50 text-xs shadow-2xs"
+                    >
+                        +
+                    </button>
+                    <button
+                        type="button"
+                        title="Bring to Top (Front)"
+                        onClick={() => {
+                            const allZ = activePage?.elements.map(e => e.zIndex || 10) || [10];
+                            const maxZ = Math.max(...allZ, 10);
+                            handleUpdateElement(element.id, { zIndex: maxZ + 5 });
+                        }}
+                        className="px-1.5 py-0.5 text-[9px] font-bold uppercase bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 shadow-2xs"
+                    >
+                        Top
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, elementId: string) => {
         const file = e.target.files?.[0];
         if (file) {
-            const formData = new FormData();
-            formData.append('file', file);
+            await handleUploadNewAsset(file, elementId);
+        }
+    };
 
-            try {
-                handleUpdateElement(elementId, { url: 'uploading' });
+    // Asset Library Upload & Deduplication Handler
+    // developed by dinesh tawade
+    const handleUploadNewAsset = async (file: File, targetElementId?: string) => {
+        setIsUploadingAsset(true);
+        setAssetUploadNotice(null);
+        const formData = new FormData();
+        formData.append('file', file);
 
-                const response = await fetch('/media/upload', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
-                    },
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    throw new Error('Upload failed');
-                }
-
-                const result = await response.json();
-                handleUpdateElement(elementId, { url: result.url });
-            } catch (err) {
-                console.error(err);
-                alert('Failed to upload image. Please check format (PNG, JPG, JPEG, SVG) and try again.');
+        try {
+            if (targetElementId) {
+                handleUpdateElement(targetElementId, { url: 'uploading' });
             }
+
+            const response = await fetch('/media/upload', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+
+            const result = await response.json();
+
+            if (targetElementId) {
+                handleUpdateElement(targetElementId, { 
+                    url: result.url,
+                    customName: result.filename 
+                });
+            }
+
+            // Set user-friendly deduplication notice
+            if (result.is_duplicate) {
+                setAssetUploadNotice({
+                    message: `Notice: Existing asset "${result.filename}" reused (no duplicate created).`,
+                    isDuplicate: true,
+                });
+            } else {
+                setAssetUploadNotice({
+                    message: `Success: "${result.filename}" uploaded and saved to library.`,
+                    isDuplicate: false,
+                });
+            }
+
+            // Refresh library
+            fetchSavedAssets();
+            return result;
+        } catch (err) {
+            console.error('Asset upload error:', err);
+            alert('Failed to upload image. Please check format (PNG, JPG, JPEG, SVG) and try again.');
+            if (targetElementId) {
+                handleUpdateElement(targetElementId, { url: '' });
+            }
+        } finally {
+            setIsUploadingAsset(false);
+        }
+    };
+
+    // Quick add new image layer from asset library
+    // developed by dinesh tawade
+    const handleAddElementWithImage = (url: string, filename?: string) => {
+        const newElement: ElementConfig = {
+            id: `elem-${Math.random().toString(36).substr(2, 9)}`,
+            type: 'image',
+            x: 25,
+            y: 25,
+            w: 45,
+            h: 35,
+            url: url,
+            customName: filename,
+            isEditable: false,
+        };
+        const updatedPages = [...data.default_config.pages];
+        updatedPages[activePageIndex] = {
+            ...activePage,
+            elements: [...activePage.elements, newElement]
+        };
+        setData('default_config', { ...data.default_config, pages: updatedPages });
+        setSelectedElementId(newElement.id);
+        setActiveTab('image');
+    };
+
+    // Delete asset from library
+    // developed by dinesh tawade
+    const handleDeleteAsset = async (asset: MediaAsset, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (!confirm(`Delete asset "${asset.filename}" from library? This cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/media/${asset.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+            });
+
+            if (response.ok) {
+                setSavedAssets(prev => prev.filter(a => a.id !== asset.id));
+                setAssetUploadNotice({
+                    message: `Asset "${asset.filename}" deleted from library.`,
+                    isDuplicate: false,
+                });
+            } else {
+                alert('Failed to delete asset. Please try again.');
+            }
+        } catch (err) {
+            console.error('Delete asset error:', err);
+            alert('Failed to delete asset.');
         }
     };
 
@@ -674,15 +1151,20 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
         const elem = activePage.elements.find(el => el.id === elementId);
         if (!elem) return;
 
-        // Auto-switch active tab to show matching properties inspector
-        if (elem.type === 'text') {
-            setActiveTab('text');
-        } else if (elem.type === 'image') {
-            setActiveTab('image');
-        } else if (elem.type === 'icon' || elem.type === 'divider') {
-            setActiveTab('icon');
-        } else if (elem.type === 'link') {
-            setActiveTab('link');
+        // Locked layers cannot be dragged or resized
+        if (elem.locked) return;
+
+        // Auto-switch active tab to show matching properties inspector only if not on layers tab
+        if (activeTab !== 'layers') {
+            if (elem.type === 'text') {
+                setActiveTab('text');
+            } else if (elem.type === 'image') {
+                setActiveTab('image');
+            } else if (elem.type === 'icon' || elem.type === 'divider') {
+                setActiveTab('icon');
+            } else if (elem.type === 'link') {
+                setActiveTab('link');
+            }
         }
 
         const startX = e.clientX;
@@ -744,9 +1226,19 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                         <h1 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-neutral-50">Invitation Templates</h1>
                         <p className="text-neutral-500 dark:text-neutral-400 text-sm">Add, edit, or delete invitation layouts and set reseller pricing tiers.</p>
                     </div>
-                    <Button onClick={handleOpenAdd} className="font-semibold shadow-md flex items-center gap-1.5 rounded-xl">
-                        <Plus className="size-4.5" /> Add Design Template
-                    </Button>
+                    <div className="flex items-center gap-2.5">
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setShowHelpModal(true)} 
+                            className="flex items-center gap-2 border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl h-10 px-4 text-xs font-semibold shadow-2xs"
+                        >
+                            <HelpCircle className="size-4 text-indigo-600 dark:text-indigo-400" />
+                            <span>How to Create Guide (?)</span>
+                        </Button>
+                        <Button onClick={handleOpenAdd} className="font-semibold shadow-md flex items-center gap-1.5 rounded-xl h-10">
+                            <Plus className="size-4.5" /> Add Design Template
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Filter and Search Bar */}
@@ -809,10 +1301,15 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                         return (
                                             <tr key={t.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/15 transition-colors">
                                                 <td className="px-6 py-4 font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                                                    <Layers className="size-4.5 text-neutral-400" /> 
-                                                    {t.name}
+                                                    <Layers className="size-4.5 text-neutral-400 shrink-0" /> 
+                                                    <span>{t.name}</span>
+                                                    {Boolean(t.is_trending) && (
+                                                        <span className="ml-1.5 px-2 py-0.5 bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[10px] font-bold rounded-full flex items-center gap-1 shadow-2xs">
+                                                            <Flame className="size-3 fill-white" /> Trending
+                                                        </span>
+                                                    )}
                                                     {t.status === 'draft' && (
-                                                        <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] uppercase font-bold rounded-full">
+                                                        <span className="ml-1 px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] uppercase font-bold rounded-full">
                                                             Draft
                                                         </span>
                                                     )}
@@ -853,7 +1350,10 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                 return (
                                                                     <>
                                                                         {editReq?.status === 'approved' ? (
-                                                                            <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><Pencil className="size-3.5" /> Edit Builder</Button>
+                                                                            <>
+                                                                                <Button onClick={() => handleOpenEdit(t)} variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"><Pencil className="size-3.5" /> Edit Builder</Button>
+                                                                                <Button onClick={() => handleCloneTemplate(t)} variant="outline" size="sm" className="flex items-center gap-1 border-indigo-200 dark:border-indigo-900/50 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 rounded-lg text-xs font-semibold shadow-2xs" title="Clone this template to create an editable copy"><Copy className="size-3.5" /> Clone</Button>
+                                                                            </>
                                                                         ) : editReq?.status === 'pending' ? (
                                                                             <Button disabled variant="outline" size="sm" className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs opacity-50"><Clock className="size-3.5" /> Edit Pending</Button>
                                                                         ) : (
@@ -873,12 +1373,35 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                         ) : (
                                                             <>
                                                                 <Button
+                                                                    onClick={() => handleToggleTrending(t)}
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className={`flex items-center gap-1 rounded-lg text-xs font-semibold shadow-2xs transition-all ${
+                                                                        t.is_trending
+                                                                            ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400'
+                                                                            : 'border-neutral-200 text-neutral-500 hover:text-amber-600 hover:border-amber-300 hover:bg-amber-50/50 dark:border-neutral-800'
+                                                                    }`}
+                                                                    title={t.is_trending ? 'Remove from Trending on Home page' : 'Feature as Trending on Home page'}
+                                                                >
+                                                                    <Flame className={`size-3.5 ${t.is_trending ? 'fill-amber-500 text-amber-600' : ''}`} />
+                                                                    {t.is_trending ? 'Trending 🔥' : 'Set Trending'}
+                                                                </Button>
+                                                                <Button
                                                                     onClick={() => handleOpenEdit(t)}
                                                                     variant="outline"
                                                                     size="sm"
                                                                     className="flex items-center gap-1 border-neutral-200 dark:border-neutral-800 rounded-lg text-xs"
                                                                 >
                                                                     <Pencil className="size-3.5" /> Edit Builder
+                                                                </Button>
+                                                                <Button
+                                                                    onClick={() => handleCloneTemplate(t)}
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="flex items-center gap-1 border-indigo-200 dark:border-indigo-900/50 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 rounded-lg text-xs font-semibold shadow-2xs"
+                                                                    title="Clone this template to create an editable copy"
+                                                                >
+                                                                    <Copy className="size-3.5" /> Clone
                                                                 </Button>
                                                                 <Button
                                                                     onClick={() => handleDelete(t.id)}
@@ -950,6 +1473,17 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
 
                     {templateMode === 'select' ? (
                         <div className="flex-1 flex flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-950 p-6 relative">
+                            <div className="absolute top-6 left-6">
+                                <Button
+                                    onClick={() => setShowHelpModal(true)}
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex items-center gap-1.5 rounded-xl text-xs font-semibold border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-300 shadow-2xs"
+                                >
+                                    <HelpCircle className="size-3.5 text-indigo-600 dark:text-indigo-400" />
+                                    <span>Template Guide (?)</span>
+                                </Button>
+                            </div>
                             <Button
                                 onClick={() => setIsOpen(false)}
                                 variant="ghost"
@@ -992,10 +1526,21 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                     ) : (
                         <>
                             <DialogHeader className="px-6 pt-5 pb-3 shrink-0 border-b flex flex-row items-center justify-between bg-white dark:bg-neutral-900">
-                                <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                                    <Sparkles className="size-5.5 text-indigo-600 animate-pulse" />
-                                    {editingTemplate ? `Edit Template: ${data.name}` : `Invitify ${data.type === 'video' ? 'Video' : 'Image'} Template Creator`}
-                                </DialogTitle>
+                                <div className="flex items-center gap-3">
+                                    <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                                        <Sparkles className="size-5.5 text-indigo-600 animate-pulse" />
+                                        {editingTemplate ? `Edit Template: ${data.name}` : `Invitify ${data.type === 'video' ? 'Video' : 'Image'} Template Creator`}
+                                    </DialogTitle>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowHelpModal(true)}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 transition-colors cursor-pointer"
+                                        title="How to Create Templates (Guide & Instructions)"
+                                    >
+                                        <HelpCircle className="size-3.5 text-indigo-600 dark:text-indigo-400" />
+                                        <span>Template Guide (?)</span>
+                                    </button>
+                                </div>
                             </DialogHeader>
 
                             <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -1015,30 +1560,313 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                         <div className="flex flex-col border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden h-full">
                                             
                                             {/* Tab Selectors */}
-                                            <div className="flex border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/20 shrink-0">
+                                            <div className="flex border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/20 shrink-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                                                 {[
-                                                    { id: 'pages', label: 'Pages & Borders' },
-                                                    { id: 'text', label: 'Text layers' },
-                                                    { id: 'image', label: 'Images' },
-                                                    { id: 'icon', label: 'Icons & Shapes' },
-                                                    { id: 'link', label: 'Location Pins' },
+                                                    { id: 'layers', label: 'Layers', badge: totalLayerCount, icon: Layers },
+                                                    { id: 'text', label: 'Text', icon: Type },
+                                                    { id: 'image', label: 'Images', icon: ImageIcon },
+                                                    { id: 'icon', label: 'Icons', icon: Heart },
+                                                    { id: 'link', label: 'Pins', icon: MapPin },
+                                                    { id: 'pages', label: 'Page/Bg', icon: Sparkles },
                                                 ].map((tab) => (
                                                     <button
                                                         key={tab.id}
                                                         type="button"
                                                         onClick={() => setActiveTab(tab.id as any)}
-                                                        className={`flex-1 py-3 text-[11px] font-bold border-b-2 text-center transition-all ${activeTab === tab.id
-                                                            ? 'border-indigo-700 text-indigo-700 dark:border-indigo-400 dark:text-indigo-400 bg-white dark:bg-neutral-900'
+                                                        className={`flex-1 min-w-[65px] py-2.5 px-2 text-[11px] font-bold border-b-2 text-center transition-all flex items-center justify-center gap-1.5 ${activeTab === tab.id
+                                                            ? 'border-indigo-700 text-indigo-700 dark:border-indigo-400 dark:text-indigo-400 bg-white dark:bg-neutral-900 shadow-2xs'
                                                             : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300'
                                                             }`}
                                                     >
-                                                        {tab.label}
+                                                        <tab.icon className="size-3.5 shrink-0" />
+                                                        <span className="truncate">{tab.label}</span>
+                                                        {tab.badge !== undefined && (
+                                                            <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-extrabold ${activeTab === tab.id ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300' : 'bg-neutral-200 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'}`}>
+                                                                {tab.badge}
+                                                            </span>
+                                                        )}
                                                     </button>
                                                 ))}
                                             </div>
 
                                             {/* Controls configuration options container */}
                                             <div className="p-5 flex-1 overflow-y-auto flex flex-col gap-5 min-h-0">
+                                                {/* LAYERS MANAGEMENT TAB */}
+                                                {/* developed by dinesh tawade */}
+                                                {activeTab === 'layers' && (
+                                                    <div className="flex flex-col gap-4">
+                                                        {/* Header Summary Card */}
+                                                        <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/50 dark:from-neutral-900 dark:via-neutral-850 dark:to-neutral-900 border border-indigo-100 dark:border-indigo-900/40 shadow-xs">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="size-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                                                                        <Layers className="size-4.5" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <h3 className="font-bold text-sm text-neutral-900 dark:text-neutral-100">
+                                                                            Page Layers & Content ({totalLayerCount})
+                                                                        </h3>
+                                                                        <p className="text-[11px] text-neutral-500">
+                                                                            Hierarchy, z-index stacking & element controls
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Content summary badges */}
+                                                            <div className="flex flex-wrap gap-1.5 pt-2 border-t border-indigo-100/60 dark:border-neutral-800">
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 text-[10px] font-bold text-blue-700 dark:text-blue-300">
+                                                                    <Type className="size-3" /> Text: {textLayerCount}
+                                                                </span>
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                                                                    <ImageIcon className="size-3" /> Images/PNG: {imageLayerCount + bgImageLayerCount}
+                                                                </span>
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                                                                    <Heart className="size-3" /> Icons/SVG: {iconLayerCount}
+                                                                </span>
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-[10px] font-bold text-rose-700 dark:text-rose-300">
+                                                                    <MapPin className="size-3" /> Pins: {linkLayerCount}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Quick Add Toolbar */}
+                                                            <div className="grid grid-cols-4 gap-1.5 mt-3 pt-3 border-t border-indigo-100/60 dark:border-neutral-800">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleAddElement('text')}
+                                                                    className="py-1.5 px-2 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:border-indigo-500 hover:text-indigo-600 text-[11px] font-bold flex items-center justify-center gap-1 transition-all"
+                                                                >
+                                                                    <Plus className="size-3 text-indigo-600" /> Text
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleAddElement('image')}
+                                                                    className="py-1.5 px-2 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:border-emerald-500 hover:text-emerald-600 text-[11px] font-bold flex items-center justify-center gap-1 transition-all"
+                                                                >
+                                                                    <Plus className="size-3 text-emerald-600" /> Image
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleAddElement('icon')}
+                                                                    className="py-1.5 px-2 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:border-amber-500 hover:text-amber-600 text-[11px] font-bold flex items-center justify-center gap-1 transition-all"
+                                                                >
+                                                                    <Plus className="size-3 text-amber-600" /> Icon
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleAddElement('link')}
+                                                                    className="py-1.5 px-2 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:border-rose-500 hover:text-rose-600 text-[11px] font-bold flex items-center justify-center gap-1 transition-all"
+                                                                >
+                                                                    <Plus className="size-3 text-rose-600" /> Pin
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Layer Stack Explanation Helper */}
+                                                        <div className="flex items-center justify-between px-1 text-[10px] font-bold text-neutral-400">
+                                                            <span className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
+                                                                <ChevronUp className="size-3" /> Front / Top Layer
+                                                            </span>
+                                                            <span className="flex items-center gap-1">
+                                                                Back / Bottom Layer <ChevronDown className="size-3" />
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Layers Stack List */}
+                                                        <div className="flex flex-col gap-2">
+                                                            {activePage?.elements.length === 0 ? (
+                                                                <div className="p-8 text-center border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col items-center justify-center">
+                                                                    <Layers className="size-8 text-neutral-300 dark:text-neutral-600 mb-2" />
+                                                                    <p className="text-xs font-bold text-neutral-600 dark:text-neutral-400">No content elements added yet</p>
+                                                                    <p className="text-[10px] text-neutral-400 mt-0.5">Use the quick buttons above to place text, images, or icons.</p>
+                                                                </div>
+                                                            ) : (
+                                                                [...activePage.elements].reverse().map((elem, revIdx) => {
+                                                                    const originalIndex = activePage.elements.length - 1 - revIdx;
+                                                                    const isTop = originalIndex === activePage.elements.length - 1;
+                                                                    const isBottom = originalIndex === 0;
+                                                                    const isSelected = selectedElementId === elem.id;
+
+                                                                    return (
+                                                                        <div
+                                                                            key={elem.id}
+                                                                            onClick={() => setSelectedElementId(elem.id)}
+                                                                            className={`p-3 rounded-xl border transition-all duration-200 flex flex-col gap-2 cursor-pointer ${
+                                                                                isSelected
+                                                                                    ? 'bg-indigo-50/70 dark:bg-indigo-950/40 border-indigo-500 shadow-sm ring-1 ring-indigo-500/30'
+                                                                                    : 'bg-white dark:bg-neutral-850 border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 hover:bg-neutral-50/50'
+                                                                            }`}
+                                                                        >
+                                                                            <div className="flex items-center justify-between gap-2">
+                                                                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                                                                    {/* Layer Stack Rank Badge */}
+                                                                                    <span className="size-5 rounded-md bg-neutral-100 dark:bg-neutral-800 text-[10px] font-mono font-bold text-neutral-500 flex items-center justify-center shrink-0">
+                                                                                        {originalIndex + 1}
+                                                                                    </span>
+
+                                                                                    {/* Element Icon / Thumbnail */}
+                                                                                    <div className="size-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center shrink-0 overflow-hidden">
+                                                                                        {elem.type === 'text' && (
+                                                                                            <Type className="size-4" style={{ color: elem.textColor || '#1f2937' }} />
+                                                                                        )}
+                                                                                        {elem.type === 'image' && (
+                                                                                            elem.url && elem.url !== 'uploading' ? (
+                                                                                                <img src={elem.url} alt="Layer" className="w-full h-full object-cover" />
+                                                                                            ) : (
+                                                                                                <ImageIcon className="size-4 text-emerald-600" />
+                                                                                            )
+                                                                                        )}
+                                                                                        {elem.type === 'icon' && (
+                                                                                            <Heart className="size-4 text-amber-600" style={{ color: elem.color || elem.textColor || '#d97706' }} />
+                                                                                        )}
+                                                                                        {elem.type === 'divider' && (
+                                                                                            <div className="w-4 h-0.5 bg-neutral-400" />
+                                                                                        )}
+                                                                                        {elem.type === 'link' && (
+                                                                                            <MapPin className="size-4 text-rose-600" />
+                                                                                        )}
+                                                                                    </div>
+
+                                                                                    {/* Element Info */}
+                                                                                    <div className="min-w-0 flex-1">
+                                                                                        <div className="flex items-center gap-1.5">
+                                                                                            <span className="font-bold text-xs text-neutral-900 dark:text-neutral-100 truncate">
+                                                                                                {elem.customName || elem.content || (elem.isBackground ? 'Background Image' : elem.type === 'image' ? 'Image Layer' : elem.type === 'icon' ? `Icon (${elem.iconType || 'heart'})` : 'Pin Button')}
+                                                                                            </span>
+                                                                                            {elem.hidden && (
+                                                                                                <span className="text-[8px] px-1 py-0.2 rounded bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-bold">
+                                                                                                    Hidden
+                                                                                                </span>
+                                                                                            )}
+                                                                                            {elem.locked && (
+                                                                                                <span className="text-[8px] px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400 font-bold">
+                                                                                                    Locked
+                                                                                                </span>
+                                                                                            )}
+                                                                                        </div>
+                                                                                        <p className="text-[10px] text-neutral-400 font-mono mt-0.5 truncate flex items-center gap-1.5">
+                                                                                            <span>{elem.type.toUpperCase()} • X:{Math.round(elem.x)}% Y:{Math.round(elem.y)}%</span>
+                                                                                            <span className="px-1.5 py-0.2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 font-bold rounded text-[9px] border border-indigo-150 dark:border-indigo-900/50">
+                                                                                                Z: {elem.zIndex !== undefined ? elem.zIndex : (originalIndex + 1) * 5}
+                                                                                            </span>
+                                                                                        </p>
+                                                                                    </div>
+                                                                                </div>
+
+                                                                                {/* Layer Actions Toolbar */}
+                                                                                <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                                                                    {/* Move Up in Stack */}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        disabled={isTop}
+                                                                                        onClick={() => handleMoveLayer(elem.id, 'up')}
+                                                                                        className={`size-6 rounded-md flex items-center justify-center transition-colors ${
+                                                                                            isTop
+                                                                                                ? 'opacity-25 cursor-not-allowed text-neutral-400'
+                                                                                                : 'text-neutral-500 hover:text-indigo-600 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                                                                        }`}
+                                                                                        title="Bring Forward (Move Up in Layer Stack)"
+                                                                                    >
+                                                                                        <ArrowUp className="size-3.5" />
+                                                                                    </button>
+
+                                                                                    {/* Move Down in Stack */}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        disabled={isBottom}
+                                                                                        onClick={() => handleMoveLayer(elem.id, 'down')}
+                                                                                        className={`size-6 rounded-md flex items-center justify-center transition-colors ${
+                                                                                            isBottom
+                                                                                                ? 'opacity-25 cursor-not-allowed text-neutral-400'
+                                                                                                : 'text-neutral-500 hover:text-indigo-600 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                                                                        }`}
+                                                                                        title="Send Backward (Move Down in Layer Stack)"
+                                                                                    >
+                                                                                        <ArrowDown className="size-3.5" />
+                                                                                    </button>
+
+                                                                                    {/* Visibility Toggle */}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={(e) => handleToggleLayerVisibility(elem.id, e)}
+                                                                                        className={`size-6 rounded-md flex items-center justify-center transition-colors ${
+                                                                                            elem.hidden
+                                                                                                ? 'text-neutral-400 bg-neutral-100 dark:bg-neutral-800'
+                                                                                                : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                                                                        }`}
+                                                                                        title={elem.hidden ? 'Show Layer' : 'Hide Layer'}
+                                                                                    >
+                                                                                        {elem.hidden ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                                                                                    </button>
+
+                                                                                    {/* Lock Toggle */}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={(e) => handleToggleLayerLock(elem.id, e)}
+                                                                                        className={`size-6 rounded-md flex items-center justify-center transition-colors ${
+                                                                                            elem.locked
+                                                                                                ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/40'
+                                                                                                : 'text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                                                                        }`}
+                                                                                        title={elem.locked ? 'Unlock Layer (Allow Dragging)' : 'Lock Layer (Prevent Dragging)'}
+                                                                                    >
+                                                                                        {elem.locked ? <Lock className="size-3.5" /> : <Unlock className="size-3.5" />}
+                                                                                    </button>
+
+                                                                                    {/* Duplicate Layer */}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={(e) => handleDuplicateElement(elem.id, e)}
+                                                                                        className="size-6 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center transition-colors"
+                                                                                        title="Duplicate Element"
+                                                                                    >
+                                                                                        <Copy className="size-3.5" />
+                                                                                    </button>
+
+                                                                                    {/* Delete Layer */}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={(e) => {
+                                                                                            e.stopPropagation();
+                                                                                            if (confirm('Delete this layer?')) {
+                                                                                                handleDeleteElement(elem.id);
+                                                                                            }
+                                                                                        }}
+                                                                                        className="size-6 rounded-md text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center transition-colors"
+                                                                                        title="Delete Element"
+                                                                                    >
+                                                                                        <Trash className="size-3.5" />
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {/* Direct edit button if selected */}
+                                                                            {isSelected && (
+                                                                                <div className="flex items-center justify-between pt-2 border-t border-indigo-100 dark:border-neutral-800" onClick={(e) => e.stopPropagation()}>
+                                                                                    <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1">
+                                                                                        <CheckCircle2 className="size-3" /> Selected on Canvas
+                                                                                    </span>
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => {
+                                                                                            if (elem.type === 'text') setActiveTab('text');
+                                                                                            else if (elem.type === 'image') setActiveTab('image');
+                                                                                            else if (elem.type === 'icon' || elem.type === 'divider') setActiveTab('icon');
+                                                                                            else if (elem.type === 'link') setActiveTab('link');
+                                                                                        }}
+                                                                                        className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 flex items-center gap-1 shadow-2xs"
+                                                                                    >
+                                                                                        <Pencil className="size-2.5" /> Configure Properties →
+                                                                                    </button>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                })
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
                                                 {activeTab === 'pages' && (
                                                     <div className="flex flex-col gap-5">
                                                         {/* Ratios & Dimensions */}
@@ -1283,20 +2111,23 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                     />
                                                                 </div>
 
-                                                                <div className="grid grid-cols-2 gap-3">
-                                                                    <div className="grid gap-1">
-                                                                        <Label htmlFor="fontStyle" className="text-[10px] uppercase font-bold text-neutral-450">Font Family</Label>
-                                                                        <select
-                                                                            id="fontStyle"
-                                                                            value={selectedElement.fontStyle || 'playfair'}
-                                                                            onChange={(e) => handleUpdateElement(selectedElement.id, { fontStyle: e.target.value })}
-                                                                            className="h-8 rounded-md border text-xs bg-white dark:bg-neutral-950 px-2"
-                                                                        >
-                                                                            {Object.keys(fontLabels).map((fKey) => (
-                                                                                <option key={fKey} value={fKey}>{fontLabels[fKey]}</option>
-                                                                            ))}
-                                                                        </select>
+                                                                {/* Google Font Picker */}
+                                                                {/* developed by dinesh tawade */}
+                                                                <div className="grid gap-1.5">
+                                                                    <div className="flex items-center justify-between">
+                                                                        <Label className="text-[10px] uppercase font-bold text-neutral-500">Google Font Family</Label>
+                                                                        <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1">
+                                                                            <Sparkles className="size-2.5" /> 1,950+ Fonts
+                                                                        </span>
                                                                     </div>
+                                                                    <GoogleFontPicker
+                                                                        value={selectedElement.fontStyle || 'playfair'}
+                                                                        sampleText={selectedElement.content || 'The Wedding of Sarah & Alex'}
+                                                                        onChange={(newFont) => handleUpdateElement(selectedElement.id, { fontStyle: newFont })}
+                                                                    />
+                                                                </div>
+
+                                                                <div className="grid grid-cols-2 gap-3">
                                                                     <div className="grid gap-1">
                                                                         <Label htmlFor="fontSize" className="text-[10px] uppercase font-bold text-neutral-450">Font Size (px)</Label>
                                                                         <Input
@@ -1306,26 +2137,6 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                             onChange={(e) => handleUpdateElement(selectedElement.id, { fontSize: parseInt(e.target.value) || 12 })}
                                                                             className="h-8 text-xs bg-white"
                                                                         />
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="grid grid-cols-2 gap-3">
-                                                                    <div className="grid gap-1 bg-white p-2 rounded border">
-                                                                        <Label htmlFor="textColor" className="text-[10px] uppercase font-bold text-neutral-455">Text Color</Label>
-                                                                        <div className="flex gap-1.5 items-center mt-1">
-                                                                            <input
-                                                                                type="color"
-                                                                                value={selectedElement.textColor || '#1f2937'}
-                                                                                onChange={(e) => handleUpdateElement(selectedElement.id, { textColor: e.target.value })}
-                                                                                className="w-8 h-8 p-0 cursor-pointer rounded border"
-                                                                            />
-                                                                            <Input
-                                                                                type="text"
-                                                                                value={selectedElement.textColor || '#1f2937'}
-                                                                                onChange={(e) => handleUpdateElement(selectedElement.id, { textColor: e.target.value })}
-                                                                                className="h-7 text-[10px] px-1 font-mono uppercase"
-                                                                            />
-                                                                        </div>
                                                                     </div>
                                                                     <div className="grid gap-1">
                                                                         <Label htmlFor="textAlign" className="text-[10px] uppercase font-bold text-neutral-450">Alignment</Label>
@@ -1339,6 +2150,24 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                             <option value="center">Center</option>
                                                                             <option value="right">Right</option>
                                                                         </select>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="grid gap-1 bg-white dark:bg-neutral-900 p-2 rounded border border-neutral-200 dark:border-neutral-800">
+                                                                    <Label htmlFor="textColor" className="text-[10px] uppercase font-bold text-neutral-455">Text Color</Label>
+                                                                    <div className="flex gap-1.5 items-center mt-1">
+                                                                        <input
+                                                                            type="color"
+                                                                            value={selectedElement.textColor || '#1f2937'}
+                                                                            onChange={(e) => handleUpdateElement(selectedElement.id, { textColor: e.target.value })}
+                                                                            className="w-8 h-8 p-0 cursor-pointer rounded border"
+                                                                        />
+                                                                        <Input
+                                                                            type="text"
+                                                                            value={selectedElement.textColor || '#1f2937'}
+                                                                            onChange={(e) => handleUpdateElement(selectedElement.id, { textColor: e.target.value })}
+                                                                            className="h-7 text-[10px] px-1 font-mono uppercase"
+                                                                        />
                                                                     </div>
                                                                 </div>
 
@@ -1454,6 +2283,8 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                     </div>
                                                                 </div>
 
+                                                                {renderZIndexController(selectedElement)}
+
                                                                 <Button
                                                                     type="button"
                                                                     variant="destructive"
@@ -1474,22 +2305,63 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
 
                                                 {activeTab === 'image' && (
                                                     <div className="flex flex-col gap-4">
+                                                        {/* Header with Add Image Box */}
                                                         <div className="flex justify-between items-center pb-2 border-b">
-                                                            <Label className="text-sm font-bold text-neutral-800 dark:text-neutral-200">Graphic Images</Label>
-                                                            <Button
-                                                                type="button"
-                                                                onClick={() => handleAddElement('image')}
-                                                                size="sm"
-                                                                className="bg-indigo-700 hover:bg-indigo-700 text-white text-xs flex items-center gap-1.5 rounded-lg"
-                                                            >
-                                                                <Plus className="size-3.5" /> Add Image Box
-                                                            </Button>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <ImageIcon className="size-4 text-indigo-600" />
+                                                                <Label className="text-sm font-bold text-neutral-800 dark:text-neutral-200">Graphic Images & Assets</Label>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <Button
+                                                                    type="button"
+                                                                    onClick={() => handleAddElement('image')}
+                                                                    size="sm"
+                                                                    className="bg-indigo-700 hover:bg-indigo-800 text-white text-xs flex items-center gap-1.5 rounded-lg shadow-2xs"
+                                                                >
+                                                                    <Plus className="size-3.5" /> Add Image Box
+                                                                </Button>
+                                                            </div>
                                                         </div>
 
-                                                        {selectedElement && selectedElement.type === 'image' ? (
-                                                            <div className="border border-neutral-200 rounded-xl p-4 bg-neutral-50/50 dark:border-neutral-800 dark:bg-neutral-950/20 flex flex-col gap-4">
-                                                                <div className="grid gap-2">
-                                                                    <Label htmlFor="imgUpload" className="text-xs font-semibold">Upload Image File (PNG, JPG, SVG)</Label>
+                                                        {/* Upload & Deduplication Feedback Banner */}
+                                                        {assetUploadNotice && (
+                                                            <div className={`p-3 rounded-xl border text-xs flex items-start justify-between gap-2 shadow-2xs animate-in fade-in duration-200 ${
+                                                                assetUploadNotice.isDuplicate
+                                                                    ? 'bg-amber-50/90 border-amber-300 text-amber-900 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-200'
+                                                                    : 'bg-emerald-50/90 border-emerald-300 text-emerald-900 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-200'
+                                                            }`}>
+                                                                <div className="flex items-center gap-2">
+                                                                    {assetUploadNotice.isDuplicate ? (
+                                                                        <Sparkles className="size-4 shrink-0 text-amber-600" />
+                                                                    ) : (
+                                                                        <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+                                                                    )}
+                                                                    <span className="font-medium">{assetUploadNotice.message}</span>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setAssetUploadNotice(null)}
+                                                                    className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 font-bold p-0.5"
+                                                                >
+                                                                    ✕
+                                                                </button>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Selected Element Controls (if an image element is currently selected) */}
+                                                        {selectedElement && selectedElement.type === 'image' && (
+                                                            <div className="border border-indigo-200 rounded-xl p-3.5 bg-indigo-50/30 dark:border-indigo-900/40 dark:bg-indigo-950/15 flex flex-col gap-3">
+                                                                <div className="flex items-center justify-between">
+                                                                    <span className="text-xs font-bold text-indigo-700 dark:text-indigo-400 flex items-center gap-1">
+                                                                        <ImageIcon className="size-3.5" /> Active Image Layer
+                                                                    </span>
+                                                                    <span className="text-[10px] text-neutral-500 font-mono truncate max-w-[150px]">
+                                                                        {selectedElement.customName || 'Custom Layer'}
+                                                                    </span>
+                                                                </div>
+
+                                                                <div className="grid gap-1.5">
+                                                                    <Label htmlFor="imgUpload" className="text-xs font-semibold">Replace Layer with New File (PNG, JPG, SVG)</Label>
                                                                     <Input
                                                                         id="imgUpload"
                                                                         type="file"
@@ -1500,7 +2372,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                 </div>
 
                                                                 <div className="grid gap-1">
-                                                                    <Label htmlFor="imgUrl" className="text-xs font-semibold">Or Paste Image URL</Label>
+                                                                    <Label htmlFor="imgUrl" className="text-xs font-semibold">Or Image URL</Label>
                                                                     <Input
                                                                         id="imgUrl"
                                                                         type="url"
@@ -1526,7 +2398,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                     />
                                                                 </div>
 
-                                                                <div className="border-t pt-3 mt-1 flex flex-col gap-2.5">
+                                                                <div className="border-t border-indigo-100 dark:border-indigo-900/50 pt-2.5 flex flex-col gap-2">
                                                                     <label className="flex items-center gap-1.5 text-xs font-bold cursor-pointer text-indigo-700 dark:text-indigo-400">
                                                                         <input
                                                                             type="checkbox"
@@ -1552,7 +2424,7 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                 </div>
 
                                                                 {/* Coordinates Controller */}
-                                                                <div className="grid grid-cols-4 gap-2 border-t pt-3 border-neutral-200 dark:border-neutral-800 bg-neutral-100/50 p-2 rounded-lg">
+                                                                <div className="grid grid-cols-4 gap-2 border-t pt-2.5 border-indigo-100 dark:border-indigo-900/50 bg-white/70 dark:bg-neutral-900/50 p-2 rounded-lg">
                                                                     <div className="flex flex-col gap-0.5">
                                                                         <span className="text-[9px] text-neutral-400 font-bold uppercase text-center">X (%)</span>
                                                                         <input type="number" value={selectedElement.x} onChange={(e) => handleUpdateElement(selectedElement.id, { x: parseInt(e.target.value) || 0 })} className="w-full h-7 border bg-white rounded text-xs text-center font-bold" />
@@ -1571,6 +2443,8 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                     </div>
                                                                 </div>
 
+                                                                {renderZIndexController(selectedElement)}
+
                                                                 <Button
                                                                     type="button"
                                                                     variant="destructive"
@@ -1581,11 +2455,151 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                     <Trash className="size-3.5" /> Delete Image Box
                                                                 </Button>
                                                             </div>
-                                                        ) : (
-                                                            <p className="text-xs text-neutral-450 text-center py-10 italic">
-                                                                Select an image element on the canvas or click "Add Image Box" above.
-                                                            </p>
                                                         )}
+
+                                                        {/* Saved Assets Library Section (Deduplication + Saved Asset Browser + Delete) */}
+                                                        {/* developed by dinesh tawade */}
+                                                        <div className="border border-neutral-200 rounded-xl p-4 bg-white dark:border-neutral-800 dark:bg-neutral-950 flex flex-col gap-3 shadow-2xs">
+                                                            <div className="flex items-center justify-between">
+                                                                <div>
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <Layers className="size-4 text-indigo-600" />
+                                                                        <Label className="text-xs font-bold text-neutral-900 dark:text-neutral-100">
+                                                                            Saved Assets Library
+                                                                        </Label>
+                                                                        <span className="text-[10px] font-bold px-1.5 py-0.2 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 rounded-full">
+                                                                            {savedAssets.length}
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="text-[10px] text-neutral-500 mt-0.5">
+                                                                        All uploaded PNG & graphics preserved with original names. No duplicates!
+                                                                    </p>
+                                                                </div>
+                                                                <label className="cursor-pointer bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/50 text-xs font-semibold px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors border border-indigo-200 dark:border-indigo-800 shrink-0">
+                                                                    <UploadCloud className="size-3.5" />
+                                                                    <span>{isUploadingAsset ? 'Uploading...' : 'Upload Asset'}</span>
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        className="hidden"
+                                                                        disabled={isUploadingAsset}
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) handleUploadNewAsset(file);
+                                                                            e.target.value = '';
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                            </div>
+
+                                                            {/* Search Assets */}
+                                                            <div className="relative">
+                                                                <Search className="absolute left-2.5 top-2.5 size-3.5 text-neutral-400" />
+                                                                <Input
+                                                                    type="text"
+                                                                    placeholder="Search saved assets by name..."
+                                                                    value={assetSearchQuery}
+                                                                    onChange={(e) => setAssetSearchQuery(e.target.value)}
+                                                                    className="pl-8 h-8 text-xs bg-neutral-50 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800"
+                                                                />
+                                                            </div>
+
+                                                            {/* Asset Library Grid */}
+                                                            <div className="max-h-72 overflow-y-auto pr-1">
+                                                                {isLoadingAssets ? (
+                                                                    <div className="py-8 text-center text-xs text-neutral-400 flex flex-col items-center gap-2">
+                                                                        <div className="size-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                                                                        <span>Loading saved assets...</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    (() => {
+                                                                        const filteredAssets = savedAssets.filter(a =>
+                                                                            (a.filename || '').toLowerCase().includes(assetSearchQuery.toLowerCase())
+                                                                        );
+
+                                                                        if (filteredAssets.length === 0) {
+                                                                            return (
+                                                                                <div className="p-6 text-center border border-dashed rounded-xl border-neutral-300 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-900/20">
+                                                                                    <UploadCloud className="size-7 text-neutral-400 mx-auto mb-1.5" />
+                                                                                    <p className="text-xs font-semibold text-neutral-600 dark:text-neutral-300">No assets found</p>
+                                                                                    <p className="text-[11px] text-neutral-400 mt-1 max-w-[260px] mx-auto">
+                                                                                        Upload PNGs, logos, stickers, floral artwork, or photos. They will be saved with their name and can be reused anytime.
+                                                                                    </p>
+                                                                                </div>
+                                                                            );
+                                                                        }
+
+                                                                        return (
+                                                                            <div className="grid grid-cols-3 gap-2">
+                                                                                {filteredAssets.map(asset => {
+                                                                                    const isSelected = selectedElement && selectedElement.url === asset.url;
+                                                                                    return (
+                                                                                        <div
+                                                                                            key={asset.id}
+                                                                                            onClick={() => {
+                                                                                                if (selectedElement && selectedElement.type === 'image') {
+                                                                                                    handleUpdateElement(selectedElement.id, {
+                                                                                                        url: asset.url,
+                                                                                                        customName: asset.filename
+                                                                                                    });
+                                                                                                } else {
+                                                                                                    handleAddElementWithImage(asset.url, asset.filename);
+                                                                                                }
+                                                                                            }}
+                                                                                            className={`group relative border rounded-xl overflow-hidden bg-neutral-50/80 dark:bg-neutral-900/50 hover:border-indigo-400 hover:shadow-xs transition-all cursor-pointer p-1.5 flex flex-col items-center ${
+                                                                                                isSelected
+                                                                                                    ? 'ring-2 ring-indigo-500 border-indigo-500 bg-indigo-50/30'
+                                                                                                    : 'border-neutral-200 dark:border-neutral-800'
+                                                                                            }`}
+                                                                                            title={selectedElement && selectedElement.type === 'image' ? `Click to apply "${asset.filename}" to selected box` : `Click to add "${asset.filename}" to canvas`}
+                                                                                        >
+                                                                                            {/* Checkerboard preview container for transparent PNGs */}
+                                                                                            <div className="w-full aspect-square rounded-lg overflow-hidden bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:6px_6px] dark:bg-neutral-950 flex items-center justify-center p-1.5 relative">
+                                                                                                <img
+                                                                                                    src={asset.url}
+                                                                                                    alt={asset.filename}
+                                                                                                    className="w-full h-full object-contain pointer-events-none group-hover:scale-105 transition-transform"
+                                                                                                    loading="lazy"
+                                                                                                />
+                                                                                                {/* Delete Button */}
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    onClick={(e) => handleDeleteAsset(asset, e)}
+                                                                                                    className="absolute top-1 right-1 p-1 rounded-md bg-white/90 hover:bg-rose-50 text-neutral-400 hover:text-rose-600 shadow-xs opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                                                                                    title={`Delete "${asset.filename}" from library`}
+                                                                                                >
+                                                                                                    <Trash className="size-3" />
+                                                                                                </button>
+                                                                                                {isSelected && (
+                                                                                                    <div className="absolute inset-0 bg-indigo-600/10 flex items-center justify-center">
+                                                                                                        <span className="bg-indigo-600 text-white rounded-full p-0.5">
+                                                                                                            <Check className="size-3" />
+                                                                                                        </span>
+                                                                                                    </div>
+                                                                                                )}
+                                                                                            </div>
+
+                                                                                            {/* Filename & size */}
+                                                                                            <span className="text-[10px] font-medium text-neutral-700 dark:text-neutral-300 truncate w-full text-center mt-1" title={asset.filename}>
+                                                                                                {asset.filename}
+                                                                                            </span>
+                                                                                            {asset.size ? (
+                                                                                                <span className="text-[9px] text-neutral-400 font-mono">
+                                                                                                    {(asset.size / 1024).toFixed(0)} KB
+                                                                                                </span>
+                                                                                            ) : null}
+                                                                                        </div>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                        );
+                                                                    })()
+                                                                )}
+                                                            </div>
+                                                            <p className="text-[10px] text-neutral-450 italic text-center">
+                                                                Click any asset to insert as a new layer or apply to currently selected box.
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 )}
 
@@ -1696,6 +2710,8 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                         <input type="number" value={selectedElement.h} onChange={(e) => handleUpdateElement(selectedElement.id, { h: parseInt(e.target.value) || 0 })} className="w-full h-7 border bg-white rounded text-xs text-center font-bold" />
                                                                     </div>
                                                                 </div>
+
+                                                                {renderZIndexController(selectedElement)}
 
                                                                 <Button
                                                                     type="button"
@@ -1853,6 +2869,8 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                     </div>
                                                                 </div>
 
+                                                                {renderZIndexController(selectedElement)}
+
                                                                 <Button
                                                                     type="button"
                                                                     variant="destructive"
@@ -1893,6 +2911,19 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                             P{idx + 1}
                                                         </button>
                                                     ))}
+                                                </div>
+
+                                                {/* Quick Layers access button */}
+                                                <div className="flex flex-col items-center">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setActiveTab('layers')}
+                                                        className={`p-2 rounded-xl transition-all flex flex-col items-center gap-0.5 ${activeTab === 'layers' ? 'bg-indigo-600 text-white shadow-xs' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+                                                        title={`Open Layers Panel (${totalLayerCount} elements)`}
+                                                    >
+                                                        <Layers className="size-5" />
+                                                        <span className="text-[9px] font-mono font-bold leading-none">{totalLayerCount}</span>
+                                                    </button>
                                                 </div>
 
                                                 <div className="w-8 h-px bg-neutral-200 dark:bg-neutral-700"></div>
@@ -2049,8 +3080,12 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                     )}
 
                                                     {/* Layer elements */}
-                                                    {activePage?.elements.map((elem) => {
+                                                    {activePage?.elements.map((elem, elemIndex) => {
                                                         const isSelected = selectedElementId === elem.id;
+                                                        if (elem.hidden && !isSelected) {
+                                                            return null;
+                                                        }
+
                                                         const style: React.CSSProperties = {
                                                             position: 'absolute',
                                                             left: `${elem.x}%`,
@@ -2061,14 +3096,14 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                             alignItems: 'center',
                                                             justifyContent: elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center',
                                                             textAlign: elem.textAlign || 'center',
-                                                            fontFamily: fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair,
+                                                            fontFamily: getFontFamilyCss(elem.fontStyle),
                                                             color: elem.textColor || '#1f2937',
                                                             fontSize: elem.fontSize ? `${elem.fontSize * scaleRatio}px` : undefined,
                                                             fontWeight: elem.fontWeight || 'normal',
                                                             fontStyle: elem.isItalic ? 'italic' : 'normal',
                                                             textShadow: elem.type === 'text' && elem.textShadow && elem.textShadow !== 'none' ? elem.textShadow : undefined,
-                                                            opacity: elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1,
-                                                            zIndex: isSelected ? 50 : (elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25),
+                                                            opacity: elem.hidden ? 0.35 : (elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1),
+                                                            zIndex: isSelected ? 1000 : (elem.zIndex !== undefined ? elem.zIndex : (elem.isBackground ? 2 : (elemIndex + 1) * 5)),
                                                         };
 
                                                         return (
@@ -2077,11 +3112,17 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                                 style={style}
                                                                 onMouseDown={(e) => handleCanvasMouseDown(elem.id, e, false)}
                                                                 onClick={(e) => e.stopPropagation()}
-                                                                className={`transition-all duration-75 relative group border p-0.5 leading-tight select-none break-words overflow-hidden ${isSelected
-                                                                    ? 'border-indigo-700 bg-indigo-500/10 shadow-xs z-30'
-                                                                    : 'border-transparent hover:border-dashed hover:border-neutral-400 hover:z-20 cursor-move'
-                                                                    } ${elem.animation && elem.animation !== 'none' ? elem.animation : ''}`}
+                                                                className={`transition-all duration-75 relative group border p-0.5 leading-tight select-none break-words overflow-hidden ${elem.locked ? 'cursor-default' : 'cursor-move'} ${isSelected
+                                                                    ? 'border-indigo-700 bg-indigo-500/10 shadow-xs'
+                                                                    : 'border-transparent hover:border-dashed hover:border-neutral-400 hover:z-20'
+                                                                    } ${elem.hidden ? 'border-dashed border-neutral-400/60' : ''} ${elem.animation && elem.animation !== 'none' ? elem.animation : ''}`}
                                                             >
+                                                                {elem.hidden && isSelected && (
+                                                                    <div className="absolute top-0 right-0 bg-neutral-800 text-white text-[8px] font-bold px-1 rounded-bl">
+                                                                        Hidden
+                                                                    </div>
+                                                                )}
+
                                                                 {elem.type === 'text' && (
                                                                     <span className="w-full pointer-events-none whitespace-pre-wrap">{elem.content}</span>
                                                                 )}
@@ -2130,16 +3171,18 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
 
                                                                 {isSelected && (
                                                                     <>
-                                                                        <div className="absolute top-0.5 left-0.5 bg-indigo-700 rounded-full text-white p-0.5 shadow-xs z-40 pointer-events-none opacity-80">
-                                                                            <Move className="size-2.5" />
+                                                                        <div className={`absolute top-0.5 left-0.5 rounded-full text-white p-0.5 shadow-xs z-40 pointer-events-none ${elem.locked ? 'bg-amber-600' : 'bg-indigo-700 opacity-80'}`}>
+                                                                            {elem.locked ? <Lock className="size-2.5" /> : <Move className="size-2.5" />}
                                                                         </div>
-                                                                        <div
-                                                                            onMouseDown={(e) => handleCanvasMouseDown(elem.id, e, true)}
-                                                                            onClick={(e) => e.stopPropagation()}
-                                                                            className="absolute bottom-0 right-0 size-3 bg-indigo-700 cursor-se-resize flex items-center justify-center text-[7px] text-white font-bold leading-none select-none rounded-tl-xs z-45"
-                                                                        >
-                                                                            ⇲
-                                                                        </div>
+                                                                        {!elem.locked && (
+                                                                            <div
+                                                                                onMouseDown={(e) => handleCanvasMouseDown(elem.id, e, true)}
+                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                className="absolute bottom-0 right-0 size-3 bg-indigo-700 cursor-se-resize flex items-center justify-center text-[7px] text-white font-bold leading-none select-none rounded-tl-xs z-45"
+                                                                            >
+                                                                                ⇲
+                                                                            </div>
+                                                                        )}
                                                                     </>
                                                                 )}
                                                             </div>
@@ -2170,17 +3213,135 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                                 <option value="video">Video Template</option>
                                             </select>
                                         </div>
-                                        <div className="grid gap-1 w-[130px]">
-                                            <Label htmlFor="category_footer" className="text-[10px] uppercase font-bold text-neutral-500">Category</Label>
-                                            <select id="category_footer" value={data.category} onChange={(e) => setData('category', e.target.value)} className="flex h-8.5 w-full rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs shadow-2xs transition-colors dark:border-neutral-800 dark:bg-neutral-950">
-                                                {categories.map((cat) => (
-                                                    <option key={cat.id} value={cat.slug}>{cat.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
+                                        {/* Category with Add New Feature */}
+                                        {/* developed by dinesh tawade */}
+                                        {!isAddingNewCategory ? (
+                                            <div className="grid gap-1 min-w-[155px] relative">
+                                                <div className="flex items-center justify-between">
+                                                    <Label htmlFor="category_footer" className="text-[10px] uppercase font-bold text-neutral-500">
+                                                        Category
+                                                    </Label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsAddingNewCategory(true)}
+                                                        className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-semibold flex items-center gap-0.5 hover:underline transition-all cursor-pointer"
+                                                        title="Add new category"
+                                                    >
+                                                        <Plus className="size-2.5" /> New
+                                                    </button>
+                                                </div>
+                                                <select
+                                                    id="category_footer"
+                                                    value={data.category}
+                                                    onChange={(e) => {
+                                                        if (e.target.value === '__add_new__') {
+                                                            setIsAddingNewCategory(true);
+                                                        } else {
+                                                            setData('category', e.target.value);
+                                                        }
+                                                    }}
+                                                    className="flex h-8.5 w-full rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs shadow-2xs transition-colors dark:border-neutral-800 dark:bg-neutral-950 capitalize"
+                                                >
+                                                    {categoriesList.map((cat) => (
+                                                        <option key={cat.id || cat.slug} value={cat.slug} className="capitalize">
+                                                            {cat.name}
+                                                        </option>
+                                                    ))}
+                                                    <option value="__add_new__" className="text-indigo-600 font-bold bg-indigo-50/50 dark:bg-indigo-950/30">
+                                                        + Add New Category...
+                                                    </option>
+                                                </select>
+                                                {categoryNotice && (
+                                                    <span className="text-[10px] font-semibold text-emerald-600 absolute -bottom-4.5 left-0 animate-in fade-in">
+                                                        ✓ {categoryNotice}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="grid gap-1 min-w-[210px] relative animate-in fade-in zoom-in-95 duration-150">
+                                                <div className="flex items-center justify-between">
+                                                    <Label htmlFor="new_category_input" className="text-[10px] uppercase font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                                                        <Sparkles className="size-2.5" /> New Category
+                                                    </Label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setIsAddingNewCategory(false);
+                                                            setNewCategoryName('');
+                                                        }}
+                                                        className="text-[10px] text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 flex items-center gap-0.5 font-medium transition-colors cursor-pointer"
+                                                        title="Cancel"
+                                                    >
+                                                        <X className="size-2.5" /> Cancel
+                                                    </button>
+                                                </div>
+                                                <div className="relative flex items-center">
+                                                    <Input
+                                                        id="new_category_input"
+                                                        autoFocus
+                                                        type="text"
+                                                        value={newCategoryName}
+                                                        onChange={(e) => setNewCategoryName(e.target.value)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                handleAddNewCategory();
+                                                            } else if (e.key === 'Escape') {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                setIsAddingNewCategory(false);
+                                                                setNewCategoryName('');
+                                                            }
+                                                        }}
+                                                        placeholder="Category name..."
+                                                        disabled={isSavingCategory}
+                                                        className="h-8.5 pr-14 rounded-lg text-xs bg-white dark:bg-neutral-950 border-indigo-300 dark:border-indigo-700 focus-visible:ring-indigo-500"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            handleAddNewCategory();
+                                                        }}
+                                                        disabled={isSavingCategory || !newCategoryName.trim()}
+                                                        className="absolute right-1 top-1 bottom-1 px-2.5 rounded-md bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-[10px] font-semibold flex items-center gap-1 transition-all shadow-2xs cursor-pointer"
+                                                        title="Add category (Enter)"
+                                                    >
+                                                        {isSavingCategory ? (
+                                                            <Loader2 className="size-3 animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                <Check className="size-3" />
+                                                                <span>Add</span>
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                                <span className="text-[9px] text-neutral-400 dark:text-neutral-500">
+                                                    Press <kbd className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded text-[9px] font-mono border">Enter ↵</kbd> to add
+                                                </span>
+                                            </div>
+                                        )}
                                         <div className="grid gap-1 w-[100px]">
                                             <Label htmlFor="price_footer" className="text-[10px] uppercase font-bold text-neutral-500">Price (₹)</Label>
                                             <Input id="price_footer" type="number" step="0.01" min="0" value={data.price} onChange={(e) => setData('price', e.target.value)} required className="h-8.5 rounded-lg text-xs bg-white dark:bg-neutral-950" />
+                                        </div>
+                                        <div className="grid gap-1 w-[110px]">
+                                            <Label htmlFor="trending_footer" className="text-[10px] uppercase font-bold text-neutral-500">Feature</Label>
+                                            <label htmlFor="trending_footer" className="flex items-center gap-1.5 h-8.5 px-2.5 rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950 cursor-pointer text-xs font-semibold hover:border-amber-400 transition-colors">
+                                                <input
+                                                    id="trending_footer"
+                                                    type="checkbox"
+                                                    checked={Boolean(data.is_trending)}
+                                                    onChange={(e) => setData('is_trending', e.target.checked)}
+                                                    className="rounded border-neutral-300 text-amber-600 focus:ring-amber-500 size-3.5"
+                                                />
+                                                <span className="flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-400">
+                                                    <Flame className="size-3 fill-amber-500 text-amber-500" /> Trending
+                                                </span>
+                                            </label>
                                         </div>
                                         {data.type !== 'video' && (
                                             <div className="grid gap-1 w-[130px]">
@@ -2205,6 +3366,19 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                                         <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl h-9">
                                             Cancel
                                         </Button>
+                                        {editingTemplate && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                disabled={processing}
+                                                onClick={handleSaveAsClone}
+                                                className="font-bold rounded-xl px-4 h-9 border-indigo-300 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-950/30 flex items-center gap-1.5 shadow-2xs"
+                                                title="Clone this design as a new template (Save As)"
+                                            >
+                                                <Copy className="size-3.5" />
+                                                Clone & Save As
+                                            </Button>
+                                        )}
                                         <Button 
                                             type="submit" 
                                             variant="secondary"
@@ -2229,6 +3403,9 @@ export default function TemplatesIndex({ templates, categories, editorRequests =
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* How to Create Invitation Templates Instructions Modal */}
+            <InvitationTemplateHelpModal open={showHelpModal} onOpenChange={setShowHelpModal} />
         </AppLayout>
     );
 }

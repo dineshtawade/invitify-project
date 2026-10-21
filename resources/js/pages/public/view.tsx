@@ -22,7 +22,12 @@ interface PageProps {
     };
 }
 
-const fontStyles: Record<string, string> = {
+import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
+import VideoGenerator from '@/components/video-generator';
+import { getFontFamilyCss, loadGoogleFont } from '@/utils/font-utils';
+
+// developed by dinesh tawade
+const fontStyles: Record<string, string> = new Proxy({
     playfair: "'Playfair Display', serif",
     vibes: "'Great Vibes', cursive",
     montserrat: "'Montserrat', sans-serif",
@@ -33,10 +38,12 @@ const fontStyles: Record<string, string> = {
     parisienne: "'Parisienne', cursive",
     cormorant: "'Cormorant Garamond', serif",
     pinyon: "'Pinyon Script', cursive",
-};
-
-import VideoTemplateBuilder from '@/components/VideoTemplateBuilder';
-import VideoGenerator from '@/components/video-generator';
+}, {
+    get(target, prop: string) {
+        if (prop in target) return (target as any)[prop];
+        return getFontFamilyCss(prop);
+    }
+});
 
 export default function PublicSharedView({ userTemplate }: PageProps) {
     const isVideo = userTemplate.template.type === 'video';
@@ -107,6 +114,19 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
         
         return () => observer.disconnect();
     }, [currentPageIndex]);
+
+    // Preload Google Fonts used in the template
+    // developed by dinesh tawade
+    useEffect(() => {
+        if (!config?.pages) return;
+        config.pages.forEach((p: any) => {
+            p.elements?.forEach((elem: any) => {
+                if (elem.type === 'text' && elem.fontStyle) {
+                    loadGoogleFont(elem.fontStyle);
+                }
+            });
+        });
+    }, [config]);
 
     const activePage = config.pages[currentPageIndex] || config.pages[0];
     const totalPages = config.pages.length;
@@ -253,6 +273,7 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
                         )}
 
                         {activePage?.elements.map((elem) => {
+                            if (elem.hidden) return null;
                             const style: React.CSSProperties = {
                                 position: 'absolute',
                                 left: `${elem.x}%`,
@@ -263,14 +284,14 @@ export default function PublicSharedView({ userTemplate }: PageProps) {
                                 alignItems: 'center',
                                 justifyContent: elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center',
                                 textAlign: elem.textAlign || 'center',
-                                fontFamily: fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair,
+                                fontFamily: getFontFamilyCss(elem.fontStyle),
                                 color: elem.textColor || '#1f2937',
                                 fontSize: elem.fontSize ? `${elem.fontSize * scaleRatio}px` : undefined,
                                 fontWeight: elem.fontWeight || 'normal',
                                 fontStyle: elem.isItalic ? 'italic' : 'normal',
                                 textShadow: elem.type === 'text' && elem.textShadow && elem.textShadow !== 'none' ? elem.textShadow : undefined,
                                 opacity: elem.type === 'image' && elem.opacity !== undefined ? elem.opacity / 100 : 1,
-                                zIndex: elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25,
+                                zIndex: elem.zIndex !== undefined ? elem.zIndex : (elem.isBackground ? 5 : elem.type === 'image' ? 10 : elem.type === 'divider' ? 15 : elem.type === 'text' ? 20 : 25),
                             };
 
                             if (elem.type === 'text') {

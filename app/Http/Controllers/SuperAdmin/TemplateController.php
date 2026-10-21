@@ -52,6 +52,18 @@ class TemplateController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->filled('category')) {
+            $catSlug = \Illuminate\Support\Str::slug($request->category, '_');
+            if (empty($catSlug)) {
+                $catSlug = 'cat_' . time();
+            }
+            \App\Models\Category::firstOrCreate(
+                ['slug' => $catSlug],
+                ['name' => ucwords(str_replace(['_', '-'], ' ', $request->input('category_name') ?: $request->category))]
+            );
+            $request->merge(['category' => $catSlug]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:image,video',
@@ -61,11 +73,73 @@ class TemplateController extends Controller
             'thumbnail' => 'nullable|string',
             'default_config' => 'required|array',
             'status' => 'required|string|in:published,draft',
+            'is_trending' => 'nullable|boolean',
         ]);
 
         Template::create($validated);
 
         return redirect()->back()->with('status', 'Template created successfully.');
+    }
+
+    /**
+     * Clone an existing template.
+     */
+    public function clone(Request $request, Template $template)
+    {
+        $newTemplate = $template->replicate();
+        
+        // If a new name is passed from frontend, use it, otherwise append (Copy)
+        $newTemplate->name = $request->input('name') ?: ($template->name . ' (Copy)');
+        
+        // If a new config / state is passed (Save As from editor), use updated values
+        if ($request->has('default_config')) {
+            $newTemplate->default_config = $request->input('default_config');
+        }
+        if ($request->has('bg_gradient')) {
+            $newTemplate->bg_gradient = $request->input('bg_gradient');
+        }
+        if ($request->has('thumbnail')) {
+            $newTemplate->thumbnail = $request->input('thumbnail');
+        }
+        if ($request->has('price')) {
+            $newTemplate->price = $request->input('price');
+        }
+        if ($request->has('category') && $request->filled('category')) {
+            $catSlug = \Illuminate\Support\Str::slug($request->input('category'), '_');
+            if (empty($catSlug)) {
+                $catSlug = 'cat_' . time();
+            }
+            \App\Models\Category::firstOrCreate(
+                ['slug' => $catSlug],
+                ['name' => ucwords(str_replace(['_', '-'], ' ', $request->input('category_name') ?: $request->input('category')))]
+            );
+            $newTemplate->category = $catSlug;
+        }
+        
+        // Cloned template starts as draft and not trending by default
+        $newTemplate->is_trending = false;
+        $newTemplate->status = $request->input('status', 'draft');
+        $newTemplate->created_at = now();
+        $newTemplate->updated_at = now();
+        $newTemplate->save();
+
+        return redirect()->back()->with('status', 'Template cloned successfully as "' . $newTemplate->name . '".');
+    }
+
+    /**
+     * Toggle trending status for a template.
+     */
+    public function toggleTrending(Template $template)
+    {
+        $template->update([
+            'is_trending' => !$template->is_trending,
+        ]);
+
+        $message = $template->is_trending 
+            ? 'Template "' . $template->name . '" marked as Trending 🔥'
+            : 'Template "' . $template->name . '" removed from Trending.';
+
+        return redirect()->back()->with('status', $message);
     }
 
     /**
@@ -88,6 +162,18 @@ class TemplateController extends Controller
             $approval->update(['status' => 'completed']);
         }
 
+        if ($request->filled('category')) {
+            $catSlug = \Illuminate\Support\Str::slug($request->category, '_');
+            if (empty($catSlug)) {
+                $catSlug = 'cat_' . time();
+            }
+            \App\Models\Category::firstOrCreate(
+                ['slug' => $catSlug],
+                ['name' => ucwords(str_replace(['_', '-'], ' ', $request->input('category_name') ?: $request->category))]
+            );
+            $request->merge(['category' => $catSlug]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:image,video',
@@ -97,6 +183,7 @@ class TemplateController extends Controller
             'thumbnail' => 'nullable|string',
             'default_config' => 'required|array',
             'status' => 'required|string|in:published,draft',
+            'is_trending' => 'nullable|boolean',
         ]);
 
         $template->update($validated);

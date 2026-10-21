@@ -36,7 +36,7 @@ export default function ResellerDashboard({ wallet, stats, recentPurchases = [] 
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Reseller Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-6 p-6 max-w-7xl mx-auto w-full">
-                
+
                 {/* Header */}
                 <div className="flex flex-col gap-2">
                     <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">Reseller Dashboard</h1>
@@ -74,11 +74,11 @@ export default function ResellerDashboard({ wallet, stats, recentPurchases = [] 
                         </div>
                     </div>
 
-                    {/* Mini websites */}
+                    {/* Invitation Website */}
                     <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
                         <div className="flex items-center justify-between gap-4">
                             <div>
-                                <p className="text-sm font-medium text-neutral-500">Mini Websites</p>
+                                <p className="text-sm font-medium text-neutral-500">Invitation Website</p>
                                 <h3 className="mt-2 text-2xl font-bold">{stats.mini_websites_purchased}</h3>
                             </div>
                             <div className="rounded-lg bg-emerald-50 p-3 text-emerald-600 dark:bg-emerald-950/50">

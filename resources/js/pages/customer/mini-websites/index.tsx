@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import {
     Plus, Globe, ExternalLink, MessageSquare, Trash, Pencil,
-    ShieldAlert, Download, Package, Loader2, CreditCard, Ticket, Check, AlertCircle, QrCode
+    ShieldAlert, Download, Package, Loader2, CreditCard, Ticket, Check, AlertCircle, QrCode, Sparkles
 } from 'lucide-react';
 import { getCsrfHeaders } from '@/lib/utils';
 
@@ -24,7 +24,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/customer/dashboard',
     },
     {
-        title: 'My Mini Websites',
+        title: 'My Invitation Website',
         href: '/customer/mini-websites',
     },
 ];
@@ -69,6 +69,18 @@ interface PageProps {
 export default function MiniWebsitesIndex({ auth, websites, templates = [] }: PageProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [downloadingId, setDownloadingId] = useState<number | null>(null);
+
+    // QR Code Customizer Modal state
+    // developed by dinesh tawade
+    const [isQROpen, setIsQROpen] = useState(false);
+    const [selectedQRWebsite, setSelectedQRWebsite] = useState<CustomerMiniWebsite | null>(null);
+    const [qrTheme, setQrTheme] = useState<'gold' | 'black'>('gold');
+    const [isGeneratingQR, setIsGeneratingQR] = useState(false);
+
+    const handleOpenQRModal = (website: CustomerMiniWebsite) => {
+        setSelectedQRWebsite(website);
+        setIsQROpen(true);
+    };
 
     // Renewal Checkout States
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -143,15 +155,20 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
         }
     };
 
-    const handleDownloadQR = async (w: CustomerMiniWebsite) => {
+    // Generate & Download styled QR Code (Royal Gold or Sleek Black)
+    // developed by dinesh tawade
+    const handleDownloadQR = async (w: CustomerMiniWebsite, theme: 'gold' | 'black' = 'gold') => {
         try {
-            setDownloadingId(w.id);
+            setIsGeneratingQR(true);
             const url = `${window.location.origin}/mini-website/${w.slug}`;
-            const qrUrl = `https://quickchart.io/qr?size=500&text=${encodeURIComponent(url)}&dark=D4AF37&light=111111&margin=0`;
-            
+
+            // High error correction (ecLevel=H) with custom dark color
+            const darkColor = theme === 'gold' ? 'c59b27' : '111111';
+            const qrUrl = `https://quickchart.io/qr?size=600&text=${encodeURIComponent(url)}&dark=${darkColor}&light=ffffff&margin=1&ecLevel=H`;
+
             const img = new Image();
             img.crossOrigin = 'Anonymous';
-            
+
             await new Promise((resolve, reject) => {
                 img.onload = resolve;
                 img.onerror = reject;
@@ -162,63 +179,209 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
             const ctx = canvas.getContext('2d');
             if (!ctx) throw new Error('Canvas not supported');
 
-            const width = 600;
-            const height = 750;
+            const width = 640;
+            const height = 820;
             canvas.width = width;
             canvas.height = height;
 
-            // Background
-            ctx.fillStyle = '#111111';
-            ctx.fillRect(0, 0, width, height);
+            if (theme === 'gold') {
+                // ROYAL 3D GOLD THEME
+                const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+                bgGrad.addColorStop(0, '#ffffff');
+                bgGrad.addColorStop(0.5, '#fcfaf6');
+                bgGrad.addColorStop(1, '#f7f2e7');
+                ctx.fillStyle = bgGrad;
+                ctx.fillRect(0, 0, width, height);
 
-            // Border
-            ctx.strokeStyle = '#D4AF37';
-            ctx.lineWidth = 3;
-            if (ctx.roundRect) {
-                ctx.beginPath();
-                ctx.roundRect(20, 20, 560, 710, 24);
-                ctx.stroke();
+                // Luxury Double Border with Gold Shimmer
+                const goldGrad = ctx.createLinearGradient(0, 0, width, height);
+                goldGrad.addColorStop(0, '#d4af37');
+                goldGrad.addColorStop(0.3, '#f4d068');
+                goldGrad.addColorStop(0.6, '#aa7c11');
+                goldGrad.addColorStop(1, '#e5c158');
+
+                ctx.strokeStyle = goldGrad;
+                ctx.lineWidth = 4;
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(24, 24, width - 48, height - 48, 28);
+                    ctx.stroke();
+                } else {
+                    ctx.strokeRect(24, 24, width - 48, height - 48);
+                }
+
+                ctx.strokeStyle = 'rgba(212, 175, 55, 0.4)';
+                ctx.lineWidth = 1;
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(32, 32, width - 64, height - 64, 22);
+                    ctx.stroke();
+                }
+
+                // Header Badge
+                ctx.fillStyle = '#f7ecc9';
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(width / 2 - 95, 52, 190, 32, 16);
+                    ctx.fill();
+                    ctx.strokeStyle = '#d4af37';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                }
+                ctx.fillStyle = '#7a5b10';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('✨ WEDDING INVITATION ✨', width / 2, 72);
+
+                // Title Text
+                ctx.fillStyle = '#2b210e';
+                ctx.font = 'bold 30px "Playfair Display", Georgia, serif';
+                ctx.fillText('Scan to Celebrate', width / 2, 122);
+
+                ctx.fillStyle = '#80683a';
+                ctx.font = '500 16px sans-serif';
+                ctx.fillText(w.title.length > 35 ? w.title.substring(0, 32) + '...' : w.title, width / 2, 150);
+
+                // QR Container Card
+                ctx.shadowColor = 'rgba(180, 140, 60, 0.2)';
+                ctx.shadowBlur = 24;
+                ctx.shadowOffsetY = 10;
+                ctx.fillStyle = '#ffffff';
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(85, 185, 470, 470, 24);
+                    ctx.fill();
+                    ctx.shadowColor = 'transparent';
+                    ctx.strokeStyle = '#e6c875';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else {
+                    ctx.fillRect(85, 185, 470, 470);
+                }
+                ctx.shadowColor = 'transparent';
+
+                // Draw QR Code
+                ctx.drawImage(img, 105, 205, 430, 430);
+
+                // Slug Pill
+                ctx.fillStyle = '#fbf5e6';
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(width / 2 - 160, 680, 320, 36, 18);
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(212, 175, 55, 0.3)';
+                    ctx.stroke();
+                }
+                ctx.fillStyle = '#8c702a';
+                ctx.font = 'bold 13px monospace';
+                ctx.fillText(`/${w.slug}`, width / 2, 703);
+
+                // Footer Text
+                ctx.fillStyle = '#b3a08b';
+                ctx.font = '600 13px sans-serif';
+                ctx.fillText('Created with Invitify.com', width / 2, 755);
+
             } else {
-                ctx.strokeRect(20, 20, 560, 710);
+                // SLEEK MODERN BLACK THEME
+                const darkBg = ctx.createLinearGradient(0, 0, width, height);
+                darkBg.addColorStop(0, '#141416');
+                darkBg.addColorStop(1, '#0a0a0c');
+                ctx.fillStyle = darkBg;
+                ctx.fillRect(0, 0, width, height);
+
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                ctx.lineWidth = 2;
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(24, 24, width - 48, height - 48, 28);
+                    ctx.stroke();
+                } else {
+                    ctx.strokeRect(24, 24, width - 48, height - 48);
+                }
+
+                // Header Badge
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(width / 2 - 80, 52, 160, 32, 16);
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+                ctx.fillStyle = '#e5e7eb';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('DIGITAL INVITATION', width / 2, 72);
+
+                // Title Text
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 30px sans-serif';
+                ctx.fillText('Scan to View', width / 2, 122);
+
+                ctx.fillStyle = '#9ca3af';
+                ctx.font = '500 16px sans-serif';
+                ctx.fillText(w.title.length > 35 ? w.title.substring(0, 32) + '...' : w.title, width / 2, 150);
+
+                // QR Container Card
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 30;
+                ctx.shadowOffsetY = 12;
+                ctx.fillStyle = '#ffffff';
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(85, 185, 470, 470, 24);
+                    ctx.fill();
+                    ctx.shadowColor = 'transparent';
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else {
+                    ctx.fillRect(85, 185, 470, 470);
+                }
+                ctx.shadowColor = 'transparent';
+
+                // Draw QR Code
+                ctx.drawImage(img, 105, 205, 430, 430);
+
+                // URL pill
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+                if (ctx.roundRect) {
+                    ctx.beginPath();
+                    ctx.roundRect(width / 2 - 160, 680, 320, 36, 18);
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                    ctx.stroke();
+                }
+                ctx.fillStyle = '#d1d5db';
+                ctx.font = 'bold 13px monospace';
+                ctx.fillText(`/${w.slug}`, width / 2, 703);
+
+                // Footer Text
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '600 13px sans-serif';
+                ctx.fillText('Invitify Digital Invite', width / 2, 755);
             }
-
-            // Header Text
-            ctx.fillStyle = '#D4AF37';
-            ctx.font = 'bold 32px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('Scan to View', width / 2, 85);
-            
-            ctx.fillStyle = '#bfa55a';
-            ctx.font = '18px sans-serif';
-            ctx.fillText(w.title.length > 40 ? w.title.substring(0, 37) + '...' : w.title, width / 2, 120);
-
-            // QR Code
-            ctx.drawImage(img, 50, 150, 500, 500);
-
-            // Footer Text
-            ctx.fillStyle = '#8a763a';
-            ctx.font = '15px sans-serif';
-            ctx.fillText('Sponsored by Invitify.com', width / 2, 700);
 
             canvas.toBlob((blob) => {
                 if (!blob) {
-                    setDownloadingId(null);
+                    setIsGeneratingQR(false);
                     return;
                 }
                 const blobUrl = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = blobUrl;
-                link.download = `${w.slug}-QR.png`;
+                link.download = `${w.slug}-QR-${theme.toUpperCase()}.png`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
                 URL.revokeObjectURL(blobUrl);
-                setDownloadingId(null);
+                setIsGeneratingQR(false);
             }, 'image/png');
 
         } catch (error) {
             console.error('Failed to download QR Code', error);
-            setDownloadingId(null);
+            setIsGeneratingQR(false);
             alert('Failed to generate QR code. Please check your network and try again.');
         }
     };
@@ -421,12 +584,12 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="My Mini Websites" />
+            <Head title="My Invitation Website" />
             <div className="flex h-full flex-1 flex-col gap-6 p-6 bg-white">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex flex-col gap-2">
                         <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                            My Mini Websites <Globe className="size-6 text-blue-600" />
+                            My Invitation Website <Globe className="size-6 text-blue-600" />
                         </h1>
                         <p className="text-gray-500">
                             Build, customize and host single-page invitations or multi-page business websites.
@@ -544,20 +707,11 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                                                     {isWebsiteActive(w) && (
                                                         <button
                                                             type="button"
-                                                            onClick={() => handleDownloadQR(w)}
-                                                            disabled={downloadingId === w.id}
-                                                            className="inline-flex items-center gap-1 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 shadow-sm hover:bg-violet-100 hover:border-violet-300 transition-all disabled:opacity-60 disabled:cursor-wait"
-                                                            title="Download QR code"
+                                                            onClick={() => handleOpenQRModal(w)}
+                                                            className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-gradient-to-r from-amber-50 to-amber-100/70 px-3 py-1.5 text-xs font-semibold text-amber-800 shadow-xs hover:border-amber-400 hover:bg-amber-100 transition-all active:scale-95"
+                                                            title="Download QR code in Gold or Black"
                                                         >
-                                                            {downloadingId === w.id ? (
-                                                                <>
-                                                                    <Loader2 className="size-3.5 animate-spin" /> Preparing...
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <QrCode className="size-3.5" /> Download QR
-                                                                </>
-                                                            )}
+                                                            <QrCode className="size-3.5 text-amber-600" /> Download QR
                                                         </button>
                                                     )}
                                                     <Link
@@ -912,6 +1066,193 @@ export default function MiniWebsitesIndex({ auth, websites, templates = [] }: Pa
                             </DialogFooter>
                         </div>
                     )}
+                </DialogContent>
+            </Dialog>
+
+            {/* QR Code Customizer & Download Dialog */}
+            {/* developed by dinesh tawade */}
+            <Dialog open={isQROpen} onOpenChange={setIsQROpen}>
+                <DialogContent className="max-w-md sm:max-w-lg max-h-[92vh] flex flex-col bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 p-0 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden">
+                    <DialogHeader className="p-4 sm:p-5 pb-3 sm:pb-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 shrink-0">
+                        <div className="flex items-center gap-2.5">
+                            <div className="size-9 sm:size-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                                <QrCode className="size-4 sm:size-5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <DialogTitle className="text-base sm:text-lg font-bold text-neutral-900 dark:text-white truncate">
+                                    Download QR Code
+                                </DialogTitle>
+                                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 truncate">
+                                    Choose color theme for printed invites & digital cards
+                                </p>
+                            </div>
+                        </div>
+                    </DialogHeader>
+
+                    {selectedQRWebsite && (
+                        <div className="p-4 sm:p-5 overflow-y-auto flex-1 space-y-4">
+                            {/* Color / Theme Selector Cards */}
+                            <div>
+                                <label className="text-[11px] sm:text-xs font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider mb-2 block">
+                                    Select QR Color Theme
+                                </label>
+                                <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                                    {/* Gold Theme Option */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setQrTheme('gold')}
+                                        className={`group relative p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border-2 text-left transition-all flex flex-col justify-between ${qrTheme === 'gold'
+                                            ? 'border-amber-500 bg-gradient-to-b from-amber-50/80 to-amber-100/30 dark:from-amber-950/30 dark:to-neutral-900 shadow-sm'
+                                            : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 bg-white dark:bg-neutral-900'
+                                            }`}
+                                    >
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="size-7 sm:size-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-amber-600 via-yellow-400 to-amber-200 shadow-xs flex items-center justify-center text-white">
+                                                <Sparkles className="size-3.5 sm:size-4" />
+                                            </div>
+                                            {qrTheme === 'gold' && (
+                                                <span className="flex size-4 sm:size-5 items-center justify-center rounded-full bg-amber-500 text-white">
+                                                    <Check className="size-2.5 sm:size-3 stroke-[3]" />
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-xs sm:text-sm text-neutral-900 dark:text-white flex items-center gap-1">
+                                                Royal Gold
+                                                <span className="text-[9px] sm:text-[10px] font-semibold px-1 sm:px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">
+                                                    Luxury
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </button>
+
+                                    {/* Black Theme Option */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setQrTheme('black')}
+                                        className={`group relative p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border-2 text-left transition-all flex flex-col justify-between ${qrTheme === 'black'
+                                            ? 'border-neutral-900 dark:border-neutral-100 bg-neutral-50 dark:bg-neutral-900 shadow-sm'
+                                            : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 bg-white dark:bg-neutral-900'
+                                            }`}
+                                    >
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="size-7 sm:size-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-neutral-900 via-neutral-800 to-neutral-700 text-white shadow-xs flex items-center justify-center border border-neutral-700">
+                                                <QrCode className="size-3.5 sm:size-4" />
+                                            </div>
+                                            {qrTheme === 'black' && (
+                                                <span className="flex size-4 sm:size-5 items-center justify-center rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900">
+                                                    <Check className="size-2.5 sm:size-3 stroke-[3]" />
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-xs sm:text-sm text-neutral-900 dark:text-white flex items-center gap-1">
+                                                Sleek Black
+                                                <span className="text-[9px] sm:text-[10px] font-semibold px-1 sm:px-1.5 py-0.2 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
+                                                    Modern
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Live Card Preview Box */}
+                            <div className="flex flex-col items-center justify-center">
+                                <div
+                                    className={`w-full max-w-[240px] sm:max-w-[260px] p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl transition-all duration-300 text-center shadow-md relative overflow-hidden ${qrTheme === 'gold'
+                                        ? 'bg-gradient-to-b from-white via-[#fcfaf6] to-[#f7f2e7] border-2 border-amber-300/80 shadow-amber-900/10'
+                                        : 'bg-gradient-to-b from-[#141416] to-[#0a0a0c] border border-neutral-700 shadow-black/50'
+                                        }`}
+                                >
+                                    {/* Badge */}
+                                    <div className="mb-1.5">
+                                        <span
+                                            className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase ${qrTheme === 'gold'
+                                                ? 'bg-amber-100 text-amber-800 border border-amber-300/60'
+                                                : 'bg-white/10 text-neutral-200 border border-white/15'
+                                                }`}
+                                        >
+                                            {qrTheme === 'gold' ? '✨ Wedding Invitation ✨' : 'Digital Invitation'}
+                                        </span>
+                                    </div>
+
+                                    <h4
+                                        className={`font-bold text-sm sm:text-base line-clamp-1 ${qrTheme === 'gold' ? 'text-amber-950 font-serif' : 'text-white'
+                                            }`}
+                                    >
+                                        Scan to Celebrate
+                                    </h4>
+                                    <p
+                                        className={`text-[11px] truncate max-w-[190px] mx-auto mt-0.5 ${qrTheme === 'gold' ? 'text-amber-800/80' : 'text-neutral-400'
+                                            }`}
+                                    >
+                                        {selectedQRWebsite.title}
+                                    </p>
+
+                                    {/* QR Image Box */}
+                                    <div
+                                        className={`my-2.5 p-2 rounded-xl sm:rounded-2xl mx-auto w-[150px] h-[150px] sm:w-[165px] sm:h-[165px] flex items-center justify-center shadow-xs ${qrTheme === 'gold'
+                                            ? 'bg-white border-2 border-amber-200'
+                                            : 'bg-white border border-neutral-200'
+                                            }`}
+                                    >
+                                        <img
+                                            src={`https://quickchart.io/qr?size=300&text=${encodeURIComponent(
+                                                `${typeof window !== 'undefined' ? window.location.origin : ''}/mini-website/${selectedQRWebsite.slug}`
+                                            )}&dark=${qrTheme === 'gold' ? 'c59b27' : '111111'}&light=ffffff&ecLevel=H&margin=1`}
+                                            alt="QR Preview"
+                                            className="w-full h-full object-contain"
+                                        />
+                                    </div>
+
+                                    {/* Slug pill */}
+                                    <div
+                                        className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono font-medium truncate max-w-[200px] ${qrTheme === 'gold'
+                                            ? 'bg-amber-100/70 text-amber-900 border border-amber-300/50'
+                                            : 'bg-white/5 text-neutral-300 border border-white/10'
+                                            }`}
+                                    >
+                                        /{selectedQRWebsite.slug}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <DialogFooter className="p-3 sm:p-4 px-4 sm:px-6 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 shrink-0 flex flex-col sm:flex-row gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsQROpen(false)}
+                            className="w-full sm:w-auto h-9 text-xs sm:text-sm"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            disabled={isGeneratingQR}
+                            onClick={() => {
+                                if (selectedQRWebsite) {
+                                    handleDownloadQR(selectedQRWebsite, qrTheme);
+                                }
+                            }}
+                            className={`w-full sm:flex-1 h-9 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 text-white shadow-sm ${qrTheme === 'gold'
+                                ? 'bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 shadow-amber-500/20'
+                                : 'bg-neutral-900 hover:bg-black dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100'
+                                }`}
+                        >
+                            {isGeneratingQR ? (
+                                <>
+                                    <Loader2 className="size-4 animate-spin" /> Generating High-Res PNG...
+                                </>
+                            ) : (
+                                <>
+                                    <Download className="size-4" /> Download {qrTheme === 'gold' ? 'Royal Gold' : 'Sleek Black'} QR (PNG)
+                                </>
+                            )}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </AppLayout>

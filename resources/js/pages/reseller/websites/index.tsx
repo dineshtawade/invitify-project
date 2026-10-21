@@ -254,7 +254,7 @@ export default function ResellerWebsitesIndex({ wallet, miniWebsites = [], busin
                             }`}
                     >
                         <Globe className="size-4" />
-                        Mini Websites ({miniWebsites.length})
+                        Invitation Website ({miniWebsites.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('business')}

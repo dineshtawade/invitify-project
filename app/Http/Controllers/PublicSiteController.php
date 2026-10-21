@@ -59,6 +59,31 @@ class PublicSiteController extends Controller
         if ($isHtmlConfig) {
             $html = $website->config['html'];
             $html = $this->ensureRsvpFormIncluded($html, $website);
+
+            // Log mail status in browser console if just redirected after purchase
+            if (session()->has('mail_status')) {
+                $statusJson = json_encode(session('mail_status'));
+                $script = "<script>
+                    try {
+                        const s = {$statusJson};
+                        if (s && s.sent) {
+                            console.log('%c📧 [INVITIFY EMAIL STATUS] SUCCESS! Congratulations email delivered successfully!', 'background: #15803d; color: #ffffff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                            console.table({
+                                'Status': 'Delivered via SMTP',
+                                'Recipient (User Email)': s.to,
+                                'Sender Email': s.from,
+                                'Website': s.website || s.item || 'Invitation Website',
+                                'Live URL': s.url
+                            });
+                        } else if (s) {
+                            console.error('%c❌ [INVITIFY EMAIL STATUS] FAILED! Error: ' + (s.error || s.message), 'background: #b91c1c; color: #ffffff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                            console.table(s);
+                        }
+                    } catch(e) {}
+                </script>";
+                $html = str_ireplace('</body>', $script . '</body>', $html);
+            }
+
             return response($html);
         }
         
@@ -93,12 +118,13 @@ class PublicSiteController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'mobile_number' => 'required|string|max:20',
-            'status' => 'nullable|string|in:yes,no,maybe,attending,declined',
+            'status' => 'nullable|string|max:100',
             'attending' => 'nullable|boolean',
             'guests_count' => 'nullable|integer|min:1',
             'guests' => 'nullable|integer|min:0',
             'email' => 'nullable|email|max:255',
             'message' => 'nullable|string|max:1000',
+            'answers' => 'nullable|array',
         ]);
 
         // Normalize status
@@ -110,6 +136,19 @@ class PublicSiteController extends Controller
             ? (int) $validated['guests_count'] 
             : (isset($validated['guests']) ? (int) $validated['guests'] : 1);
 
+        // Collect custom answers
+        $answers = $request->input('answers', []);
+        if (!is_array($answers)) {
+            $answers = [];
+        }
+
+        $standardKeys = ['_token', 'name', 'mobile_number', 'status', 'attending', 'guests_count', 'guests', 'email', 'message', 'answers'];
+        foreach ($request->except($standardKeys) as $k => $v) {
+            if ($v !== null && (is_string($v) || is_array($v) || is_numeric($v))) {
+                $answers[$k] = $v;
+            }
+        }
+
         $rsvp = $website->rsvps()->create([
             'name' => $validated['name'],
             'mobile_number' => $validated['mobile_number'] ?? null,
@@ -117,6 +156,7 @@ class PublicSiteController extends Controller
             'status' => $status,
             'guests_count' => $guestsCount > 0 ? $guestsCount : 1,
             'message' => $validated['message'] ?? null,
+            'answers' => !empty($answers) ? $answers : null,
         ]);
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -150,49 +190,254 @@ class PublicSiteController extends Controller
     }
 
     /**
-     * Ensure the RSVP form is included at the bottom of the HTML website.
-     * Invitify wedding mini website RSVP fields:
-     * 1. Guest Name
-     * 2. Mobile Number
-     * 3. Attendance Status (Yes, No, Maybe)
-     * 4. Number of Guests
-     * 5. Message for the Couple
+     * Ensure the RSVP form is dynamically included or removed based on template config.
+     * developed by dinesh tawade
      */
     private function ensureRsvpFormIncluded(string $html, MiniWebsite $website): string
     {
-        // If RSVP section already present, return as is
-        if (str_contains($html, 'id="invitify-rsvp-section"') || str_contains($html, 'name="mobile_number"')) {
+        // Strip any existing embedded RSVP block to prevent duplication
+        $html = preg_replace('/<!-- Invitify Premium RSVP Section -->.*?<\/section>/s', '', $html);
+        $html = preg_replace('/<section[^>]*id=["\']invitify-rsvp-section["\'].*?<\/section>/s', '', $html);
+
+        // Fetch RSVP configuration
+        $rsvpConfig = null;
+        if (is_array($website->config) && isset($website->config['rsvp'])) {
+            $rsvpConfig = $website->config['rsvp'];
+        } elseif ($website->template && is_array($website->template->config) && isset($website->template->config['rsvp'])) {
+            $rsvpConfig = $website->template->config['rsvp'];
+        }
+
+        // Check if RSVP is disabled explicitly
+        if ($rsvpConfig !== null && isset($rsvpConfig['enabled']) && !$rsvpConfig['enabled']) {
             return $html;
         }
 
+        $badge = !empty($rsvpConfig['badge']) ? e($rsvpConfig['badge']) : 'WEDDING RSVP';
+        $heading = !empty($rsvpConfig['heading']) ? e($rsvpConfig['heading']) : 'Will You Attend?';
+        $subheading = !empty($rsvpConfig['subheading']) ? e($rsvpConfig['subheading']) : 'Please confirm your presence so we can reserve your seat and celebrate our special day together!';
+
         $slug = e($website->slug);
         $rsvpAction = url("/mini-website/{$slug}/rsvp");
-        $websiteTitle = e($website->title);
+
+        // Build dynamic questions
+        $questions = !empty($rsvpConfig['questions']) && is_array($rsvpConfig['questions']) 
+            ? $rsvpConfig['questions'] 
+            : [
+                [
+                    'id' => 'q_name',
+                    'key' => 'name',
+                    'label' => 'Guest Name',
+                    'type' => 'text',
+                    'required' => true,
+                    'placeholder' => 'Enter your full name',
+                    'is_system' => true,
+                ],
+                [
+                    'id' => 'q_mobile',
+                    'key' => 'mobile_number',
+                    'label' => 'Mobile Number',
+                    'type' => 'text',
+                    'required' => true,
+                    'placeholder' => 'Enter 10-digit mobile number',
+                    'is_system' => true,
+                ],
+                [
+                    'id' => 'q_status',
+                    'key' => 'status',
+                    'label' => 'Attendance Status',
+                    'type' => 'options',
+                    'required' => true,
+                    'display_style' => 'cards',
+                    'options' => [
+                        ['label' => 'Yes', 'value' => 'yes', 'icon' => '🎉', 'subtext' => 'Attending'],
+                        ['label' => 'Maybe', 'value' => 'maybe', 'icon' => '🤔', 'subtext' => 'Not sure yet'],
+                        ['label' => 'No', 'value' => 'no', 'icon' => '💌', 'subtext' => "Can't make it"],
+                    ],
+                    'is_system' => true,
+                ],
+                [
+                    'id' => 'q_guests',
+                    'key' => 'guests_count',
+                    'label' => 'Number of Guests (Including you)',
+                    'type' => 'options',
+                    'required' => false,
+                    'display_style' => 'list',
+                    'options' => [
+                        ['label' => '1 Person', 'value' => '1', 'icon' => '👤', 'subtext' => 'Solo guest'],
+                        ['label' => '2 People', 'value' => '2', 'icon' => '👥', 'subtext' => 'Couple'],
+                        ['label' => '3 People', 'value' => '3', 'icon' => '👨‍👩‍👧', 'subtext' => 'Family'],
+                        ['label' => '4 People', 'value' => '4', 'icon' => '👨‍👩‍👧‍👦', 'subtext' => 'Family'],
+                        ['label' => '5+ People', 'value' => '5', 'icon' => '🎉', 'subtext' => 'Group'],
+                    ],
+                    'is_system' => true,
+                ],
+                [
+                    'id' => 'q_message',
+                    'key' => 'message',
+                    'label' => 'Message for the Couple',
+                    'type' => 'textarea',
+                    'required' => false,
+                    'placeholder' => 'Warm wishes or blessings for the couple...',
+                    'is_system' => true,
+                ],
+            ];
+
+        $renderedQuestions = '';
+        foreach ($questions as $idx => $q) {
+            $qLabel = e($q['label'] ?? 'Question');
+            $qKey = e($q['key'] ?? ('field_' . $idx));
+            $qType = $q['type'] ?? 'text';
+            $isRequired = !empty($q['required']);
+            $placeholder = e($q['placeholder'] ?? '');
+            $displayStyle = $q['display_style'] ?? 'cards';
+
+            $reqMarker = $isRequired ? '<span style="color: #e11d48; font-size: 13px; margin-left: 2px;">*</span>' : '';
+            $reqAttr = $isRequired ? 'required' : '';
+
+            $isSystem = !empty($q['is_system']);
+            $inputName = ($isSystem && in_array($qKey, ['name', 'mobile_number', 'status', 'guests_count', 'message'])) 
+                ? $qKey 
+                : "answers[{$qKey}]";
+
+            if ($qType === 'text') {
+                $renderedQuestions .= <<<HTML
+                <div style="margin-bottom: 18px;">
+                    <label class="rsvp-label" style="display: flex; justify-content: space-between; font-family: inherit; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: inherit; opacity: 0.88; margin-bottom: 7px;">
+                        <span>{$qLabel} {$reqMarker}</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="{$inputName}" 
+                        class="rsvp-input-field"
+                        {$reqAttr} 
+                        placeholder="{$placeholder}" 
+                        style="box-sizing: border-box; width: 100%; height: 48px; padding: 0 16px; border: 1.5px solid rgba(0,0,0,0.12); border-radius: 14px; font-family: inherit; font-size: 14px; font-weight: 500; background: rgba(255,255,255,0.75); color: inherit; outline: none; transition: all 0.2s ease;"
+                    />
+                </div>
+HTML;
+            } elseif ($qType === 'textarea') {
+                $renderedQuestions .= <<<HTML
+                <div style="margin-bottom: 18px;">
+                    <label class="rsvp-label" style="display: flex; justify-content: space-between; font-family: inherit; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: inherit; opacity: 0.88; margin-bottom: 7px;">
+                        <span>{$qLabel} {$reqMarker}</span>
+                    </label>
+                    <textarea 
+                        name="{$inputName}" 
+                        class="rsvp-input-field"
+                        rows="3" 
+                        {$reqAttr} 
+                        placeholder="{$placeholder}" 
+                        style="box-sizing: border-box; width: 100%; padding: 14px 16px; border: 1.5px solid rgba(0,0,0,0.12); border-radius: 14px; font-family: inherit; font-size: 14px; font-weight: 500; background: rgba(255,255,255,0.75); color: inherit; outline: none; transition: all 0.2s ease; resize: vertical; min-height: 80px;"
+                    ></textarea>
+                </div>
+HTML;
+            } elseif ($qType === 'options') {
+                $options = is_array($q['options'] ?? null) ? $q['options'] : [];
+                $groupClass = 'rsvp-grp-' . ($q['id'] ?? $idx);
+
+                if ($displayStyle === 'cards') {
+                    // Cards Grid
+                    $cardsHtml = '';
+                    foreach ($options as $optIdx => $opt) {
+                        $optLabel = e(is_array($opt) ? ($opt['label'] ?? '') : (string)$opt);
+                        $optValue = e(is_array($opt) ? ($opt['value'] ?? $optLabel) : (string)$opt);
+                        $optIcon = is_array($opt) && !empty($opt['icon']) ? e($opt['icon']) : '';
+                        $optSubtext = is_array($opt) && !empty($opt['subtext']) ? e($opt['subtext']) : '';
+                        $isFirst = ($optIdx === 0);
+                        $checkedAttr = $isFirst ? 'checked' : '';
+
+                        $cardsHtml .= <<<HTML
+                        <label class="rsvp-option-card {$groupClass} {$checkedAttr}" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 10px; border: 1.5px solid rgba(0,0,0,0.12); border-radius: 14px; background: rgba(255,255,255,0.7); transition: all 0.2s ease; text-align: center; box-shadow: none; opacity: 0.85; font-family: inherit;">
+                            <input type="radio" name="{$inputName}" value="{$optValue}" {$checkedAttr} style="display: none;" onchange="handleRsvpCardSelect(this, '{$groupClass}', '{$inputName}')" />
+                            {$optIcon}
+                            <span class="rsvp-opt-title" style="font-size: 13px; font-weight: 700; color: inherit; font-family: inherit; margin-top: 2px;">{$optLabel}</span>
+                            <span class="rsvp-opt-sub" style="font-size: 10px; font-weight: 500; opacity: 0.7; font-family: inherit;">{$optSubtext}</span>
+                        </label>
+HTML;
+                    }
+
+                    $renderedQuestions .= <<<HTML
+                    <div style="margin-bottom: 18px;">
+                        <label class="rsvp-label" style="display: flex; justify-content: space-between; font-family: inherit; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: inherit; opacity: 0.88; margin-bottom: 9px;">
+                            <span>{$qLabel} {$reqMarker}</span>
+                        </label>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(95px, 1fr)); gap: 10px;">
+                            {$cardsHtml}
+                        </div>
+                    </div>
+HTML;
+                } else {
+                    // Vertical List
+                    $listHtml = '';
+                    foreach ($options as $optIdx => $opt) {
+                        $optLabel = e(is_array($opt) ? ($opt['label'] ?? '') : (string)$opt);
+                        $optValue = e(is_array($opt) ? ($opt['value'] ?? $optLabel) : (string)$opt);
+                        $optIcon = is_array($opt) && !empty($opt['icon']) ? e($opt['icon']) : '';
+                        $optSubtext = is_array($opt) && !empty($opt['subtext']) ? e($opt['subtext']) : '';
+                        $isFirst = ($optIdx === 0);
+                        $checkedAttr = $isFirst ? 'checked' : '';
+
+                        $listHtml .= <<<HTML
+                        <label class="rsvp-list-card {$groupClass} {$checkedAttr}" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1.5px solid rgba(0,0,0,0.12); border-radius: 12px; background: rgba(255,255,255,0.7); transition: all 0.2s ease; font-family: inherit;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                {$optIcon}
+                                <div>
+                                    <div class="rsvp-opt-title" style="font-size: 13px; font-weight: 700; color: inherit; font-family: inherit;">{$optLabel}</div>
+                                    <div class="rsvp-opt-sub" style="font-size: 10px; font-weight: 500; opacity: 0.7; font-family: inherit;">{$optSubtext}</div>
+                                </div>
+                            </div>
+                            <div class="rsvp-radio-circle" style="width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.25); background: transparent; display: flex; align-items: center; justify-content: center;"></div>
+                            <input type="radio" name="{$inputName}" value="{$optValue}" {$checkedAttr} style="display: none;" onchange="handleRsvpListSelect(this, '{$groupClass}', '{$inputName}')" />
+                        </label>
+HTML;
+                    }
+
+                    $renderedQuestions .= <<<HTML
+                    <div style="margin-bottom: 18px;">
+                        <label class="rsvp-label" style="display: flex; justify-content: space-between; font-family: inherit; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: inherit; opacity: 0.88; margin-bottom: 9px;">
+                            <span>{$qLabel} {$reqMarker}</span>
+                        </label>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            {$listHtml}
+                        </div>
+                    </div>
+HTML;
+                }
+            }
+        }
+
+        $badgeHtml = !empty($badge) ? <<<HTML
+        <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 16px; background: rgba(212, 175, 55, 0.12); color: #9b7824; border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; font-family: inherit;">
+            <span>✨</span> <span>{$badge}</span> <span>✨</span>
+        </div>
+HTML : '';
+
+        $subheadingHtml = !empty($subheading) ? <<<HTML
+        <p class="rsvp-subheading" style="margin: 10px auto 0; font-family: inherit; font-size: 13px; color: inherit; opacity: 0.75; line-height: 1.6; max-width: 420px;">
+            {$subheading}
+        </p>
+HTML : '';
 
         $rsvpSnippet = <<<HTML
 <!-- Invitify Premium RSVP Section -->
 <!-- developed by dinesh tawade -->
-<section id="invitify-rsvp-section" style="box-sizing: border-box; width: 100%; padding: 70px 16px; background: radial-gradient(circle at 50% 0%, #fffdf9 0%, #f7f3ec 60%, #eee6d9 100%); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #2c2723; position: relative;">
+<section id="invitify-rsvp-section" style="box-sizing: border-box; width: 100%; padding: 70px 16px 90px; background: transparent; font-family: inherit; color: inherit; position: relative;">
     
     <!-- Canvas Confetti Library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
-    <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 28px; padding: 40px 32px; box-shadow: 0 25px 60px -15px rgba(184, 134, 11, 0.12), 0 0 0 1px rgba(212, 175, 55, 0.28); position: relative; overflow: hidden;">
+    <div class="invitify-rsvp-card" style="box-sizing: border-box; max-width: 520px; margin: 0 auto; background: rgba(255, 255, 255, 0.90); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-radius: 28px; padding: 40px 32px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(212, 175, 55, 0.28); position: relative; overflow: hidden; font-family: inherit; color: inherit;">
         
         <!-- Luxury Shimmer Border at Top -->
         <div style="position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, #c59b27 0%, #f4d068 50%, #b38719 100%);"></div>
         
         <!-- Header -->
         <div style="text-align: center; margin-bottom: 30px;">
-            <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 16px; background: #fbf6ec; color: #9b7824; border: 1px solid #ebd9aa; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(155, 120, 36, 0.06);">
-                <span>✨</span> <span>WEDDING RSVP</span> <span>✨</span>
-            </div>
-            <h2 style="margin: 0; font-size: 28px; font-weight: 800; color: #1a1612; letter-spacing: -0.5px; font-family: inherit;">
-                Will You Attend?
+            {$badgeHtml}
+            <h2 class="rsvp-heading" style="margin: 0; font-family: inherit; font-size: 28px; font-weight: 700; color: inherit; letter-spacing: -0.3px;">
+                {$heading}
             </h2>
-            <p style="margin: 10px auto 0; font-size: 13px; color: #786f66; line-height: 1.6; max-width: 400px;">
-                Please confirm your presence so we can reserve your seat and celebrate our special day together!
-            </p>
+            {$subheadingHtml}
         </div>
 
         <!-- Success Celebration Card (Hidden by default) -->
@@ -207,131 +452,21 @@ class PublicSiteController extends Controller
             <button 
                 type="button" 
                 onclick="document.getElementById('rsvpSuccessCard').style.display='none'; document.getElementById('invitifyRsvpForm').style.display='flex';"
-                style="padding: 9px 20px; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; color: #166534; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;"
+                style="padding: 10px 22px; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; color: #166534; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;"
             >
                 Submit another response
             </button>
         </div>
 
-        <form id="invitifyRsvpForm" action="{$rsvpAction}" method="POST" style="display: flex; flex-direction: column; gap: 20px;">
+        <form id="invitifyRsvpForm" action="{$rsvpAction}" method="POST" style="display: flex; flex-direction: column;">
             
-            <!-- 1. Guest Name -->
-            <div>
-                <label for="rsvp_name" style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #473e35; margin-bottom: 7px;">
-                    <span>Guest Name</span>
-                    <span style="color: #e11d48; font-size: 12px;">*</span>
-                </label>
-                <div style="position: relative;">
-                    <input 
-                        type="text" 
-                        id="rsvp_name" 
-                        name="name" 
-                        required 
-                        placeholder="Enter your full name" 
-                        style="box-sizing: border-box; width: 100%; height: 48px; padding: 0 16px; border: 1.5px solid #e7ded2; border-radius: 14px; font-size: 14px; font-weight: 500; background: #faf8f5; color: #1e1b18; outline: none; transition: all 0.2s ease;"
-                        onfocus="this.style.borderColor='#d4af37'; this.style.backgroundColor='#ffffff'; this.style.boxShadow='0 0 0 3px rgba(212,175,55,0.15)';" 
-                        onblur="this.style.borderColor='#e7ded2'; this.style.backgroundColor='#faf8f5'; this.style.boxShadow='none';"
-                    />
-                </div>
-            </div>
-
-            <!-- 2. Mobile Number -->
-            <div>
-                <label for="rsvp_mobile" style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #473e35; margin-bottom: 7px;">
-                    <span>Mobile Number</span>
-                    <span style="color: #e11d48; font-size: 12px;">*</span>
-                </label>
-                <div style="position: relative;">
-                    <input 
-                        type="tel" 
-                        id="rsvp_mobile" 
-                        name="mobile_number" 
-                        required 
-                        maxlength="15"
-                        placeholder="Enter 10-digit mobile number" 
-                        style="box-sizing: border-box; width: 100%; height: 48px; padding: 0 16px; border: 1.5px solid #e7ded2; border-radius: 14px; font-size: 14px; font-weight: 500; background: #faf8f5; color: #1e1b18; outline: none; transition: all 0.2s ease;"
-                        onfocus="this.style.borderColor='#d4af37'; this.style.backgroundColor='#ffffff'; this.style.boxShadow='0 0 0 3px rgba(212,175,55,0.15)';" 
-                        onblur="this.style.borderColor='#e7ded2'; this.style.backgroundColor='#faf8f5'; this.style.boxShadow='none';"
-                        oninput="this.value = this.value.replace(/[^0-9+]/g, '')"
-                    />
-                </div>
-            </div>
-
-            <!-- 3. Attendance Status (Interactive Cards) -->
-            <div>
-                <label style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #473e35; margin-bottom: 9px;">
-                    <span>Attendance Status</span>
-                    <span style="color: #e11d48; font-size: 12px;">*</span>
-                </label>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                    
-                    <label id="statusLabelYes" class="rsvp-status-card" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 8px; border: 2px solid #10b981; border-radius: 14px; background: #ecfdf5; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 12px rgba(16,185,129,0.12);">
-                        <input type="radio" name="status" value="yes" checked style="display: none;" onchange="handleRsvpStatusChange(this.value)" />
-                        <span style="font-size: 20px; margin-bottom: 4px;">🎉</span>
-                        <span style="font-size: 13px; font-weight: 800; color: #065f46;">Yes</span>
-                        <span style="font-size: 10px; font-weight: 600; color: #059669; opacity: 0.9;">Attending</span>
-                    </label>
-
-                    <label id="statusLabelMaybe" class="rsvp-status-card" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 8px; border: 1.5px solid #e7ded2; border-radius: 14px; background: #faf8f5; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0.85;">
-                        <input type="radio" name="status" value="maybe" style="display: none;" onchange="handleRsvpStatusChange(this.value)" />
-                        <span style="font-size: 20px; margin-bottom: 4px;">🤔</span>
-                        <span style="font-size: 13px; font-weight: 800; color: #473e35;">Maybe</span>
-                        <span style="font-size: 10px; font-weight: 600; color: #786f66;">Not sure yet</span>
-                    </label>
-
-                    <label id="statusLabelNo" class="rsvp-status-card" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 8px; border: 1.5px solid #e7ded2; border-radius: 14px; background: #faf8f5; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0.85;">
-                        <input type="radio" name="status" value="no" style="display: none;" onchange="handleRsvpStatusChange(this.value)" />
-                        <span style="font-size: 20px; margin-bottom: 4px;">💌</span>
-                        <span style="font-size: 13px; font-weight: 800; color: #473e35;">No</span>
-                        <span style="font-size: 10px; font-weight: 600; color: #786f66;">Can't make it</span>
-                    </label>
-
-                </div>
-            </div>
-
-            <!-- 4. Number of Guests (Dynamic) -->
-            <div id="rsvpGuestsCountWrapper" style="transition: all 0.3s ease;">
-                <label for="rsvp_guests" style="display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #473e35; margin-bottom: 7px;">
-                    Number of Guests (Including you)
-                </label>
-                <div style="position: relative;">
-                    <select 
-                        id="rsvp_guests" 
-                        name="guests_count" 
-                        style="box-sizing: border-box; width: 100%; height: 48px; padding: 0 16px; border: 1.5px solid #e7ded2; border-radius: 14px; font-size: 14px; font-weight: 600; background: #faf8f5; color: #1e1b18; outline: none; transition: all 0.2s ease; cursor: pointer;"
-                        onfocus="this.style.borderColor='#d4af37'; this.style.backgroundColor='#ffffff'; this.style.boxShadow='0 0 0 3px rgba(212,175,55,0.15)';" 
-                        onblur="this.style.borderColor='#e7ded2'; this.style.backgroundColor='#faf8f5'; this.style.boxShadow='none';"
-                    >
-                        <option value="1">👤 1 Person</option>
-                        <option value="2">👥 2 People</option>
-                        <option value="3">👨‍👩‍👧 3 People</option>
-                        <option value="4">👨‍👩‍👧‍👦 4 People</option>
-                        <option value="5">🎉 5+ People</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- 5. Message for the Couple -->
-            <div>
-                <label for="rsvp_message" style="display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #473e35; margin-bottom: 7px;">
-                    Message for the Couple
-                </label>
-                <textarea 
-                    id="rsvp_message" 
-                    name="message" 
-                    rows="3" 
-                    placeholder="Warm wishes or blessings for the couple..." 
-                    style="box-sizing: border-box; width: 100%; padding: 14px 16px; border: 1.5px solid #e7ded2; border-radius: 14px; font-size: 14px; font-weight: 500; background: #faf8f5; color: #1e1b18; outline: none; transition: all 0.2s ease; resize: vertical; min-height: 85px;"
-                    onfocus="this.style.borderColor='#d4af37'; this.style.backgroundColor='#ffffff'; this.style.boxShadow='0 0 0 3px rgba(212,175,55,0.15)';" 
-                    onblur="this.style.borderColor='#e7ded2'; this.style.backgroundColor='#faf8f5'; this.style.boxShadow='none';"
-                ></textarea>
-            </div>
+            {$renderedQuestions}
 
             <!-- Submit Button -->
             <button 
                 type="submit" 
                 id="rsvpSubmitBtn" 
-                style="box-sizing: border-box; width: 100%; height: 50px; margin-top: 6px; border: none; border-radius: 14px; background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); color: #ffffff; font-size: 15px; font-weight: 800; letter-spacing: 0.8px; cursor: pointer; box-shadow: 0 10px 25px -5px rgba(184,134,11,0.4); transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase;"
+                style="box-sizing: border-box; width: 100%; height: 50px; margin-top: 10px; border: none; border-radius: 14px; background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); color: #ffffff; font-family: inherit; font-size: 15px; font-weight: 800; letter-spacing: 0.8px; cursor: pointer; box-shadow: 0 10px 25px -5px rgba(184,134,11,0.4); transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase;"
                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 14px 28px -4px rgba(184,134,11,0.48)';"
                 onmouseout="this.style.transform='none'; this.style.boxShadow='0 10px 25px -5px rgba(184,134,11,0.4)';"
             >
@@ -339,7 +474,7 @@ class PublicSiteController extends Controller
             </button>
 
             <!-- Inline Error / Status Message Container -->
-            <div id="rsvpFeedbackMsg" style="display: none; padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; text-align: center;"></div>
+            <div id="rsvpFeedbackMsg" style="display: none; margin-top: 14px; padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; text-align: center;"></div>
 
         </form>
     </div>
@@ -353,84 +488,134 @@ class PublicSiteController extends Controller
 </style>
 
 <script>
-function handleRsvpStatusChange(val) {
-    var wrapper = document.getElementById('rsvpGuestsCountWrapper');
-    var labelYes = document.getElementById('statusLabelYes');
-    var labelMaybe = document.getElementById('statusLabelMaybe');
-    var labelNo = document.getElementById('statusLabelNo');
-
-    // Reset all cards
-    [labelYes, labelMaybe, labelNo].forEach(function(l) {
-        if (!l) return;
-        l.style.border = '1.5px solid #e7ded2';
-        l.style.background = '#faf8f5';
-        l.style.boxShadow = 'none';
-        l.style.opacity = '0.85';
+function handleRsvpCardSelect(radio, groupClass, name) {
+    var cards = document.querySelectorAll('.' + groupClass);
+    cards.forEach(function(card) {
+        card.style.border = '1.5px solid rgba(0,0,0,0.12)';
+        card.style.background = 'rgba(255,255,255,0.7)';
+        card.style.boxShadow = 'none';
+        card.style.opacity = '0.85';
+        card.classList.remove('is-selected');
     });
-
-    if (val === 'yes' && labelYes) {
-        labelYes.style.border = '2px solid #10b981';
-        labelYes.style.background = '#ecfdf5';
-        labelYes.style.boxShadow = '0 4px 12px rgba(16,185,129,0.15)';
-        labelYes.style.opacity = '1';
-        if (wrapper) wrapper.style.display = 'block';
-    } else if (val === 'maybe' && labelMaybe) {
-        labelMaybe.style.border = '2px solid #f59e0b';
-        labelMaybe.style.background = '#fffbeb';
-        labelMaybe.style.boxShadow = '0 4px 12px rgba(245,158,11,0.15)';
-        labelMaybe.style.opacity = '1';
-        if (wrapper) wrapper.style.display = 'block';
-    } else if (val === 'no' && labelNo) {
-        labelNo.style.border = '2px solid #f43f5e';
-        labelNo.style.background = '#fff1f2';
-        labelNo.style.boxShadow = '0 4px 12px rgba(244,63,94,0.15)';
-        labelNo.style.opacity = '1';
-        if (wrapper) wrapper.style.display = 'none';
+    var parent = radio.closest('.' + groupClass);
+    if (parent) {
+        parent.style.border = '2px solid #10b981';
+        parent.style.background = 'rgba(236,253,245,0.9)';
+        parent.style.boxShadow = '0 4px 12px rgba(16,185,129,0.15)';
+        parent.style.opacity = '1';
+        parent.classList.add('is-selected');
     }
+}
+
+function handleRsvpListSelect(radio, groupClass, name) {
+    var items = document.querySelectorAll('.' + groupClass);
+    items.forEach(function(item) {
+        item.style.border = '1.5px solid rgba(0,0,0,0.12)';
+        item.style.background = 'rgba(255,255,255,0.7)';
+        item.classList.remove('is-selected');
+        var circle = item.querySelector('.rsvp-radio-circle');
+        if (circle) {
+            circle.style.borderColor = 'rgba(0,0,0,0.25)';
+            circle.style.background = 'transparent';
+            circle.innerHTML = '';
+        }
+    });
+    var parent = radio.closest('.' + groupClass);
+    if (parent) {
+        parent.style.border = '2px solid #10b981';
+        parent.style.background = 'rgba(236,253,245,0.9)';
+        parent.classList.add('is-selected');
+        var circle = parent.querySelector('.rsvp-radio-circle');
+        if (circle) {
+            circle.style.borderColor = '#10b981';
+            circle.style.background = '#10b981';
+            circle.innerHTML = '<div style="width: 6px; height: 6px; border-radius: 50%; background: #ffffff;"></div>';
+        }
+    }
+}
+
+// Auto-adapt RSVP font style and background from website code
+function adaptRsvpTheme() {
+    try {
+        var section = document.getElementById('invitify-rsvp-section');
+        if (!section) return;
+        var body = document.body;
+        if (!body) return;
+        var bodyStyle = window.getComputedStyle(body);
+
+        // Inherit fonts
+        var headingElem = document.querySelector('h1, h2:not(.rsvp-heading)');
+        var headingFont = headingElem ? window.getComputedStyle(headingElem).fontFamily : bodyStyle.fontFamily;
+        if (headingFont) {
+            section.querySelectorAll('.rsvp-heading').forEach(function(el){ el.style.fontFamily = headingFont; });
+        }
+        if (bodyStyle.fontFamily) {
+            section.style.fontFamily = bodyStyle.fontFamily;
+        }
+
+        // Detect background color
+        var bodyBg = bodyStyle.backgroundColor;
+        var card = section.querySelector('.invitify-rsvp-card');
+        if (!card) return;
+
+        var rgb = bodyBg.match(/\\d+/g);
+        var isDark = false;
+        if (rgb && rgb.length >= 3) {
+            var lum = (0.299 * parseInt(rgb[0]) + 0.587 * parseInt(rgb[1]) + 0.114 * parseInt(rgb[2]));
+            if (lum < 130) isDark = true;
+        }
+
+        if (isDark) {
+            card.style.background = 'rgba(22, 24, 32, 0.88)';
+            card.style.borderColor = 'rgba(255, 255, 255, 0.14)';
+            card.style.color = '#f9fafb';
+            card.style.boxShadow = '0 25px 60px -15px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)';
+            section.querySelectorAll('.rsvp-heading').forEach(function(el){ el.style.color = '#ffffff'; });
+            section.querySelectorAll('.rsvp-subheading').forEach(function(el){ el.style.color = 'rgba(255, 255, 255, 0.7)'; });
+            section.querySelectorAll('.rsvp-label').forEach(function(el){ el.style.color = 'rgba(255, 255, 255, 0.85)'; });
+            section.querySelectorAll('.rsvp-input-field').forEach(function(el){
+                el.style.background = 'rgba(255, 255, 255, 0.08)';
+                el.style.borderColor = 'rgba(255, 255, 255, 0.18)';
+                el.style.color = '#ffffff';
+            });
+            section.querySelectorAll('.rsvp-option-card, .rsvp-list-card').forEach(function(el){
+                if (!el.classList.contains('is-selected')) {
+                    el.style.background = 'rgba(255, 255, 255, 0.06)';
+                    el.style.borderColor = 'rgba(255, 255, 255, 0.14)';
+                }
+            });
+        }
+    } catch(e) {}
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', adaptRsvpTheme);
+} else {
+    adaptRsvpTheme();
 }
 
 function fireCelebrationConfetti() {
     if (typeof confetti === 'function') {
-        // Multi-burst celebration
         var count = 200;
-        var defaults = {
-            origin: { y: 0.7 }
-        };
-
+        var defaults = { origin: { y: 0.7 } };
         function fire(particleRatio, opts) {
-            confetti(Object.assign({}, defaults, opts, {
-                particleCount: Math.floor(count * particleRatio)
-            }));
+            confetti(Object.assign({}, defaults, opts, { particleCount: Math.floor(count * particleRatio) }));
         }
-
-        fire(0.25, {
-            spread: 26,
-            startVelocity: 55,
-            colors: ['#d4af37', '#ffd700', '#f59e0b']
-        });
-        fire(0.2, {
-            spread: 60,
-            colors: ['#10b981', '#34d399', '#059669']
-        });
-        fire(0.35, {
-            spread: 100,
-            decay: 0.91,
-            scalar: 0.8
-        });
-        fire(0.1, {
-            spread: 120,
-            startVelocity: 25,
-            decay: 0.92,
-            colors: ['#e11d48', '#ec4899', '#f43f5e']
-        });
-        fire(0.1, {
-            spread: 120,
-            startVelocity: 45
-        });
+        fire(0.25, { spread: 26, startVelocity: 55, colors: ['#d4af37', '#ffd700', '#f59e0b'] });
+        fire(0.2, { spread: 60, colors: ['#10b981', '#34d399', '#059669'] });
+        fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+        fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, colors: ['#e11d48', '#ec4899', '#f43f5e'] });
+        fire(0.1, { spread: 120, startVelocity: 45 });
     }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize default selected cards/lists
+    var checkedRadios = document.querySelectorAll('#invitifyRsvpForm input[type="radio"]:checked');
+    checkedRadios.forEach(function(r) {
+        r.dispatchEvent(new Event('change'));
+    });
+
     var form = document.getElementById('invitifyRsvpForm');
     if (!form) return;
 
@@ -463,10 +648,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         })
         .then(function(data) {
-            // Trigger Confetti Celebration!
             fireCelebrationConfetti();
 
-            // Show celebratory success card
             if (successCard) {
                 form.style.display = 'none';
                 successCard.style.display = 'block';
@@ -478,7 +661,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 feedback.innerHTML = '🎉 Thank you! Your RSVP response has been recorded.';
             }
             form.reset();
-            handleRsvpStatusChange('yes');
             btn.disabled = false;
             btn.innerHTML = originalBtnText;
         })

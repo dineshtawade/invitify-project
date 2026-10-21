@@ -13,6 +13,7 @@ import {
 import { Mail, Share2, Printer, Sparkles, Download, Copy, Check } from 'lucide-react';
 import { normalizeConfig } from '@/utils/builder-utils';
 import { toPng } from 'html-to-image';
+import { getFontFamilyCss, getFontFamilyName, loadGoogleFont } from '@/utils/font-utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -41,12 +42,18 @@ interface PageProps {
     purchasedTemplates: UserTemplate[];
 }
 
-const fontStyles: Record<string, string> = {
+// developed by dinesh tawade
+const fontStyles: Record<string, string> = new Proxy({
     playfair: "'Playfair Display', serif",
     vibes: "'Great Vibes', cursive",
     montserrat: "'Montserrat', sans-serif",
     cinzel: "'Cinzel', serif",
-};
+}, {
+    get(target, prop: string) {
+        if (prop in target) return (target as any)[prop];
+        return getFontFamilyCss(prop);
+    }
+});
 
 export default function PurchasedInvitations({ purchasedTemplates }: PageProps) {
     const [selectedInvitation, setSelectedInvitation] = useState<UserTemplate | null>(null);
@@ -58,6 +65,17 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
     const [isDownloadingIndex, setIsDownloadingIndex] = useState<number | null>(null);
 
     const handleOpenDownload = (invitation: UserTemplate) => {
+        // Preload any Google Fonts in invitation
+        // developed by dinesh tawade
+        if (invitation.custom_config?.pages) {
+            invitation.custom_config.pages.forEach((p: any) => {
+                p.elements?.forEach((elem: any) => {
+                    if (elem.type === 'text' && elem.fontStyle) {
+                        loadGoogleFont(elem.fontStyle);
+                    }
+                });
+            });
+        }
         setSelectedDownloadInvitation(invitation);
         setIsDownloadOpen(true);
     };
@@ -120,6 +138,9 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
         const cfg = normalizeConfig(invitation.custom_config, invitation.template.bg_gradient);
         const printWindow = window.open('', '_blank');
         if (printWindow) {
+            const fontFamilies = Array.from(new Set(cfg.pages.flatMap(p => p.elements.filter(e => e.type === 'text' && e.fontStyle).map(e => getFontFamilyName(e.fontStyle)))));
+            const dynamicFontLinks = fontFamilies.map(f => `<link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(f)}:ital,wght@0,300;0,400;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet" />`).join('\n');
+
             let pagesHtml = '';
             cfg.pages.forEach((page) => {
                 let elementsHtml = '';
@@ -134,7 +155,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                         align-items: center;
                         justify-content: ${elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center'};
                         text-align: ${elem.textAlign || 'center'};
-                        font-family: ${fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair};
+                        font-family: ${getFontFamilyCss(elem.fontStyle)};
                         color: ${elem.textColor || '#1f2937'};
                         font-size: ${elem.fontSize ? elem.fontSize + 'px' : '12px'};
                         font-weight: ${elem.fontWeight || 'normal'};
@@ -168,6 +189,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                         <link rel="preconnect" href="https://fonts.googleapis.com" />
                         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Great+Vibes&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cinzel:wght@400..900&display=swap" rel="stylesheet" />
+                        ${dynamicFontLinks}
                         <style>
                             @media print {
                                 body { margin: 0; padding: 0; background: none; }
@@ -361,6 +383,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                                                 className={`w-full aspect-[3/4.2] rounded-2xl shadow-md bg-gradient-to-tr ${page.bg_gradient} relative overflow-hidden border border-neutral-200 dark:border-neutral-800`}
                                             >
                                                 {page.elements.map((elem) => {
+                                                    if (elem.hidden) return null;
                                                     const style: React.CSSProperties = {
                                                         position: 'absolute',
                                                         left: `${elem.x}%`,
@@ -371,7 +394,7 @@ export default function PurchasedInvitations({ purchasedTemplates }: PageProps) 
                                                         alignItems: 'center',
                                                         justifyContent: elem.textAlign === 'left' ? 'flex-start' : elem.textAlign === 'right' ? 'flex-end' : 'center',
                                                         textAlign: elem.textAlign || 'center',
-                                                        fontFamily: fontStyles[elem.fontStyle || 'playfair'] || fontStyles.playfair,
+                                                        fontFamily: getFontFamilyCss(elem.fontStyle),
                                                         color: elem.textColor || '#1f2937',
                                                         fontSize: elem.fontSize ? `${elem.fontSize * 0.95}px` : '12px',
                                                         fontWeight: elem.fontWeight || 'normal',

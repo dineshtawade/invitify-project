@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::index
- * @see app/Http/Controllers/Customer/BusinessCardController.php:19
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:22
  * @route '/customer/business-cards'
  */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::index
- * @see app/Http/Controllers/Customer/BusinessCardController.php:19
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:22
  * @route '/customer/business-cards'
  */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::index
- * @see app/Http/Controllers/Customer/BusinessCardController.php:19
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:22
  * @route '/customer/business-cards'
  */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::index
- * @see app/Http/Controllers/Customer/BusinessCardController.php:19
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:22
  * @route '/customer/business-cards'
  */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::index
- * @see app/Http/Controllers/Customer/BusinessCardController.php:19
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:22
  * @route '/customer/business-cards'
  */
     const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::index
- * @see app/Http/Controllers/Customer/BusinessCardController.php:19
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:22
  * @route '/customer/business-cards'
  */
         indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::index
- * @see app/Http/Controllers/Customer/BusinessCardController.php:19
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:22
  * @route '/customer/business-cards'
  */
         indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -309,7 +309,7 @@ show.head = (args: { business_card: string | number } | [business_card: string |
     show.form = showForm
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::edit
- * @see app/Http/Controllers/Customer/BusinessCardController.php:31
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:76
  * @route '/customer/business-cards/{business_card}/edit'
  */
 export const edit = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -324,7 +324,7 @@ edit.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::edit
- * @see app/Http/Controllers/Customer/BusinessCardController.php:31
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:76
  * @route '/customer/business-cards/{business_card}/edit'
  */
 edit.url = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -352,7 +352,7 @@ edit.url = (args: { business_card: string | number } | [business_card: string | 
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::edit
- * @see app/Http/Controllers/Customer/BusinessCardController.php:31
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:76
  * @route '/customer/business-cards/{business_card}/edit'
  */
 edit.get = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -361,7 +361,7 @@ edit.get = (args: { business_card: string | number } | [business_card: string | 
 })
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::edit
- * @see app/Http/Controllers/Customer/BusinessCardController.php:31
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:76
  * @route '/customer/business-cards/{business_card}/edit'
  */
 edit.head = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -371,7 +371,7 @@ edit.head = (args: { business_card: string | number } | [business_card: string |
 
     /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::edit
- * @see app/Http/Controllers/Customer/BusinessCardController.php:31
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:76
  * @route '/customer/business-cards/{business_card}/edit'
  */
     const editForm = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -381,7 +381,7 @@ edit.head = (args: { business_card: string | number } | [business_card: string |
 
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::edit
- * @see app/Http/Controllers/Customer/BusinessCardController.php:31
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:76
  * @route '/customer/business-cards/{business_card}/edit'
  */
         editForm.get = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -390,7 +390,7 @@ edit.head = (args: { business_card: string | number } | [business_card: string |
         })
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::edit
- * @see app/Http/Controllers/Customer/BusinessCardController.php:31
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:76
  * @route '/customer/business-cards/{business_card}/edit'
  */
         editForm.head = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -406,7 +406,7 @@ edit.head = (args: { business_card: string | number } | [business_card: string |
     edit.form = editForm
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::update
- * @see app/Http/Controllers/Customer/BusinessCardController.php:60
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:106
  * @route '/customer/business-cards/{business_card}'
  */
 export const update = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -421,7 +421,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::update
- * @see app/Http/Controllers/Customer/BusinessCardController.php:60
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:106
  * @route '/customer/business-cards/{business_card}'
  */
 update.url = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -449,7 +449,7 @@ update.url = (args: { business_card: string | number } | [business_card: string 
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::update
- * @see app/Http/Controllers/Customer/BusinessCardController.php:60
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:106
  * @route '/customer/business-cards/{business_card}'
  */
 update.put = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -458,7 +458,7 @@ update.put = (args: { business_card: string | number } | [business_card: string 
 })
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::update
- * @see app/Http/Controllers/Customer/BusinessCardController.php:60
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:106
  * @route '/customer/business-cards/{business_card}'
  */
 update.patch = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -468,7 +468,7 @@ update.patch = (args: { business_card: string | number } | [business_card: strin
 
     /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::update
- * @see app/Http/Controllers/Customer/BusinessCardController.php:60
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:106
  * @route '/customer/business-cards/{business_card}'
  */
     const updateForm = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -483,7 +483,7 @@ update.patch = (args: { business_card: string | number } | [business_card: strin
 
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::update
- * @see app/Http/Controllers/Customer/BusinessCardController.php:60
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:106
  * @route '/customer/business-cards/{business_card}'
  */
         updateForm.put = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -497,7 +497,7 @@ update.patch = (args: { business_card: string | number } | [business_card: strin
         })
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::update
- * @see app/Http/Controllers/Customer/BusinessCardController.php:60
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:106
  * @route '/customer/business-cards/{business_card}'
  */
         updateForm.patch = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -513,7 +513,7 @@ update.patch = (args: { business_card: string | number } | [business_card: strin
     update.form = updateForm
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::destroy
- * @see app/Http/Controllers/Customer/BusinessCardController.php:94
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:140
  * @route '/customer/business-cards/{business_card}'
  */
 export const destroy = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -528,7 +528,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::destroy
- * @see app/Http/Controllers/Customer/BusinessCardController.php:94
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:140
  * @route '/customer/business-cards/{business_card}'
  */
 destroy.url = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -556,7 +556,7 @@ destroy.url = (args: { business_card: string | number } | [business_card: string
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::destroy
- * @see app/Http/Controllers/Customer/BusinessCardController.php:94
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:140
  * @route '/customer/business-cards/{business_card}'
  */
 destroy.delete = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -566,7 +566,7 @@ destroy.delete = (args: { business_card: string | number } | [business_card: str
 
     /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::destroy
- * @see app/Http/Controllers/Customer/BusinessCardController.php:94
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:140
  * @route '/customer/business-cards/{business_card}'
  */
     const destroyForm = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -581,7 +581,7 @@ destroy.delete = (args: { business_card: string | number } | [business_card: str
 
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::destroy
- * @see app/Http/Controllers/Customer/BusinessCardController.php:94
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:140
  * @route '/customer/business-cards/{business_card}'
  */
         destroyForm.delete = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -597,7 +597,7 @@ destroy.delete = (args: { business_card: string | number } | [business_card: str
     destroy.form = destroyForm
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::draftCreate
- * @see app/Http/Controllers/Customer/BusinessCardController.php:120
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:166
  * @route '/customer/business-cards/draft-create'
  */
 export const draftCreate = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -612,7 +612,7 @@ draftCreate.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::draftCreate
- * @see app/Http/Controllers/Customer/BusinessCardController.php:120
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:166
  * @route '/customer/business-cards/draft-create'
  */
 draftCreate.url = (options?: RouteQueryOptions) => {
@@ -621,7 +621,7 @@ draftCreate.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::draftCreate
- * @see app/Http/Controllers/Customer/BusinessCardController.php:120
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:166
  * @route '/customer/business-cards/draft-create'
  */
 draftCreate.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -631,7 +631,7 @@ draftCreate.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::draftCreate
- * @see app/Http/Controllers/Customer/BusinessCardController.php:120
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:166
  * @route '/customer/business-cards/draft-create'
  */
     const draftCreateForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -641,7 +641,7 @@ draftCreate.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::draftCreate
- * @see app/Http/Controllers/Customer/BusinessCardController.php:120
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:166
  * @route '/customer/business-cards/draft-create'
  */
         draftCreateForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -652,7 +652,7 @@ draftCreate.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     draftCreate.form = draftCreateForm
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::createOrder
- * @see app/Http/Controllers/Customer/BusinessCardController.php:169
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:215
  * @route '/customer/business-cards/{business_card}/create-order'
  */
 export const createOrder = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -667,7 +667,7 @@ createOrder.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::createOrder
- * @see app/Http/Controllers/Customer/BusinessCardController.php:169
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:215
  * @route '/customer/business-cards/{business_card}/create-order'
  */
 createOrder.url = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -695,7 +695,7 @@ createOrder.url = (args: { business_card: string | number } | [business_card: st
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::createOrder
- * @see app/Http/Controllers/Customer/BusinessCardController.php:169
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:215
  * @route '/customer/business-cards/{business_card}/create-order'
  */
 createOrder.post = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -705,7 +705,7 @@ createOrder.post = (args: { business_card: string | number } | [business_card: s
 
     /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::createOrder
- * @see app/Http/Controllers/Customer/BusinessCardController.php:169
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:215
  * @route '/customer/business-cards/{business_card}/create-order'
  */
     const createOrderForm = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -715,7 +715,7 @@ createOrder.post = (args: { business_card: string | number } | [business_card: s
 
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::createOrder
- * @see app/Http/Controllers/Customer/BusinessCardController.php:169
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:215
  * @route '/customer/business-cards/{business_card}/create-order'
  */
         createOrderForm.post = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -726,7 +726,7 @@ createOrder.post = (args: { business_card: string | number } | [business_card: s
     createOrder.form = createOrderForm
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyPayment
- * @see app/Http/Controllers/Customer/BusinessCardController.php:239
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:285
  * @route '/customer/business-cards/{business_card}/verify-payment'
  */
 export const verifyPayment = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -741,7 +741,7 @@ verifyPayment.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyPayment
- * @see app/Http/Controllers/Customer/BusinessCardController.php:239
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:285
  * @route '/customer/business-cards/{business_card}/verify-payment'
  */
 verifyPayment.url = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -769,7 +769,7 @@ verifyPayment.url = (args: { business_card: string | number } | [business_card: 
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyPayment
- * @see app/Http/Controllers/Customer/BusinessCardController.php:239
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:285
  * @route '/customer/business-cards/{business_card}/verify-payment'
  */
 verifyPayment.post = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -779,7 +779,7 @@ verifyPayment.post = (args: { business_card: string | number } | [business_card:
 
     /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyPayment
- * @see app/Http/Controllers/Customer/BusinessCardController.php:239
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:285
  * @route '/customer/business-cards/{business_card}/verify-payment'
  */
     const verifyPaymentForm = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -789,7 +789,7 @@ verifyPayment.post = (args: { business_card: string | number } | [business_card:
 
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyPayment
- * @see app/Http/Controllers/Customer/BusinessCardController.php:239
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:285
  * @route '/customer/business-cards/{business_card}/verify-payment'
  */
         verifyPaymentForm.post = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

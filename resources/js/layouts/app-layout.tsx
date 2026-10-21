@@ -5,7 +5,8 @@ import type { AppLayoutProps } from '@/types';
 
 export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => {
     const { auth } = usePage().props;
-    const isCustomer = auth.user?.role === 'customer';
+    // developed by dinesh tawade
+    const isCustomer = auth?.user?.role === 'customer' || !auth?.user;
 
     if (isCustomer) {
         return (

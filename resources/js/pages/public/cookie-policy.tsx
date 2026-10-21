@@ -159,7 +159,7 @@ export default function CookiePolicy() {
         <>
             <Head>
                 <title>Cookie Policy | Invitify</title>
-                <meta name="description" content="Invitify Cookie Policy. Learn how we use cookies to improve your experience while creating beautiful wedding invitations and mini websites online." />
+                <meta name="description" content="Invitify Cookie Policy. Learn how we use cookies to improve your experience while creating beautiful wedding invitations and Invitation Website online." />
                 <meta property="og:title" content="Cookie Policy | Invitify" />
                 <meta property="og:description" content="Learn how Invitify uses cookies to improve your browsing and template creation experience." />
             </Head>

@@ -21,6 +21,10 @@ export interface ElementConfig {
     opacity?: number;
     isBackground?: boolean;
     animation?: string;
+    hidden?: boolean;
+    locked?: boolean;
+    customName?: string;
+    zIndex?: number;
 }
 
 export interface PageConfig {
@@ -102,6 +106,9 @@ export function normalizeConfig(config: any, bg_gradient_default: string = 'from
                         opacity: e.opacity ?? 100,
                         isBackground: !!e.isBackground,
                         animation: e.animation,
+                        hidden: !!e.hidden,
+                        locked: !!e.locked,
+                        customName: e.customName,
                     }));
                     
                     if (p.bg_image) {

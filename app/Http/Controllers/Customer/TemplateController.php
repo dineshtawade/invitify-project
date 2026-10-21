@@ -4,11 +4,17 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Template;
+use App\Models\User;
 use App\Models\UserTemplate;
 use App\Models\SystemSetting;
 use App\Models\Transaction;
 use App\Models\ReferralCode;
+use App\Mail\TemplatePurchaseMail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class TemplateController extends Controller
@@ -59,7 +65,11 @@ class TemplateController extends Controller
         try {
             $id = decrypt($encryptedId);
         } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-            abort(404);
+            if (is_numeric($encryptedId)) {
+                $id = intval($encryptedId);
+            } else {
+                abort(404);
+            }
         }
 
         $template = Template::findOrFail($id);
@@ -105,6 +115,7 @@ class TemplateController extends Controller
             'template' => $template,
             'userTemplate' => $userTemplate,
             'coupons' => $coupons,
+            'autoOpenCheckout' => session('auto_open_checkout', false),
         ]);
     }
 
@@ -175,6 +186,8 @@ class TemplateController extends Controller
             'is_purchased' => true,
         ]);
 
+        $this->sendPurchaseEmail($userTemplate);
+
         return redirect()->route('customer.my-invitations')->with('status', 'Template purchased successfully!');
     }
 
@@ -196,8 +209,70 @@ class TemplateController extends Controller
             'is_purchased' => false,
         ]);
 
-        return redirect()->route('customer.templates.customize', $validated['template_id'])
-            ->with('status', 'Your draft has been successfully restored!');
+        $template = Template::findOrFail($validated['template_id']);
+
+        return redirect()->route('customer.templates.customize', $template->encrypted_id)
+            ->with('status', 'Your customized design has been restored successfully!')
+            ->with('auto_open_checkout', true);
+    }
+
+    /**
+     * Authenticate or register a guest user directly during checkout,
+     * claim their customized draft, and return user details to immediately open payment.
+     * developed by dinesh tawade
+     */
+    public function quickCheckoutAuth(Request $request)
+    {
+        $validated = $request->validate([
+            'mode' => 'required|in:login,register',
+            'template_id' => 'required|exists:templates,id',
+            'custom_config' => 'required|array',
+            'email' => 'required|email',
+            'password' => 'required|string|min:6',
+            'name' => 'nullable|string|max:255',
+        ]);
+
+        if ($validated['mode'] === 'register') {
+            if (User::where('email', $validated['email'])->exists()) {
+                return response()->json(['error' => 'An account with this email already exists. Please select "Sign In".'], 422);
+            }
+
+            $user = User::create([
+                'name' => $validated['name'] ?? explode('@', $validated['email'])[0],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => 'customer',
+                'is_approved' => true,
+            ]);
+
+            Auth::login($user);
+        } else {
+            if (!Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']])) {
+                return response()->json(['error' => 'Invalid email or password.'], 422);
+            }
+        }
+
+        $request->session()->regenerate();
+
+        // Save/Claim user template with their exact custom config!
+        $userTemplate = UserTemplate::updateOrCreate([
+            'user_id' => auth()->id(),
+            'template_id' => $validated['template_id'],
+        ], [
+            'custom_config' => $validated['custom_config'],
+            'is_purchased' => false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'id' => auth()->user()->id,
+                'name' => auth()->user()->name,
+                'email' => auth()->user()->email,
+            ],
+            'user_template_id' => $userTemplate->id,
+            'message' => 'Logged in and design saved successfully!',
+        ]);
     }
 
     /**
@@ -239,7 +314,7 @@ class TemplateController extends Controller
                 ];
             });
 
-        // Fetch all RSVPs for customer's mini websites
+        // Fetch all RSVPs for customer's Invitation Website
         // developed by dinesh tawade
         $userMiniWebsites = \App\Models\MiniWebsite::where('user_id', auth()->id())->get();
         $allRsvps = \App\Models\Rsvp::whereIn('mini_website_id', $userMiniWebsites->pluck('id'))
@@ -583,7 +658,13 @@ class TemplateController extends Controller
             // Credit commission to referral partner's wallet
             $this->creditReferralCommission($referralCodeId, $commissionAmount, $transaction);
 
-            return redirect()->route('customer.my-invitations')->with('status', 'Template purchased successfully! (Mock checkout)');
+            // Send congratulatory purchase email with invitation link
+            // developed by dinesh tawade
+            $mailStatus = $this->sendPurchaseEmail($userTemplate, $transaction->order_id, (float) $finalAmount);
+
+            return redirect()->route('customer.my-invitations')
+                ->with('status', 'Template purchased successfully! (Mock checkout)')
+                ->with('mail_status', $mailStatus);
         }
 
         // Verify Razorpay Payment Signature
@@ -621,7 +702,13 @@ class TemplateController extends Controller
             // Credit commission to referral partner's wallet
             $this->creditReferralCommission($referralCodeId, $commissionAmount, $transaction);
 
-            return redirect()->route('customer.my-invitations')->with('status', 'Template purchased successfully!');
+            // Send congratulatory purchase email with invitation link
+            // developed by dinesh tawade
+            $mailStatus = $this->sendPurchaseEmail($userTemplate, $orderId, (float) $finalAmount);
+
+            return redirect()->route('customer.my-invitations')
+                ->with('status', 'Template purchased successfully!')
+                ->with('mail_status', $mailStatus);
         }
 
         abort(400, 'Payment signature verification failed.');
@@ -652,5 +739,70 @@ class TemplateController extends Controller
             'Commission from sale #' . $transaction->id . ' (Code: ' . $referralCode->code . ')',
             $transaction
         );
+    }
+
+    /**
+     * Send congratulatory purchase email to customer with their live invitation URL.
+     * developed by dinesh tawade
+     */
+    private function sendPurchaseEmail(UserTemplate $userTemplate, ?string $orderId = null, ?float $amount = null): array
+    {
+        $user = auth()->user() ?? $userTemplate->user;
+        $recipientEmail = $user?->email;
+
+        if (!$user || empty($recipientEmail)) {
+            $status = [
+                'sent' => false,
+                'to' => null,
+                'from' => config('mail.from.address'),
+                'error' => 'No authenticated user or email found for this purchase.',
+                'message' => 'User email is missing.'
+            ];
+            session()->flash('mail_status', $status);
+            Log::warning("Purchase email skipped - no user email found: ", $status);
+            return $status;
+        }
+
+        $userTemplate->loadMissing('template');
+        $invitationUrl = route('invitations.view', $userTemplate->encrypted_id);
+        $templateName = $userTemplate->template?->name ?? 'Digital Invitation';
+        $templateType = ucfirst($userTemplate->template?->type ?? 'Card');
+
+        try {
+            $mail = new TemplatePurchaseMail($user, $userTemplate, $invitationUrl, $orderId, $amount);
+
+            $fromAddress = config('mail.from.address');
+            Mail::to($recipientEmail)->send($mail);
+
+            $status = [
+                'sent' => true,
+                'to' => $recipientEmail,
+                'from' => $fromAddress,
+                'item' => "{$templateName} ({$templateType})",
+                'template' => $templateName,
+                'type' => $templateType,
+                'order_id' => $orderId,
+                'amount' => $amount,
+                'url' => $invitationUrl,
+                'timestamp' => now()->toDateTimeString(),
+                'message' => "Congratulations email successfully sent to {$recipientEmail}"
+            ];
+            Log::info("📧 Template Purchase Email Sent: ", $status);
+        } catch (\Throwable $e) {
+            $status = [
+                'sent' => false,
+                'to' => $recipientEmail,
+                'from' => config('mail.from.address'),
+                'item' => $templateName,
+                'order_id' => $orderId,
+                'error' => $e->getMessage(),
+                'timestamp' => now()->toDateTimeString(),
+                'message' => "Failed to deliver email: " . $e->getMessage()
+            ];
+            Log::error("❌ Template Purchase Email Failed: ", $status);
+        }
+
+        session()->flash('mail_status', $status);
+        return $status;
     }
 }

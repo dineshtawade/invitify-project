@@ -13,14 +13,14 @@ export default function AuthSplitLayout({
 
     return (
         <div className="relative min-h-screen grid lg:grid-cols-12 bg-[#fdfbf7] font-sans text-[#4a4238] selection:bg-[#3d5644] selection:text-white transition-colors overflow-hidden">
-            
+
             {/* Left Side Panel (Desktop only - hidden on mobile) */}
             <div className="col-span-5 hidden lg:flex flex-col justify-between p-10 bg-[#fdfbf7] text-[#4a4238] relative border-r border-[#ebd9c1]/50 overflow-hidden select-none">
-                
+
                 {/* Decorative Glowing Blobs */}
                 <div className="absolute top-[-10%] left-[-10%] w-[80%] h-[80%] rounded-full bg-[#ebd9c1]/40 blur-[130px] z-0 pointer-events-none"></div>
                 <div className="absolute bottom-[-10%] right-[-10%] w-[80%] h-[80%] rounded-full bg-[#d3c0a3]/30 blur-[130px] z-0 pointer-events-none"></div>
-                
+
                 {/* Decorative Dot Grid */}
                 <div className="absolute inset-0 bg-[#f4efe6] bg-[radial-gradient(#d3c0a3_1px,transparent_1px)] [background-size:20px_20px] opacity-30 pointer-events-none z-0"></div>
 
@@ -46,7 +46,7 @@ export default function AuthSplitLayout({
                         </span>
                     </h2>
                     <p className="text-xs text-[#4a4238]/80 leading-relaxed font-medium">
-                        Design custom wedding invitations and mini websites in minutes. Access gorgeous templates, configure RSVPs, and share your event seamlessly.
+                        Design custom wedding invitations and Invitation Website in minutes. Access gorgeous templates, configure RSVPs, and share your event seamlessly.
                     </p>
 
                     {/* Smartphone Mockup */}
@@ -57,7 +57,7 @@ export default function AuthSplitLayout({
                                 <div className="size-1 rounded-full bg-neutral-950 mr-1.5"></div>
                                 <div className="w-4 h-0.5 bg-neutral-955 rounded-full"></div>
                             </div>
-                            
+
                             {/* Invitation Screen */}
                             <div className="h-full bg-gradient-to-br from-indigo-900 via-purple-950 to-pink-900 p-3.5 flex flex-col justify-between items-center text-center text-white relative pt-6 rounded-[14px] overflow-hidden select-none">
                                 <div className="absolute inset-0 bg-black/15"></div>
@@ -96,11 +96,11 @@ export default function AuthSplitLayout({
 
             {/* Right Side Form (All devices) */}
             <div className="col-span-7 flex flex-col justify-center items-center p-6 sm:p-10 md:p-16 min-h-screen relative">
-                
+
                 {/* Background ambient light */}
                 <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#ebd9c1]/40 blur-[100px] pointer-events-none z-0"></div>
                 <div className="absolute bottom-[20%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#d3c0a3]/30 blur-[100px] pointer-events-none z-0"></div>
-                
+
                 {/* Header for Mobile Devices */}
                 <div className="w-full max-w-md flex justify-between items-center mb-8 lg:hidden z-10">
                     <Link href={home()} className="flex items-center gap-1.5 text-xs font-bold text-[#4a4238]/70 hover:text-[#3d5644] transition-colors">

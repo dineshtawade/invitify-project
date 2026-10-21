@@ -14,7 +14,8 @@ import {
 import {
     Globe, Save, ExternalLink, CreditCard, Ticket,
     Check, AlertCircle, Loader2, Type, ImageIcon,
-    Video, Link as LinkIcon, ChevronRight, Eye, Smartphone, Monitor, Tablet, FileText, Clock
+    Video, Link as LinkIcon, ChevronRight, Eye, Smartphone, Monitor, Tablet, FileText, Clock,
+    Users, Lock
 } from 'lucide-react';
 import type { Block, WebsiteConfig } from '@/components/design-editor/types';
 import { getCsrfHeaders } from '@/lib/utils';
@@ -25,7 +26,7 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 
 interface PageProps {
-    auth: { user: { name: string; email: string; } };
+    auth: { user?: { name: string; email: string; } | null };
     website: any;
     customBlocks?: any[];
     coupons?: Array<{
@@ -33,6 +34,7 @@ interface PageProps {
         code: string;
         discount: number;
     }>;
+    isGuest?: boolean;
 }
 
 const pxToCqw = (px?: number | string | null, defaultPx: number = 0) => {
@@ -255,8 +257,21 @@ function getElementIcon(el: Block) {
     return <FileText className="size-4 text-gray-500 shrink-0" />;
 }
 
-export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coupons = [] }: PageProps) {
-    const normalizedConfig = useMemo(() => normalizeConfig(website.config), [website.config]);
+export default function MiniWebsiteEdit({ auth, website: initialWebsite, customBlocks = [], coupons = [], isGuest: initialIsGuest = false }: PageProps) {
+    const [currentWebsite, setCurrentWebsite] = useState(initialWebsite);
+    const [currentUser, setCurrentUser] = useState(auth?.user || null);
+    const [isGuestUser, setIsGuestUser] = useState(initialIsGuest || !auth?.user);
+
+    // Guest Auth States
+    const [guestAuthMode, setGuestAuthMode] = useState<'register' | 'login'>('register');
+    const [guestAuthName, setGuestAuthName] = useState('');
+    const [guestAuthEmail, setGuestAuthEmail] = useState('');
+    const [guestAuthPassword, setGuestAuthPassword] = useState('');
+    const [authError, setAuthError] = useState('');
+
+    const templateStorageKey = `guest_mini_website_draft_${currentWebsite.template?.id || currentWebsite.template_id || 0}`;
+
+    const normalizedConfig = useMemo(() => normalizeConfig(currentWebsite.config), [currentWebsite.config]);
 
     const [config, setConfig] = useState<any>(normalizedConfig);
     const [activePageId, setActivePageId] = useState<string>(normalizedConfig.pages?.[0]?.id || 'home');
@@ -268,6 +283,36 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const configRef = useRef(config);
     configRef.current = config;
+
+    // Restore guest draft from localStorage if available
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(templateStorageKey);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed) {
+                    setConfig(parsed);
+                    // If user is authenticated and has a real website, persist the guest draft to database immediately
+                    if (!isGuestUser && currentWebsite.id && currentWebsite.id !== 0) {
+                        router.put(`/customer/mini-websites/${currentWebsite.uuid || currentWebsite.id}`, {
+                            title: currentWebsite.title,
+                            theme: currentWebsite.theme || 'cozy',
+                            is_published: currentWebsite.is_published ?? false,
+                            config: parsed,
+                        }, {
+                            preserveScroll: true,
+                            preserveState: true,
+                            onSuccess: () => {
+                                localStorage.removeItem(templateStorageKey);
+                            }
+                        });
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error loading draft', e);
+        }
+    }, [isGuestUser, templateStorageKey]);
 
     useEffect(() => {
         const handleMessage = (e: MessageEvent) => {
@@ -281,10 +326,23 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                 const callback = (window as any).pendingSaveCallback;
                 (window as any).pendingSaveCallback = null;
 
-                router.put(`/customer/mini-websites/${website.uuid || website.id}`, {
-                    title: website.title,
-                    theme: website.theme || 'cozy',
-                    is_published: website.is_published ?? false,
+                if (isGuestUser) {
+                    try {
+                        localStorage.setItem(templateStorageKey, JSON.stringify(newConfig));
+                    } catch (err) {}
+                    setIsSaving(false);
+                    if (callback) {
+                        callback();
+                    } else {
+                        alert('Draft saved locally! Click "Purchase & Host" when you are ready to publish.');
+                    }
+                    return;
+                }
+
+                router.put(`/customer/mini-websites/${currentWebsite.uuid || currentWebsite.id}`, {
+                    title: currentWebsite.title,
+                    theme: currentWebsite.theme || 'cozy',
+                    is_published: currentWebsite.is_published ?? false,
                     config: newConfig,
                 }, {
                     preserveScroll: true,
@@ -303,7 +361,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
         };
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
-    }, [website.id, website.title, website.theme, website.is_published]);
+    }, [currentWebsite.id, currentWebsite.uuid, currentWebsite.title, currentWebsite.theme, currentWebsite.is_published, isGuestUser, templateStorageKey]);
 
     // Renewal Checkout States
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -429,10 +487,23 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
             (window as any).pendingSaveCallback = callback;
             iframeRef.current.contentWindow.postMessage({ type: 'GET_HTML' }, '*');
         } else {
-            router.put(`/customer/mini-websites/${website.uuid || website.id}`, {
-                title: website.title,
-                theme: website.theme || 'cozy',
-                is_published: website.is_published ?? false,
+            if (isGuestUser) {
+                try {
+                    localStorage.setItem(templateStorageKey, JSON.stringify(config));
+                } catch (err) {}
+                setIsSaving(false);
+                if (callback) {
+                    callback();
+                } else {
+                    alert('Draft saved locally! Click "Purchase & Host" when you are ready to publish.');
+                }
+                return;
+            }
+
+            router.put(`/customer/mini-websites/${currentWebsite.uuid || currentWebsite.id}`, {
+                title: currentWebsite.title,
+                theme: currentWebsite.theme || 'cozy',
+                is_published: currentWebsite.is_published ?? false,
                 config: config as any,
             }, {
                 preserveScroll: true,
@@ -467,6 +538,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
             setAppliedDiscount(0);
             setCouponMessage('');
             setIsValidCoupon(false);
+            setAuthError('');
             setIsCheckoutOpen(true);
         });
     };
@@ -487,7 +559,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
 
     // Daily price comes from the template price (e.g., 100/day -> 7 days = 700)
     // developed by dinesh tawade
-    const dailyPrice = website.template?.price ? parseFloat(String(website.template.price)) : 100;
+    const dailyPrice = currentWebsite.template?.price ? parseFloat(String(currentWebsite.template.price)) : 100;
     const days = getDaysValue();
     const hostingPrice = days * dailyPrice;
     const subtotal = hostingPrice;
@@ -511,8 +583,16 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
             return;
         }
 
+        if (isGuestUser) {
+            setIsValidCoupon(false);
+            setAppliedDiscount(0);
+            setCouponMessage('Coupon will be verified during account creation.');
+            setIsApplyingCode(false);
+            return;
+        }
+
         try {
-            const res = await fetch(`/customer/mini-websites/${website.uuid || website.id}/verify-referral`, {
+            const res = await fetch(`/customer/mini-websites/${currentWebsite.uuid || currentWebsite.id}/verify-referral`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -559,8 +639,98 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
 
     const handleConfirmRenewal = async () => {
         setIsCheckingOut(true);
+        setAuthError('');
+
+        let activeWebsiteUuid = currentWebsite.uuid || currentWebsite.id;
+
+        // If guest, first authenticate / register and create the website record in DB
+        if (isGuestUser) {
+            if (!guestAuthEmail || !guestAuthPassword) {
+                setAuthError('Please enter your email and password.');
+                setIsCheckingOut(false);
+                return;
+            }
+            if (guestAuthPassword.length < 6) {
+                setAuthError('Password must be at least 6 characters.');
+                setIsCheckingOut(false);
+                return;
+            }
+            if (guestAuthMode === 'register' && !guestAuthName.trim()) {
+                setAuthError('Please enter your full name.');
+                setIsCheckingOut(false);
+                return;
+            }
+
+            try {
+                // Ensure latest HTML is captured if code template
+                let configToSave = config;
+                if (isCodeTemplate && iframeRef.current?.contentWindow) {
+                    const htmlResult = await new Promise<string>((resolve) => {
+                        const handler = (e: MessageEvent) => {
+                            if (e.data?.type === 'SAVE_HTML_RESULT') {
+                                window.removeEventListener('message', handler);
+                                resolve(e.data.html);
+                            }
+                        };
+                        window.addEventListener('message', handler);
+                        iframeRef.current?.contentWindow?.postMessage({ type: 'GET_HTML' }, '*');
+                        setTimeout(() => resolve(''), 2000);
+                    });
+                    if (htmlResult) {
+                        configToSave = { ...config, html: htmlResult };
+                        setConfig(configToSave);
+                    }
+                }
+
+                const authRes = await fetch('/mini-websites/quick-checkout-auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        ...getCsrfHeaders()
+                    },
+                    body: JSON.stringify({
+                        mode: guestAuthMode,
+                        template_id: currentWebsite.template?.id || currentWebsite.template_id,
+                        title: currentWebsite.title,
+                        slug: currentWebsite.slug,
+                        theme: currentWebsite.theme || 'cozy',
+                        config: configToSave,
+                        email: guestAuthEmail,
+                        password: guestAuthPassword,
+                        name: guestAuthName
+                    })
+                });
+
+                const authData = await authRes.json();
+                if (!authRes.ok) {
+                    setAuthError(authData.error || 'Authentication failed. Please check your credentials.');
+                    setIsCheckingOut(false);
+                    return;
+                }
+
+                // Successfully logged in / registered and created website in DB!
+                setCurrentWebsite(prev => ({
+                    ...prev,
+                    id: authData.website_id,
+                    uuid: authData.website_uuid,
+                    slug: authData.website_slug
+                }));
+                activeWebsiteUuid = authData.website_uuid || authData.website_id;
+                setCurrentUser(authData.user);
+                setIsGuestUser(false);
+                try {
+                    localStorage.removeItem(templateStorageKey);
+                } catch (e) {}
+            } catch (err: any) {
+                setAuthError(err.message || 'Error creating account. Please try again.');
+                setIsCheckingOut(false);
+                return;
+            }
+        }
+
         try {
-            const response = await fetch(`/customer/mini-websites/${website.uuid || website.id}/create-order`, {
+            const response = await fetch(`/customer/mini-websites/${activeWebsiteUuid}/create-order`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', ...getCsrfHeaders() },
                 body: JSON.stringify({ days, referral_code: isValidCoupon ? referralCode : '' })
@@ -575,9 +745,33 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
 
             const orderData = await response.json();
 
+            const logWebsiteMailStatus = (page: any) => {
+                const s = page?.props?.flash?.mail_status;
+                if (s) {
+                    if (s.sent) {
+                        console.log('%c📧 [INVITIFY EMAIL STATUS] SUCCESS! Email sent to: ' + s.to, 'background: #15803d; color: #fff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                        console.table({
+                            'Status': 'Delivered via SMTP',
+                            'Recipient (User Email)': s.to,
+                            'Sender Email': s.from,
+                            'Website': s.website || s.item,
+                            'Live Link': s.url
+                        });
+                    } else {
+                        console.error('%c❌ [INVITIFY EMAIL STATUS] FAILED! Error: ' + (s.error || s.message), 'background: #b91c1c; color: #fff; font-size: 13px; font-weight: bold; padding: 5px 10px; border-radius: 4px;');
+                        console.table(s);
+                    }
+                }
+            };
+
             if (orderData.mock) {
-                router.post(`/customer/mini-websites/${website.uuid || website.id}/verify-payment`, { mock: true }, {
-                    onSuccess: () => { setIsCheckoutOpen(false); setIsCheckingOut(false); },
+                router.post(`/customer/mini-websites/${activeWebsiteUuid}/verify-payment`, { mock: true }, {
+                    onSuccess: (page) => {
+                        setIsCheckoutOpen(false);
+                        setIsCheckingOut(false);
+                        logWebsiteMailStatus(page);
+                        router.visit(`/customer/mini-websites/${activeWebsiteUuid}/edit`);
+                    },
                     onError: () => { setIsCheckingOut(false); }
                 });
             } else {
@@ -590,20 +784,28 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                     amount: orderData.amount,
                     currency: 'INR',
                     name: 'Invitify',
-                    description: `Hosting Purchase for ${website.title}`,
+                    description: `Hosting Purchase for ${currentWebsite.title}`,
                     order_id: orderData.order_id,
                     handler: function (response: any) {
-                        router.post(`/customer/mini-websites/${website.uuid || website.id}/verify-payment`, {
+                        router.post(`/customer/mini-websites/${activeWebsiteUuid}/verify-payment`, {
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_signature: response.razorpay_signature,
                             mock: false
                         }, {
-                            onSuccess: () => { setIsCheckoutOpen(false); setIsCheckingOut(false); },
+                            onSuccess: (page) => {
+                                setIsCheckoutOpen(false);
+                                setIsCheckingOut(false);
+                                logWebsiteMailStatus(page);
+                                router.visit(`/customer/mini-websites/${activeWebsiteUuid}/edit`);
+                            },
                             onError: () => { setIsCheckingOut(false); }
                         });
                     },
-                    prefill: { name: auth?.user?.name || '', email: auth?.user?.email || '' },
+                    prefill: {
+                        name: currentUser?.name || guestAuthName || '',
+                        email: currentUser?.email || guestAuthEmail || ''
+                    },
                     theme: { color: '#2563eb' },
                     modal: { ondismiss: function () { setIsCheckingOut(false); } }
                 };
@@ -616,16 +818,19 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
         }
     };
 
-    const isExpired = !website.expires_at || new Date(website.expires_at) < new Date();
-    const isFree = website.template && parseFloat(String(website.template.price)) === 0;
+    const isExpired = !currentWebsite.expires_at || new Date(currentWebsite.expires_at) < new Date();
+    const isFree = currentWebsite.template && parseFloat(String(currentWebsite.template.price)) === 0;
 
     return (
-        <AppLayout breadcrumbs={[
+        <AppLayout breadcrumbs={isGuestUser ? [
+            { title: 'Home', href: '/' },
+            { title: 'Customize Website', href: '#' },
+        ] : [
             { title: 'Dashboard', href: '/customer/dashboard' },
-            { title: 'My Mini Websites', href: '/customer/mini-websites' },
-            { title: website.title, href: `/customer/mini-websites/${website.uuid || website.id}/edit` },
+            { title: 'My Invitation Website', href: '/customer/mini-websites' },
+            { title: currentWebsite.title, href: `/customer/mini-websites/${currentWebsite.uuid || currentWebsite.id}/edit` },
         ]}>
-            <Head title={`Customize: ${website.title}`} />
+            <Head title={`Customize: ${currentWebsite.title}`} />
 
             <div className="flex flex-col h-[calc(100vh-4rem)] bg-white">
                 {/* Header Navbar */}
@@ -635,15 +840,19 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                             <Globe className="size-5 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-base font-bold text-gray-900">{website.title}</h1>
-                            <a
-                                href={`/mini-website/${website.slug}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                            >
-                                /mini-website/{website.slug} <ExternalLink className="size-3" />
-                            </a>
+                            <h1 className="text-base font-bold text-gray-900">{currentWebsite.title}</h1>
+                            {!isGuestUser ? (
+                                <a
+                                    href={`/mini-website/${currentWebsite.slug}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                >
+                                    /mini-website/{currentWebsite.slug} <ExternalLink className="size-3" />
+                                </a>
+                            ) : (
+                                <span className="text-xs text-amber-600 font-medium">Guest Mode • Customizing Preview</span>
+                            )}
                         </div>
                     </div>
 
@@ -665,7 +874,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                 className="h-8 px-3 bg-blue-600 hover:bg-blue-700 text-white shadow-sm flex items-center gap-1.5 font-bold text-xs"
                             >
                                 <CreditCard className="size-3" />
-                                {!website.is_purchased ? 'Purchase & Host' : (isExpired ? 'Re-Host' : 'Extend Hosting')}
+                                {!currentWebsite.is_purchased || isGuestUser ? 'Purchase & Host' : (isExpired ? 'Re-Host' : 'Extend Hosting')}
                             </Button>
                         )}
                     </div>
@@ -1111,7 +1320,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                             <div className="flex items-center gap-2 text-xl font-bold">
                                 <CreditCard className="size-5 text-blue-600 shrink-0" />
                                 <span className="truncate">
-                                    {!website.is_purchased ? 'Complete Purchase' : 'Renew Hosting'}
+                                    {!currentWebsite.is_purchased || isGuestUser ? 'Complete Purchase' : 'Renew Hosting'}
                                 </span>
                             </div>
                             <div className="bg-red-50 text-red-600 font-mono text-sm px-3 py-1 rounded-full font-bold flex items-center gap-1.5 border border-red-200 shrink-0 self-start sm:self-auto shadow-sm">
@@ -1123,9 +1332,88 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                     <div className="flex flex-col gap-5 py-3 text-sm">
                         <div className="rounded-xl bg-gray-50 p-4 border border-gray-200 flex flex-col gap-1">
                             <span className="text-xs text-gray-400 uppercase font-bold">Template & Website</span>
-                            <span className="font-bold text-gray-800">{website.template?.name ? `${website.template.name} — ` : ''}{website.title}</span>
-                            <span className="text-xs text-gray-500 font-mono">/mini-website/{website.slug}</span>
+                            <span className="font-bold text-gray-800">{currentWebsite.template?.name ? `${currentWebsite.template.name} — ` : ''}{currentWebsite.title}</span>
+                            {!isGuestUser ? (
+                                <span className="text-xs text-gray-500 font-mono">/mini-website/{currentWebsite.slug}</span>
+                            ) : (
+                                <span className="text-xs text-amber-600 font-medium">Guest Draft • Will be published to your account</span>
+                            )}
                         </div>
+
+                        {/* Guest Account Section (Step 1) */}
+                        {isGuestUser && (
+                            <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-4 flex flex-col gap-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
+                                        <Users className="size-4 text-blue-600" />
+                                        Step 1: Your Account
+                                    </span>
+                                    <div className="flex bg-blue-100/80 p-0.5 rounded-lg border border-blue-200 text-xs font-semibold">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setGuestAuthMode('register'); setAuthError(''); }}
+                                            className={`px-3 py-1 rounded-md transition-all ${guestAuthMode === 'register' ? 'bg-white text-blue-700 shadow-sm' : 'text-blue-600 hover:text-blue-800'}`}
+                                        >
+                                            New Account
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setGuestAuthMode('login'); setAuthError(''); }}
+                                            className={`px-3 py-1 rounded-md transition-all ${guestAuthMode === 'login' ? 'bg-white text-blue-700 shadow-sm' : 'text-blue-600 hover:text-blue-800'}`}
+                                        >
+                                            Sign In
+                                        </button>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-blue-700">
+                                    {guestAuthMode === 'register'
+                                        ? 'Create a quick account to save your website customizations and manage RSVPs.'
+                                        : 'Sign in to save this design to your existing Invitify account.'}
+                                </p>
+
+                                {guestAuthMode === 'register' && (
+                                    <div>
+                                        <Label className="text-[11px] font-bold text-gray-700 uppercase">Full Name</Label>
+                                        <Input
+                                            type="text"
+                                            placeholder="E.g., John Doe"
+                                            value={guestAuthName}
+                                            onChange={(e) => setGuestAuthName(e.target.value)}
+                                            className="mt-1 bg-white h-9 border-gray-200 text-sm"
+                                        />
+                                    </div>
+                                )}
+
+                                <div>
+                                    <Label className="text-[11px] font-bold text-gray-700 uppercase">Email Address</Label>
+                                    <Input
+                                        type="email"
+                                        placeholder="you@example.com"
+                                        value={guestAuthEmail}
+                                        onChange={(e) => setGuestAuthEmail(e.target.value)}
+                                        className="mt-1 bg-white h-9 border-gray-200 text-sm"
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label className="text-[11px] font-bold text-gray-700 uppercase">Password</Label>
+                                    <Input
+                                        type="password"
+                                        placeholder="At least 6 characters"
+                                        value={guestAuthPassword}
+                                        onChange={(e) => setGuestAuthPassword(e.target.value)}
+                                        className="mt-1 bg-white h-9 border-gray-200 text-sm"
+                                    />
+                                </div>
+
+                                {authError && (
+                                    <div className="rounded-lg bg-red-50 p-2.5 text-xs text-red-600 border border-red-200 flex items-center gap-1.5 font-medium">
+                                        <AlertCircle className="size-4 shrink-0" />
+                                        <span>{authError}</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Duration Selector */}
                         <div className="flex flex-col gap-2">
@@ -1270,7 +1558,7 @@ export default function MiniWebsiteEdit({ auth, website, customBlocks = [], coup
                                 disabled={isCheckingOut || finalAmount <= 0}
                                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1.5"
                             >
-                                {isCheckingOut ? <><Loader2 className="size-4 animate-spin" /> Processing...</> : <><CreditCard className="size-4" /> {!website.is_purchased ? 'Pay & Publish' : 'Pay & Renew'}</>}
+                                {isCheckingOut ? <><Loader2 className="size-4 animate-spin" /> Processing...</> : <><CreditCard className="size-4" /> {!currentWebsite.is_purchased || isGuestUser ? (isGuestUser ? 'Continue to Payment' : 'Pay & Publish') : 'Pay & Renew'}</>}
                             </Button>
                         </DialogFooter>
                     </div>
