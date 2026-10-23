@@ -31,7 +31,20 @@ class MiniWebsiteController extends Controller
         $templateId = $request->query('template_id');
         $template = MiniWebsiteTemplate::find($templateId) ?? MiniWebsiteTemplate::where('status', 'published')->first();
         if (!$template) {
-            return redirect()->route('home');
+            $template = MiniWebsiteTemplate::first();
+        }
+        if (!$template) {
+            $template = MiniWebsiteTemplate::create([
+                'name' => 'Royal Celebration Mini Website',
+                'type' => 'invitation',
+                'price' => 199.00,
+                'status' => 'published',
+                'config' => [
+                    'theme' => 'cozy',
+                    'html' => '<div style="font-family:serif;text-align:center;padding:40px 20px;background:#fdfbf7;min-height:100vh;"><h1 style="font-size:36px;color:#3e3832;margin-bottom:12px;">Wedding Celebration</h1><p style="font-size:18px;color:#706557;">Join us for an unforgettable evening of love and joy</p></div>',
+                    'elements' => []
+                ],
+            ]);
         }
 
         if (auth()->check()) {
@@ -80,6 +93,29 @@ class MiniWebsiteController extends Controller
             'customBlocks' => \App\Models\CustomBlock::orderBy('name')->get(),
             'coupons' => $coupons,
             'isGuest' => true,
+        ]);
+    }
+
+    /**
+     * Dedicated live preview for an Invitation Website template
+     * Opens in a new tab/window with device switcher (Desktop, Tablet, Mobile)
+     * and a direct "Customize & Buy" action.
+     * developed by dinesh tawade
+     */
+    public function previewTemplate($id)
+    {
+        $template = MiniWebsiteTemplate::findOrFail($id);
+
+        return Inertia::render('public/website-template-preview', [
+            'template' => [
+                'id' => $template->id,
+                'name' => $template->name,
+                'type' => $template->type,
+                'price' => floatval($template->price),
+                'preview_image' => $template->preview_image,
+                'config' => $template->config,
+            ],
+            'customizeUrl' => route('mini-websites.guest-builder', ['template_id' => $template->id]),
         ]);
     }
 

@@ -378,7 +378,8 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
 
     const scaleRatio = cardWidth / targetWidth;
 
-    const renderDecorIcon = (iconName: string, color: string = 'currentColor') => {
+    const renderDecorIcon = (iconName?: string, color: string = 'currentColor') => {
+        const safeName = (iconName || 'ring').trim().toLowerCase();
         const iconClasses = "size-full object-contain pointer-events-none";
 
         // Legacy fallback map
@@ -389,13 +390,13 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
             'bell': Bell, 'compass': Compass, 'flower': Smile, 'ring': Award
         };
 
-        if (legacyMap[iconName]) {
-            const LegacyIcon = legacyMap[iconName];
+        if (legacyMap[safeName]) {
+            const LegacyIcon = legacyMap[safeName];
             return <LegacyIcon className={iconClasses} style={{ color }} />;
         }
 
-        const normalizedName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
-        const IconComponent = (LucideIcons as any)[normalizedName] || (LucideIcons as any)[iconName] || Award;
+        const normalizedName = safeName.charAt(0).toUpperCase() + safeName.slice(1);
+        const IconComponent = (LucideIcons as any)[normalizedName] || (LucideIcons as any)[safeName] || Award;
 
         return <IconComponent className={iconClasses} style={{ color }} />;
     };

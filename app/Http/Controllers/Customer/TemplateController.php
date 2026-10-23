@@ -27,10 +27,12 @@ class TemplateController extends Controller
         $templates = Template::where('status', 'published')->get()->map(fn($t) => [
             'id' => $t->id,
             'name' => $t->name,
+            'type' => $t->type,
             'category' => $t->category,
             'price' => floatval($t->price),
             'bg_gradient' => $t->bg_gradient,
             'default_config' => $t->default_config,
+            'encrypted_id' => $t->encrypted_id,
         ]);
 
         $miniTemplates = \App\Models\MiniWebsiteTemplate::where('status', 'published')->get()->map(fn($t) => [
@@ -370,6 +372,51 @@ class TemplateController extends Controller
 
         return Inertia::render('public/view', [
             'userTemplate' => $userTemplate,
+        ]);
+    }
+
+    /**
+     * Dedicated live preview for a template (Image or Video)
+     * Opens in a new tab/window with interactive preview and direct Customize & Buy CTA.
+     * developed by dinesh tawade
+     */
+    public function preview($encryptedId)
+    {
+        try {
+            $id = decrypt($encryptedId);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            if (is_numeric($encryptedId)) {
+                $id = intval($encryptedId);
+            } else {
+                abort(404);
+            }
+        }
+
+        $template = Template::findOrFail($id);
+
+        $mockUserTemplate = [
+            'id' => 0,
+            'user_id' => null,
+            'template_id' => $template->id,
+            'custom_config' => $template->default_config ?? [],
+            'video_path' => null,
+            'is_purchased' => false,
+            'template' => [
+                'id' => $template->id,
+                'name' => $template->name,
+                'type' => $template->type,
+                'category' => $template->category,
+                'price' => $template->price,
+                'bg_gradient' => $template->bg_gradient,
+                'encrypted_id' => $template->encrypted_id,
+                'default_config' => $template->default_config,
+            ],
+        ];
+
+        return Inertia::render('public/template-preview', [
+            'template' => $template,
+            'userTemplate' => $mockUserTemplate,
+            'customizeUrl' => route('customer.templates.customize', $template->encrypted_id),
         ]);
     }
 

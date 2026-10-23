@@ -123,6 +123,18 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
         return () => observer.disconnect();
     }, [activePageIndex]);
 
+    // Preload Google Fonts used in the template
+    useEffect(() => {
+        if (!data.custom_config?.pages) return;
+        data.custom_config.pages.forEach((p: PageConfig) => {
+            p.elements?.forEach((elem: ElementConfig) => {
+                if (elem.type === 'text' && elem.fontStyle) {
+                    loadGoogleFont(elem.fontStyle);
+                }
+            });
+        });
+    }, [data.custom_config]);
+
     const targetWidth = data.custom_config?.aspectRatio === 'custom'
         ? (data.custom_config?.width || 350)
         : (ratioData?.targetWidth || 350);
@@ -187,7 +199,8 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
         });
     };
 
-    const renderDecorIcon = (iconName: string, color: string = 'currentColor') => {
+    const renderDecorIcon = (iconName?: string, color: string = 'currentColor') => {
+        const safeName = (iconName || 'ring').trim().toLowerCase();
         const iconClasses = "size-full object-contain pointer-events-none";
         const legacyMap: Record<string, any> = {
             'heart': Heart, 'sparkle': Sparkles, 'sparkles': Sparkles,
@@ -196,13 +209,13 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
             'bell': Bell, 'compass': Compass, 'flower': Smile, 'ring': Award
         };
 
-        if (legacyMap[iconName]) {
-            const LegacyIcon = legacyMap[iconName];
+        if (legacyMap[safeName]) {
+            const LegacyIcon = legacyMap[safeName];
             return <LegacyIcon className={iconClasses} style={{ color }} />;
         }
 
-        const normalizedName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
-        const IconComponent = (LucideIcons as any)[normalizedName] || (LucideIcons as any)[iconName] || Award;
+        const normalizedName = safeName.charAt(0).toUpperCase() + safeName.slice(1);
+        const IconComponent = (LucideIcons as any)[normalizedName] || (LucideIcons as any)[safeName] || Award;
         return <IconComponent className={iconClasses} style={{ color }} />;
     };
 
@@ -851,21 +864,21 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                                             <div
                                                 key={elem.id}
                                                 style={style}
-                                                className={`transition-all duration-300 relative overflow-hidden rounded-lg ${elem.animation && elem.animation !== 'none' ? elem.animation : ''
+                                                className={`transition-all duration-300 relative overflow-hidden ${elem.isBackground ? '' : 'rounded-lg'} ${elem.animation && elem.animation !== 'none' ? elem.animation : ''
                                                     }`}
                                             >
                                                 {elem.type === 'text' && (
-                                                    <span className="w-full pointer-events-none leading-tight">{elem.content}</span>
+                                                    <span className="w-full pointer-events-none leading-tight whitespace-pre-wrap break-words">{elem.content}</span>
                                                 )}
                                                 {elem.type === 'image' && (
-                                                    <div className="w-full h-full rounded-md overflow-hidden bg-gray-100 pointer-events-none">
+                                                    <div className={`w-full h-full ${elem.isBackground ? '' : 'rounded-md bg-gray-100'} overflow-hidden pointer-events-none`}>
                                                         {elem.url ? (
                                                             elem.url === 'uploading' ? (
                                                                 <div className="flex items-center justify-center h-full">
                                                                     <Loader2 className="size-5 text-black animate-spin" />
                                                                 </div>
                                                             ) : (
-                                                                <img src={elem.url} alt="Graphic" className="w-full h-full object-contain pointer-events-none" />
+                                                                <img src={elem.url} alt="Graphic" className={`w-full h-full ${elem.isBackground ? 'object-cover' : 'object-contain'} pointer-events-none`} />
                                                             )
                                                         ) : (
                                                             <div className="flex items-center justify-center h-full">

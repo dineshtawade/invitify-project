@@ -33,7 +33,8 @@ import {
     Menu,
     X,
     Copy,
-    Flame
+    Flame,
+    ExternalLink
 } from 'lucide-react';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -763,7 +764,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                             {displayedImageTemplates.map((t) => (
                                                 <div
                                                     key={t.id}
-                                                    onClick={() => setPreviewTemplate(t)}
+                                                    onClick={() => window.open(`/templates/${t.encrypted_id || t.id}/preview`, '_blank')}
                                                     className="w-[60vw] max-w-[260px] sm:w-auto sm:min-w-0 shrink-0 snap-center sm:snap-align-none group relative flex flex-col items-center hover:-translate-y-1 transition-transform duration-300 cursor-pointer"
                                                 >
                                                     <div className={`relative w-full aspect-[4/5] p-6 ${t.type !== 'video' ? `bg-gradient-to-tr ${t.bg_gradient}` : 'bg-neutral-900'} rounded-t-xl rounded-b shadow-md overflow-hidden flex flex-col items-center justify-center`}>
@@ -774,13 +775,15 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                                         )}
                                                         {/* Quick Preview Hover Overlay */}
                                                         <div className="absolute inset-0 bg-[#3e3832]/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-2 z-20 p-4">
-                                                            <button
-                                                                type="button"
-                                                                onClick={(e) => { e.stopPropagation(); setPreviewTemplate(t); }}
+                                                            <a
+                                                                href={`/templates/${t.encrypted_id || t.id}/preview`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
                                                                 className="w-full py-2 px-3 rounded-lg bg-[#fdfbf7] hover:bg-white text-[#3e3832] font-serif text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105"
                                                             >
-                                                                <Eye className="size-3.5 text-[#3d5644]" /> Live Preview
-                                                            </button>
+                                                                <Eye className="size-3.5 text-[#3d5644]" /> Live Preview <ExternalLink className="size-3 text-[#706557]" />
+                                                            </a>
                                                             <Link
                                                                 href={`/templates/${t.encrypted_id}/customize`}
                                                                 onClick={(e) => e.stopPropagation()}
@@ -812,7 +815,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                             {displayedVideoTemplates.map((t) => (
                                                 <div
                                                     key={t.id}
-                                                    onClick={() => setPreviewTemplate(t)}
+                                                    onClick={() => window.open(`/templates/${t.encrypted_id || t.id}/preview`, '_blank')}
                                                     className="w-[60vw] max-w-[260px] sm:w-auto sm:min-w-0 shrink-0 snap-center sm:snap-align-none group relative flex flex-col items-center hover:-translate-y-1 transition-transform duration-300 cursor-pointer"
                                                 >
                                                     <div className={`relative w-full aspect-[4/5] p-6 bg-neutral-900 rounded-t-xl rounded-b shadow-md overflow-hidden flex flex-col items-center justify-center`}>
@@ -833,13 +836,15 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                                         )}
                                                         {/* Quick Preview Hover Overlay */}
                                                         <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-2 z-20 p-4">
-                                                            <button
-                                                                type="button"
-                                                                onClick={(e) => { e.stopPropagation(); setPreviewTemplate(t); }}
+                                                            <a
+                                                                href={`/templates/${t.encrypted_id || t.id}/preview`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
                                                                 className="w-full py-2 px-3 rounded-lg bg-[#fdfbf7] hover:bg-white text-[#3e3832] font-serif text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105"
                                                             >
-                                                                <PlayCircle className="size-3.5 text-indigo-400" /> Watch Preview
-                                                            </button>
+                                                                <PlayCircle className="size-3.5 text-indigo-400" /> Watch Preview <ExternalLink className="size-3 text-[#706557]" />
+                                                            </a>
                                                             <Link
                                                                 href={`/templates/${t.encrypted_id}/customize`}
                                                                 onClick={(e) => e.stopPropagation()}
@@ -888,7 +893,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                         return (
                                             <div
                                                 key={w.id}
-                                                onClick={() => setPreviewWebsite(w)}
+                                                onClick={() => window.open(`/mini-websites/template-preview/${w.id}`, '_blank')}
                                                 className="group relative flex flex-col items-center hover:-translate-y-1 transition-transform duration-300 cursor-pointer"
                                             >
                                                 <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#e0d6c8] flex items-center justify-center rounded-t-xl rounded-b shadow-md">
@@ -911,13 +916,15 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
 
                                                     {/* Quick Preview Hover Overlay */}
                                                     <div className="absolute inset-0 bg-[#3e3832]/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-2 z-20 p-4">
-                                                        <button
-                                                            type="button"
-                                                            onClick={(e) => { e.stopPropagation(); setPreviewWebsite(w); }}
+                                                        <a
+                                                            href={`/mini-websites/template-preview/${w.id}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            onClick={(e) => e.stopPropagation()}
                                                             className="w-full py-2 px-3 rounded-lg bg-[#fdfbf7] hover:bg-white text-[#3e3832] font-serif text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105"
                                                         >
-                                                            <Eye className="size-3.5 text-[#3d5644]" /> Live Preview
-                                                        </button>
+                                                            <Eye className="size-3.5 text-[#3d5644]" /> Live Preview <ExternalLink className="size-3 text-[#706557]" />
+                                                        </a>
                                                         <button
                                                             type="button"
                                                             onClick={(e) => {
@@ -1211,6 +1218,14 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                 </span>
                             </div>
                             <div className="flex items-center gap-3">
+                                <a
+                                    href={`/mini-websites/template-preview/${previewWebsite?.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hidden sm:inline-flex items-center gap-1.5 border border-[#ebd9c1] text-[#706557] hover:bg-[#f4ece1] rounded-xl px-4 py-2.5 text-xs font-serif font-bold transition-colors"
+                                >
+                                    <ExternalLink className="size-3.5" /> Open in New Tab
+                                </a>
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -1310,6 +1325,14 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                 </span>
                             </div>
                             <div className="flex items-center gap-3">
+                                <a
+                                    href={`/templates/${previewTemplate?.encrypted_id || previewTemplate?.id}/preview`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hidden sm:inline-flex items-center gap-1.5 border border-[#ebd9c1] text-[#706557] hover:bg-[#f4ece1] rounded-xl px-4 py-2.5 text-xs font-serif font-bold transition-colors"
+                                >
+                                    <ExternalLink className="size-3.5" /> Open in New Tab
+                                </a>
                                 <Button
                                     type="button"
                                     variant="outline"

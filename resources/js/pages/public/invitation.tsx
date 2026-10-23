@@ -132,7 +132,8 @@ export default function PublicInvitationSite({ website, flash, previewMode = nul
         }
     };
 
-    const renderDecorIcon = (iconName: string, color: string = 'currentColor') => {
+    const renderDecorIcon = (iconName?: string, color: string = 'currentColor') => {
+        const safeName = (iconName || 'ring').trim().toLowerCase();
         const iconClasses = "size-8 shrink-0";
 
         // Legacy fallback map
@@ -143,13 +144,13 @@ export default function PublicInvitationSite({ website, flash, previewMode = nul
             'bell': LucideIcons.Bell, 'compass': LucideIcons.Compass, 'flower': LucideIcons.Smile, 'ring': Award
         };
 
-        if (legacyMap[iconName]) {
-            const LegacyIcon = legacyMap[iconName];
+        if (legacyMap[safeName]) {
+            const LegacyIcon = legacyMap[safeName];
             return <LegacyIcon className={iconClasses} style={{ color }} />;
         }
 
-        const normalizedName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
-        const IconComponent = (LucideIcons as any)[normalizedName] || (LucideIcons as any)[iconName] || Award;
+        const normalizedName = safeName.charAt(0).toUpperCase() + safeName.slice(1);
+        const IconComponent = (LucideIcons as any)[normalizedName] || (LucideIcons as any)[safeName] || Award;
 
         return <IconComponent className={iconClasses} style={{ color }} />;
     };

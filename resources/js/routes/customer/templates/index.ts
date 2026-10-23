@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:63
+ * @see app/Http/Controllers/Customer/TemplateController.php:65
  * @route '/templates/{encryptedId}/customize'
  */
 export const customize = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ customize.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:63
+ * @see app/Http/Controllers/Customer/TemplateController.php:65
  * @route '/templates/{encryptedId}/customize'
  */
 customize.url = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -44,7 +44,7 @@ customize.url = (args: { encryptedId: string | number } | [encryptedId: string |
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:63
+ * @see app/Http/Controllers/Customer/TemplateController.php:65
  * @route '/templates/{encryptedId}/customize'
  */
 customize.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -53,7 +53,7 @@ customize.get = (args: { encryptedId: string | number } | [encryptedId: string |
 })
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:63
+ * @see app/Http/Controllers/Customer/TemplateController.php:65
  * @route '/templates/{encryptedId}/customize'
  */
 customize.post = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -62,7 +62,7 @@ customize.post = (args: { encryptedId: string | number } | [encryptedId: string 
 })
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:63
+ * @see app/Http/Controllers/Customer/TemplateController.php:65
  * @route '/templates/{encryptedId}/customize'
  */
 customize.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -72,7 +72,7 @@ customize.head = (args: { encryptedId: string | number } | [encryptedId: string 
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:63
+ * @see app/Http/Controllers/Customer/TemplateController.php:65
  * @route '/templates/{encryptedId}/customize'
  */
     const customizeForm = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -82,7 +82,7 @@ customize.head = (args: { encryptedId: string | number } | [encryptedId: string 
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:63
+ * @see app/Http/Controllers/Customer/TemplateController.php:65
  * @route '/templates/{encryptedId}/customize'
  */
         customizeForm.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -91,7 +91,7 @@ customize.head = (args: { encryptedId: string | number } | [encryptedId: string 
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:63
+ * @see app/Http/Controllers/Customer/TemplateController.php:65
  * @route '/templates/{encryptedId}/customize'
  */
         customizeForm.post = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -100,7 +100,7 @@ customize.head = (args: { encryptedId: string | number } | [encryptedId: string 
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::customize
- * @see app/Http/Controllers/Customer/TemplateController.php:63
+ * @see app/Http/Controllers/Customer/TemplateController.php:65
  * @route '/templates/{encryptedId}/customize'
  */
         customizeForm.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -116,7 +116,7 @@ customize.head = (args: { encryptedId: string | number } | [encryptedId: string 
     customize.form = customizeForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::quickAuth
- * @see app/Http/Controllers/Customer/TemplateController.php:224
+ * @see app/Http/Controllers/Customer/TemplateController.php:226
  * @route '/templates/quick-checkout-auth'
  */
 export const quickAuth = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -131,7 +131,7 @@ quickAuth.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::quickAuth
- * @see app/Http/Controllers/Customer/TemplateController.php:224
+ * @see app/Http/Controllers/Customer/TemplateController.php:226
  * @route '/templates/quick-checkout-auth'
  */
 quickAuth.url = (options?: RouteQueryOptions) => {
@@ -140,7 +140,7 @@ quickAuth.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::quickAuth
- * @see app/Http/Controllers/Customer/TemplateController.php:224
+ * @see app/Http/Controllers/Customer/TemplateController.php:226
  * @route '/templates/quick-checkout-auth'
  */
 quickAuth.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -150,7 +150,7 @@ quickAuth.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::quickAuth
- * @see app/Http/Controllers/Customer/TemplateController.php:224
+ * @see app/Http/Controllers/Customer/TemplateController.php:226
  * @route '/templates/quick-checkout-auth'
  */
     const quickAuthForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -160,7 +160,7 @@ quickAuth.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::quickAuth
- * @see app/Http/Controllers/Customer/TemplateController.php:224
+ * @see app/Http/Controllers/Customer/TemplateController.php:226
  * @route '/templates/quick-checkout-auth'
  */
         quickAuthForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -171,7 +171,7 @@ quickAuth.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     quickAuth.form = quickAuthForm
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:379
+ * @see app/Http/Controllers/Customer/TemplateController.php:426
  * @route '/customer/templates/{template}/verify-referral'
  */
 export const verifyReferral = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -186,7 +186,7 @@ verifyReferral.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:379
+ * @see app/Http/Controllers/Customer/TemplateController.php:426
  * @route '/customer/templates/{template}/verify-referral'
  */
 verifyReferral.url = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -219,7 +219,7 @@ verifyReferral.url = (args: { template: number | { id: number } } | [template: n
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:379
+ * @see app/Http/Controllers/Customer/TemplateController.php:426
  * @route '/customer/templates/{template}/verify-referral'
  */
 verifyReferral.post = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -229,7 +229,7 @@ verifyReferral.post = (args: { template: number | { id: number } } | [template: 
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:379
+ * @see app/Http/Controllers/Customer/TemplateController.php:426
  * @route '/customer/templates/{template}/verify-referral'
  */
     const verifyReferralForm = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -239,7 +239,7 @@ verifyReferral.post = (args: { template: number | { id: number } } | [template: 
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::verifyReferral
- * @see app/Http/Controllers/Customer/TemplateController.php:379
+ * @see app/Http/Controllers/Customer/TemplateController.php:426
  * @route '/customer/templates/{template}/verify-referral'
  */
         verifyReferralForm.post = (args: { template: number | { id: number } } | [template: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

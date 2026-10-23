@@ -47,8 +47,18 @@ Route::match(['get', 'post'], 'templates/{encryptedId}/customize', [\App\Http\Co
 Route::post('templates/quick-checkout-auth', [\App\Http\Controllers\Customer\TemplateController::class, 'quickCheckoutAuth'])
     ->name('customer.templates.quick-auth');
 
+// Template & Video Public Previews (Opens in New Tab / Window)
+// developed by dinesh tawade
+Route::get('templates/{encryptedId}/preview', [\App\Http\Controllers\Customer\TemplateController::class, 'preview'])
+    ->name('templates.preview');
+
 Route::get('invitations/view/{encryptedId}', [\App\Http\Controllers\Customer\TemplateController::class, 'viewShared'])
     ->name('invitations.view');
+
+// Public Invitation Website Template Preview (Opens in New Tab / Window)
+// developed by dinesh tawade
+Route::get('mini-websites/template-preview/{id}', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'previewTemplate'])
+    ->name('mini-websites.template-preview');
 
 // Public Invitation Website Builder Routing (Guest + Authenticated)
 // developed by dinesh tawade
