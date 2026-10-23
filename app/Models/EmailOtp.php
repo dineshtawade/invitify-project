@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class EmailOtp extends Model
+{
+    /**
+     * developed by dinesh tawade
+     */
+    protected $fillable = [
+        'email',
+        'otp',
+        'registration_data',
+        'expires_at',
+    ];
+
+    protected $casts = [
+        'registration_data' => 'array',
+        'expires_at' => 'datetime',
+    ];
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at->isPast();
+    }
+}

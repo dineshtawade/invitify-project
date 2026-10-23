@@ -1,3 +1,4 @@
+import Auth from './Auth'
 import Customer from './Customer'
 import PublicSiteController from './PublicSiteController'
 import PublicBusinessSiteController from './PublicBusinessSiteController'
@@ -8,7 +9,8 @@ import Reseller from './Reseller'
 import ReferralPartner from './ReferralPartner'
 import Settings from './Settings'
 const Controllers = {
-    Customer: Object.assign(Customer, Customer),
+    Auth: Object.assign(Auth, Auth),
+Customer: Object.assign(Customer, Customer),
 PublicSiteController: Object.assign(PublicSiteController, PublicSiteController),
 PublicBusinessSiteController: Object.assign(PublicBusinessSiteController, PublicBusinessSiteController),
 PublicCardController: Object.assign(PublicCardController, PublicCardController),

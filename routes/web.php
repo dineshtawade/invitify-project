@@ -36,6 +36,12 @@ Route::get('/cookie-policy', function () {
 
 
 
+// User Registration Email OTP Verification Routes
+// developed by dinesh tawade
+Route::post('register/send-otp', [\App\Http\Controllers\Auth\RegisterOtpController::class, 'sendOtp'])->name('register.send-otp');
+Route::post('register/resend-otp', [\App\Http\Controllers\Auth\RegisterOtpController::class, 'resendOtp'])->name('register.resend-otp');
+Route::post('register/verify-otp', [\App\Http\Controllers\Auth\RegisterOtpController::class, 'verifyOtp'])->name('register.verify-otp');
+
 Route::match(['get', 'post'], 'templates/{encryptedId}/customize', [\App\Http\Controllers\Customer\TemplateController::class, 'edit'])
     ->name('customer.templates.customize');
 Route::post('templates/quick-checkout-auth', [\App\Http\Controllers\Customer\TemplateController::class, 'quickCheckoutAuth'])
