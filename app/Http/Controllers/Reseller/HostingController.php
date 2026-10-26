@@ -129,6 +129,7 @@ class HostingController extends Controller
             }
 
             $transaction = Transaction::create($transactionData);
+            \App\Services\TaxService::ensureInvoice($transaction);
 
             // Debit Wallet
             $desc = "Hosted " . ($type === 'mini' ? 'Mini Website' : 'Business Website') . " [{$website->title}] for {$days} days";

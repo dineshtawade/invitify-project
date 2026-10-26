@@ -39,6 +39,7 @@ class MiniWebsiteTemplateController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'status' => 'required|string|in:published,draft',
+            'has_gst' => 'nullable|boolean',
             'price' => 'required|numeric|min:0',
             'reseller_price' => 'required|numeric|min:0',
             'preview_image' => 'nullable|string',
@@ -72,6 +73,7 @@ class MiniWebsiteTemplateController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'status' => 'required|string|in:published,draft',
+            'has_gst' => 'nullable|boolean',
             'price' => 'required|numeric|min:0',
             'reseller_price' => 'required|numeric|min:0',
             'preview_image' => 'nullable|string',

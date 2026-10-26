@@ -283,8 +283,14 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
         // developed by dinesh tawade
         Route::get('super-admin/invoices', [\App\Http\Controllers\InvoiceController::class, 'index'])
             ->name('super-admin.invoices.index');
+        Route::get('super-admin/invoices/download-all', [\App\Http\Controllers\InvoiceController::class, 'downloadAllPdf'])
+            ->name('super-admin.invoices.download-all');
         Route::get('super-admin/invoices/{invoiceNumber}', [\App\Http\Controllers\InvoiceController::class, 'show'])
             ->name('super-admin.invoices.show');
+        Route::get('super-admin/invoices/{invoiceNumber}/download', [\App\Http\Controllers\InvoiceController::class, 'downloadPdf'])
+            ->name('super-admin.invoices.download');
+        Route::get('super-admin/invoices/{invoiceNumber}/stream', [\App\Http\Controllers\InvoiceController::class, 'streamPdf'])
+            ->name('super-admin.invoices.stream');
 
     });
 
@@ -360,6 +366,18 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('reseller.business-cards.draft-create');
         Route::post('reseller/business-cards/{business_card}/purchase', [\App\Http\Controllers\Reseller\BusinessCardController::class, 'purchase'])
             ->name('reseller.business-cards.purchase');
+
+        // Reseller Invoice Management
+        Route::get('reseller/invoices', [\App\Http\Controllers\Reseller\InvoiceController::class, 'index'])
+            ->name('reseller.invoices.index');
+        Route::get('reseller/invoices/download-all', [\App\Http\Controllers\Reseller\InvoiceController::class, 'downloadAllPdf'])
+            ->name('reseller.invoices.download-all');
+        Route::get('reseller/invoices/{invoiceNumber}', [\App\Http\Controllers\Reseller\InvoiceController::class, 'show'])
+            ->name('reseller.invoices.show');
+        Route::get('reseller/invoices/{invoiceNumber}/download', [\App\Http\Controllers\Reseller\InvoiceController::class, 'downloadPdf'])
+            ->name('reseller.invoices.download');
+        Route::get('reseller/invoices/{invoiceNumber}/stream', [\App\Http\Controllers\Reseller\InvoiceController::class, 'streamPdf'])
+            ->name('reseller.invoices.stream');
     });
 
     // Referral Partner Routes
@@ -417,6 +435,12 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('customer.user-templates.claim');
         Route::get('customer/my-invitations', [\App\Http\Controllers\Customer\TemplateController::class, 'purchased'])
             ->name('customer.my-invitations');
+        Route::get('customer/invoices/{invoiceNumber}', [\App\Http\Controllers\InvoiceController::class, 'show'])
+            ->name('customer.invoices.show');
+        Route::get('customer/invoices/{invoiceNumber}/download', [\App\Http\Controllers\InvoiceController::class, 'downloadPdf'])
+            ->name('customer.invoices.download');
+        Route::get('customer/invoices/{invoiceNumber}/stream', [\App\Http\Controllers\InvoiceController::class, 'streamPdf'])
+            ->name('customer.invoices.stream');
 
         // Customer Subscriptions
         Route::get('customer/subscriptions', [\App\Http\Controllers\Customer\SubscriptionController::class, 'index'])

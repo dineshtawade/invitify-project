@@ -111,7 +111,7 @@ verify.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     verify.form = verifyForm
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::manual
- * @see app/Http/Controllers/Reseller/WalletController.php:160
+ * @see app/Http/Controllers/Reseller/WalletController.php:180
  * @route '/reseller/recharge/manual'
  */
 export const manual = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -126,7 +126,7 @@ manual.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::manual
- * @see app/Http/Controllers/Reseller/WalletController.php:160
+ * @see app/Http/Controllers/Reseller/WalletController.php:180
  * @route '/reseller/recharge/manual'
  */
 manual.url = (options?: RouteQueryOptions) => {
@@ -135,7 +135,7 @@ manual.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Reseller\WalletController::manual
- * @see app/Http/Controllers/Reseller/WalletController.php:160
+ * @see app/Http/Controllers/Reseller/WalletController.php:180
  * @route '/reseller/recharge/manual'
  */
 manual.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -145,7 +145,7 @@ manual.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Reseller\WalletController::manual
- * @see app/Http/Controllers/Reseller/WalletController.php:160
+ * @see app/Http/Controllers/Reseller/WalletController.php:180
  * @route '/reseller/recharge/manual'
  */
     const manualForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -155,7 +155,7 @@ manual.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Reseller\WalletController::manual
- * @see app/Http/Controllers/Reseller/WalletController.php:160
+ * @see app/Http/Controllers/Reseller/WalletController.php:180
  * @route '/reseller/recharge/manual'
  */
         manualForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

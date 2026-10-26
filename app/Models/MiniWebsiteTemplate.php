@@ -12,6 +12,7 @@ class MiniWebsiteTemplate extends Model
     protected $fillable = [
         'name',
         'status',
+        'has_gst',
         'type',
         'price',
         'preview_image',
@@ -27,6 +28,7 @@ class MiniWebsiteTemplate extends Model
         'config' => 'array',
         'price' => 'decimal:2',
         'reseller_price' => 'decimal:2',
+        'has_gst' => 'boolean',
         'gst_rate' => 'decimal:2',
         'platform_fee' => 'decimal:2',
         'tax_inclusive' => 'boolean',

@@ -5,7 +5,7 @@ import type { BreadcrumbItem } from '@/types';
 import { Input } from '@/components/ui/input';
 import {
     Search, FileText, Eye, Calendar,
-    User, Layers, TrendingUp, IndianRupee, X
+    User, Layers, TrendingUp, IndianRupee, X, Download, Printer, CheckSquare
 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -88,6 +88,7 @@ export default function InvoiceIndex({ invoices, filters, settings }: PageProps)
     const [from, setFrom] = useState(filters.from ?? '');
     const [to, setTo] = useState(filters.to ?? '');
     const [selected, setSelected] = useState<Invoice | null>(null);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -95,8 +96,32 @@ export default function InvoiceIndex({ invoices, filters, settings }: PageProps)
     };
 
     const handleReset = () => {
-        setSearchQuery(''); setStatus(''); setFrom(''); setTo('');
+        setSearchQuery(''); setStatus(''); setFrom(''); setTo(''); setSelectedIds([]);
         router.get('/super-admin/invoices', {}, { preserveState: true });
+    };
+
+    const handleToggleSelectAll = () => {
+        if (selectedIds.length === invoices.data.length && invoices.data.length > 0) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(invoices.data.map(i => i.id));
+        }
+    };
+
+    const handleToggleSelect = (id: number) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+        );
+    };
+
+    const getDownloadAllUrl = () => {
+        const params = new URLSearchParams();
+        if (searchQuery) params.set('search', searchQuery);
+        if (status) params.set('status', status);
+        if (from) params.set('from', from);
+        if (to) params.set('to', to);
+        const qs = params.toString();
+        return `/super-admin/invoices/download-all${qs ? `?${qs}` : ''}`;
     };
 
     const hasFilters = searchQuery || status || from || to;
@@ -108,14 +133,38 @@ export default function InvoiceIndex({ invoices, filters, settings }: PageProps)
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
 
                 {/* Page Header */}
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                        <FileText className="size-8 text-blue-600 dark:text-blue-400" />
-                        Invoice Management
-                    </h1>
-                    <p className="text-neutral-500 dark:text-neutral-400">
-                        View and manage all GST tax invoices generated for template purchases.
-                    </p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex flex-col gap-1">
+                        <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+                            <FileText className="size-8 text-blue-600 dark:text-blue-400" />
+                            Invoice Management
+                        </h1>
+                        <p className="text-neutral-500 dark:text-neutral-400">
+                            View, manage, and download GST tax invoices generated for template purchases.
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                        {selectedIds.length > 0 && (
+                            <a
+                                href={`/super-admin/invoices/download-all?selected=${selectedIds.join(',')}`}
+                                className="inline-flex items-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 text-sm font-semibold shadow-xs transition-colors"
+                                title="Download selected invoices as a ZIP archive"
+                            >
+                                <Download className="size-4" />
+                                Download Selected ({selectedIds.length}) ZIP
+                            </a>
+                        )}
+
+                        <a
+                            href={getDownloadAllUrl()}
+                            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 text-sm font-semibold shadow-xs transition-colors"
+                            title="Download all matching tax invoices as a ZIP archive"
+                        >
+                            <Download className="size-4" />
+                            Download All PDFs (ZIP)
+                        </a>
+                    </div>
                 </div>
 
                 {/* Metrics Cards */}
@@ -215,6 +264,15 @@ export default function InvoiceIndex({ invoices, filters, settings }: PageProps)
                         <table className="w-full border-collapse text-left text-sm text-neutral-500 dark:text-neutral-400">
                             <thead className="bg-neutral-50 text-[11px] font-bold uppercase tracking-wider text-neutral-700 dark:bg-neutral-800/60 dark:text-neutral-300 border-b border-neutral-200 dark:border-neutral-800">
                                 <tr>
+                                    <th className="px-4 py-4 w-10 text-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={invoices.data.length > 0 && selectedIds.length === invoices.data.length}
+                                            onChange={handleToggleSelectAll}
+                                            className="size-4 rounded border-neutral-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                            title="Select all on this page"
+                                        />
+                                    </th>
                                     <th className="px-6 py-4">Invoice #</th>
                                     <th className="px-6 py-4">Customer</th>
                                     <th className="px-6 py-4">Item</th>
@@ -225,13 +283,13 @@ export default function InvoiceIndex({ invoices, filters, settings }: PageProps)
                                     <th className="px-6 py-4">Total</th>
                                     <th className="px-6 py-4">Status</th>
                                     <th className="px-6 py-4 text-right">Date</th>
-                                    <th className="px-6 py-4">Action</th>
+                                    <th className="px-6 py-4 text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
                                 {invoices.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={11} className="px-6 py-12 text-center text-sm text-neutral-400 dark:text-neutral-500">
+                                        <td colSpan={12} className="px-6 py-12 text-center text-sm text-neutral-400 dark:text-neutral-500">
                                             No invoices found matching your criteria.
                                         </td>
                                     </tr>
@@ -240,9 +298,18 @@ export default function InvoiceIndex({ invoices, filters, settings }: PageProps)
                                     const sgst = parseFloat(String(inv.sgst_amount ?? 0));
                                     const igst = parseFloat(String(inv.igst_amount ?? 0));
                                     const totalGst = cgst + sgst + igst;
+                                    const isSelected = selectedIds.includes(inv.id);
 
                                     return (
-                                        <tr key={inv.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/15 transition-colors">
+                                        <tr key={inv.id} className={`hover:bg-neutral-50/50 dark:hover:bg-neutral-800/15 transition-colors ${isSelected ? 'bg-blue-50/30 dark:bg-blue-950/20' : ''}`}>
+                                            <td className="px-4 py-4 text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isSelected}
+                                                    onChange={() => handleToggleSelect(inv.id)}
+                                                    className="size-4 rounded border-neutral-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                                />
+                                            </td>
                                             <td className="px-6 py-4">
                                                 <span className="font-mono text-xs font-semibold text-blue-600 dark:text-blue-400">
                                                     {inv.invoice_number}
@@ -319,13 +386,33 @@ export default function InvoiceIndex({ invoices, filters, settings }: PageProps)
                                                     {formatDate(inv.invoice_date, inv.created_at)}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <button
-                                                    onClick={() => setSelected(inv)}
-                                                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-400 dark:hover:bg-blue-950/60 transition-colors"
-                                                >
-                                                    <Eye className="size-3.5" /> View
-                                                </button>
+                                            <td className="px-6 py-4 text-center">
+                                                <div className="flex items-center justify-center gap-1.5">
+                                                    <button
+                                                        onClick={() => setSelected(inv)}
+                                                        className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-400 dark:hover:bg-blue-950/60 transition-colors"
+                                                        title="Quick Preview"
+                                                    >
+                                                        <Eye className="size-3.5" /> View
+                                                    </button>
+                                                    <a
+                                                        href={`/super-admin/invoices/${inv.invoice_number}/download`}
+                                                        download
+                                                        className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 px-2.5 py-1.5 text-xs font-semibold shadow-2xs transition-colors"
+                                                        title="Download Tax Invoice PDF"
+                                                    >
+                                                        <Download className="size-3.5" /> PDF
+                                                    </a>
+                                                    <a
+                                                        href={`/super-admin/invoices/${inv.invoice_number}/stream`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-850 px-2 py-1.5 text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+                                                        title="Stream / Print PDF"
+                                                    >
+                                                        <Printer className="size-3.5" />
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                     );
@@ -530,13 +617,29 @@ export default function InvoiceIndex({ invoices, filters, settings }: PageProps)
                                     {selected.status.toUpperCase()}
                                 </span>
 
-                                <a
-                                    href={`/super-admin/invoices/${selected.invoice_number}`}
-                                    target="_blank" rel="noreferrer"
-                                    className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
-                                >
-                                    <Eye className="size-4" /> Full Invoice View
-                                </a>
+                                <div className="flex items-center gap-2">
+                                    <a
+                                        href={`/super-admin/invoices/${selected.invoice_number}/download`}
+                                        download
+                                        className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-xs transition-colors"
+                                    >
+                                        <Download className="size-4" /> Download PDF
+                                    </a>
+                                    <a
+                                        href={`/super-admin/invoices/${selected.invoice_number}/stream`}
+                                        target="_blank" rel="noreferrer"
+                                        className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                                    >
+                                        <Printer className="size-4" /> Print / Stream
+                                    </a>
+                                    <a
+                                        href={`/super-admin/invoices/${selected.invoice_number}`}
+                                        target="_blank" rel="noreferrer"
+                                        className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                                    >
+                                        <Eye className="size-4" /> Full View
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>

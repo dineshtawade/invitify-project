@@ -35,7 +35,19 @@ interface PageProps {
         discount: number;
     }>;
     isGuest?: boolean;
+    taxSettings?: any;
 }
+
+const INDIAN_STATES = [
+    'Andaman and Nicobar Islands', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar',
+    'Chandigarh', 'Chhattisgarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Goa',
+    'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jammu and Kashmir', 'Jharkhand', 'Karnataka',
+    'Kerala', 'Ladakh', 'Lakshadweep', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya',
+    'Mizoram', 'Nagaland', 'Odisha', 'Puducherry', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
+    'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+];
+
+const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
 const pxToCqw = (px?: number | string | null, defaultPx: number = 0) => {
     const val = px !== undefined && px !== null ? Number(px) : defaultPx;
@@ -257,10 +269,45 @@ function getElementIcon(el: Block) {
     return <FileText className="size-4 text-gray-500 shrink-0" />;
 }
 
-export default function MiniWebsiteEdit({ auth, website: initialWebsite, customBlocks = [], coupons = [], isGuest: initialIsGuest = false }: PageProps) {
+export default function MiniWebsiteEdit({ auth, website: initialWebsite, customBlocks = [], coupons = [], isGuest: initialIsGuest = false, taxSettings }: PageProps) {
     const [currentWebsite, setCurrentWebsite] = useState(initialWebsite);
     const [currentUser, setCurrentUser] = useState(auth?.user || null);
     const [isGuestUser, setIsGuestUser] = useState(initialIsGuest || !auth?.user);
+
+    // Billing & GST States
+    const [applyGst, setApplyGst] = useState<boolean>(Boolean(initialWebsite.template?.has_gst));
+    const [billingName, setBillingName] = useState(auth?.user?.name || '');
+    const [customerGstin, setCustomerGstin] = useState('');
+    const [billingAddress, setBillingAddress] = useState('');
+    const [billingState, setBillingState] = useState(taxSettings?.company_state || 'Maharashtra');
+    const [gstErrors, setGstErrors] = useState<{ billingName?: string; customerGstin?: string; billingAddress?: string }>({});
+
+    const validateGstDetails = () => {
+        if (!applyGst) return true;
+        const errs: { billingName?: string; customerGstin?: string; billingAddress?: string } = {};
+        const name = (billingName || guestAuthName || auth?.user?.name || '').trim();
+        const gstin = customerGstin.trim().toUpperCase();
+        const addr = billingAddress.trim();
+
+        if (!name || name.length < 3) {
+            errs.billingName = 'Company / Billing Name must be at least 3 characters.';
+        }
+
+        if (!gstin) {
+            errs.customerGstin = 'GST number (GSTIN) is required.';
+        } else if (gstin.length !== 15) {
+            errs.customerGstin = `GSTIN must be 15 characters (currently ${gstin.length}/15).`;
+        } else if (!GSTIN_REGEX.test(gstin)) {
+            errs.customerGstin = 'Invalid GSTIN format (e.g. 27AAAAA0000A1Z5).';
+        }
+
+        if (!addr || addr.length < 5) {
+            errs.billingAddress = 'Complete billing address is required (min 5 characters).';
+        }
+
+        setGstErrors(errs);
+        return Object.keys(errs).length === 0;
+    };
 
     // Guest Auth States
     const [guestAuthMode, setGuestAuthMode] = useState<'register' | 'login'>('register');
@@ -564,7 +611,16 @@ export default function MiniWebsiteEdit({ auth, website: initialWebsite, customB
     const hostingPrice = days * dailyPrice;
     const subtotal = hostingPrice;
     const discountDeduction = appliedDiscount > 0 ? Math.round(subtotal * (appliedDiscount / 100) * 100) / 100 : 0;
-    const finalAmount = Math.max(0, subtotal - discountDeduction);
+    const taxableAmount = Math.max(0, subtotal - discountDeduction);
+
+    const hasGst = applyGst;
+    const cgstPercent = taxSettings?.cgst_percent ?? 9;
+    const sgstPercent = taxSettings?.sgst_percent ?? 9;
+    const totalGstPercent = taxSettings?.gst_rate ?? (cgstPercent + sgstPercent);
+    const cgstAmount = hasGst ? Math.round((taxableAmount * (cgstPercent / 100)) * 100) / 100 : 0;
+    const sgstAmount = hasGst ? Math.round((taxableAmount * (sgstPercent / 100)) * 100) / 100 : 0;
+    const totalTaxAmount = hasGst ? Math.round((cgstAmount + sgstAmount) * 100) / 100 : 0;
+    const finalAmount = hasGst ? Math.round((taxableAmount + totalTaxAmount) * 100) / 100 : taxableAmount;
 
     const handleApplyCoupon = async (code?: string) => {
         const codeToApply = code || referralCode;
@@ -638,6 +694,10 @@ export default function MiniWebsiteEdit({ auth, website: initialWebsite, customB
     };
 
     const handleConfirmRenewal = async () => {
+        if (applyGst && !validateGstDetails()) {
+            return;
+        }
+
         setIsCheckingOut(true);
         setAuthError('');
 
@@ -733,7 +793,15 @@ export default function MiniWebsiteEdit({ auth, website: initialWebsite, customB
             const response = await fetch(`/customer/mini-websites/${activeWebsiteUuid}/create-order`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', ...getCsrfHeaders() },
-                body: JSON.stringify({ days, referral_code: isValidCoupon ? referralCode : '' })
+                body: JSON.stringify({
+                    days,
+                    referral_code: isValidCoupon ? referralCode : '',
+                    apply_gst: applyGst,
+                    billing_name: billingName || (guestAuthName || auth?.user?.name || 'Customer'),
+                    customer_gstin: customerGstin,
+                    billing_address: billingAddress,
+                    billing_state: billingState,
+                })
             });
 
             if (!response.ok) {
@@ -1527,6 +1595,135 @@ export default function MiniWebsiteEdit({ auth, website: initialWebsite, customB
                             )}
                         </div>
 
+                        {/* User Side GST Option Toggle & Details */}
+                        <div className={`rounded-xl border p-3.5 space-y-3 transition-all ${applyGst ? 'border-blue-300 bg-blue-50/70 shadow-xs' : 'border-gray-200 bg-gray-50/60'}`}>
+                            <label className="flex items-start gap-3 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    id="userApplyGstMiniWebsiteToggle"
+                                    checked={applyGst}
+                                    onChange={(e) => {
+                                        setApplyGst(e.target.checked);
+                                        if (!e.target.checked) setGstErrors({});
+                                    }}
+                                    className="mt-0.5 size-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                />
+                                <div className="flex-1">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
+                                            Add GST / Claim Business Invoice
+                                        </span>
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                                            +{totalGstPercent}% GST
+                                        </span>
+                                    </div>
+                                    <p className="text-[11px] text-blue-700 mt-0.5">
+                                        Tick this option to include GST in the bill and generate an official GST Tax Invoice with your business details.
+                                    </p>
+                                </div>
+                            </label>
+
+                            {applyGst && (
+                                <div className="pt-2 border-t border-blue-200/80 space-y-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                        <div>
+                                            <Label className="text-[11px] font-bold text-gray-700 flex items-center justify-between">
+                                                <span>Company / Billing Name <span className="text-red-500">*</span></span>
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                placeholder="e.g. Acme Media Private Limited"
+                                                value={billingName}
+                                                onChange={(e) => {
+                                                    setBillingName(e.target.value);
+                                                    if (gstErrors.billingName) setGstErrors(prev => ({ ...prev, billingName: undefined }));
+                                                }}
+                                                className={`h-8 text-xs bg-white mt-1 border-blue-200 ${gstErrors.billingName ? 'border-red-500 focus:ring-red-200' : ''}`}
+                                            />
+                                            {gstErrors.billingName && (
+                                                <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1 font-medium">
+                                                    <AlertCircle className="size-3 shrink-0" /> {gstErrors.billingName}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <Label className="text-[11px] font-bold text-gray-700 flex items-center justify-between">
+                                                <span>GSTIN Number <span className="text-red-500">*</span></span>
+                                                <span className={`text-[10px] font-mono ${customerGstin.length === 15 ? (GSTIN_REGEX.test(customerGstin) ? 'text-emerald-600 font-bold' : 'text-amber-600') : 'text-gray-400'}`}>
+                                                    {customerGstin.length}/15
+                                                </span>
+                                            </Label>
+                                            <div className="relative mt-1">
+                                                <Input
+                                                    type="text"
+                                                    maxLength={15}
+                                                    placeholder="27AAAAA0000A1Z5"
+                                                    value={customerGstin}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 15);
+                                                        setCustomerGstin(val);
+                                                        if (gstErrors.customerGstin) setGstErrors(prev => ({ ...prev, customerGstin: undefined }));
+                                                    }}
+                                                    className={`h-8 text-xs bg-white font-mono uppercase tracking-wider pr-8 border-blue-200 ${gstErrors.customerGstin ? 'border-red-500 focus:ring-red-200' : (GSTIN_REGEX.test(customerGstin) ? 'border-emerald-500 bg-emerald-50/20' : '')}`}
+                                                />
+                                                {GSTIN_REGEX.test(customerGstin) && (
+                                                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-emerald-600 text-xs font-bold" title="Valid GSTIN format">
+                                                        ✓
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {gstErrors.customerGstin ? (
+                                                <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1 font-medium">
+                                                    <AlertCircle className="size-3 shrink-0" /> {gstErrors.customerGstin}
+                                                </p>
+                                            ) : (
+                                                <p className="text-[10px] text-gray-500 mt-0.5">
+                                                    15-character Indian GSTIN (e.g. 27AAAAA0000A1Z5)
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                        <div>
+                                            <Label className="text-[11px] font-bold text-gray-700">Billing State <span className="text-red-500">*</span></Label>
+                                            <select
+                                                value={billingState}
+                                                onChange={(e) => setBillingState(e.target.value)}
+                                                className="mt-1 w-full h-8 px-2.5 text-xs rounded-md border border-blue-200 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            >
+                                                {INDIAN_STATES.map((st) => (
+                                                    <option key={st} value={st}>{st}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <Label className="text-[11px] font-bold text-gray-700 flex items-center justify-between">
+                                                <span>Billing Address <span className="text-red-500">*</span></span>
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                placeholder="Plot No., Street, City, Pincode"
+                                                value={billingAddress}
+                                                onChange={(e) => {
+                                                    setBillingAddress(e.target.value);
+                                                    if (gstErrors.billingAddress) setGstErrors(prev => ({ ...prev, billingAddress: undefined }));
+                                                }}
+                                                className={`h-8 text-xs bg-white mt-1 border-blue-200 ${gstErrors.billingAddress ? 'border-red-500 focus:ring-red-200' : ''}`}
+                                            />
+                                            {gstErrors.billingAddress && (
+                                                <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1 font-medium">
+                                                    <AlertCircle className="size-3 shrink-0" /> {gstErrors.billingAddress}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         {/* Summary */}
                         <div className="border-t border-gray-200 pt-4 mt-2 flex flex-col gap-2.5">
                             <div className="flex justify-between items-center text-gray-500">
@@ -1544,8 +1741,26 @@ export default function MiniWebsiteEdit({ auth, website: initialWebsite, customB
                                     <span className="font-bold">-₹{discountDeduction}</span>
                                 </div>
                             )}
+
+                            {hasGst && (
+                                <>
+                                    <div className="flex justify-between items-center text-gray-500 text-xs">
+                                        <span>Taxable Base Amount</span>
+                                        <span className="font-semibold text-gray-700">₹{taxableAmount}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-blue-700 text-xs">
+                                        <span>CGST ({cgstPercent}%)</span>
+                                        <span className="font-semibold">+₹{cgstAmount}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-blue-700 text-xs">
+                                        <span>SGST ({sgstPercent}%)</span>
+                                        <span className="font-semibold">+₹{sgstAmount}</span>
+                                    </div>
+                                </>
+                            )}
+
                             <div className="flex justify-between items-center border-t border-dashed border-gray-300 pt-3 text-base font-extrabold text-gray-900">
-                                <span>Total Payable</span>
+                                <span>Total Payable {hasGst ? '(incl. GST)' : ''}</span>
                                 <span>₹{finalAmount}</span>
                             </div>
                         </div>

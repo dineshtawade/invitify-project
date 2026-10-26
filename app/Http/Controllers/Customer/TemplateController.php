@@ -113,10 +113,15 @@ class TemplateController extends Controller
                 return in_array($template->id, $coupon->target_ids);
             })->values();
 
+        $taxSettings = \App\Services\TaxService::getSettings();
+        $taxCalculation = \App\Services\TaxService::calculate($template);
+
         return Inertia::render('customer/templates/edit', [
             'template' => $template,
             'userTemplate' => $userTemplate,
             'coupons' => $coupons,
+            'taxSettings' => $taxSettings,
+            'taxCalculation' => $taxCalculation,
             'autoOpenCheckout' => session('auto_open_checkout', false),
         ]);
     }
@@ -282,25 +287,39 @@ class TemplateController extends Controller
      */
     public function purchased()
     {
-        $purchasedTemplates = UserTemplate::with('template')
+        $userTemplateRecords = UserTemplate::with('template')
             ->where('user_id', auth()->id())
             ->where('is_purchased', true)
             ->orderBy('updated_at', 'desc')
+            ->get();
+
+        $userTemplateIds = $userTemplateRecords->pluck('id');
+        $transactions = Transaction::whereIn('user_template_id', $userTemplateIds)
+            ->where('status', 'completed')
+            ->orderBy('id', 'desc')
             ->get()
-            ->map(function ($ut) {
-                return [
-                    'id' => $ut->id,
-                    'encrypted_id' => $ut->encrypted_id,
-                    'template_id' => $ut->template_id,
-                    'template' => $ut->template,
-                    'custom_config' => $ut->custom_config,
-                    'is_purchased' => $ut->is_purchased,
-                    'created_at' => $ut->created_at->format('M d, Y'),
-                    'video_path' => $ut->video_path,
-                    'video_url' => $ut->video_path ? asset('storage/' . $ut->video_path) : null,
-                    'edit_count' => $ut->edit_count,
-                ];
-            });
+            ->unique('user_template_id')
+            ->keyBy('user_template_id');
+
+        $purchasedTemplates = $userTemplateRecords->map(function ($ut) use ($transactions) {
+            $tx = $transactions->get($ut->id);
+            $invoiceNumber = $tx?->invoice_number;
+            return [
+                'id' => $ut->id,
+                'encrypted_id' => $ut->encrypted_id,
+                'template_id' => $ut->template_id,
+                'template' => $ut->template,
+                'custom_config' => $ut->custom_config,
+                'is_purchased' => $ut->is_purchased,
+                'created_at' => $ut->created_at->format('M d, Y'),
+                'video_path' => $ut->video_path,
+                'video_url' => $ut->video_path ? asset('storage/' . $ut->video_path) : null,
+                'edit_count' => $ut->edit_count,
+                'invoice_number' => $invoiceNumber,
+                'invoice_url' => $invoiceNumber ? route('customer.invoices.show', $invoiceNumber) : null,
+                'invoice_download_url' => $invoiceNumber ? route('customer.invoices.download', $invoiceNumber) : null,
+            ];
+        });
 
         $businessCards = \App\Models\BusinessCard::where('user_id', auth()->id())
             ->where('payment_status', 'Success')
@@ -576,29 +595,88 @@ class TemplateController extends Controller
             }
         }
 
-        $finalPrice = max(0, $originalPrice - $discountAmount);
+        // Customer billing & GST inputs
+        $billingState = $request->input('billing_state') ?: null;
+        $billingName = $request->input('billing_name') ?: auth()->user()->name;
+        $billingAddress = $request->input('billing_address') ?: null;
+        $customerGstin = $request->input('customer_gstin') ? strtoupper(trim($request->input('customer_gstin'))) : null;
+
+        // Determine whether GST should be applied (user checked option OR template has GST forced)
+        $applyGst = $request->has('apply_gst')
+            ? $request->boolean('apply_gst')
+            : (bool) ($userTemplate->template->has_gst ?? false);
+
+        if ($applyGst) {
+            $request->validate([
+                'billing_name' => 'required|string|min:3|max:255',
+                'customer_gstin' => [
+                    'required',
+                    'string',
+                    'size:15',
+                    'regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/'
+                ],
+                'billing_address' => 'required|string|min:5|max:500',
+                'billing_state' => 'nullable|string|max:100',
+            ], [
+                'billing_name.required' => 'Company / Billing name is required.',
+                'billing_name.min' => 'Company / Billing name must be at least 3 characters.',
+                'customer_gstin.required' => 'GST number (GSTIN) is required.',
+                'customer_gstin.size' => 'GST number must be exactly 15 characters.',
+                'customer_gstin.regex' => 'Invalid GSTIN format. Must be 15-character valid Indian GSTIN (e.g. 27AAAAA0000A1Z5).',
+                'billing_address.required' => 'Billing address is required for GST invoice.',
+                'billing_address.min' => 'Billing address must be at least 5 characters.',
+            ]);
+
+            $billingName = trim($request->input('billing_name'));
+            $billingAddress = trim($request->input('billing_address'));
+            $customerGstin = strtoupper(trim($request->input('customer_gstin')));
+
+            $templateItem = clone $userTemplate->template;
+            $templateItem->has_gst = true;
+            $taxCalc = \App\Services\TaxService::calculate($templateItem, $discountAmount, $billingState);
+            $finalPrice = $taxCalc['total_amount'];
+        } else {
+            $finalPrice = max(0.0, (float) $userTemplate->template->price - $discountAmount);
+            $taxCalc = [
+                'base_price' => (float) $userTemplate->template->price,
+                'discount_amount' => $discountAmount,
+                'discounted_base' => $finalPrice,
+                'platform_fee' => 0.0,
+                'taxable_amount' => $finalPrice,
+                'tax_rate' => 0.0,
+                'tax_amount' => 0.0,
+                'cgst_amount' => 0.0,
+                'sgst_amount' => 0.0,
+                'igst_amount' => 0.0,
+                'is_inter_state' => false,
+                'total_amount' => $finalPrice,
+                'hsn_sac_code' => $userTemplate->template->hsn_sac_code ?: '998314',
+                'has_gst' => false,
+            ];
+        }
         $amount = (int) round($finalPrice * 100); // Amount in paise
 
-        $keyId = SystemSetting::get('razorpay_key_id');
-        $keySecret = SystemSetting::get('razorpay_key_secret');
+        $keyId = trim((string) (SystemSetting::get('razorpay_key_id') ?: env('RAZORPAY_KEY_ID', env('RAZORPAY_KEY', ''))));
+        $keySecret = trim((string) (SystemSetting::get('razorpay_key_secret') ?: env('RAZORPAY_KEY_SECRET', env('RAZORPAY_SECRET', ''))));
 
-        // Store referral info in session for verification step
+        // Store referral and GST info in session for verification step
         session(['checkout_referral' => [
             'referral_code_id' => $referralCodeId,
             'discount_amount' => $discountAmount,
             'original_price' => $originalPrice,
             'global_coupon_code' => $globalCouponUsed,
+            'tax_calc' => $taxCalc,
+            'billing_name' => $billingName,
+            'billing_address' => $billingAddress,
+            'billing_state' => $billingState,
+            'customer_gstin' => $customerGstin,
         ]]);
 
-        // If credentials are not set, fallback to mock order
+        // If credentials are not configured, do not allow silent free purchase!
         if (empty($keyId) || empty($keySecret)) {
             return response()->json([
-                'order_id' => 'mock_order_' . uniqid(),
-                'key_id' => null,
-                'amount' => $amount,
-                'mock' => true,
-                'discount_amount' => $discountAmount,
-            ]);
+                'error' => 'Razorpay credentials (Key ID / Secret) are not configured. Please enter your Razorpay Key ID and Secret in Super Admin -> Payment Settings or in your .env file.',
+            ], 422);
         }
 
         // Create Razorpay Order using cURL
@@ -638,6 +716,7 @@ class TemplateController extends Controller
             'amount' => $amount,
             'mock' => false,
             'discount_amount' => $discountAmount,
+            'tax_calc' => $taxCalc,
         ]);
     }
 
@@ -650,18 +729,26 @@ class TemplateController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        // Retrieve referral info from session
+        // Retrieve referral and tax info from session
         $referralData = session('checkout_referral', [
             'referral_code_id' => null,
             'discount_amount' => 0,
             'original_price' => 0,
             'global_coupon_code' => null,
+            'tax_calc' => null,
+            'billing_name' => auth()->user()->name,
+            'billing_address' => null,
+            'billing_state' => null,
+            'customer_gstin' => null,
         ]);
         session()->forget('checkout_referral');
 
+        $userTemplate->load('template');
         $referralCodeId = $referralData['referral_code_id'];
         $discountAmount = $referralData['discount_amount'];
         $globalCouponCode = $referralData['global_coupon_code'] ?? null;
+        $taxCalc = $referralData['tax_calc'] ?? \App\Services\TaxService::calculate($userTemplate->template, $discountAmount);
+        $finalAmount = $taxCalc['total_amount'] ?? (floatval($userTemplate->template->price) - $discountAmount);
 
         // Calculate commission
         $commissionAmount = 0;
@@ -673,52 +760,18 @@ class TemplateController extends Controller
             }
         }
 
+        $invoiceNumber = \App\Services\TaxService::generateInvoiceNumber();
         $mock = $request->input('mock', false);
 
         if ($mock) {
-            $keyId = SystemSetting::get('razorpay_key_id');
-            $keySecret = SystemSetting::get('razorpay_key_secret');
-
-            if (!empty($keyId) && !empty($keySecret)) {
-                abort(400, 'Mock payment is disabled when credentials are set.');
-            }
-
-            $userTemplate->load('template');
-            $finalAmount = floatval($userTemplate->template->price) - $discountAmount;
-            $userTemplate->update(['is_purchased' => true]);
-
-            $transaction = Transaction::create([
-                'user_id' => auth()->id(),
-                'template_id' => $userTemplate->template_id,
-                'user_template_id' => $userTemplate->id,
-                'amount' => $finalAmount,
-                'payment_id' => 'mock_pay_' . uniqid(),
-                'order_id' => 'mock_ord_' . uniqid(),
-                'status' => 'completed',
-                'payment_method' => 'mock',
-                'referral_code_id' => $referralCodeId,
-                'discount_amount' => $discountAmount,
-                'commission_amount' => $commissionAmount,
-                'global_coupon_code' => $globalCouponCode,
-            ]);
-
-            // Credit commission to referral partner's wallet
-            $this->creditReferralCommission($referralCodeId, $commissionAmount, $transaction);
-
-            // Send congratulatory purchase email with invitation link
-            // developed by dinesh tawade
-            $mailStatus = $this->sendPurchaseEmail($userTemplate, $transaction->order_id, (float) $finalAmount);
-
-            return redirect()->route('customer.my-invitations')
-                ->with('status', 'Template purchased successfully! (Mock checkout)')
-                ->with('mail_status', $mailStatus);
+            abort(400, 'Mock payment without gateway is disabled. Please complete payment through Razorpay.');
         }
 
         // Verify Razorpay Payment Signature
         $paymentId = $request->input('razorpay_payment_id');
         $orderId = $request->input('razorpay_order_id');
         $signature = $request->input('razorpay_signature');
-        $keySecret = SystemSetting::get('razorpay_key_secret');
+        $keySecret = trim((string) (SystemSetting::get('razorpay_key_secret') ?: env('RAZORPAY_KEY_SECRET', env('RAZORPAY_SECRET', ''))));
 
         if (empty($paymentId) || empty($orderId) || empty($signature) || empty($keySecret)) {
             abort(400, 'Invalid payment details or secret not found.');
@@ -727,8 +780,6 @@ class TemplateController extends Controller
         $generatedSignature = hash_hmac('sha256', $orderId . '|' . $paymentId, $keySecret);
 
         if ($generatedSignature === $signature) {
-            $userTemplate->load('template');
-            $finalAmount = floatval($userTemplate->template->price) - $discountAmount;
             $userTemplate->update(['is_purchased' => true]);
 
             $transaction = Transaction::create([
@@ -736,6 +787,21 @@ class TemplateController extends Controller
                 'template_id' => $userTemplate->template_id,
                 'user_template_id' => $userTemplate->id,
                 'amount' => $finalAmount,
+                'base_amount' => $taxCalc['taxable_amount'] ?? ($finalAmount - ($taxCalc['tax_amount'] ?? 0)),
+                'tax_amount' => $taxCalc['tax_amount'] ?? 0,
+                'cgst_amount' => $taxCalc['cgst_amount'] ?? 0,
+                'sgst_amount' => $taxCalc['sgst_amount'] ?? 0,
+                'igst_amount' => $taxCalc['igst_amount'] ?? 0,
+                'tax_rate' => $taxCalc['tax_rate'] ?? 0,
+                'is_inter_state' => $taxCalc['is_inter_state'] ?? false,
+                'platform_fee' => $taxCalc['platform_fee'] ?? 0,
+                'customer_billing_name' => $referralData['billing_name'] ?? auth()->user()->name,
+                'customer_billing_email' => auth()->user()->email,
+                'customer_billing_address' => $referralData['billing_address'] ?? null,
+                'customer_billing_state' => $referralData['billing_state'] ?? null,
+                'customer_gstin' => $referralData['customer_gstin'] ?? null,
+                'invoice_number' => $invoiceNumber,
+                'invoice_date' => now(),
                 'payment_id' => $paymentId,
                 'order_id' => $orderId,
                 'status' => 'completed',
@@ -749,12 +815,11 @@ class TemplateController extends Controller
             // Credit commission to referral partner's wallet
             $this->creditReferralCommission($referralCodeId, $commissionAmount, $transaction);
 
-            // Send congratulatory purchase email with invitation link
-            // developed by dinesh tawade
-            $mailStatus = $this->sendPurchaseEmail($userTemplate, $orderId, (float) $finalAmount);
+            // Send congratulatory purchase email with invitation link & tax invoice
+            $mailStatus = $this->sendPurchaseEmail($userTemplate, $orderId, (float) $finalAmount, $transaction);
 
             return redirect()->route('customer.my-invitations')
-                ->with('status', 'Template purchased successfully!')
+                ->with('status', 'Template purchased successfully! Tax Invoice #' . $invoiceNumber . ' generated.')
                 ->with('mail_status', $mailStatus);
         }
 
@@ -789,10 +854,10 @@ class TemplateController extends Controller
     }
 
     /**
-     * Send congratulatory purchase email to customer with their live invitation URL.
+     * Send congratulatory purchase email to customer with their live invitation URL and tax invoice.
      * developed by dinesh tawade
      */
-    private function sendPurchaseEmail(UserTemplate $userTemplate, ?string $orderId = null, ?float $amount = null): array
+    private function sendPurchaseEmail(UserTemplate $userTemplate, ?string $orderId = null, ?float $amount = null, ?Transaction $transaction = null): array
     {
         $user = auth()->user() ?? $userTemplate->user;
         $recipientEmail = $user?->email;
@@ -816,7 +881,7 @@ class TemplateController extends Controller
         $templateType = ucfirst($userTemplate->template?->type ?? 'Card');
 
         try {
-            $mail = new TemplatePurchaseMail($user, $userTemplate, $invitationUrl, $orderId, $amount);
+            $mail = new TemplatePurchaseMail($user, $userTemplate, $invitationUrl, $orderId, $amount, $transaction);
 
             $fromAddress = config('mail.from.address');
             Mail::to($recipientEmail)->send($mail);

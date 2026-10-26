@@ -167,6 +167,11 @@ export function AppSidebar() {
                 title: 'Payment History',
                 href: '/reseller/payment-history',
                 icon: History,
+            },
+            {
+                title: 'Invoices',
+                href: '/reseller/invoices',
+                icon: ReceiptText,
             }
         );
     } else if (userRole === 'referral_partner') {

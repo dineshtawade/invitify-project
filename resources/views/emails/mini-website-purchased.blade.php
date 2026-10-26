@@ -174,7 +174,28 @@
                     <span class="card-value">₹{{ number_format($amount, 2) }}</span>
                 </div>
                 @endif
+                @if(!empty($invoiceNumber))
+                <div class="card-row">
+                    <span class="card-label">Tax Invoice:</span>
+                    <span class="card-value" style="color: #4F46E5; font-family: monospace;">#{{ $invoiceNumber }}</span>
+                </div>
+                @endif
             </div>
+
+            @if(!empty($invoiceNumber) && !empty($invoiceDownloadUrl))
+            <!-- Tax Invoice Box -->
+            <div style="margin: 20px 0 24px; padding: 16px 20px; background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 12px;">
+                <div style="font-weight: 700; font-size: 14px; color: #4F46E5; margin-bottom: 3px;">
+                    📄 Tax Invoice: {{ $invoiceNumber }}
+                </div>
+                <div style="font-size: 12px; color: #4b5563; margin-bottom: 12px; line-height: 1.4;">
+                    Your official GST Tax Invoice has been generated and is attached to this email as a PDF. You can also download or view it anytime online.
+                </div>
+                <a href="{{ $invoiceDownloadUrl }}" target="_blank" style="display: inline-block; background: #4F46E5; color: #ffffff !important; text-decoration: none; font-size: 12px; font-weight: 700; padding: 9px 18px; border-radius: 8px;">
+                    Download Tax Invoice PDF ↓
+                </a>
+            </div>
+            @endif
 
             <!-- CTA Button -->
             <div class="btn-wrapper">

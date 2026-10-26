@@ -63,6 +63,7 @@ interface Template {
     default_config: any;
     status?: string;
     is_trending?: boolean;
+    has_gst?: boolean;
 }
 
 interface Category {
@@ -291,6 +292,7 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
         default_config: normalizeConfig(null),
         status: 'published' as 'published' | 'draft',
         is_trending: false as boolean,
+        has_gst: false as boolean,
     });
 
     const activePage = data.default_config.pages[activePageIndex] || data.default_config.pages[0];
@@ -414,6 +416,7 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
             default_config: normalizeConfig(null),
             status: 'published',
             is_trending: false,
+            has_gst: false,
         });
         setIsAddingNewCategory(false);
         setNewCategoryName('');
@@ -444,6 +447,7 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
             default_config: normConfig,
             status: (template.status as 'published' | 'draft') || 'published',
             is_trending: Boolean(template.is_trending),
+            has_gst: Boolean(template.has_gst),
         });
 
         // Detect custom gradient
@@ -1317,7 +1321,16 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                                                 </td>
                                                 <td className="px-6 py-4 capitalize">{t.category.replace('_', ' ')}</td>
                                                 <td className="px-6 py-4 font-bold text-emerald-600 dark:text-emerald-450">
-                                                    ₹{parseFloat(String(t.price)).toFixed(2)}
+                                                    <div>₹{parseFloat(String(t.price)).toFixed(2)}</div>
+                                                    {t.has_gst ? (
+                                                        <span className="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800 mt-0.5">
+                                                            ✓ GST Active
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center text-[10px] text-neutral-400 mt-0.5">
+                                                            No GST
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-3">
@@ -3341,6 +3354,21 @@ export default function TemplatesIndex({ templates, categories = [], editorReque
                                                 />
                                                 <span className="flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-400">
                                                     <Flame className="size-3 fill-amber-500 text-amber-500" /> Trending
+                                                </span>
+                                            </label>
+                                        </div>
+                                        <div className="grid gap-1 w-[110px]">
+                                            <Label htmlFor="gst_footer" className="text-[10px] uppercase font-bold text-neutral-500">Tax</Label>
+                                            <label htmlFor="gst_footer" className="flex items-center gap-1.5 h-8.5 px-2.5 rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950 cursor-pointer text-xs font-semibold hover:border-emerald-400 transition-colors" title="Check this box to apply GST on this template">
+                                                <input
+                                                    id="gst_footer"
+                                                    type="checkbox"
+                                                    checked={Boolean(data.has_gst)}
+                                                    onChange={(e) => setData('has_gst', e.target.checked)}
+                                                    className="rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 size-3.5"
+                                                />
+                                                <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+                                                    Apply GST
                                                 </span>
                                             </label>
                                         </div>

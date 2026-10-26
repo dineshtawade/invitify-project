@@ -258,6 +258,8 @@ class BusinessCardController extends Controller
                 'payment_method'   => 'wallet',
             ]);
 
+            \App\Services\TaxService::ensureInvoice($transaction);
+
             $wallet->debit($price, "Purchased Business Card: " . $card->company_name, $transaction);
         });
 

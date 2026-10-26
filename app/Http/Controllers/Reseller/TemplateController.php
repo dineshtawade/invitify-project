@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Template;
 use App\Models\UserTemplate;
 use App\Models\Transaction;
+use App\Services\TaxService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -98,6 +99,8 @@ class TemplateController extends Controller
                 'status' => 'completed',
                 'payment_method' => 'wallet',
             ]);
+
+            TaxService::ensureInvoice($transaction);
 
             // Debit Wallet
             $wallet->debit($price, "Purchased Template: " . $template->name, $transaction);

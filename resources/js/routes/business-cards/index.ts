@@ -157,7 +157,7 @@ builder.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     builder.form = builderForm
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::checkout
- * @see app/Http/Controllers/Customer/BusinessCardController.php:346
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:342
  * @route '/business-cards/checkout'
  */
 export const checkout = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -172,7 +172,7 @@ checkout.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::checkout
- * @see app/Http/Controllers/Customer/BusinessCardController.php:346
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:342
  * @route '/business-cards/checkout'
  */
 checkout.url = (options?: RouteQueryOptions) => {
@@ -181,7 +181,7 @@ checkout.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::checkout
- * @see app/Http/Controllers/Customer/BusinessCardController.php:346
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:342
  * @route '/business-cards/checkout'
  */
 checkout.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -191,7 +191,7 @@ checkout.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::checkout
- * @see app/Http/Controllers/Customer/BusinessCardController.php:346
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:342
  * @route '/business-cards/checkout'
  */
     const checkoutForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -201,7 +201,7 @@ checkout.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::checkout
- * @see app/Http/Controllers/Customer/BusinessCardController.php:346
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:342
  * @route '/business-cards/checkout'
  */
         checkoutForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -212,7 +212,7 @@ checkout.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     checkout.form = checkoutForm
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyCheckout
- * @see app/Http/Controllers/Customer/BusinessCardController.php:523
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:519
  * @route '/business-cards/{business_card}/verify-checkout'
  */
 export const verifyCheckout = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -227,7 +227,7 @@ verifyCheckout.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyCheckout
- * @see app/Http/Controllers/Customer/BusinessCardController.php:523
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:519
  * @route '/business-cards/{business_card}/verify-checkout'
  */
 verifyCheckout.url = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -255,7 +255,7 @@ verifyCheckout.url = (args: { business_card: string | number } | [business_card:
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyCheckout
- * @see app/Http/Controllers/Customer/BusinessCardController.php:523
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:519
  * @route '/business-cards/{business_card}/verify-checkout'
  */
 verifyCheckout.post = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -265,7 +265,7 @@ verifyCheckout.post = (args: { business_card: string | number } | [business_card
 
     /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyCheckout
- * @see app/Http/Controllers/Customer/BusinessCardController.php:523
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:519
  * @route '/business-cards/{business_card}/verify-checkout'
  */
     const verifyCheckoutForm = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -275,7 +275,7 @@ verifyCheckout.post = (args: { business_card: string | number } | [business_card
 
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyCheckout
- * @see app/Http/Controllers/Customer/BusinessCardController.php:523
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:519
  * @route '/business-cards/{business_card}/verify-checkout'
  */
         verifyCheckoutForm.post = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -286,7 +286,7 @@ verifyCheckout.post = (args: { business_card: string | number } | [business_card
     verifyCheckout.form = verifyCheckoutForm
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::quickLogin
- * @see app/Http/Controllers/Customer/BusinessCardController.php:593
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:589
  * @route '/business-cards/quick-login'
  */
 export const quickLogin = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -301,7 +301,7 @@ quickLogin.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::quickLogin
- * @see app/Http/Controllers/Customer/BusinessCardController.php:593
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:589
  * @route '/business-cards/quick-login'
  */
 quickLogin.url = (options?: RouteQueryOptions) => {
@@ -310,7 +310,7 @@ quickLogin.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::quickLogin
- * @see app/Http/Controllers/Customer/BusinessCardController.php:593
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:589
  * @route '/business-cards/quick-login'
  */
 quickLogin.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -320,7 +320,7 @@ quickLogin.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::quickLogin
- * @see app/Http/Controllers/Customer/BusinessCardController.php:593
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:589
  * @route '/business-cards/quick-login'
  */
     const quickLoginForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -330,7 +330,7 @@ quickLogin.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::quickLogin
- * @see app/Http/Controllers/Customer/BusinessCardController.php:593
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:589
  * @route '/business-cards/quick-login'
  */
         quickLoginForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

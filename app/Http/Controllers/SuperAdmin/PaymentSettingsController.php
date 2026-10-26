@@ -17,8 +17,8 @@ class PaymentSettingsController extends Controller
      */
     public function index()
     {
-        $keyId = SystemSetting::get('razorpay_key_id', '');
-        $hasSecret = !is_null(SystemSetting::get('razorpay_key_secret'));
+        $keyId = SystemSetting::get('razorpay_key_id', '') ?: env('RAZORPAY_KEY_ID', env('RAZORPAY_KEY', ''));
+        $hasSecret = !is_null(SystemSetting::get('razorpay_key_secret')) || !empty(env('RAZORPAY_KEY_SECRET', env('RAZORPAY_SECRET')));
 
         return Inertia::render('super-admin/payment-settings/index', [
             'settings' => [
@@ -58,12 +58,12 @@ class PaymentSettingsController extends Controller
         }
 
         if (array_key_exists('razorpay_key_id', $validated)) {
-            SystemSetting::set('razorpay_key_id', $validated['razorpay_key_id']);
+            SystemSetting::set('razorpay_key_id', trim($validated['razorpay_key_id'] ?? ''));
         }
 
         // Only update secret if a new one is provided (non-empty)
         if (!empty($validated['razorpay_key_secret'])) {
-            SystemSetting::set('razorpay_key_secret', $validated['razorpay_key_secret'], true);
+            SystemSetting::set('razorpay_key_secret', trim($validated['razorpay_key_secret']), true);
         }
 
         // Reseller manual banking details

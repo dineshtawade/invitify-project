@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::templatePreview
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:105
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:106
  * @route '/mini-websites/template-preview/{id}'
  */
 export const templatePreview = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ templatePreview.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::templatePreview
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:105
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:106
  * @route '/mini-websites/template-preview/{id}'
  */
 templatePreview.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -44,7 +44,7 @@ templatePreview.url = (args: { id: string | number } | [id: string | number ] | 
 
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::templatePreview
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:105
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:106
  * @route '/mini-websites/template-preview/{id}'
  */
 templatePreview.get = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -53,7 +53,7 @@ templatePreview.get = (args: { id: string | number } | [id: string | number ] | 
 })
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::templatePreview
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:105
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:106
  * @route '/mini-websites/template-preview/{id}'
  */
 templatePreview.head = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -63,7 +63,7 @@ templatePreview.head = (args: { id: string | number } | [id: string | number ] |
 
     /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::templatePreview
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:105
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:106
  * @route '/mini-websites/template-preview/{id}'
  */
     const templatePreviewForm = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -73,7 +73,7 @@ templatePreview.head = (args: { id: string | number } | [id: string | number ] |
 
             /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::templatePreview
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:105
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:106
  * @route '/mini-websites/template-preview/{id}'
  */
         templatePreviewForm.get = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -82,7 +82,7 @@ templatePreview.head = (args: { id: string | number } | [id: string | number ] |
         })
             /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::templatePreview
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:105
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:106
  * @route '/mini-websites/template-preview/{id}'
  */
         templatePreviewForm.head = (args: { id: string | number } | [id: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -176,7 +176,7 @@ guestBuilder.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     guestBuilder.form = guestBuilderForm
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::quickAuth
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:127
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:128
  * @route '/mini-websites/quick-checkout-auth'
  */
 export const quickAuth = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -191,7 +191,7 @@ quickAuth.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::quickAuth
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:127
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:128
  * @route '/mini-websites/quick-checkout-auth'
  */
 quickAuth.url = (options?: RouteQueryOptions) => {
@@ -200,7 +200,7 @@ quickAuth.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::quickAuth
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:127
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:128
  * @route '/mini-websites/quick-checkout-auth'
  */
 quickAuth.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -210,7 +210,7 @@ quickAuth.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::quickAuth
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:127
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:128
  * @route '/mini-websites/quick-checkout-auth'
  */
     const quickAuthForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -220,7 +220,7 @@ quickAuth.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::quickAuth
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:127
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:128
  * @route '/mini-websites/quick-checkout-auth'
  */
         quickAuthForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

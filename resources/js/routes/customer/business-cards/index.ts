@@ -726,7 +726,7 @@ createOrder.post = (args: { business_card: string | number } | [business_card: s
     createOrder.form = createOrderForm
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyPayment
- * @see app/Http/Controllers/Customer/BusinessCardController.php:285
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:281
  * @route '/customer/business-cards/{business_card}/verify-payment'
  */
 export const verifyPayment = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -741,7 +741,7 @@ verifyPayment.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyPayment
- * @see app/Http/Controllers/Customer/BusinessCardController.php:285
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:281
  * @route '/customer/business-cards/{business_card}/verify-payment'
  */
 verifyPayment.url = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -769,7 +769,7 @@ verifyPayment.url = (args: { business_card: string | number } | [business_card: 
 
 /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyPayment
- * @see app/Http/Controllers/Customer/BusinessCardController.php:285
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:281
  * @route '/customer/business-cards/{business_card}/verify-payment'
  */
 verifyPayment.post = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -779,7 +779,7 @@ verifyPayment.post = (args: { business_card: string | number } | [business_card:
 
     /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyPayment
- * @see app/Http/Controllers/Customer/BusinessCardController.php:285
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:281
  * @route '/customer/business-cards/{business_card}/verify-payment'
  */
     const verifyPaymentForm = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -789,7 +789,7 @@ verifyPayment.post = (args: { business_card: string | number } | [business_card:
 
             /**
 * @see \App\Http\Controllers\Customer\BusinessCardController::verifyPayment
- * @see app/Http/Controllers/Customer/BusinessCardController.php:285
+ * @see app/Http/Controllers/Customer/BusinessCardController.php:281
  * @route '/customer/business-cards/{business_card}/verify-payment'
  */
         verifyPaymentForm.post = (args: { business_card: string | number } | [business_card: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

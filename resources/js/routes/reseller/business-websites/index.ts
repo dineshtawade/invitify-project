@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::purchaseTemplate
- * @see app/Http/Controllers/Reseller/PurchaseController.php:157
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:162
  * @route '/reseller/business-websites/{business_website}/purchase-template'
  */
 export const purchaseTemplate = (args: { business_website: number | { id: number } } | [business_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ purchaseTemplate.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::purchaseTemplate
- * @see app/Http/Controllers/Reseller/PurchaseController.php:157
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:162
  * @route '/reseller/business-websites/{business_website}/purchase-template'
  */
 purchaseTemplate.url = (args: { business_website: number | { id: number } } | [business_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ purchaseTemplate.url = (args: { business_website: number | { id: number } } | [b
 
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::purchaseTemplate
- * @see app/Http/Controllers/Reseller/PurchaseController.php:157
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:162
  * @route '/reseller/business-websites/{business_website}/purchase-template'
  */
 purchaseTemplate.post = (args: { business_website: number | { id: number } } | [business_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -59,7 +59,7 @@ purchaseTemplate.post = (args: { business_website: number | { id: number } } | [
 
     /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::purchaseTemplate
- * @see app/Http/Controllers/Reseller/PurchaseController.php:157
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:162
  * @route '/reseller/business-websites/{business_website}/purchase-template'
  */
     const purchaseTemplateForm = (args: { business_website: number | { id: number } } | [business_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -69,7 +69,7 @@ purchaseTemplate.post = (args: { business_website: number | { id: number } } | [
 
             /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::purchaseTemplate
- * @see app/Http/Controllers/Reseller/PurchaseController.php:157
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:162
  * @route '/reseller/business-websites/{business_website}/purchase-template'
  */
         purchaseTemplateForm.post = (args: { business_website: number | { id: number } } | [business_website: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

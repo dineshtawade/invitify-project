@@ -18,7 +18,8 @@ import {
     ImageIcon, Star, Compass, Gift, Calendar, Clock,
     Music, Wine, Bell, XCircle, Smile, Shield,
     Layers, Palette, PenTool, Eye, CheckCircle2,
-    Loader2, Copy, Share2, Download, Crown, User
+    Loader2, Copy, Share2, Download, Crown, User,
+    AlertCircle
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { normalizeConfig, ElementConfig, PageConfig, InvitationConfig, ASPECT_RATIOS } from '@/utils/builder-utils';
@@ -46,13 +47,21 @@ interface UserTemplate {
 }
 
 interface PageProps {
-    template: Template;
+    template: Template & { has_gst?: boolean; gst_rate?: number };
     userTemplate: UserTemplate;
     coupons?: Array<{
         id: number;
         code: string;
         discount: number;
     }>;
+    taxSettings?: {
+        gst_enabled: boolean;
+        default_gst_rate: number;
+        cgst_percent: number;
+        sgst_percent: number;
+        company_state?: string;
+    };
+    taxCalculation?: any;
     autoOpenCheckout?: boolean;
 }
 
@@ -69,7 +78,18 @@ const fontStyles: Record<string, string> = {
     pinyon: "'Pinyon Script', cursive",
 };
 
-export default function TemplateCustomize({ template, userTemplate, coupons = [], autoOpenCheckout = false }: PageProps) {
+const INDIAN_STATES = [
+    'Andaman and Nicobar Islands', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar',
+    'Chandigarh', 'Chhattisgarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Goa',
+    'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jammu and Kashmir', 'Jharkhand', 'Karnataka',
+    'Kerala', 'Ladakh', 'Lakshadweep', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya',
+    'Mizoram', 'Nagaland', 'Odisha', 'Puducherry', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
+    'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+];
+
+const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+export default function TemplateCustomize({ template, userTemplate, coupons = [], taxSettings, taxCalculation, autoOpenCheckout = false }: PageProps) {
     const { auth } = usePage().props as any;
     const [currentUser, setCurrentUser] = useState(auth?.user);
     const [currentUserTemplate, setCurrentUserTemplate] = useState(userTemplate);
@@ -92,6 +112,41 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
     const [guestAuthEmail, setGuestAuthEmail] = useState('');
     const [guestAuthPassword, setGuestAuthPassword] = useState('');
     const [authError, setAuthError] = useState('');
+
+    // Customer Billing & GST Info
+    const [applyGst, setApplyGst] = useState<boolean>(Boolean(template.has_gst));
+    const [billingName, setBillingName] = useState(currentUser?.name || '');
+    const [customerGstin, setCustomerGstin] = useState('');
+    const [billingAddress, setBillingAddress] = useState('');
+    const [billingState, setBillingState] = useState(taxSettings?.company_state || 'Maharashtra');
+    const [gstErrors, setGstErrors] = useState<{ billingName?: string; customerGstin?: string; billingAddress?: string }>({});
+
+    const validateGstDetails = () => {
+        if (!applyGst) return true;
+        const errs: { billingName?: string; customerGstin?: string; billingAddress?: string } = {};
+        const name = (billingName || guestAuthName || currentUser?.name || '').trim();
+        const gstin = customerGstin.trim().toUpperCase();
+        const addr = billingAddress.trim();
+
+        if (!name || name.length < 3) {
+            errs.billingName = 'Company / Billing Name must be at least 3 characters.';
+        }
+
+        if (!gstin) {
+            errs.customerGstin = 'GST number (GSTIN) is required.';
+        } else if (gstin.length !== 15) {
+            errs.customerGstin = `GSTIN must be 15 characters (currently ${gstin.length}/15).`;
+        } else if (!GSTIN_REGEX.test(gstin)) {
+            errs.customerGstin = 'Invalid GSTIN format (e.g. 27AAAAA0000A1Z5).';
+        }
+
+        if (!addr || addr.length < 5) {
+            errs.billingAddress = 'Complete billing address is required (min 5 characters).';
+        }
+
+        setGstErrors(errs);
+        return Object.keys(errs).length === 0;
+    };
 
     const cardRef = useRef<HTMLDivElement>(null);
 
@@ -258,6 +313,10 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
     };
 
     const handleConfirmPurchase = async () => {
+        if (applyGst && !validateGstDetails()) {
+            return;
+        }
+
         setIsCheckingOut(true);
         setAuthError('');
 
@@ -337,6 +396,11 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                 },
                 body: JSON.stringify({
                     referral_code: couponCode || undefined,
+                    apply_gst: applyGst,
+                    billing_name: billingName || guestAuthName || currentUser?.name || '',
+                    customer_gstin: customerGstin ? customerGstin.trim() : undefined,
+                    billing_address: billingAddress ? billingAddress.trim() : undefined,
+                    billing_state: billingState || undefined,
                 })
             });
 
@@ -380,56 +444,64 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                 }
             };
 
-            if (orderData.mock) {
-                router.post(`/customer/user-templates/${effectiveUserTemplateId}/verify-payment`, {
-                    mock: true
-                }, {
-                    onSuccess: (page) => logMailStatus(page)
-                });
-            } else {
-                if (!(window as any).Razorpay) {
-                    const loaded = await loadRazorpayScript();
-                    if (!loaded) {
-                        alert('Failed to load Razorpay payment SDK.');
-                        setIsCheckingOut(false);
-                        return;
-                    }
-                }
+            if (!orderData.key_id || !orderData.order_id) {
+                alert(orderData.error || 'Payment gateway order could not be initialized. Please check Razorpay credentials.');
+                setIsCheckingOut(false);
+                return;
+            }
 
-                const options = {
-                    key: orderData.key_id,
-                    amount: orderData.amount,
-                    currency: 'INR',
-                    name: 'Invitify',
-                    description: `Purchase Template: ${template.name}`,
-                    order_id: orderData.order_id,
-                    handler: function (response: any) {
-                        router.post(`/customer/user-templates/${effectiveUserTemplateId}/verify-payment`, {
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_signature: response.razorpay_signature,
-                            mock: false
-                        }, {
-                            onSuccess: (page) => logMailStatus(page)
-                        });
-                    },
-                    prefill: {
-                        name: currentUser?.name || guestAuthName || '',
-                        email: currentUser?.email || guestAuthEmail || '',
-                    },
-                    theme: {
-                        color: '#000000',
-                    },
-                    modal: {
-                        ondismiss: function () {
+            if (!(window as any).Razorpay) {
+                const loaded = await loadRazorpayScript();
+                if (!loaded) {
+                    alert('Failed to load Razorpay payment SDK. Please check your internet connection.');
+                    setIsCheckingOut(false);
+                    return;
+                }
+            }
+
+            const options = {
+                key: orderData.key_id,
+                amount: orderData.amount,
+                currency: 'INR',
+                name: 'Invitify',
+                description: `Purchase Template: ${template.name}`,
+                order_id: orderData.order_id,
+                handler: function (response: any) {
+                    router.post(`/customer/user-templates/${effectiveUserTemplateId}/verify-payment`, {
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_signature: response.razorpay_signature,
+                        mock: false
+                    }, {
+                        onSuccess: (page) => logMailStatus(page),
+                        onError: (errs) => {
+                            console.error('Payment verification failed:', errs);
+                            alert('Payment verification failed. Please contact support.');
                             setIsCheckingOut(false);
                         }
+                    });
+                },
+                prefill: {
+                    name: currentUser?.name || guestAuthName || '',
+                    email: currentUser?.email || guestAuthEmail || '',
+                },
+                theme: {
+                    color: '#000000',
+                },
+                modal: {
+                    ondismiss: function () {
+                        setIsCheckingOut(false);
                     }
-                };
+                }
+            };
 
-                const rzp = new (window as any).Razorpay(options);
-                rzp.open();
-            }
+            const rzp = new (window as any).Razorpay(options);
+            rzp.on('payment.failed', function (resp: any) {
+                console.error('Razorpay payment failed:', resp.error);
+                alert('Payment failed: ' + (resp.error?.description || resp.error?.reason || 'Transaction could not be completed.'));
+                setIsCheckingOut(false);
+            });
+            rzp.open();
         } catch (error: any) {
             console.error('Payment checkout error:', error);
             alert(error.message || 'An unexpected error occurred during checkout.');
@@ -1017,12 +1089,173 @@ export default function TemplateCustomize({ template, userTemplate, coupons = []
                                 </div>
                             )}
 
+                            {/* User Side GST Option Toggle & Details */}
+                            <div className={`rounded-xl border p-3.5 space-y-3 transition-all ${applyGst ? 'border-blue-300 bg-blue-50/70 shadow-xs' : 'border-gray-200 bg-gray-50/60'}`}>
+                                <label className="flex items-start gap-3 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        id="userApplyGstToggle"
+                                        checked={applyGst}
+                                        onChange={(e) => {
+                                            setApplyGst(e.target.checked);
+                                            if (!e.target.checked) setGstErrors({});
+                                        }}
+                                        className="mt-0.5 size-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                    />
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
+                                                Add GST / Claim Business Invoice
+                                            </span>
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                                                +{(taxSettings?.cgst_percent ?? 9) + (taxSettings?.sgst_percent ?? 9)}% GST
+                                            </span>
+                                        </div>
+                                        <p className="text-[11px] text-blue-700 mt-0.5">
+                                            Tick this option to include GST in the bill and generate an official GST Tax Invoice with your business details.
+                                        </p>
+                                    </div>
+                                </label>
+
+                                {applyGst && (
+                                    <div className="pt-2 border-t border-blue-200/80 space-y-3">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                            <div>
+                                                <Label className="text-[11px] font-semibold text-neutral-700 flex items-center justify-between">
+                                                    <span>Company / Billing Name <span className="text-red-500">*</span></span>
+                                                </Label>
+                                                <Input
+                                                    type="text"
+                                                    placeholder="e.g. Acme Media Private Limited"
+                                                    value={billingName}
+                                                    onChange={(e) => {
+                                                        setBillingName(e.target.value);
+                                                        if (gstErrors.billingName) setGstErrors(prev => ({ ...prev, billingName: undefined }));
+                                                    }}
+                                                    className={`h-8 text-xs bg-white mt-1 ${gstErrors.billingName ? 'border-red-500 focus:ring-red-200' : 'border-neutral-300'}`}
+                                                />
+                                                {gstErrors.billingName && (
+                                                    <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1 font-medium">
+                                                        <AlertCircle className="size-3 shrink-0" /> {gstErrors.billingName}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div>
+                                                <Label className="text-[11px] font-semibold text-neutral-700 flex items-center justify-between">
+                                                    <span>GST Number (GSTIN) <span className="text-red-500">*</span></span>
+                                                    <span className={`text-[10px] font-mono ${customerGstin.length === 15 ? (GSTIN_REGEX.test(customerGstin) ? 'text-emerald-600 font-bold' : 'text-amber-600') : 'text-gray-400'}`}>
+                                                        {customerGstin.length}/15
+                                                    </span>
+                                                </Label>
+                                                <div className="relative mt-1">
+                                                    <Input
+                                                        type="text"
+                                                        maxLength={15}
+                                                        placeholder="27AAAAA0000A1Z5"
+                                                        value={customerGstin}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 15);
+                                                            setCustomerGstin(val);
+                                                            if (gstErrors.customerGstin) setGstErrors(prev => ({ ...prev, customerGstin: undefined }));
+                                                        }}
+                                                        className={`h-8 text-xs bg-white font-mono uppercase tracking-wider pr-8 ${gstErrors.customerGstin ? 'border-red-500 focus:ring-red-200' : (GSTIN_REGEX.test(customerGstin) ? 'border-emerald-500 bg-emerald-50/20' : 'border-neutral-300')}`}
+                                                    />
+                                                    {GSTIN_REGEX.test(customerGstin) && (
+                                                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-emerald-600 text-xs font-bold" title="Valid GSTIN format">
+                                                            ✓
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {gstErrors.customerGstin ? (
+                                                    <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1 font-medium">
+                                                        <AlertCircle className="size-3 shrink-0" /> {gstErrors.customerGstin}
+                                                    </p>
+                                                ) : (
+                                                    <p className="text-[10px] text-gray-500 mt-0.5">
+                                                        15-character Indian GSTIN (e.g. 27AAAAA0000A1Z5)
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                            <div>
+                                                <Label className="text-[11px] font-semibold text-neutral-700">Billing State <span className="text-red-500">*</span></Label>
+                                                <select
+                                                    value={billingState}
+                                                    onChange={(e) => setBillingState(e.target.value)}
+                                                    className="mt-1 w-full h-8 px-2.5 text-xs rounded-md border border-neutral-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                >
+                                                    {INDIAN_STATES.map((st) => (
+                                                        <option key={st} value={st}>{st}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <Label className="text-[11px] font-semibold text-neutral-700 flex items-center justify-between">
+                                                    <span>Billing Address <span className="text-red-500">*</span></span>
+                                                </Label>
+                                                <Input
+                                                    type="text"
+                                                    placeholder="Plot No., Street, City, Pincode"
+                                                    value={billingAddress}
+                                                    onChange={(e) => {
+                                                        setBillingAddress(e.target.value);
+                                                        if (gstErrors.billingAddress) setGstErrors(prev => ({ ...prev, billingAddress: undefined }));
+                                                    }}
+                                                    className={`h-8 text-xs bg-white mt-1 ${gstErrors.billingAddress ? 'border-red-500 focus:ring-red-200' : 'border-neutral-300'}`}
+                                                />
+                                                {gstErrors.billingAddress && (
+                                                    <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1 font-medium">
+                                                        <AlertCircle className="size-3 shrink-0" /> {gstErrors.billingAddress}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* GST Breakdown if applyGst is enabled */}
+                            {applyGst && (
+                                <div className="space-y-1.5 border-t border-gray-200 pt-2 text-xs text-gray-600">
+                                    <div className="flex justify-between">
+                                        <span>Taxable Base Amount:</span>
+                                        <span className="font-medium text-gray-900">
+                                            ₹{(parseFloat(String(template.price)) - (appliedCoupon ? (parseFloat(String(template.price)) * parseFloat(String(appliedCoupon.discount)) / 100) : 0)).toFixed(2)}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between text-neutral-600">
+                                        <span>CGST ({taxSettings?.cgst_percent ?? 9}%):</span>
+                                        <span className="font-medium text-neutral-800">
+                                            +₹{(((parseFloat(String(template.price)) - (appliedCoupon ? (parseFloat(String(template.price)) * parseFloat(String(appliedCoupon.discount)) / 100) : 0)) * ((taxSettings?.cgst_percent ?? 9) / 100))).toFixed(2)}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between text-neutral-600">
+                                        <span>SGST ({taxSettings?.sgst_percent ?? 9}%):</span>
+                                        <span className="font-medium text-neutral-800">
+                                            +₹{(((parseFloat(String(template.price)) - (appliedCoupon ? (parseFloat(String(template.price)) * parseFloat(String(appliedCoupon.discount)) / 100) : 0)) * ((taxSettings?.sgst_percent ?? 9) / 100))).toFixed(2)}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                                <span className="text-base font-bold text-black">Total</span>
+                                <span className="text-base font-bold text-black">
+                                    {applyGst ? 'Total Payable (Incl. GST)' : 'Total'}
+                                </span>
                                 <span className="text-xl font-extrabold text-black">
-                                    ₹{appliedCoupon
-                                        ? (parseFloat(String(template.price)) - (parseFloat(String(template.price)) * parseFloat(String(appliedCoupon.discount)) / 100)).toFixed(2)
-                                        : parseFloat(String(template.price)).toFixed(2)}
+                                    ₹{(() => {
+                                        const discounted = parseFloat(String(template.price)) - (appliedCoupon ? (parseFloat(String(template.price)) * parseFloat(String(appliedCoupon.discount)) / 100) : 0);
+                                        if (applyGst) {
+                                            const totalGstRate = (taxSettings?.cgst_percent ?? 9) + (taxSettings?.sgst_percent ?? 9);
+                                            const gstAmt = discounted * (totalGstRate / 100);
+                                            return (discounted + gstAmt).toFixed(2);
+                                        }
+                                        return discounted.toFixed(2);
+                                    })()}
                                 </span>
                             </div>
                         </div>

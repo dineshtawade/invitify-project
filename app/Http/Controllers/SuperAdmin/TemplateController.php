@@ -73,6 +73,7 @@ class TemplateController extends Controller
             'thumbnail' => 'nullable|string',
             'default_config' => 'required|array',
             'status' => 'required|string|in:published,draft',
+            'has_gst' => 'nullable|boolean',
             'is_trending' => 'nullable|boolean',
         ]);
 
@@ -103,6 +104,9 @@ class TemplateController extends Controller
         }
         if ($request->has('price')) {
             $newTemplate->price = $request->input('price');
+        }
+        if ($request->has('has_gst')) {
+            $newTemplate->has_gst = $request->boolean('has_gst');
         }
         if ($request->has('category') && $request->filled('category')) {
             $catSlug = \Illuminate\Support\Str::slug($request->input('category'), '_');
@@ -183,6 +187,7 @@ class TemplateController extends Controller
             'thumbnail' => 'nullable|string',
             'default_config' => 'required|array',
             'status' => 'required|string|in:published,draft',
+            'has_gst' => 'nullable|boolean',
             'is_trending' => 'nullable|boolean',
         ]);
 

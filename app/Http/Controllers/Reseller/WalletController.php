@@ -133,7 +133,17 @@ class WalletController extends Controller
             }
 
             // Recharge wallet
-            $wallet->credit($totalCredit, "Online Wallet Recharge (Mock) - Principal: ₹{$amount}, Bonus: ₹{$bonusAmount} ({$bonusPercentage}%)");
+            $transaction = \App\Models\Transaction::create([
+                'user_id' => $user->id,
+                'amount' => $amount,
+                'status' => 'completed',
+                'payment_method' => 'mock_recharge',
+                'payment_id' => 'PAY-MOCK-' . uniqid(),
+                'order_id' => 'ORD-MOCK-' . uniqid(),
+            ]);
+            \App\Services\TaxService::ensureInvoice($transaction);
+
+            $wallet->credit($totalCredit, "Online Wallet Recharge (Mock) - Principal: ₹{$amount}, Bonus: ₹{$bonusAmount} ({$bonusPercentage}%)", $transaction);
 
             return redirect()->route('reseller.wallet')->with('status', "Wallet successfully recharged with ₹{$totalCredit}! (Includes ₹{$bonusAmount} bonus)");
         }
@@ -150,7 +160,17 @@ class WalletController extends Controller
         $generatedSignature = hash_hmac('sha256', $orderId . '|' . $paymentId, $keySecret);
 
         if ($generatedSignature === $signature) {
-            $wallet->credit($totalCredit, "Online Wallet Recharge (Razorpay) - Principal: ₹{$amount}, Bonus: ₹{$bonusAmount} ({$bonusPercentage}%)");
+            $transaction = \App\Models\Transaction::create([
+                'user_id' => $user->id,
+                'amount' => $amount,
+                'status' => 'completed',
+                'payment_method' => 'razorpay',
+                'payment_id' => $paymentId,
+                'order_id' => $orderId,
+            ]);
+            \App\Services\TaxService::ensureInvoice($transaction);
+
+            $wallet->credit($totalCredit, "Online Wallet Recharge (Razorpay) - Principal: ₹{$amount}, Bonus: ₹{$bonusAmount} ({$bonusPercentage}%)", $transaction);
             return redirect()->route('reseller.wallet')->with('status', "Wallet successfully recharged with ₹{$totalCredit}! (Includes ₹{$bonusAmount} bonus)");
         }
 
