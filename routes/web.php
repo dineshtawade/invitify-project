@@ -268,6 +268,24 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
         Route::post('super-admin/resellers/update-online-bonus', [\App\Http\Controllers\SuperAdmin\ResellerDepositController::class, 'updateOnlineBonus'])
             ->name('super-admin.resellers.update-online-bonus');
 
+        // GST & Tax Management
+        // developed by dinesh tawade
+        Route::get('super-admin/taxes', [\App\Http\Controllers\SuperAdmin\TaxController::class, 'index'])
+            ->name('super-admin.taxes.index');
+        Route::post('super-admin/taxes/settings', [\App\Http\Controllers\SuperAdmin\TaxController::class, 'updateSettings'])
+            ->name('super-admin.taxes.update-settings');
+        Route::post('super-admin/taxes/templates/{id}', [\App\Http\Controllers\SuperAdmin\TaxController::class, 'updateTemplateTax'])
+            ->name('super-admin.taxes.update-template');
+        Route::post('super-admin/taxes/website-templates/{id}', [\App\Http\Controllers\SuperAdmin\TaxController::class, 'updateWebsiteTemplateTax'])
+            ->name('super-admin.taxes.update-website-template');
+
+        // Invoice Management
+        // developed by dinesh tawade
+        Route::get('super-admin/invoices', [\App\Http\Controllers\InvoiceController::class, 'index'])
+            ->name('super-admin.invoices.index');
+        Route::get('super-admin/invoices/{invoiceNumber}', [\App\Http\Controllers\InvoiceController::class, 'show'])
+            ->name('super-admin.invoices.show');
+
     });
 
     // Reseller Routes

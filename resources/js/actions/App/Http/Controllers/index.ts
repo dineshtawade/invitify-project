@@ -5,6 +5,7 @@ import PublicBusinessSiteController from './PublicBusinessSiteController'
 import PublicCardController from './PublicCardController'
 import MediaUploadController from './MediaUploadController'
 import SuperAdmin from './SuperAdmin'
+import InvoiceController from './InvoiceController'
 import Reseller from './Reseller'
 import ReferralPartner from './ReferralPartner'
 import Settings from './Settings'
@@ -16,6 +17,7 @@ PublicBusinessSiteController: Object.assign(PublicBusinessSiteController, Public
 PublicCardController: Object.assign(PublicCardController, PublicCardController),
 MediaUploadController: Object.assign(MediaUploadController, MediaUploadController),
 SuperAdmin: Object.assign(SuperAdmin, SuperAdmin),
+InvoiceController: Object.assign(InvoiceController, InvoiceController),
 Reseller: Object.assign(Reseller, Reseller),
 ReferralPartner: Object.assign(ReferralPartner, ReferralPartner),
 Settings: Object.assign(Settings, Settings),

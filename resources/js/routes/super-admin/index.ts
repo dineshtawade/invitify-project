@@ -10,6 +10,8 @@ import businessCardPlans from './business-card-plans'
 import referralsA7ebb0 from './referrals'
 import walletsE2845c from './wallets'
 import resellers91a8b1 from './resellers'
+import taxes from './taxes'
+import invoices from './invoices'
 /**
 * @see \App\Http\Controllers\SuperAdmin\DashboardController::dashboard
  * @see app/Http/Controllers/SuperAdmin/DashboardController.php:15
@@ -570,6 +572,8 @@ businessCardPlans: Object.assign(businessCardPlans, businessCardPlans),
 referrals: Object.assign(referrals, referralsA7ebb0),
 wallets: Object.assign(wallets, walletsE2845c),
 resellers: Object.assign(resellers, resellers91a8b1),
+taxes: Object.assign(taxes, taxes),
+invoices: Object.assign(invoices, invoices),
 }
 
 export default superAdmin

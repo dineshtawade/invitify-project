@@ -20,6 +20,11 @@ class Template extends Model
         'default_config',
         'status',
         'is_trending',
+        'gst_rate',
+        'platform_fee',
+        'platform_fee_type',
+        'hsn_sac_code',
+        'tax_inclusive',
     ];
 
     protected $appends = ['encrypted_id'];
@@ -36,6 +41,9 @@ class Template extends Model
             'price' => 'decimal:2',
             'reseller_price' => 'decimal:2',
             'is_trending' => 'boolean',
+            'gst_rate' => 'decimal:2',
+            'platform_fee' => 'decimal:2',
+            'tax_inclusive' => 'boolean',
         ];
     }
 

@@ -205,7 +205,7 @@ class VerifyCsrfToken
             $request->session()->token(),
             $this->availableAt(60 * $config['lifetime']),
             $config['path'],
-            $config['domain'],
+            $config['domain'],                                                 
             $config['secure'],
             false,
             false,

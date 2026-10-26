@@ -158,8 +158,9 @@ createCardd164dc48c601e24bc6fe3d8074750b33.head = (options?: RouteQueryOptions):
 
 /**
 * Multiple routes resolve to \App\Http\Controllers\Customer\BusinessCardController::createCard, so this export is a
-* dictionary keyed by URI rather than a callable. Call a specific route with `createCard['<uri>'](...)`,
-* or import the route by name from your generated `routes/` directory.
+* dictionary keyed by URI rather than a callable, with the verbs prefixed where two routes share a URI.
+* Call a specific route with `createCard['<key>'](...)`, or import the route by name from your
+* generated `routes/` directory.
 */
 export const createCard = {
     '/create-visiting-card': createCard406ea3c77c01be6d8744815edae48faa,
