@@ -77,24 +77,23 @@ class TemplateController extends Controller
         $template = Template::findOrFail($id);
         $userTemplate = null;
 
-        if (auth()->check()) {
-            $userTemplate = UserTemplate::firstOrCreate([
-                'user_id' => auth()->id(),
-                'template_id' => $template->id,
-            ], [
-                'custom_config' => $template->default_config,
-                'is_purchased' => false,
+        if (!auth()->check()) {
+            $customizeUrl = route('customer.templates.customize', $encryptedId);
+            session(['url.intended' => $customizeUrl]);
+            return redirect()->route('login', [
+                'intended' => $customizeUrl,
+                'notice' => 'auth_required_to_customize',
+                'template_name' => $template->name,
             ]);
-        } else {
-            // Mock object for guest users
-            $userTemplate = [
-                'id' => null,
-                'user_id' => null,
-                'template_id' => $template->id,
-                'custom_config' => $template->default_config,
-                'is_purchased' => false,
-            ];
         }
+
+        $userTemplate = UserTemplate::firstOrCreate([
+            'user_id' => auth()->id(),
+            'template_id' => $template->id,
+        ], [
+            'custom_config' => $template->default_config,
+            'is_purchased' => false,
+        ]);
 
         $now = now();
         $coupons = \App\Models\Coupon::where('is_active', true)

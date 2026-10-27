@@ -425,7 +425,20 @@ class MiniWebsiteController extends Controller
         $request->validate([
             'days' => 'required|integer|min:1',
             'referral_code' => 'nullable|string',
+            'include_rsvp' => 'nullable|boolean',
         ]);
+
+        if ($request->has('include_rsvp')) {
+            $includeRsvp = $request->boolean('include_rsvp');
+            $cfg = $mini_website->config ?? [];
+            $cfg['include_rsvp'] = $includeRsvp;
+            if (!isset($cfg['rsvp']) || !is_array($cfg['rsvp'])) {
+                $cfg['rsvp'] = [];
+            }
+            $cfg['rsvp']['enabled'] = $includeRsvp;
+            $mini_website->config = $cfg;
+            $mini_website->save();
+        }
 
         $days = (int) $request->input('days');
         $mini_website->load('template');

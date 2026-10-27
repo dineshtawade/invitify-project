@@ -51,6 +51,7 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import EmailOtpAuthModal from '@/components/email-otp-auth-modal';
 
 interface Template {
     id: number;
@@ -238,6 +239,20 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
     const [previewWebsiteDevice, setPreviewWebsiteDevice] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
     const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
     const [previewBusinessCard, setPreviewBusinessCard] = useState<any | null>(null);
+
+    // Email OTP Auth Modal for Template Customization
+    // developed by dinesh tawade
+    const [selectedTemplateForOtp, setSelectedTemplateForOtp] = useState<Template | null>(null);
+    const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+
+    const handleStartCustomize = (t: Template) => {
+        if (auth?.user) {
+            router.visit(`/templates/${t.encrypted_id || t.id}/customize`);
+        } else {
+            setSelectedTemplateForOtp(t);
+            setIsOtpModalOpen(true);
+        }
+    };
 
     // Auth Required Dialog State
     const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
@@ -784,13 +799,16 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                                             >
                                                                 <Eye className="size-3.5 text-[#3d5644]" /> Live Preview <ExternalLink className="size-3 text-[#706557]" />
                                                             </a>
-                                                            <Link
-                                                                href={`/templates/${t.encrypted_id}/customize`}
-                                                                onClick={(e) => e.stopPropagation()}
-                                                                className="w-full py-2 px-3 rounded-lg bg-[#3d5644] hover:bg-[#2c3e2e] text-white font-serif text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105"
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleStartCustomize(t);
+                                                                }}
+                                                                className="w-full py-2 px-3 rounded-lg bg-[#3d5644] hover:bg-[#2c3e2e] text-white font-serif text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105 cursor-pointer"
                                                             >
                                                                 <Sparkles className="size-3.5 text-yellow-300" /> Customize & Buy
-                                                            </Link>
+                                                            </button>
                                                         </div>
                                                         <div className="text-center pointer-events-none scale-90 opacity-90 transition-transform duration-300 group-hover:scale-95 relative z-10">
                                                             <p className="text-[10px] tracking-widest uppercase font-serif font-bold text-neutral-800">{t.default_config?.title}</p>
@@ -845,13 +863,16 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                                             >
                                                                 <PlayCircle className="size-3.5 text-indigo-400" /> Watch Preview <ExternalLink className="size-3 text-[#706557]" />
                                                             </a>
-                                                            <Link
-                                                                href={`/templates/${t.encrypted_id}/customize`}
-                                                                onClick={(e) => e.stopPropagation()}
-                                                                className="w-full py-2 px-3 rounded-lg bg-[#3d5644] hover:bg-[#2c3e2e] text-white font-serif text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105"
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleStartCustomize(t);
+                                                                }}
+                                                                className="w-full py-2 px-3 rounded-lg bg-[#3d5644] hover:bg-[#2c3e2e] text-white font-serif text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105 cursor-pointer"
                                                             >
                                                                 <Sparkles className="size-3.5 text-yellow-300" /> Customize & Buy
-                                                            </Link>
+                                                            </button>
                                                         </div>
                                                         <div className="text-center pointer-events-none scale-90 opacity-90 transition-transform duration-300 group-hover:scale-95 relative z-10">
                                                             <PlayCircle className="size-12 text-white/80 mx-auto" />
@@ -961,18 +982,10 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                 </section>
 
                 {/* ===== DIGITAL BUSINESS CARDS SECTION (always visible below showcase) ===== */}
-                <section id="digital-business-cards" className="relative z-10 max-w-6xl mx-auto px-6 py-16">
+                {/* <section id="digital-business-cards" className="relative z-10 max-w-6xl mx-auto px-6 py-16">
                     <h1 className="text-3xl sm:text-4xl font-bold font-serif text-[#3e3832] text-center mb-24">Digital Business Cards</h1>
 
-                    {/* <div className="flex flex-col items-center justify-center text-center gap-2 mb-12">
-                        <h2 className="text-3xl sm:text-4xl font-bold font-serif text-[#3e3832]">
-                            Digital Visiting Cards with Mini Website
-                        </h2>
-                        <p className="text-[#706557] font-serif text-sm">
-                            Create Professional & Interactive E-Visiting Cards
-                        </p>
-                    </div>
- */}
+           
 
                     <div ref={businessCardsScrollRef} className="flex overflow-x-auto pb-10 snap-x snap-mandatory gap-6 sm:grid sm:grid-cols-3 lg:grid-cols-5 relative w-full max-w-5xl mx-auto sm:overflow-visible sm:pb-0 sm:snap-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-2 sm:px-0">
                         {showcasedDigitalCards.slice(0, 5).map((t, idx) => (
@@ -980,24 +993,24 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                 key={t.id}
                                 onClick={() => setPreviewBusinessCard(t)}
                                 className={`w-[55vw] max-w-[220px] sm:w-auto sm:min-w-0 shrink-0 snap-center sm:snap-align-none group flex flex-col items-center hover:-translate-y-1 transition-all duration-300 relative cursor-pointer ${idx === 2 ? 'sm:z-20 sm:transform sm:scale-110 sm:-translate-y-4' : 'z-10'}`}
-                            >
-                                {/* Mobile Phone Mockup */}
-                                <div className="relative w-[85%] aspect-[9/19] rounded-[24px] border-[6px] border-[#2c3238] bg-white shadow-xl overflow-hidden">
+                            > */}
+                {/* Mobile Phone Mockup */}
+                {/* <div className="relative w-[85%] aspect-[9/19] rounded-[24px] border-[6px] border-[#2c3238] bg-white shadow-xl overflow-hidden"> */}
 
-                                    {/* Notch */}
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[45%] h-4 bg-[#2c3238] rounded-b-xl z-20 flex items-center justify-center">
+                {/* Notch */}
+                {/* <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[45%] h-4 bg-[#2c3238] rounded-b-xl z-20 flex items-center justify-center">
                                         <div className="size-1 rounded-full bg-gray-900/50 mr-1.5"></div>
                                         <div className="w-6 h-0.5 bg-gray-900/50 rounded-full"></div>
-                                    </div>
+                                    </div> */}
 
-                                    {/* Side Buttons (Visual Only) */}
-                                    <div className="absolute -left-[6px] top-12 w-1 h-6 bg-[#2c3238] rounded-r-none rounded-l-sm"></div>
+                {/* Side Buttons (Visual Only) */}
+                {/* <div className="absolute -left-[6px] top-12 w-1 h-6 bg-[#2c3238] rounded-r-none rounded-l-sm"></div>
                                     <div className="absolute -left-[6px] top-20 w-1 h-10 bg-[#2c3238] rounded-r-none rounded-l-sm"></div>
                                     <div className="absolute -left-[6px] top-32 w-1 h-10 bg-[#2c3238] rounded-r-none rounded-l-sm"></div>
-                                    <div className="absolute -right-[6px] top-24 w-1 h-12 bg-[#2c3238] rounded-l-none rounded-r-sm"></div>
+                                    <div className="absolute -right-[6px] top-24 w-1 h-12 bg-[#2c3238] rounded-l-none rounded-r-sm"></div> */}
 
-                                    {/* Screen Content */}
-                                    <div className="relative w-full h-full bg-white rounded-[18px] overflow-hidden border-[2px] border-white/50">
+                {/* Screen Content */}
+                {/* <div className="relative w-full h-full bg-white rounded-[18px] overflow-hidden border-[2px] border-white/50">
                                         <img
                                             src={t.thumbnail}
                                             alt={t.name}
@@ -1017,10 +1030,10 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                 </div>
                             </div>
                         ))}
-                    </div>
+                    </div> */}
 
-                    {/* CTA Button */}
-                    <div className="mt-14 flex justify-center pb-8">
+                {/* CTA Button */}
+                {/* <div className="mt-14 flex justify-center pb-8">
                         <button
                             type="button"
                             onClick={() => handleSelectBusinessCard({ name: 'Digital Visiting Card' })}
@@ -1029,7 +1042,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                             Create Visiting Card ▾
                         </button>
                     </div>
-                </section>
+                </section> */}
 
                 <footer className="bg-[#fdfbf7] border-t border-[#ebd9c1] pt-12 pb-6 text-center text-xs text-[#706557] mt-20 transition-colors">
                     <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-6">
@@ -1341,14 +1354,18 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                 >
                                     Close
                                 </Button>
-                                <Link
-                                    href={`/templates/${previewTemplate?.encrypted_id}/customize`}
-                                    onClick={() => setPreviewTemplate(null)}
-                                    className="inline-flex items-center gap-2 bg-[#3d5644] hover:bg-[#2c3e2e] text-white font-serif font-bold rounded-xl px-6 py-2.5 text-sm shadow-md transition-all hover:scale-105"
+                                <Button
+                                    type="button"
+                                    onClick={() => {
+                                        const t = previewTemplate;
+                                        setPreviewTemplate(null);
+                                        if (t) handleStartCustomize(t);
+                                    }}
+                                    className="inline-flex items-center gap-2 bg-[#3d5644] hover:bg-[#2c3e2e] text-white font-serif font-bold rounded-xl px-6 py-2.5 text-sm shadow-md transition-all hover:scale-105 cursor-pointer"
                                 >
                                     <Sparkles className="size-4 text-yellow-300" />
                                     Customize & Buy
-                                </Link>
+                                </Button>
                             </div>
                         </div>
                     </DialogContent>
@@ -1477,6 +1494,16 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
+                {/* Email OTP Authentication Modal before entering template customization */}
+                {/* developed by dinesh tawade */}
+                <EmailOtpAuthModal
+                    isOpen={isOtpModalOpen}
+                    onClose={() => setIsOtpModalOpen(false)}
+                    template={selectedTemplateForOtp}
+                    onSuccess={(redirectUrl) => {
+                        window.location.href = redirectUrl;
+                    }}
+                />
             </div>
         </>
     );

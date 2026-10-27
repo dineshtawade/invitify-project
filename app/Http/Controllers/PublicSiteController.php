@@ -207,8 +207,15 @@ class PublicSiteController extends Controller
             $rsvpConfig = $website->template->config['rsvp'];
         }
 
-        // Check if RSVP is disabled explicitly
-        if ($rsvpConfig !== null && isset($rsvpConfig['enabled']) && !$rsvpConfig['enabled']) {
+        // Check if RSVP is explicitly disabled via config.include_rsvp or config.rsvp.enabled
+        $isRsvpEnabled = true;
+        if (is_array($website->config) && array_key_exists('include_rsvp', $website->config)) {
+            $isRsvpEnabled = (bool) $website->config['include_rsvp'];
+        } elseif ($rsvpConfig !== null && isset($rsvpConfig['enabled'])) {
+            $isRsvpEnabled = (bool) $rsvpConfig['enabled'];
+        }
+
+        if (!$isRsvpEnabled) {
             return $html;
         }
 

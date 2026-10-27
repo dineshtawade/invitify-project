@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::preview
- * @see app/Http/Controllers/Customer/TemplateController.php:402
+ * @see app/Http/Controllers/Customer/TemplateController.php:401
  * @route '/templates/{encryptedId}/preview'
  */
 export const preview = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ preview.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::preview
- * @see app/Http/Controllers/Customer/TemplateController.php:402
+ * @see app/Http/Controllers/Customer/TemplateController.php:401
  * @route '/templates/{encryptedId}/preview'
  */
 preview.url = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -44,7 +44,7 @@ preview.url = (args: { encryptedId: string | number } | [encryptedId: string | n
 
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::preview
- * @see app/Http/Controllers/Customer/TemplateController.php:402
+ * @see app/Http/Controllers/Customer/TemplateController.php:401
  * @route '/templates/{encryptedId}/preview'
  */
 preview.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -53,7 +53,7 @@ preview.get = (args: { encryptedId: string | number } | [encryptedId: string | n
 })
 /**
 * @see \App\Http\Controllers\Customer\TemplateController::preview
- * @see app/Http/Controllers/Customer/TemplateController.php:402
+ * @see app/Http/Controllers/Customer/TemplateController.php:401
  * @route '/templates/{encryptedId}/preview'
  */
 preview.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -63,7 +63,7 @@ preview.head = (args: { encryptedId: string | number } | [encryptedId: string | 
 
     /**
 * @see \App\Http\Controllers\Customer\TemplateController::preview
- * @see app/Http/Controllers/Customer/TemplateController.php:402
+ * @see app/Http/Controllers/Customer/TemplateController.php:401
  * @route '/templates/{encryptedId}/preview'
  */
     const previewForm = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -73,7 +73,7 @@ preview.head = (args: { encryptedId: string | number } | [encryptedId: string | 
 
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::preview
- * @see app/Http/Controllers/Customer/TemplateController.php:402
+ * @see app/Http/Controllers/Customer/TemplateController.php:401
  * @route '/templates/{encryptedId}/preview'
  */
         previewForm.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -82,7 +82,7 @@ preview.head = (args: { encryptedId: string | number } | [encryptedId: string | 
         })
             /**
 * @see \App\Http\Controllers\Customer\TemplateController::preview
- * @see app/Http/Controllers/Customer/TemplateController.php:402
+ * @see app/Http/Controllers/Customer/TemplateController.php:401
  * @route '/templates/{encryptedId}/preview'
  */
         previewForm.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:742
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:755
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
 export const downloadZip = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ downloadZip.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:742
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:755
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
 downloadZip.url = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ downloadZip.url = (args: { mini_website: string | { uuid: string } } | [mini_web
 
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:742
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:755
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
 downloadZip.get = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -58,7 +58,7 @@ downloadZip.get = (args: { mini_website: string | { uuid: string } } | [mini_web
 })
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:742
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:755
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
 downloadZip.head = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -68,7 +68,7 @@ downloadZip.head = (args: { mini_website: string | { uuid: string } } | [mini_we
 
     /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:742
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:755
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
     const downloadZipForm = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -78,7 +78,7 @@ downloadZip.head = (args: { mini_website: string | { uuid: string } } | [mini_we
 
             /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:742
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:755
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
         downloadZipForm.get = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -87,7 +87,7 @@ downloadZip.head = (args: { mini_website: string | { uuid: string } } | [mini_we
         })
             /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::downloadZip
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:742
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:755
  * @route '/customer/mini-websites/{mini_website}/download-zip'
  */
         downloadZipForm.head = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -895,7 +895,7 @@ createOrder.post = (args: { mini_website: string | { uuid: string } } | [mini_we
     createOrder.form = createOrderForm
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::verifyPayment
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:631
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:644
  * @route '/customer/mini-websites/{mini_website}/verify-payment'
  */
 export const verifyPayment = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -910,7 +910,7 @@ verifyPayment.definition = {
 
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::verifyPayment
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:631
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:644
  * @route '/customer/mini-websites/{mini_website}/verify-payment'
  */
 verifyPayment.url = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions) => {
@@ -943,7 +943,7 @@ verifyPayment.url = (args: { mini_website: string | { uuid: string } } | [mini_w
 
 /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::verifyPayment
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:631
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:644
  * @route '/customer/mini-websites/{mini_website}/verify-payment'
  */
 verifyPayment.post = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -953,7 +953,7 @@ verifyPayment.post = (args: { mini_website: string | { uuid: string } } | [mini_
 
     /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::verifyPayment
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:631
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:644
  * @route '/customer/mini-websites/{mini_website}/verify-payment'
  */
     const verifyPaymentForm = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -963,7 +963,7 @@ verifyPayment.post = (args: { mini_website: string | { uuid: string } } | [mini_
 
             /**
 * @see \App\Http\Controllers\Customer\MiniWebsiteController::verifyPayment
- * @see app/Http/Controllers/Customer/MiniWebsiteController.php:631
+ * @see app/Http/Controllers/Customer/MiniWebsiteController.php:644
  * @route '/customer/mini-websites/{mini_website}/verify-payment'
  */
         verifyPaymentForm.post = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

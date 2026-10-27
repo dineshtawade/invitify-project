@@ -42,6 +42,15 @@ Route::post('register/send-otp', [\App\Http\Controllers\Auth\RegisterOtpControll
 Route::post('register/resend-otp', [\App\Http\Controllers\Auth\RegisterOtpController::class, 'resendOtp'])->name('register.resend-otp');
 Route::post('register/verify-otp', [\App\Http\Controllers\Auth\RegisterOtpController::class, 'verifyOtp'])->name('register.verify-otp');
 
+// User Email OTP Login / Verification Routes (Fast Auth Before Customize & Buy)
+// developed by dinesh tawade
+Route::post('auth/otp/send', [\App\Http\Controllers\Auth\EmailOtpAuthController::class, 'sendOtp'])->name('auth.otp.send');
+Route::post('auth/otp/resend', [\App\Http\Controllers\Auth\EmailOtpAuthController::class, 'resendOtp'])->name('auth.otp.resend');
+Route::post('auth/otp/verify', [\App\Http\Controllers\Auth\EmailOtpAuthController::class, 'verifyOtp'])->name('auth.otp.verify');
+Route::post('auth/password/login', [\App\Http\Controllers\Auth\EmailOtpAuthController::class, 'loginWithPassword'])->name('auth.password.login');
+
+
+
 Route::match(['get', 'post'], 'templates/{encryptedId}/customize', [\App\Http\Controllers\Customer\TemplateController::class, 'edit'])
     ->name('customer.templates.customize');
 Route::post('templates/quick-checkout-auth', [\App\Http\Controllers\Customer\TemplateController::class, 'quickCheckoutAuth'])
