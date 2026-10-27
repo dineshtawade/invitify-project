@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import {
     Users, Banknote, CheckCircle2, XCircle, Clock, ArrowUpRight,
     ArrowDownRight, Eye, Wallet, Sparkles, TrendingUp, ShieldAlert,
-    ChevronLeft, AlertCircle, FileText, Zap, Settings2
+    ChevronLeft, AlertCircle, FileText, Zap, Settings2, Receipt
 } from 'lucide-react';
 
 interface ResellerData {
@@ -745,10 +745,51 @@ export default function ResellersIndex({ deposits = [], resellers = [], defaultO
 
             {/* Screenshot Preview */}
             <Dialog open={screenshotPreview !== null} onOpenChange={() => setScreenshotPreview(null)}>
-                <DialogContent className="max-w-2xl p-2 bg-transparent border-0 shadow-none">
-                    {screenshotPreview && (
-                        <img src={screenshotPreview} alt="Payment Receipt" className="w-full h-auto max-h-[85vh] object-contain rounded-2xl bg-neutral-900" />
-                    )}
+                <DialogContent className="sm:max-w-2xl p-0 overflow-hidden rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                    <DialogHeader className="px-5 py-4 border-b border-neutral-100 dark:border-neutral-800 flex flex-row items-center justify-between">
+                        <div>
+                            <DialogTitle className="text-base font-bold flex items-center gap-2 text-neutral-900 dark:text-neutral-100">
+                                <Receipt className="size-4.5 text-indigo-600 dark:text-indigo-400" />
+                                Reseller Payment Slip / Receipt
+                            </DialogTitle>
+                            <DialogDescription className="text-xs text-neutral-400 mt-0.5">
+                                Verify payment details, UTR reference number, and deposit proof
+                            </DialogDescription>
+                        </div>
+                        {screenshotPreview && (
+                            <div className="flex items-center gap-2">
+                                <a
+                                    href={screenshotPreview.startsWith('http') || screenshotPreview.startsWith('/') ? screenshotPreview : `/${screenshotPreview}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 px-3 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-colors inline-flex items-center gap-1.5"
+                                >
+                                    <Eye className="size-3.5" /> Full Size
+                                </a>
+                                <a
+                                    href={screenshotPreview.startsWith('http') || screenshotPreview.startsWith('/') ? screenshotPreview : `/${screenshotPreview}`}
+                                    download
+                                    className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 transition-colors"
+                                >
+                                    Download
+                                </a>
+                            </div>
+                        )}
+                    </DialogHeader>
+                    <div className="p-4 bg-neutral-950 flex items-center justify-center min-h-[300px] max-h-[75vh] overflow-auto">
+                        {screenshotPreview && (
+                            <img
+                                src={screenshotPreview.startsWith('http') || screenshotPreview.startsWith('/') ? screenshotPreview : `/${screenshotPreview}`}
+                                alt="Payment Receipt"
+                                className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.onerror = null;
+                                    target.alt = 'Receipt image could not be loaded';
+                                }}
+                            />
+                        )}
+                    </div>
                 </DialogContent>
             </Dialog>
         </AppLayout>

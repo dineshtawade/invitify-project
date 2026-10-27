@@ -53,7 +53,17 @@ class PaymentSettingsController extends Controller
         ]);
 
         if ($request->hasFile('reseller_qr_code_file')) {
-            $path = $request->file('reseller_qr_code_file')->store('settings', 'public');
+            $file = $request->file('reseller_qr_code_file');
+            $filename = $file->hashName();
+            $path = $file->storeAs('settings', $filename, 'public');
+
+            // Mirror to public/storage/settings if it exists as a separate directory
+            $publicDir = public_path('storage/settings');
+            if (!is_dir($publicDir)) {
+                @mkdir($publicDir, 0755, true);
+            }
+            @copy(storage_path('app/public/' . $path), $publicDir . DIRECTORY_SEPARATOR . $filename);
+
             SystemSetting::set('reseller_qr_code', '/storage/' . $path);
         }
 

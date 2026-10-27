@@ -99,17 +99,34 @@ Route::post('business-cards/quick-login', [\App\Http\Controllers\Customer\Busine
 // Media Upload (Accessible publicly for card builder / guest designs)
 Route::post('/media/upload', [\App\Http\Controllers\MediaUploadController::class, 'upload'])->name('media.upload');
 
-// Serve storage files directly as a fallback for Windows/XAMPP symlink issues
-Route::get('/storage/media/{filename}', function ($filename) {
-    $path = storage_path('app/public/media/' . $filename);
-    if (!file_exists($path)) {
-        abort(404);
+// Serve storage files directly as a fallback for Windows/XAMPP symlink issues (handles settings, deposits, media, etc.)
+Route::get('/storage/{path}', function ($path) {
+    if (str_contains($path, '..')) {
+        abort(403);
     }
-    return response()->file($path, [
-        'Content-Type' => mime_content_type($path),
-        'Access-Control-Allow-Origin' => '*',
-    ]);
-});
+
+    // Check storage/app/public
+    $storagePath = storage_path('app/public/' . $path);
+    if (file_exists($storagePath) && !is_dir($storagePath)) {
+        return response()->file($storagePath, [
+            'Content-Type' => mime_content_type($storagePath),
+            'Access-Control-Allow-Origin' => '*',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
+
+    // Check public/storage
+    $publicPath = public_path('storage/' . $path);
+    if (file_exists($publicPath) && !is_dir($publicPath)) {
+        return response()->file($publicPath, [
+            'Content-Type' => mime_content_type($publicPath),
+            'Access-Control-Allow-Origin' => '*',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
+
+    abort(404);
+})->where('path', '.*');
 
 Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::class])->group(function () {
     // Media Library (Management)

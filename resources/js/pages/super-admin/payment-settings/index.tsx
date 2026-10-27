@@ -33,6 +33,7 @@ interface PaymentSettingsProps {
 }
 
 export default function PaymentSettings({ settings }: PaymentSettingsProps) {
+    const [qrPreview, setQrPreview] = useState<string | null>(null);
     const {
         data: configData,
         setData: setConfigData,
@@ -181,23 +182,69 @@ export default function PaymentSettings({ settings }: PaymentSettingsProps) {
                                     onChange={(e) => setConfigData('reseller_default_bonus_percentage', e.target.value)}
                                 />
                             </div>
-                            <div className="flex flex-col gap-2 col-span-1 md:col-span-2">
-                                <Label htmlFor="reseller_qr_code_file">Bank Payment QR Code</Label>
-                                <div className="flex items-center gap-4">
-                                    {settings.reseller_qr_code && (
-                                        <div className="shrink-0 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-950 p-2">
-                                            <img src={settings.reseller_qr_code} alt="QR Code" className="w-20 h-20 object-contain" />
+                            <div className="flex flex-col gap-3 col-span-1 md:col-span-2">
+                                <Label htmlFor="reseller_qr_code_file" className="font-semibold text-sm">
+                                    Bank Payment QR Code
+                                </Label>
+                                
+                                <div className="flex flex-col sm:flex-row items-start gap-4 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/30">
+                                    {/* Existing Saved QR Code */}
+                                    {settings.reseller_qr_code && !qrPreview && (
+                                        <div className="flex flex-col items-center gap-1.5 shrink-0 bg-white dark:bg-neutral-900 p-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-xs">
+                                            <img
+                                                src={settings.reseller_qr_code}
+                                                alt="Active Bank QR"
+                                                className="w-24 h-24 object-contain rounded-lg"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = '/images/placeholder-qr.png';
+                                                }}
+                                            />
+                                            <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full">
+                                                Active QR Code
+                                            </span>
                                         </div>
                                     )}
-                                    <Input
-                                        id="reseller_qr_code_file"
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => setConfigData('reseller_qr_code_file', e.target.files?.[0] || null)}
-                                        className="h-11"
-                                    />
+
+                                    {/* New Selected Preview */}
+                                    {qrPreview && (
+                                        <div className="flex flex-col items-center gap-1.5 shrink-0 bg-indigo-50 dark:bg-indigo-950/40 p-2.5 rounded-xl border-2 border-indigo-500 shadow-xs animate-in fade-in">
+                                            <img
+                                                src={qrPreview}
+                                                alt="New Selected QR Preview"
+                                                className="w-24 h-24 object-contain rounded-lg"
+                                            />
+                                            <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-900/60 px-2 py-0.5 rounded-full">
+                                                New QR Selected
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    <div className="flex-1 flex flex-col gap-2 w-full">
+                                        <Input
+                                            id="reseller_qr_code_file"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0] || null;
+                                                setConfigData('reseller_qr_code_file', file);
+                                                if (file) {
+                                                    setQrPreview(URL.createObjectURL(file));
+                                                } else {
+                                                    setQrPreview(null);
+                                                }
+                                            }}
+                                            className="h-11 cursor-pointer bg-white dark:bg-neutral-900"
+                                        />
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                            Upload a clear QR code image (UPI, GPay, PhonePe, or Bank QR in PNG/JPG, Max 2MB). Resellers will scan this exact QR code to transfer wallet funds.
+                                        </p>
+                                        {qrPreview && (
+                                            <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
+                                                Click "Save settings" below to persist the new QR code image.
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                                <p className="text-xs text-neutral-400">Upload a QR code (UPI/Bank) for resellers to scan and pay.</p>
                             </div>
                         </div>
                     </div>
