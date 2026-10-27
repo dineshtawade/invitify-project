@@ -13,7 +13,7 @@ import {
 import {
     Mail, Share2, Printer, Sparkles, Download, PlayCircle, Video,
     Copy, Check, QrCode, Loader2, Users, UserCheck, Heart, Phone, Search,
-    CheckCircle2, XCircle, HelpCircle, Globe, Layers, ArrowUpRight
+    CheckCircle2, XCircle, HelpCircle, Globe, Layers, ArrowUpRight, FileText
 } from 'lucide-react';
 import { normalizeConfig } from '@/utils/builder-utils';
 import { toPng } from 'html-to-image';
@@ -45,6 +45,9 @@ interface UserTemplate {
     };
     video_url?: string | null;
     edit_count: number;
+    invoice_number?: string | null;
+    invoice_url?: string | null;
+    invoice_download_url?: string | null;
 }
 
 interface BusinessCard {
@@ -861,6 +864,37 @@ export default function PurchasedInvitations({ purchasedTemplates, businessCards
                                                 )}
                                             </div>
                                         )}
+
+                                        {/* Tax Invoice Bar */}
+                                        {t.invoice_number ? (
+                                            <div className="mt-2 pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-2">
+                                                <div className="flex items-center gap-1.5 text-xs text-neutral-500 font-medium truncate">
+                                                    <FileText className="size-3.5 text-indigo-500 shrink-0" />
+                                                    <span className="font-mono text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 truncate">
+                                                        {t.invoice_number}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                    <a
+                                                        href={t.invoice_url || `/customer/invoices/${t.invoice_number}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-[11px] font-semibold transition-colors"
+                                                        title="View Invoice"
+                                                    >
+                                                        View
+                                                    </a>
+                                                    <a
+                                                        href={t.invoice_download_url || `/customer/invoices/${t.invoice_number}/download`}
+                                                        download
+                                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400 dark:hover:bg-indigo-900/40 text-[11px] font-semibold transition-colors"
+                                                        title="Download Tax Invoice PDF"
+                                                    >
+                                                        <Download className="size-3" /> PDF
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        ) : null}
                                     </div>
                                 </div>
                             );

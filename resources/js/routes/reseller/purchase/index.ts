@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::template
- * @see app/Http/Controllers/Reseller/PurchaseController.php:18
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:19
  * @route '/reseller/purchase/template'
  */
 export const template = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ template.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::template
- * @see app/Http/Controllers/Reseller/PurchaseController.php:18
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:19
  * @route '/reseller/purchase/template'
  */
 template.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ template.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::template
- * @see app/Http/Controllers/Reseller/PurchaseController.php:18
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:19
  * @route '/reseller/purchase/template'
  */
 template.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ template.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::template
- * @see app/Http/Controllers/Reseller/PurchaseController.php:18
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:19
  * @route '/reseller/purchase/template'
  */
     const templateForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ template.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::template
- * @see app/Http/Controllers/Reseller/PurchaseController.php:18
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:19
  * @route '/reseller/purchase/template'
  */
         templateForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -56,7 +56,7 @@ template.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     template.form = templateForm
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::miniWebsite
- * @see app/Http/Controllers/Reseller/PurchaseController.php:59
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:62
  * @route '/reseller/purchase/mini-website'
  */
 export const miniWebsite = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -71,7 +71,7 @@ miniWebsite.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::miniWebsite
- * @see app/Http/Controllers/Reseller/PurchaseController.php:59
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:62
  * @route '/reseller/purchase/mini-website'
  */
 miniWebsite.url = (options?: RouteQueryOptions) => {
@@ -80,7 +80,7 @@ miniWebsite.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::miniWebsite
- * @see app/Http/Controllers/Reseller/PurchaseController.php:59
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:62
  * @route '/reseller/purchase/mini-website'
  */
 miniWebsite.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -90,7 +90,7 @@ miniWebsite.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::miniWebsite
- * @see app/Http/Controllers/Reseller/PurchaseController.php:59
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:62
  * @route '/reseller/purchase/mini-website'
  */
     const miniWebsiteForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -100,7 +100,7 @@ miniWebsite.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::miniWebsite
- * @see app/Http/Controllers/Reseller/PurchaseController.php:59
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:62
  * @route '/reseller/purchase/mini-website'
  */
         miniWebsiteForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -111,7 +111,7 @@ miniWebsite.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     miniWebsite.form = miniWebsiteForm
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::businessWebsite
- * @see app/Http/Controllers/Reseller/PurchaseController.php:87
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:90
  * @route '/reseller/purchase/business-website'
  */
 export const businessWebsite = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -126,7 +126,7 @@ businessWebsite.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::businessWebsite
- * @see app/Http/Controllers/Reseller/PurchaseController.php:87
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:90
  * @route '/reseller/purchase/business-website'
  */
 businessWebsite.url = (options?: RouteQueryOptions) => {
@@ -135,7 +135,7 @@ businessWebsite.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::businessWebsite
- * @see app/Http/Controllers/Reseller/PurchaseController.php:87
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:90
  * @route '/reseller/purchase/business-website'
  */
 businessWebsite.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -145,7 +145,7 @@ businessWebsite.post = (options?: RouteQueryOptions): RouteDefinition<'post'> =>
 
     /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::businessWebsite
- * @see app/Http/Controllers/Reseller/PurchaseController.php:87
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:90
  * @route '/reseller/purchase/business-website'
  */
     const businessWebsiteForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -155,7 +155,7 @@ businessWebsite.post = (options?: RouteQueryOptions): RouteDefinition<'post'> =>
 
             /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::businessWebsite
- * @see app/Http/Controllers/Reseller/PurchaseController.php:87
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:90
  * @route '/reseller/purchase/business-website'
  */
         businessWebsiteForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

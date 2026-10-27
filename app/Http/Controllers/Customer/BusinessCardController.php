@@ -223,17 +223,13 @@ class BusinessCardController extends Controller
         $plan = $card->plan;
         $amount = (int) round($plan->price * 100);
 
-        $keyId = SystemSetting::get('razorpay_key_id');
-        $keySecret = SystemSetting::get('razorpay_key_secret');
+        $keyId = SystemSetting::get('razorpay_key_id') ?: env('RAZORPAY_KEY_ID', env('RAZORPAY_KEY'));
+        $keySecret = SystemSetting::get('razorpay_key_secret') ?: env('RAZORPAY_KEY_SECRET', env('RAZORPAY_SECRET'));
 
         if (empty($keyId) || empty($keySecret)) {
             return response()->json([
-                'order_id'    => 'mock_order_' . uniqid(),
-                'key_id'      => null,
-                'amount'      => $amount,
-                'plan_name'   => $plan->name,
-                'mock'        => true,
-            ]);
+                'error' => 'Razorpay credentials (Key ID / Secret) are not configured. Please enter your Razorpay Key ID and Secret in Super Admin -> Payment Settings or in your .env file.',
+            ], 422);
         }
 
         $data = [
@@ -302,7 +298,7 @@ class BusinessCardController extends Controller
         $orderId   = $validated['razorpay_order_id']   ?? ('mock_ord_' . uniqid());
 
         if (!$isMock) {
-            $keySecret = SystemSetting::get('razorpay_key_secret');
+            $keySecret = SystemSetting::get('razorpay_key_secret') ?: env('RAZORPAY_KEY_SECRET', env('RAZORPAY_SECRET'));
             $signature = $validated['razorpay_signature'] ?? '';
 
             if (empty($keySecret) || empty($signature)) {

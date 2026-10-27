@@ -132,7 +132,8 @@ export default function PublicInvitationSite({ website, flash, previewMode = nul
         }
     };
 
-    const renderDecorIcon = (iconName: string, color: string = 'currentColor') => {
+    const renderDecorIcon = (iconName?: string, color: string = 'currentColor') => {
+        const safeName = (iconName || 'ring').trim().toLowerCase();
         const iconClasses = "size-8 shrink-0";
 
         // Legacy fallback map
@@ -143,13 +144,13 @@ export default function PublicInvitationSite({ website, flash, previewMode = nul
             'bell': LucideIcons.Bell, 'compass': LucideIcons.Compass, 'flower': LucideIcons.Smile, 'ring': Award
         };
 
-        if (legacyMap[iconName]) {
-            const LegacyIcon = legacyMap[iconName];
+        if (legacyMap[safeName]) {
+            const LegacyIcon = legacyMap[safeName];
             return <LegacyIcon className={iconClasses} style={{ color }} />;
         }
 
-        const normalizedName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
-        const IconComponent = (LucideIcons as any)[normalizedName] || (LucideIcons as any)[iconName] || Award;
+        const normalizedName = safeName.charAt(0).toUpperCase() + safeName.slice(1);
+        const IconComponent = (LucideIcons as any)[normalizedName] || (LucideIcons as any)[safeName] || Award;
 
         return <IconComponent className={iconClasses} style={{ color }} />;
     };
@@ -678,6 +679,7 @@ export default function PublicInvitationSite({ website, flash, previewMode = nul
                     </div>
 
                     {/* RSVP Response Form Panel */}
+                    {(website.config?.rsvp?.enabled !== false && website.config?.include_rsvp !== false) && (
                     <div className={`rounded-3xl border p-8 sm:p-10 shadow-xl backdrop-blur-md ${activeTheme.card}`}>
                         <div className="text-center mb-6 flex flex-col gap-1.5">
                             <h3 className="font-serif text-2xl font-bold">{rsvp_heading}</h3>
@@ -782,6 +784,7 @@ export default function PublicInvitationSite({ website, flash, previewMode = nul
                             </form>
                         )}
                     </div>
+                    )}
 
                     <div className="text-center text-xs text-neutral-400 font-semibold flex items-center justify-center gap-1.5">
                         <Mail className="size-4" /> Powered by Invitify

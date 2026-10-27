@@ -158,7 +158,7 @@ approve.post = (args: { deposit: number | { id: number } } | [deposit: number | 
     approve.form = approveForm
 /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::reject
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:82
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:118
  * @route '/super-admin/resellers/deposits/{deposit}/reject'
  */
 export const reject = (args: { deposit: number | { id: number } } | [deposit: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -173,7 +173,7 @@ reject.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::reject
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:82
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:118
  * @route '/super-admin/resellers/deposits/{deposit}/reject'
  */
 reject.url = (args: { deposit: number | { id: number } } | [deposit: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -206,7 +206,7 @@ reject.url = (args: { deposit: number | { id: number } } | [deposit: number | { 
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::reject
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:82
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:118
  * @route '/super-admin/resellers/deposits/{deposit}/reject'
  */
 reject.post = (args: { deposit: number | { id: number } } | [deposit: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -216,7 +216,7 @@ reject.post = (args: { deposit: number | { id: number } } | [deposit: number | {
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::reject
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:82
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:118
  * @route '/super-admin/resellers/deposits/{deposit}/reject'
  */
     const rejectForm = (args: { deposit: number | { id: number } } | [deposit: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -226,7 +226,7 @@ reject.post = (args: { deposit: number | { id: number } } | [deposit: number | {
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::reject
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:82
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:118
  * @route '/super-admin/resellers/deposits/{deposit}/reject'
  */
         rejectForm.post = (args: { deposit: number | { id: number } } | [deposit: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -237,7 +237,7 @@ reject.post = (args: { deposit: number | { id: number } } | [deposit: number | {
     reject.form = rejectForm
 /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::adjustBalance
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:101
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:137
  * @route '/super-admin/resellers/adjust-balance'
  */
 export const adjustBalance = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -252,7 +252,7 @@ adjustBalance.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::adjustBalance
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:101
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:137
  * @route '/super-admin/resellers/adjust-balance'
  */
 adjustBalance.url = (options?: RouteQueryOptions) => {
@@ -261,7 +261,7 @@ adjustBalance.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::adjustBalance
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:101
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:137
  * @route '/super-admin/resellers/adjust-balance'
  */
 adjustBalance.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -271,7 +271,7 @@ adjustBalance.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::adjustBalance
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:101
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:137
  * @route '/super-admin/resellers/adjust-balance'
  */
     const adjustBalanceForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -281,7 +281,7 @@ adjustBalance.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::adjustBalance
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:101
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:137
  * @route '/super-admin/resellers/adjust-balance'
  */
         adjustBalanceForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

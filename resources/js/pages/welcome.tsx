@@ -33,7 +33,19 @@ import {
     Menu,
     X,
     Copy,
-    Flame
+    Flame,
+    ExternalLink,
+    TreePine,
+    RefreshCw,
+    Zap,
+    MessageSquare,
+    MapPin,
+    QrCode,
+    Download,
+    Rocket,
+    Bell,
+    DollarSign,
+    Video
 } from 'lucide-react';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -50,6 +62,7 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import EmailOtpAuthModal from '@/components/email-otp-auth-modal';
 
 interface Template {
     id: number;
@@ -237,6 +250,21 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
     const [previewWebsiteDevice, setPreviewWebsiteDevice] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
     const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
     const [previewBusinessCard, setPreviewBusinessCard] = useState<any | null>(null);
+    const [businessCardNotified, setBusinessCardNotified] = useState(false);
+
+    // Email OTP Auth Modal for Template Customization
+    // developed by dinesh tawade
+    const [selectedTemplateForOtp, setSelectedTemplateForOtp] = useState<Template | null>(null);
+    const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+
+    const handleStartCustomize = (t: Template) => {
+        if (auth?.user) {
+            router.visit(`/templates/${t.encrypted_id || t.id}/customize`);
+        } else {
+            setSelectedTemplateForOtp(t);
+            setIsOtpModalOpen(true);
+        }
+    };
 
     // Auth Required Dialog State
     const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
@@ -763,7 +791,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                             {displayedImageTemplates.map((t) => (
                                                 <div
                                                     key={t.id}
-                                                    onClick={() => setPreviewTemplate(t)}
+                                                    onClick={() => window.open(`/templates/${t.encrypted_id || t.id}/preview`, '_blank')}
                                                     className="w-[60vw] max-w-[260px] sm:w-auto sm:min-w-0 shrink-0 snap-center sm:snap-align-none group relative flex flex-col items-center hover:-translate-y-1 transition-transform duration-300 cursor-pointer"
                                                 >
                                                     <div className={`relative w-full aspect-[4/5] p-6 ${t.type !== 'video' ? `bg-gradient-to-tr ${t.bg_gradient}` : 'bg-neutral-900'} rounded-t-xl rounded-b shadow-md overflow-hidden flex flex-col items-center justify-center`}>
@@ -774,20 +802,25 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                                         )}
                                                         {/* Quick Preview Hover Overlay */}
                                                         <div className="absolute inset-0 bg-[#3e3832]/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-2 z-20 p-4">
-                                                            <button
-                                                                type="button"
-                                                                onClick={(e) => { e.stopPropagation(); setPreviewTemplate(t); }}
+                                                            <a
+                                                                href={`/templates/${t.encrypted_id || t.id}/preview`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
                                                                 className="w-full py-2 px-3 rounded-lg bg-[#fdfbf7] hover:bg-white text-[#3e3832] font-serif text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105"
                                                             >
-                                                                <Eye className="size-3.5 text-[#3d5644]" /> Live Preview
-                                                            </button>
-                                                            <Link
-                                                                href={`/templates/${t.encrypted_id}/customize`}
-                                                                onClick={(e) => e.stopPropagation()}
-                                                                className="w-full py-2 px-3 rounded-lg bg-[#3d5644] hover:bg-[#2c3e2e] text-white font-serif text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105"
+                                                                <Eye className="size-3.5 text-[#3d5644]" /> Live Preview <ExternalLink className="size-3 text-[#706557]" />
+                                                            </a>
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleStartCustomize(t);
+                                                                }}
+                                                                className="w-full py-2 px-3 rounded-lg bg-[#3d5644] hover:bg-[#2c3e2e] text-white font-serif text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105 cursor-pointer"
                                                             >
                                                                 <Sparkles className="size-3.5 text-yellow-300" /> Customize & Buy
-                                                            </Link>
+                                                            </button>
                                                         </div>
                                                         <div className="text-center pointer-events-none scale-90 opacity-90 transition-transform duration-300 group-hover:scale-95 relative z-10">
                                                             <p className="text-[10px] tracking-widest uppercase font-serif font-bold text-neutral-800">{t.default_config?.title}</p>
@@ -812,7 +845,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                             {displayedVideoTemplates.map((t) => (
                                                 <div
                                                     key={t.id}
-                                                    onClick={() => setPreviewTemplate(t)}
+                                                    onClick={() => window.open(`/templates/${t.encrypted_id || t.id}/preview`, '_blank')}
                                                     className="w-[60vw] max-w-[260px] sm:w-auto sm:min-w-0 shrink-0 snap-center sm:snap-align-none group relative flex flex-col items-center hover:-translate-y-1 transition-transform duration-300 cursor-pointer"
                                                 >
                                                     <div className={`relative w-full aspect-[4/5] p-6 bg-neutral-900 rounded-t-xl rounded-b shadow-md overflow-hidden flex flex-col items-center justify-center`}>
@@ -833,20 +866,25 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                                         )}
                                                         {/* Quick Preview Hover Overlay */}
                                                         <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-2 z-20 p-4">
-                                                            <button
-                                                                type="button"
-                                                                onClick={(e) => { e.stopPropagation(); setPreviewTemplate(t); }}
+                                                            <a
+                                                                href={`/templates/${t.encrypted_id || t.id}/preview`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
                                                                 className="w-full py-2 px-3 rounded-lg bg-[#fdfbf7] hover:bg-white text-[#3e3832] font-serif text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105"
                                                             >
-                                                                <PlayCircle className="size-3.5 text-indigo-400" /> Watch Preview
-                                                            </button>
-                                                            <Link
-                                                                href={`/templates/${t.encrypted_id}/customize`}
-                                                                onClick={(e) => e.stopPropagation()}
-                                                                className="w-full py-2 px-3 rounded-lg bg-[#3d5644] hover:bg-[#2c3e2e] text-white font-serif text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105"
+                                                                <PlayCircle className="size-3.5 text-indigo-400" /> Watch Preview <ExternalLink className="size-3 text-[#706557]" />
+                                                            </a>
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleStartCustomize(t);
+                                                                }}
+                                                                className="w-full py-2 px-3 rounded-lg bg-[#3d5644] hover:bg-[#2c3e2e] text-white font-serif text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105 cursor-pointer"
                                                             >
                                                                 <Sparkles className="size-3.5 text-yellow-300" /> Customize & Buy
-                                                            </Link>
+                                                            </button>
                                                         </div>
                                                         <div className="text-center pointer-events-none scale-90 opacity-90 transition-transform duration-300 group-hover:scale-95 relative z-10">
                                                             <PlayCircle className="size-12 text-white/80 mx-auto" />
@@ -888,7 +926,7 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                         return (
                                             <div
                                                 key={w.id}
-                                                onClick={() => setPreviewWebsite(w)}
+                                                onClick={() => window.open(`/mini-websites/template-preview/${w.id}`, '_blank')}
                                                 className="group relative flex flex-col items-center hover:-translate-y-1 transition-transform duration-300 cursor-pointer"
                                             >
                                                 <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#e0d6c8] flex items-center justify-center rounded-t-xl rounded-b shadow-md">
@@ -911,13 +949,15 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
 
                                                     {/* Quick Preview Hover Overlay */}
                                                     <div className="absolute inset-0 bg-[#3e3832]/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-2 z-20 p-4">
-                                                        <button
-                                                            type="button"
-                                                            onClick={(e) => { e.stopPropagation(); setPreviewWebsite(w); }}
+                                                        <a
+                                                            href={`/mini-websites/template-preview/${w.id}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            onClick={(e) => e.stopPropagation()}
                                                             className="w-full py-2 px-3 rounded-lg bg-[#fdfbf7] hover:bg-white text-[#3e3832] font-serif text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105"
                                                         >
-                                                            <Eye className="size-3.5 text-[#3d5644]" /> Live Preview
-                                                        </button>
+                                                            <Eye className="size-3.5 text-[#3d5644]" /> Live Preview <ExternalLink className="size-3 text-[#706557]" />
+                                                        </a>
                                                         <button
                                                             type="button"
                                                             onClick={(e) => {
@@ -953,74 +993,529 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                     )}
                 </section>
 
-                {/* ===== DIGITAL BUSINESS CARDS SECTION (always visible below showcase) ===== */}
-                <section id="digital-business-cards" className="relative z-10 max-w-6xl mx-auto px-6 py-16">
-                    <h1 className="text-3xl sm:text-4xl font-bold font-serif text-[#3e3832] text-center mb-24">Digital Business Cards</h1>
+                {/* ===== DIGITAL BUSINESS CARDS SECTION (Coming Soon & Benefits Showcase) ===== */}
+                <section id="digital-business-cards" className="relative z-10 w-full bg-gradient-to-b from-[#fbf8f2] via-[#f7f2e7] to-[#fbf8f2] border-y border-[#ebd9c1] py-16 sm:py-20 shadow-[inset_0_0_30px_rgba(235,217,193,0.35)]">
+                    <div className="max-w-6xl mx-auto px-6">
+                        
+                        {/* Section Header */}
+                        <div className="flex flex-col items-center justify-center text-center gap-3 mb-12">
+                            <div className="flex flex-wrap items-center justify-center gap-2">
+                                <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold font-serif bg-amber-100 text-amber-900 border border-amber-300/80 shadow-xs">
+                                    <Rocket className="size-3.5 text-amber-600 animate-bounce" /> Coming Soon • जल्द आ रहा है
+                                </span>
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-serif bg-emerald-100 text-emerald-900 border border-emerald-300/80 shadow-xs">
+                                    <TreePine className="size-3.5 text-emerald-700" /> 100% Eco-Friendly (Save Trees & Wood)
+                                </span>
+                            </div>
 
-                    {/* <div className="flex flex-col items-center justify-center text-center gap-2 mb-12">
-                        <h2 className="text-3xl sm:text-4xl font-bold font-serif text-[#3e3832]">
-                            Digital Visiting Cards with Mini Website
-                        </h2>
-                        <p className="text-[#706557] font-serif text-sm">
-                            Create Professional & Interactive E-Visiting Cards
-                        </p>
-                    </div>
- */}
+                            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-serif text-[#3e3832] tracking-tight">
+                                Smart Digital Business Cards
+                            </h2>
+                            <p className="text-sm sm:text-base font-serif text-[#706557] max-w-2xl leading-relaxed">
+                                Say goodbye to outdated paper cards! The eco-friendly, tap-to-share way to showcase your business. Save trees, share your profile anywhere, and update details anytime in real-time.
+                            </p>
+                        </div>
 
-                    <div ref={businessCardsScrollRef} className="flex overflow-x-auto pb-10 snap-x snap-mandatory gap-6 sm:grid sm:grid-cols-3 lg:grid-cols-5 relative w-full max-w-5xl mx-auto sm:overflow-visible sm:pb-0 sm:snap-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-2 sm:px-0">
-                        {showcasedDigitalCards.slice(0, 5).map((t, idx) => (
-                            <div
-                                key={t.id}
-                                onClick={() => setPreviewBusinessCard(t)}
-                                className={`w-[55vw] max-w-[220px] sm:w-auto sm:min-w-0 shrink-0 snap-center sm:snap-align-none group flex flex-col items-center hover:-translate-y-1 transition-all duration-300 relative cursor-pointer ${idx === 2 ? 'sm:z-20 sm:transform sm:scale-110 sm:-translate-y-4' : 'z-10'}`}
-                            >
-                                {/* Mobile Phone Mockup */}
-                                <div className="relative w-[85%] aspect-[9/19] rounded-[24px] border-[6px] border-[#2c3238] bg-white shadow-xl overflow-hidden">
+                        {/* Priority Notification Banner */}
+                        {businessCardNotified && (
+                            <div className="mb-10 max-w-2xl mx-auto flex items-center justify-between gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-sm font-serif font-bold shadow-md animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-center gap-2.5">
+                                    <CheckCircle2 className="size-5 text-emerald-600 shrink-0" />
+                                    <span>धन्यवाद! आप अर्ली-एक्सेस लॉन्च नोटिफिकेशन लिस्ट में शामिल हो गए हैं। जैसे ही कार्ड्स लाइव होंगे, आपको तुरंत सूचित किया जाएगा।</span>
+                                </div>
+                                <button onClick={() => setBusinessCardNotified(false)} className="text-emerald-700 hover:text-emerald-950 p-1">
+                                    <X className="size-4" />
+                                </button>
+                            </div>
+                        )}
 
-                                    {/* Notch */}
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[45%] h-4 bg-[#2c3238] rounded-b-xl z-20 flex items-center justify-center">
-                                        <div className="size-1 rounded-full bg-gray-900/50 mr-1.5"></div>
-                                        <div className="w-6 h-0.5 bg-gray-900/50 rounded-full"></div>
+                        {/* ===== HERO HIGHLIGHT: Interactive Card Showcase ===== */}
+                        <div className="relative overflow-hidden rounded-3xl bg-[#3e3832] text-white p-6 sm:p-10 lg:p-12 shadow-2xl border border-[#d3c0a3]/40 mb-16">
+                            {/* Decorative ambient blurs */}
+                            <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-emerald-600/20 blur-3xl pointer-events-none" />
+                            <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-amber-500/20 blur-3xl pointer-events-none" />
+
+                            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                                
+                                {/* Left Content */}
+                                <div className="lg:col-span-7 flex flex-col gap-5">
+                                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-emerald-300 w-fit">
+                                        <TreePine className="size-4 text-emerald-400" />
+                                        <span>Save Wood & Forests • 100% Tree-Free Green Solution</span>
                                     </div>
 
-                                    {/* Side Buttons (Visual Only) */}
-                                    <div className="absolute -left-[6px] top-12 w-1 h-6 bg-[#2c3238] rounded-r-none rounded-l-sm"></div>
-                                    <div className="absolute -left-[6px] top-20 w-1 h-10 bg-[#2c3238] rounded-r-none rounded-l-sm"></div>
-                                    <div className="absolute -left-[6px] top-32 w-1 h-10 bg-[#2c3238] rounded-r-none rounded-l-sm"></div>
-                                    <div className="absolute -right-[6px] top-24 w-1 h-12 bg-[#2c3238] rounded-l-none rounded-r-sm"></div>
+                                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold tracking-tight text-white leading-tight">
+                                        The Paper Card Era is Over.<br />
+                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-emerald-200 to-teal-100">
+                                            Smart Digital Networking
+                                        </span> Has Arrived.
+                                    </h3>
 
-                                    {/* Screen Content */}
-                                    <div className="relative w-full h-full bg-white rounded-[18px] overflow-hidden border-[2px] border-white/50">
-                                        <img
-                                            src={t.thumbnail}
-                                            alt={t.name}
-                                            className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                                            loading="lazy"
-                                            onError={(e) => { (e.target as HTMLImageElement).src = '/images/business-cards/template1.png'; }}
-                                        />
-                                        <div className="absolute inset-0 flex items-end opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[2px]">
-                                            <div className="w-full text-center py-2.5 bg-[#3d5644]/95 text-white text-[10px] font-bold font-serif uppercase tracking-wider backdrop-blur-md">
-                                                Preview Card
+                                    <p className="text-xs sm:text-sm text-neutral-300 font-serif leading-relaxed">
+                                        Did you know that over <strong>7 million trees are cut down every year</strong> for paper cards, and nearly <strong>88% are thrown away within a week</strong>?
+                                        Invitify Smart Digital Visiting Cards let you share contact info, location directions, product catalogues, and instant UPI payments with a single tap!
+                                    </p>
+
+                                    {/* Feature Highlights Grid */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                                        <div className="flex items-center gap-2.5 text-xs font-serif text-white/95 bg-white/10 backdrop-blur-sm p-3 rounded-xl border border-white/10">
+                                            <TreePine className="size-4 text-emerald-400 shrink-0" />
+                                            <span>🌲 100% Eco-Friendly (Zero Wood/Paper)</span>
+                                        </div>
+                                        <div className="flex items-center gap-2.5 text-xs font-serif text-white/95 bg-white/10 backdrop-blur-sm p-3 rounded-xl border border-white/10">
+                                            <Zap className="size-4 text-amber-400 shrink-0" />
+                                            <span>⚡ 1-Click WhatsApp & QR Code Share</span>
+                                        </div>
+                                        <div className="flex items-center gap-2.5 text-xs font-serif text-white/95 bg-white/10 backdrop-blur-sm p-3 rounded-xl border border-white/10">
+                                            <RefreshCw className="size-4 text-blue-400 shrink-0" />
+                                            <span>🔄 Live Instant Updates Anytime (No Reprints)</span>
+                                        </div>
+                                        <div className="flex items-center gap-2.5 text-xs font-serif text-white/95 bg-white/10 backdrop-blur-sm p-3 rounded-xl border border-white/10">
+                                            <Download className="size-4 text-purple-400 shrink-0" />
+                                            <span>📲 1-Tap Save to Phone Contacts (.vcf)</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Action buttons */}
+                                    <div className="flex flex-wrap items-center gap-3 pt-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setBusinessCardNotified(true);
+                                                setTimeout(() => setBusinessCardNotified(false), 5000);
+                                            }}
+                                            className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-serif font-bold text-xs sm:text-sm shadow-md flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
+                                        >
+                                            <Bell className="size-4" />
+                                            {businessCardNotified ? 'Notification Activated! 🎉' : 'Notify Me on Launch'}
+                                        </button>
+                                        <a
+                                            href="#card-templates-preview"
+                                            className="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-serif font-bold text-xs sm:text-sm transition-all"
+                                        >
+                                            Explore Upcoming Designs ▾
+                                        </a>
+                                    </div>
+                                </div>
+
+                                {/* Right: Realistic Smartphone Mockup */}
+                                <div className="lg:col-span-5 flex justify-center">
+                                    <div className="w-[270px] sm:w-[290px] rounded-[38px] p-2.5 bg-[#25211e] border-[6px] border-[#1b1816] shadow-2xl relative text-[#3e3832]">
+                                        
+                                        {/* Camera Notch */}
+                                        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-24 h-4 bg-[#1b1816] rounded-full z-30 flex items-center justify-center">
+                                            <div className="size-2 rounded-full bg-neutral-900 mr-2" />
+                                            <div className="size-1 rounded-full bg-emerald-500/50" />
+                                        </div>
+
+                                        {/* Screen */}
+                                        <div className="w-full bg-[#fdfbf7] rounded-[28px] overflow-hidden flex flex-col shadow-inner border border-[#ebd9c1]">
+                                            
+                                            {/* Cover Banner */}
+                                            <div className="h-24 bg-gradient-to-r from-[#3d5644] to-[#2c3e2e] relative p-3">
+                                                <span className="absolute top-2.5 right-2.5 text-[8px] bg-black/40 text-emerald-200 font-bold px-2 py-0.5 rounded-full backdrop-blur-sm uppercase tracking-wider">
+                                                    ECO CARD
+                                                </span>
+                                            </div>
+
+                                            {/* Profile Avatar & Details */}
+                                            <div className="px-4 pb-4 -mt-9 flex flex-col items-center text-center">
+                                                <div className="size-18 rounded-2xl border-3 border-white bg-gradient-to-tr from-amber-600 to-rose-600 shadow-md flex items-center justify-center text-white font-serif font-bold text-xl">
+                                                    VM
+                                                </div>
+
+                                                <div className="mt-2 flex items-center gap-1">
+                                                    <h4 className="font-serif font-bold text-sm text-[#3e3832]">Vikram Malhotra</h4>
+                                                    <ShieldCheck className="size-3.5 text-blue-600" />
+                                                </div>
+                                                <p className="text-[11px] font-bold text-[#3d5644]">Managing Director · Apex Enterprises</p>
+                                                <p className="text-[10px] text-[#706557]">Mumbai, Maharashtra</p>
+
+                                                {/* Action Buttons Row */}
+                                                <div className="grid grid-cols-4 gap-1.5 w-full mt-3">
+                                                    <div className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-blue-50 text-blue-700 text-[9px] font-bold">
+                                                        <Phone className="size-3" /> Call
+                                                    </div>
+                                                    <div className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-[9px] font-bold">
+                                                        <MessageSquare className="size-3" /> WhatsApp
+                                                    </div>
+                                                    <div className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-rose-50 text-rose-700 text-[9px] font-bold">
+                                                        <MapPin className="size-3" /> Map
+                                                    </div>
+                                                    <div className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-purple-50 text-purple-700 text-[9px] font-bold">
+                                                        <QrCode className="size-3" /> UPI Pay
+                                                    </div>
+                                                </div>
+
+                                                {/* Save Contact Button */}
+                                                <div className="w-full mt-2.5">
+                                                    <button className="w-full py-2 px-2.5 rounded-lg bg-[#3d5644] text-white font-serif font-bold text-[10px] flex items-center justify-center gap-1.5 shadow-xs">
+                                                        <Download className="size-3 text-emerald-300" /> Save to Contacts (.vcf)
+                                                    </button>
+                                                </div>
+
+                                                {/* Products / Services Badges */}
+                                                <div className="w-full mt-2.5 pt-2 border-t border-[#ebd9c1] text-left">
+                                                    <p className="text-[9px] font-bold uppercase text-[#706557] mb-1">Services & Showcase</p>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        <span className="text-[8px] bg-[#ebd9c1]/60 px-1.5 py-0.5 rounded font-semibold text-[#4a4238]">Corporate Gifts</span>
+                                                        <span className="text-[8px] bg-[#ebd9c1]/60 px-1.5 py-0.5 rounded font-semibold text-[#4a4238]">Event Decor</span>
+                                                        <span className="text-[8px] bg-[#ebd9c1]/60 px-1.5 py-0.5 rounded font-semibold text-[#4a4238]">Invitations</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div className={`w-[80%] ${idx === 2 ? 'mt-3' : 'mt-3'} z-20 bg-[#fdfbf7] border border-[#ebd9c1] rounded-lg p-2.5 text-center shadow-sm`}>
-                                    <p className="font-serif font-bold text-xs text-[#3e3832] truncate">{t.name}</p>
-                                </div>
                             </div>
-                        ))}
-                    </div>
+                        </div>
 
-                    {/* CTA Button */}
-                    <div className="mt-14 flex justify-center pb-8">
-                        <button
-                            type="button"
-                            onClick={() => handleSelectBusinessCard({ name: 'Digital Visiting Card' })}
-                            className="inline-flex items-center justify-center gap-2 bg-[#ebd9c1] text-[#4a4238] font-serif font-bold px-8 py-3 rounded text-sm shadow-md border border-[#d3c0a3] hover:bg-[#e0ccb2] transition-colors"
-                        >
-                            Create Visiting Card ▾
-                        </button>
+                        {/* ===== CORE BENEFITS (फायदे) SECTION ===== */}
+                        <div className="mb-16">
+                            <div className="text-center max-w-2xl mx-auto mb-10">
+                                <span className="text-xs font-bold uppercase tracking-wider text-[#3d5644] bg-[#ebd9c1]/50 px-3.5 py-1 rounded-full border border-[#d3c0a3]">
+                                    BENEFITS OF SMART DIGITAL CARDS
+                                </span>
+                                <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[#3e3832] mt-2">
+                                    डिजिटल विजिटिंग कार्ड के जबरदस्त फायदे
+                                </h3>
+                                <p className="text-xs sm:text-sm text-[#706557] font-serif mt-1">
+                                    Learn why switching from traditional paper cards to Invitify Digital Business Cards is the smartest choice for every business owner.
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                                
+                                {/* 1. Save Trees & Wood */}
+                                <div className="p-6 rounded-2xl bg-[#fdfbf7] border border-[#ebd9c1] shadow-xs hover:shadow-md hover:-translate-y-1 transition-all flex flex-col justify-between">
+                                    <div>
+                                        <div className="w-12 h-12 rounded-2xl bg-emerald-700 text-white flex items-center justify-center shadow-md mb-4">
+                                            <TreePine className="size-6" />
+                                        </div>
+                                        <h4 className="font-serif font-bold text-base text-[#3e3832] flex items-center gap-1.5">
+                                            Save Trees & Wood
+                                            <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full font-sans">Eco-Friendly</span>
+                                        </h4>
+                                        <p className="text-xs font-bold text-emerald-800 mt-0.5 font-serif">
+                                            पेड़ और पर्यावरण की भारी सुरक्षा
+                                        </p>
+                                        <p className="text-xs text-[#706557] mt-2.5 leading-relaxed font-serif">
+                                            Millions of trees are destroyed annually just to print paper business cards that end up in the dustbin within 7 days. Digital cards produce <strong>zero paper & wood waste</strong> and protect our planet.
+                                        </p>
+                                    </div>
+                                    <div className="mt-4 pt-3 border-t border-[#ebd9c1] text-[11px] font-bold text-emerald-800 flex items-center gap-1 font-serif">
+                                        <CheckCircle2 className="size-3.5 text-emerald-600" /> 100% Tree-Free Green Tech
+                                    </div>
+                                </div>
+
+                                {/* 2. Easily Share Anywhere */}
+                                <div className="p-6 rounded-2xl bg-[#fdfbf7] border border-[#ebd9c1] shadow-xs hover:shadow-md hover:-translate-y-1 transition-all flex flex-col justify-between">
+                                    <div>
+                                        <div className="w-12 h-12 rounded-2xl bg-[#3d5644] text-white flex items-center justify-center shadow-md mb-4">
+                                            <Zap className="size-6" />
+                                        </div>
+                                        <h4 className="font-serif font-bold text-base text-[#3e3832] flex items-center gap-1.5">
+                                            Share Easily Anywhere
+                                            <span className="text-[10px] bg-[#ebd9c1] text-[#4a4238] font-bold px-2 py-0.5 rounded-full font-sans">Instant</span>
+                                        </h4>
+                                        <p className="text-xs font-bold text-[#3d5644] mt-0.5 font-serif">
+                                            कहीं भी, किसी को भी तुरंत शेयर करें
+                                        </p>
+                                        <p className="text-xs text-[#706557] mt-2.5 leading-relaxed font-serif">
+                                            No need to carry bundles of paper cards. Share your card instantly via WhatsApp, QR Code scan, NFC card tap, SMS, Email, or social media bio with unlimited clients anywhere in the world.
+                                        </p>
+                                    </div>
+                                    <div className="mt-4 pt-3 border-t border-[#ebd9c1] text-[11px] font-bold text-[#3d5644] flex items-center gap-1 font-serif">
+                                        <CheckCircle2 className="size-3.5 text-emerald-600" /> WhatsApp · QR · NFC · Link
+                                    </div>
+                                </div>
+
+                                {/* 3. Update Everything Anytime */}
+                                <div className="p-6 rounded-2xl bg-[#fdfbf7] border border-[#ebd9c1] shadow-xs hover:shadow-md hover:-translate-y-1 transition-all flex flex-col justify-between">
+                                    <div>
+                                        <div className="w-12 h-12 rounded-2xl bg-amber-600 text-white flex items-center justify-center shadow-md mb-4">
+                                            <RefreshCw className="size-6" />
+                                        </div>
+                                        <h4 className="font-serif font-bold text-base text-[#3e3832] flex items-center gap-1.5">
+                                            Update Anytime Anywhere
+                                            <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full font-sans">Live Sync</span>
+                                        </h4>
+                                        <p className="text-xs font-bold text-amber-800 mt-0.5 font-serif">
+                                            कभी भी डिटेल्स अपडेट करें - नो री-प्रिंटिंग
+                                        </p>
+                                        <p className="text-xs text-[#706557] mt-2.5 leading-relaxed font-serif">
+                                            Changed your phone number, shop address, UPI ID, or services? Edit in seconds from your phone! All your previously shared cards and QR codes update live in real-time. Zero reprinting cost!
+                                        </p>
+                                    </div>
+                                    <div className="mt-4 pt-3 border-t border-[#ebd9c1] text-[11px] font-bold text-amber-800 flex items-center gap-1 font-serif">
+                                        <CheckCircle2 className="size-3.5 text-emerald-600" /> Zero Re-Printing Costs
+                                    </div>
+                                </div>
+
+                                {/* 4. 1-Tap Save to Phone Contacts */}
+                                <div className="p-6 rounded-2xl bg-[#fdfbf7] border border-[#ebd9c1] shadow-xs hover:shadow-md hover:-translate-y-1 transition-all flex flex-col justify-between">
+                                    <div>
+                                        <div className="w-12 h-12 rounded-2xl bg-purple-700 text-white flex items-center justify-center shadow-md mb-4">
+                                            <Download className="size-6" />
+                                        </div>
+                                        <h4 className="font-serif font-bold text-base text-[#3e3832] flex items-center gap-1.5">
+                                            1-Tap Save to Contacts
+                                            <span className="text-[10px] bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded-full font-sans">.vCard</span>
+                                        </h4>
+                                        <p className="text-xs font-bold text-purple-800 mt-0.5 font-serif">
+                                            क्लाइंट के फोन में एक क्लिक में नंबर सेव
+                                        </p>
+                                        <p className="text-xs text-[#706557] mt-2.5 leading-relaxed font-serif">
+                                            Clients hate typing 10 digits manually. With 1-click on "Save to Contacts", your complete name, numbers, company, email, and address are directly saved into their mobile phonebook.
+                                        </p>
+                                    </div>
+                                    <div className="mt-4 pt-3 border-t border-[#ebd9c1] text-[11px] font-bold text-purple-800 flex items-center gap-1 font-serif">
+                                        <CheckCircle2 className="size-3.5 text-emerald-600" /> Never Lose a Potential Lead
+                                    </div>
+                                </div>
+
+                                {/* 5. Save Printing Costs */}
+                                <div className="p-6 rounded-2xl bg-[#fdfbf7] border border-[#ebd9c1] shadow-xs hover:shadow-md hover:-translate-y-1 transition-all flex flex-col justify-between">
+                                    <div>
+                                        <div className="w-12 h-12 rounded-2xl bg-teal-700 text-white flex items-center justify-center shadow-md mb-4">
+                                            <DollarSign className="size-6" />
+                                        </div>
+                                        <h4 className="font-serif font-bold text-base text-[#3e3832] flex items-center gap-1.5">
+                                            Save Massive Printing Costs
+                                            <span className="text-[10px] bg-teal-100 text-teal-800 font-bold px-2 py-0.5 rounded-full font-sans">Lifetime</span>
+                                        </h4>
+                                        <p className="text-xs font-bold text-teal-800 mt-0.5 font-serif">
+                                            हजारों रुपये की री-प्रिंटिंग बचाएं
+                                        </p>
+                                        <p className="text-xs text-[#706557] mt-2.5 leading-relaxed font-serif">
+                                            Eliminate recurring paper printing, lamination, and design revision costs. One digital business card gives you lifetime value with unlimited shares.
+                                        </p>
+                                    </div>
+                                    <div className="mt-4 pt-3 border-t border-[#ebd9c1] text-[11px] font-bold text-teal-800 flex items-center gap-1 font-serif">
+                                        <CheckCircle2 className="size-3.5 text-emerald-600" /> High Return on Investment
+                                    </div>
+                                </div>
+
+                                {/* 6. Interactive Actions */}
+                                <div className="p-6 rounded-2xl bg-[#fdfbf7] border border-[#ebd9c1] shadow-xs hover:shadow-md hover:-translate-y-1 transition-all flex flex-col justify-between">
+                                    <div>
+                                        <div className="w-12 h-12 rounded-2xl bg-blue-700 text-white flex items-center justify-center shadow-md mb-4">
+                                            <Phone className="size-6" />
+                                        </div>
+                                        <h4 className="font-serif font-bold text-base text-[#3e3832] flex items-center gap-1.5">
+                                            Interactive Smart Features
+                                            <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full font-sans">Smart</span>
+                                        </h4>
+                                        <p className="text-xs font-bold text-blue-800 mt-0.5 font-serif">
+                                            कॉल, व्हाट्सएप, मैप्स और पेमेंट्स
+                                        </p>
+                                        <p className="text-xs text-[#706557] mt-2.5 leading-relaxed font-serif">
+                                            Direct Click-to-Call, WhatsApp chat without saving the number, Google Maps GPS directions to your doorstep, and instant UPI QR payments (GPay/PhonePe/Paytm).
+                                        </p>
+                                    </div>
+                                    <div className="mt-4 pt-3 border-t border-[#ebd9c1] text-[11px] font-bold text-blue-800 flex items-center gap-1 font-serif">
+                                        <CheckCircle2 className="size-3.5 text-emerald-600" /> All-In-One Networking
+                                    </div>
+                                </div>
+
+                                {/* 7. Products, Gallery & Videos */}
+                                <div className="p-6 rounded-2xl bg-[#fdfbf7] border border-[#ebd9c1] shadow-xs hover:shadow-md hover:-translate-y-1 transition-all flex flex-col justify-between">
+                                    <div>
+                                        <div className="w-12 h-12 rounded-2xl bg-rose-700 text-white flex items-center justify-center shadow-md mb-4">
+                                            <Video className="size-6" />
+                                        </div>
+                                        <h4 className="font-serif font-bold text-base text-[#3e3832] flex items-center gap-1.5">
+                                            Showcase Products & Videos
+                                            <span className="text-[10px] bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded-full font-sans">Catalog</span>
+                                        </h4>
+                                        <p className="text-xs font-bold text-rose-800 mt-0.5 font-serif">
+                                            प्रोडक्ट्स, पोर्टफोलियो और वीडियो
+                                        </p>
+                                        <p className="text-xs text-[#706557] mt-2.5 leading-relaxed font-serif">
+                                            Transform your card into a mini-website! Embed promotional YouTube videos, upload product catalogues with prices, photo galleries, and client testimonials.
+                                        </p>
+                                    </div>
+                                    <div className="mt-4 pt-3 border-t border-[#ebd9c1] text-[11px] font-bold text-rose-800 flex items-center gap-1 font-serif">
+                                        <CheckCircle2 className="size-3.5 text-emerald-600" /> Mini E-Commerce Ready
+                                    </div>
+                                </div>
+
+                                {/* 8. Modern Brand Presence */}
+                                <div className="p-6 rounded-2xl bg-[#fdfbf7] border border-[#ebd9c1] shadow-xs hover:shadow-md hover:-translate-y-1 transition-all flex flex-col justify-between">
+                                    <div>
+                                        <div className="w-12 h-12 rounded-2xl bg-[#4a4238] text-white flex items-center justify-center shadow-md mb-4">
+                                            <ShieldCheck className="size-6" />
+                                        </div>
+                                        <h4 className="font-serif font-bold text-base text-[#3e3832] flex items-center gap-1.5">
+                                            Elevate Brand Image
+                                            <span className="text-[10px] bg-[#ebd9c1] text-[#4a4238] font-bold px-2 py-0.5 rounded-full font-sans">Premium</span>
+                                        </h4>
+                                        <p className="text-xs font-bold text-[#4a4238] mt-0.5 font-serif">
+                                            आधुनिक और प्रभावशाली पहचान
+                                        </p>
+                                        <p className="text-xs text-[#706557] mt-2.5 leading-relaxed font-serif">
+                                            Leave a lasting, tech-forward impression at every client meeting, conference, and networking event with state-of-the-art interactive digital identity.
+                                        </p>
+                                    </div>
+                                    <div className="mt-4 pt-3 border-t border-[#ebd9c1] text-[11px] font-bold text-[#4a4238] flex items-center gap-1 font-serif">
+                                        <CheckCircle2 className="size-3.5 text-emerald-600" /> Stand Out From Competitors
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        {/* ===== COMPARISON MATRIX ===== */}
+                        <div className="rounded-3xl border border-[#ebd9c1] bg-[#fdfbf7] p-6 sm:p-8 shadow-sm mb-16">
+                            <div className="text-center max-w-xl mx-auto mb-6">
+                                <span className="text-xs font-bold uppercase tracking-wider text-[#706557] font-serif">
+                                    CLEAR ADVANTAGE
+                                </span>
+                                <h3 className="text-xl sm:text-2xl font-serif font-bold text-[#3e3832] mt-1">
+                                    Paper Business Card vs Invitify Smart Card
+                                </h3>
+                                <p className="text-xs text-[#706557] font-serif mt-1">
+                                    Compare traditional paper cards with Invitify's smart digital card.
+                                </p>
+                            </div>
+
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-xs sm:text-sm font-serif">
+                                    <thead>
+                                        <tr className="border-b border-[#ebd9c1] text-[#706557]">
+                                            <th className="py-3 px-4 font-bold">Feature</th>
+                                            <th className="py-3 px-4 font-bold text-rose-700">Traditional Paper Card</th>
+                                            <th className="py-3 px-4 font-bold text-emerald-800 bg-[#ebd9c1]/40 rounded-t-xl">
+                                                Invitify Smart Digital Card 🌟
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-[#ebd9c1]/60">
+                                        <tr>
+                                            <td className="py-3 px-4 font-semibold text-[#3e3832]">Environmental Impact</td>
+                                            <td className="py-3 px-4 text-[#706557]">❌ Destroys trees, heavy wood & paper waste</td>
+                                            <td className="py-3 px-4 font-bold text-emerald-800 bg-[#ebd9c1]/20">
+                                                ✅ 100% Tree-Free, Zero Paper & Carbon Neutral
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="py-3 px-4 font-semibold text-[#3e3832]">Sharing Method</td>
+                                            <td className="py-3 px-4 text-[#706557]">❌ In-person physical handover only</td>
+                                            <td className="py-3 px-4 font-bold text-emerald-800 bg-[#ebd9c1]/20">
+                                                ✅ WhatsApp, QR Code, NFC Tap, Link, SMS, Email
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="py-3 px-4 font-semibold text-[#3e3832]">Update Details (Phone/Address)</td>
+                                            <td className="py-3 px-4 text-[#706557]">❌ Throw away cards & pay for 500+ reprints</td>
+                                            <td className="py-3 px-4 font-bold text-emerald-800 bg-[#ebd9c1]/20">
+                                                ✅ Instant Real-time edit in 10s (Auto updates everywhere)
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="py-3 px-4 font-semibold text-[#3e3832]">Saving Contact in Phone</td>
+                                            <td className="py-3 px-4 text-[#706557]">❌ Manual typing required (88% lost)</td>
+                                            <td className="py-3 px-4 font-bold text-emerald-800 bg-[#ebd9c1]/20">
+                                                ✅ 1-Click "Save to Contacts" (.vcf directly into mobile)
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="py-3 px-4 font-semibold text-[#3e3832]">Direct Actions</td>
+                                            <td className="py-3 px-4 text-[#706557]">❌ Static text only</td>
+                                            <td className="py-3 px-4 font-bold text-emerald-800 bg-[#ebd9c1]/20">
+                                                ✅ Click-to-Call, WhatsApp Chat, Google Maps GPS
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="py-3 px-4 font-semibold text-[#3e3832]">Payment Collection</td>
+                                            <td className="py-3 px-4 text-[#706557]">❌ Physical card machine or cash only</td>
+                                            <td className="py-3 px-4 font-bold text-emerald-800 bg-[#ebd9c1]/20">
+                                                ✅ Integrated UPI QR (GPay, PhonePe, Paytm, BHIM)
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="py-3 px-4 font-semibold text-[#3e3832]">Recurring Costs</td>
+                                            <td className="py-3 px-4 text-[#706557]">❌ Continuous printing & lamination expenses</td>
+                                            <td className="py-3 px-4 font-bold text-emerald-800 bg-[#ebd9c1]/20">
+                                                ✅ Low one-time cost, unlimited lifetime shares
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* ===== UPCOMING THEMES PREVIEW GRID ===== */}
+                        <div id="card-templates-preview" className="flex flex-col gap-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#ebd9c1] pb-4">
+                                <div>
+                                    <h3 className="text-xl sm:text-2xl font-serif font-bold text-[#3e3832] flex items-center gap-2">
+                                        Explore Upcoming Themes <Sparkles className="size-5 text-amber-600" />
+                                    </h3>
+                                    <p className="text-xs text-[#706557] font-serif mt-0.5">
+                                        Click any theme to view a live interactive mobile preview before official launch.
+                                    </p>
+                                </div>
+                                <span className="text-xs font-serif font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#ebd9c1] text-[#4a4238] w-fit">
+                                    100+ Pro Designs In Production
+                                </span>
+                            </div>
+
+                            <div ref={businessCardsScrollRef} className="flex overflow-x-auto pb-6 snap-x snap-mandatory gap-6 sm:grid sm:grid-cols-3 lg:grid-cols-5 relative w-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-2 sm:px-0">
+                                {showcasedDigitalCards.slice(0, 10).map((t, idx) => (
+                                    <div
+                                        key={t.id}
+                                        onClick={() => setPreviewBusinessCard(t)}
+                                        className="w-[55vw] max-w-[220px] sm:w-auto sm:min-w-0 shrink-0 snap-center sm:snap-align-none group flex flex-col items-center hover:-translate-y-1 transition-all duration-300 relative cursor-pointer"
+                                    >
+                                        {/* Mobile Phone Mockup */}
+                                        <div className="relative w-[85%] aspect-[9/19] rounded-[24px] border-[6px] border-[#2c3238] bg-white shadow-xl overflow-hidden">
+                                            {/* Notch */}
+                                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[45%] h-4 bg-[#2c3238] rounded-b-xl z-20 flex items-center justify-center">
+                                                <div className="size-1 rounded-full bg-gray-900/50 mr-1.5" />
+                                                <div className="w-6 h-0.5 bg-gray-900/50 rounded-full" />
+                                            </div>
+
+                                            {/* Screen Content */}
+                                            <div className="relative w-full h-full bg-white rounded-[18px] overflow-hidden border-[2px] border-white/50">
+                                                <img
+                                                    src={t.thumbnail}
+                                                    alt={t.name}
+                                                    className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                                                    loading="lazy"
+                                                    onError={(e) => { (e.target as HTMLImageElement).src = '/images/business-cards/template1.png'; }}
+                                                />
+                                                <div className="absolute inset-0 flex items-end opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 backdrop-blur-[2px]">
+                                                    <div className="w-full text-center py-2.5 bg-[#3d5644]/95 text-white text-[10px] font-bold font-serif uppercase tracking-wider backdrop-blur-md flex items-center justify-center gap-1">
+                                                        <Eye className="size-3" /> Live Preview
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="w-[80%] mt-3 z-20 bg-[#fdfbf7] border border-[#ebd9c1] rounded-lg p-2.5 text-center shadow-xs">
+                                            <p className="font-serif font-bold text-xs text-[#3e3832] truncate">{t.name}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Call to Action Bar */}
+                            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-center">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setBusinessCardNotified(true);
+                                        setTimeout(() => setBusinessCardNotified(false), 5000);
+                                    }}
+                                    className="inline-flex items-center justify-center gap-2 bg-[#3d5644] hover:bg-[#2c3e2e] text-white font-serif font-bold px-8 py-3.5 rounded-xl text-sm shadow-md transition-all hover:scale-105"
+                                >
+                                    <Bell className="size-4 text-amber-300" />
+                                    Get Notified on Launch (अर्ली-एक्सेस लिस्ट)
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
                 </section>
 
@@ -1211,6 +1706,14 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                 </span>
                             </div>
                             <div className="flex items-center gap-3">
+                                <a
+                                    href={`/mini-websites/template-preview/${previewWebsite?.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hidden sm:inline-flex items-center gap-1.5 border border-[#ebd9c1] text-[#706557] hover:bg-[#f4ece1] rounded-xl px-4 py-2.5 text-xs font-serif font-bold transition-colors"
+                                >
+                                    <ExternalLink className="size-3.5" /> Open in New Tab
+                                </a>
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -1310,6 +1813,14 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                 </span>
                             </div>
                             <div className="flex items-center gap-3">
+                                <a
+                                    href={`/templates/${previewTemplate?.encrypted_id || previewTemplate?.id}/preview`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hidden sm:inline-flex items-center gap-1.5 border border-[#ebd9c1] text-[#706557] hover:bg-[#f4ece1] rounded-xl px-4 py-2.5 text-xs font-serif font-bold transition-colors"
+                                >
+                                    <ExternalLink className="size-3.5" /> Open in New Tab
+                                </a>
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -1318,14 +1829,18 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                                 >
                                     Close
                                 </Button>
-                                <Link
-                                    href={`/templates/${previewTemplate?.encrypted_id}/customize`}
-                                    onClick={() => setPreviewTemplate(null)}
-                                    className="inline-flex items-center gap-2 bg-[#3d5644] hover:bg-[#2c3e2e] text-white font-serif font-bold rounded-xl px-6 py-2.5 text-sm shadow-md transition-all hover:scale-105"
+                                <Button
+                                    type="button"
+                                    onClick={() => {
+                                        const t = previewTemplate;
+                                        setPreviewTemplate(null);
+                                        if (t) handleStartCustomize(t);
+                                    }}
+                                    className="inline-flex items-center gap-2 bg-[#3d5644] hover:bg-[#2c3e2e] text-white font-serif font-bold rounded-xl px-6 py-2.5 text-sm shadow-md transition-all hover:scale-105 cursor-pointer"
                                 >
                                     <Sparkles className="size-4 text-yellow-300" />
                                     Customize & Buy
-                                </Link>
+                                </Button>
                             </div>
                         </div>
                     </DialogContent>
@@ -1454,6 +1969,16 @@ export default function Welcome({ canRegister = true, templates = [], miniWebsit
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
+                {/* Email OTP Authentication Modal before entering template customization */}
+                {/* developed by dinesh tawade */}
+                <EmailOtpAuthModal
+                    isOpen={isOtpModalOpen}
+                    onClose={() => setIsOtpModalOpen(false)}
+                    template={selectedTemplateForOtp}
+                    onSuccess={(redirectUrl) => {
+                        window.location.href = redirectUrl;
+                    }}
+                />
             </div>
         </>
     );

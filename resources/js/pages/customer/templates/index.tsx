@@ -3,7 +3,7 @@ import { Head, Link } from '@inertiajs/react';
 import MiniWebsitePreview from '@/Components/MiniWebsitePreview';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Sparkles, ArrowRight, Globe, Layers, Briefcase } from 'lucide-react';
+import { Sparkles, ArrowRight, Globe, Layers, Briefcase, Eye } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -24,6 +24,8 @@ interface Template {
     bg_gradient: string;
     thumbnail: string | null;
     default_config: any;
+    encrypted_id?: string;
+    type?: string;
 }
 
 interface MiniTemplate {
@@ -216,12 +218,22 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                                                 </p>
                                             </div>
 
-                                            <Link
-                                                href={`/templates/${t.encrypted_id}/customize`}
-                                                className="mt-6 flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
-                                            >
-                                                Customize <ArrowRight className="size-4" />
-                                            </Link>
+                                            <div className="mt-6 flex items-center gap-2">
+                                                <a
+                                                    href={`/templates/${t.encrypted_id || t.id}/preview`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center justify-center gap-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 px-3 py-2.5 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                                                >
+                                                    <Eye className="size-3.5" /> Preview ↗
+                                                </a>
+                                                <Link
+                                                    href={`/templates/${t.encrypted_id || t.id}/customize`}
+                                                    className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2.5 text-center text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
+                                                >
+                                                    Customize <ArrowRight className="size-3.5" />
+                                                </Link>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -312,12 +324,22 @@ export default function TemplatesBrowse({ templates, miniTemplates = [], busines
                                                 </div>
                                             </div>
 
-                                            <Link
-                                                href={`/customer/mini-websites?template_id=${w.id}`}
-                                                className="mt-6 flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
-                                            >
-                                                Customize Website <ArrowRight className="size-4" />
-                                            </Link>
+                                            <div className="mt-6 flex items-center gap-2">
+                                                <a
+                                                    href={`/mini-websites/template-preview/${w.id}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center justify-center gap-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 px-3 py-2.5 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                                                >
+                                                    <Eye className="size-3.5" /> Preview ↗
+                                                </a>
+                                                <Link
+                                                    href={`/customer/mini-websites?template_id=${w.id}`}
+                                                    className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2.5 text-center text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
+                                                >
+                                                    Customize Website <ArrowRight className="size-3.5" />
+                                                </Link>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}

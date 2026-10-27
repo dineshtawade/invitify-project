@@ -10,6 +10,7 @@ use App\Models\MiniWebsiteTemplate;
 use App\Models\BusinessWebsite;
 use App\Models\BusinessWebsiteTemplate;
 use App\Models\Transaction;
+use App\Services\TaxService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -48,6 +49,8 @@ class PurchaseController extends Controller
                 'status' => 'completed',
                 'payment_method' => 'wallet',
             ]);
+
+            TaxService::ensureInvoice($transaction);
 
             // 3. Debit Wallet
             $wallet->debit($price, "Purchased Template: " . $template->name, $transaction);
@@ -144,6 +147,8 @@ class PurchaseController extends Controller
                 'payment_method' => 'wallet',
             ]);
 
+            TaxService::ensureInvoice($transaction);
+
             $wallet->debit($price, "Purchased Mini Website Template: " . $mini_website->title, $transaction);
 
             $mini_website->update([
@@ -186,6 +191,8 @@ class PurchaseController extends Controller
                 'status' => 'completed',
                 'payment_method' => 'wallet',
             ]);
+
+            TaxService::ensureInvoice($transaction);
 
             $wallet->debit($price, "Purchased Business Website Template: " . $business_website->title, $transaction);
 

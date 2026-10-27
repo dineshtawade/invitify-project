@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::customize
- * @see app/Http/Controllers/Reseller/TemplateController.php:18
+ * @see app/Http/Controllers/Reseller/TemplateController.php:19
  * @route '/reseller/templates/{encryptedId}/customize'
  */
 export const customize = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ customize.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::customize
- * @see app/Http/Controllers/Reseller/TemplateController.php:18
+ * @see app/Http/Controllers/Reseller/TemplateController.php:19
  * @route '/reseller/templates/{encryptedId}/customize'
  */
 customize.url = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -44,7 +44,7 @@ customize.url = (args: { encryptedId: string | number } | [encryptedId: string |
 
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::customize
- * @see app/Http/Controllers/Reseller/TemplateController.php:18
+ * @see app/Http/Controllers/Reseller/TemplateController.php:19
  * @route '/reseller/templates/{encryptedId}/customize'
  */
 customize.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -53,7 +53,7 @@ customize.get = (args: { encryptedId: string | number } | [encryptedId: string |
 })
 /**
 * @see \App\Http\Controllers\Reseller\TemplateController::customize
- * @see app/Http/Controllers/Reseller/TemplateController.php:18
+ * @see app/Http/Controllers/Reseller/TemplateController.php:19
  * @route '/reseller/templates/{encryptedId}/customize'
  */
 customize.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -63,7 +63,7 @@ customize.head = (args: { encryptedId: string | number } | [encryptedId: string 
 
     /**
 * @see \App\Http\Controllers\Reseller\TemplateController::customize
- * @see app/Http/Controllers/Reseller/TemplateController.php:18
+ * @see app/Http/Controllers/Reseller/TemplateController.php:19
  * @route '/reseller/templates/{encryptedId}/customize'
  */
     const customizeForm = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -73,7 +73,7 @@ customize.head = (args: { encryptedId: string | number } | [encryptedId: string 
 
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::customize
- * @see app/Http/Controllers/Reseller/TemplateController.php:18
+ * @see app/Http/Controllers/Reseller/TemplateController.php:19
  * @route '/reseller/templates/{encryptedId}/customize'
  */
         customizeForm.get = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -82,7 +82,7 @@ customize.head = (args: { encryptedId: string | number } | [encryptedId: string 
         })
             /**
 * @see \App\Http\Controllers\Reseller\TemplateController::customize
- * @see app/Http/Controllers/Reseller/TemplateController.php:18
+ * @see app/Http/Controllers/Reseller/TemplateController.php:19
  * @route '/reseller/templates/{encryptedId}/customize'
  */
         customizeForm.head = (args: { encryptedId: string | number } | [encryptedId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

@@ -14,10 +14,12 @@ import {
 import {
     Globe, Save, ExternalLink, CreditCard, Ticket,
     Check, AlertCircle, Loader2, Type, ImageIcon,
-    Video, Link as LinkIcon, ChevronRight, Eye, Smartphone, Monitor, Tablet, FileText, Clock
+    Video, Link as LinkIcon, ChevronRight, Eye, Smartphone, Monitor, Tablet, FileText, Clock,
+    ClipboardCheck
 } from 'lucide-react';
 import type { Block, WebsiteConfig } from '@/components/design-editor/types';
 import { getCsrfHeaders } from '@/lib/utils';
+import { normalizeRsvpConfig, generateRsvpSectionSnippet, stripRsvpSection } from '@/utils/rsvp-builder';
 import * as LucideIcons from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
@@ -164,6 +166,22 @@ function getCodeTemplateHtml(configData: any) {
     if (!configData || !configData.html) return null;
     let html = configData.html;
 
+    // Check if RSVP is enabled or disabled
+    const rsvpEnabled = configData.rsvp?.enabled ?? configData.include_rsvp ?? true;
+    if (!rsvpEnabled) {
+        html = stripRsvpSection(html);
+    } else {
+        if (!html.includes('id="invitify-rsvp-section"')) {
+            const norm = normalizeRsvpConfig(configData.rsvp);
+            const snippet = generateRsvpSectionSnippet(norm);
+            if (html.includes('</body>')) {
+                html = html.replace('</body>', snippet + '\n</body>');
+            } else {
+                html += snippet;
+            }
+        }
+    }
+
     // Inject the script for extracting and updating elements
     const scriptToInject = `
     <script class="invitify-editor-script">
@@ -257,6 +275,18 @@ function getElementIcon(el: Block) {
 }
 
 export default function ResellerMiniWebsiteEdit({ auth, wallet, website, customBlocks = [], coupons = [] }: PageProps) {
+    const initialRsvpEnabled = useMemo(() => {
+        if (website.config?.include_rsvp !== undefined) {
+            return Boolean(website.config.include_rsvp);
+        }
+        if (website.config?.rsvp?.enabled !== undefined) {
+            return Boolean(website.config.rsvp.enabled);
+        }
+        return true;
+    }, [website]);
+
+    const [includeRsvp, setIncludeRsvp] = useState<boolean>(initialRsvpEnabled);
+
     const normalizedConfig = useMemo(() => normalizeConfig(website.config), [website.config]);
 
     const [config, setConfig] = useState<any>(normalizedConfig);
@@ -269,6 +299,40 @@ export default function ResellerMiniWebsiteEdit({ auth, wallet, website, customB
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const configRef = useRef(config);
     configRef.current = config;
+
+    const handleRsvpToggle = (checked: boolean) => {
+        setIncludeRsvp(checked);
+        const updatedConfig = {
+            ...config,
+            include_rsvp: checked,
+            rsvp: {
+                ...(config?.rsvp || {}),
+                enabled: checked,
+            }
+        };
+        setConfig(updatedConfig);
+        configRef.current = updatedConfig;
+
+        // Directly update iframe live DOM without reloading iframe
+        if (isCodeTemplate && iframeRef.current) {
+            const doc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
+            if (doc && doc.body) {
+                const existingSection = doc.getElementById('invitify-rsvp-section');
+                if (!checked) {
+                    if (existingSection) existingSection.remove();
+                } else {
+                    if (!existingSection) {
+                        const norm = normalizeRsvpConfig(updatedConfig.rsvp);
+                        const snippet = generateRsvpSectionSnippet(norm);
+                        doc.body.insertAdjacentHTML('beforeend', snippet);
+                        if (doc.defaultView && (doc.defaultView as any).adaptRsvpTheme) {
+                            (doc.defaultView as any).adaptRsvpTheme();
+                        }
+                    }
+                }
+            }
+        }
+    };
 
     useEffect(() => {
         const handleMessage = (e: MessageEvent) => {
@@ -673,6 +737,37 @@ export default function ResellerMiniWebsiteEdit({ auth, wallet, website, customB
                                 ))}
                             </div>
                         )}
+
+                        {/* RSVP Feature Toggle Card */}
+                        <div className="p-3.5 border-b border-gray-200 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-white">
+                            <div className="flex items-center justify-between gap-2.5">
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                    <div className={`size-8 rounded-lg flex items-center justify-center shrink-0 shadow-xs transition-colors ${includeRsvp ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                                        <ClipboardCheck className="size-4" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="text-xs font-bold text-gray-900">RSVP Form</span>
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${includeRsvp ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}>
+                                                {includeRsvp ? 'Enabled' : 'Disabled'}
+                                            </span>
+                                        </div>
+                                        <p className="text-[11px] text-gray-500 truncate">
+                                            {includeRsvp ? 'RSVP form active on website' : 'No RSVP form on website'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                                    <input
+                                        type="checkbox"
+                                        checked={includeRsvp}
+                                        onChange={(e) => handleRsvpToggle(e.target.checked)}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                        </div>
 
                         {/* Editable Elements List */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -1110,6 +1205,32 @@ export default function ResellerMiniWebsiteEdit({ auth, wallet, website, customB
                             <span className="text-xs text-gray-400 uppercase font-bold">Hosting Website</span>
                             <span className="font-bold text-gray-800">{website.title}</span>
                             <span className="text-xs text-gray-500 font-mono">/mini-website/{website.slug}</span>
+                        </div>
+
+                        {/* RSVP Form Option Checkbox */}
+                        <div className={`rounded-xl border p-3.5 transition-all flex items-start justify-between gap-3 ${includeRsvp ? 'border-blue-300 bg-blue-50/60' : 'border-gray-200 bg-gray-50/80'}`}>
+                            <div className="flex items-start gap-3 min-w-0">
+                                <input
+                                    id="reseller-checkout-rsvp-checkbox"
+                                    type="checkbox"
+                                    checked={includeRsvp}
+                                    onChange={(e) => handleRsvpToggle(e.target.checked)}
+                                    className="mt-0.5 size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
+                                />
+                                <label htmlFor="reseller-checkout-rsvp-checkbox" className="cursor-pointer select-none">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className="text-xs font-bold text-gray-900">Include RSVP Form on Website</span>
+                                        <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${includeRsvp ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600'}`}>
+                                            {includeRsvp ? 'Yes, Include' : 'No RSVP'}
+                                        </span>
+                                    </div>
+                                    <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
+                                        {includeRsvp 
+                                            ? 'RSVP form will be included on your website so guests can submit attendance, food preferences & wishes.' 
+                                            : 'RSVP form will NOT be shown on your website.'}
+                                    </p>
+                                </label>
+                            </div>
                         </div>
 
                         {/* Duration Selector */}

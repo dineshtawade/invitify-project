@@ -103,6 +103,7 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
     const { data, setData, post, put, reset, processing } = useForm({
         name: '',
         status: 'published',
+        has_gst: false,
         price: '0.00',
         reseller_price: '0.00',
         preview_image: '',
@@ -290,6 +291,7 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
         setData({
             name: '',
             status: 'published',
+            has_gst: false,
             price: '0.00',
             reseller_price: '0.00',
             preview_image: '',
@@ -316,6 +318,7 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
         setData({
             name: template.name,
             status: template.status || 'published',
+            has_gst: Boolean(template.has_gst),
             price: String(template.price),
             reseller_price: String(template.reseller_price || '0.00'),
             preview_image: template.preview_image || '',
@@ -437,7 +440,16 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 font-bold text-emerald-600 dark:text-emerald-450">
-                                                ₹{parseFloat(String(t.price)).toFixed(2)}
+                                                <div>₹{parseFloat(String(t.price)).toFixed(2)}</div>
+                                                {t.has_gst ? (
+                                                    <span className="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800 mt-0.5">
+                                                        ✓ GST Active
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center text-[10px] text-neutral-400 mt-0.5">
+                                                        No GST
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex justify-end gap-2">
@@ -972,6 +984,20 @@ export default function MiniWebsiteTemplatesIndex({ templates, customBlocks = []
                                 <div className="flex items-center gap-2">
                                     <Label className="text-[11px] uppercase tracking-wider font-semibold text-neutral-500 whitespace-nowrap">Reseller Price</Label>
                                     <Input type="number" step="0.01" value={data.reseller_price} onChange={e => setData('reseller_price', e.target.value)} className="h-8 w-24 text-sm" />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <label htmlFor="mini_has_gst" className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950 cursor-pointer text-xs font-semibold hover:border-emerald-400 transition-colors" title="Check this box to apply GST on this template">
+                                        <input
+                                            id="mini_has_gst"
+                                            type="checkbox"
+                                            checked={Boolean(data.has_gst)}
+                                            onChange={e => setData('has_gst', e.target.checked)}
+                                            className="rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 size-3.5"
+                                        />
+                                        <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+                                            Apply GST
+                                        </span>
+                                    </label>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 w-full sm:w-auto justify-end">

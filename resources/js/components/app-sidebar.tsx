@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Users, Layers, Mail, Globe, CreditCard, Receipt, Briefcase, Share2, Wallet, ShoppingBag, History, Settings, FileSignature, Ticket, UserCheck } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, Users, Layers, Mail, Globe, CreditCard, Receipt, Briefcase, Share2, Wallet, ShoppingBag, History, Settings, FileSignature, Ticket, UserCheck, ReceiptText, FileText } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -88,6 +88,16 @@ export function AppSidebar() {
                 icon: Receipt,
             },
             {
+                title: 'GST Management',
+                href: '/super-admin/taxes',
+                icon: ReceiptText,
+            },
+            {
+                title: 'Invoice Management',
+                href: '/super-admin/invoices',
+                icon: FileText,
+            },
+            {
                 title: 'Referral Partners',
                 href: '/super-admin/referrals',
                 icon: Share2,
@@ -157,6 +167,11 @@ export function AppSidebar() {
                 title: 'Payment History',
                 href: '/reseller/payment-history',
                 icon: History,
+            },
+            {
+                title: 'Invoices',
+                href: '/reseller/invoices',
+                icon: ReceiptText,
             }
         );
     } else if (userRole === 'referral_partner') {

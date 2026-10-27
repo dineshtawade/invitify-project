@@ -36,13 +36,38 @@ Route::get('/cookie-policy', function () {
 
 
 
+// User Registration Email OTP Verification Routes
+// developed by dinesh tawade
+Route::post('register/send-otp', [\App\Http\Controllers\Auth\RegisterOtpController::class, 'sendOtp'])->name('register.send-otp');
+Route::post('register/resend-otp', [\App\Http\Controllers\Auth\RegisterOtpController::class, 'resendOtp'])->name('register.resend-otp');
+Route::post('register/verify-otp', [\App\Http\Controllers\Auth\RegisterOtpController::class, 'verifyOtp'])->name('register.verify-otp');
+
+// User Email OTP Login / Verification Routes (Fast Auth Before Customize & Buy)
+// developed by dinesh tawade
+Route::post('auth/otp/send', [\App\Http\Controllers\Auth\EmailOtpAuthController::class, 'sendOtp'])->name('auth.otp.send');
+Route::post('auth/otp/resend', [\App\Http\Controllers\Auth\EmailOtpAuthController::class, 'resendOtp'])->name('auth.otp.resend');
+Route::post('auth/otp/verify', [\App\Http\Controllers\Auth\EmailOtpAuthController::class, 'verifyOtp'])->name('auth.otp.verify');
+Route::post('auth/password/login', [\App\Http\Controllers\Auth\EmailOtpAuthController::class, 'loginWithPassword'])->name('auth.password.login');
+
+
+
 Route::match(['get', 'post'], 'templates/{encryptedId}/customize', [\App\Http\Controllers\Customer\TemplateController::class, 'edit'])
     ->name('customer.templates.customize');
 Route::post('templates/quick-checkout-auth', [\App\Http\Controllers\Customer\TemplateController::class, 'quickCheckoutAuth'])
     ->name('customer.templates.quick-auth');
 
+// Template & Video Public Previews (Opens in New Tab / Window)
+// developed by dinesh tawade
+Route::get('templates/{encryptedId}/preview', [\App\Http\Controllers\Customer\TemplateController::class, 'preview'])
+    ->name('templates.preview');
+
 Route::get('invitations/view/{encryptedId}', [\App\Http\Controllers\Customer\TemplateController::class, 'viewShared'])
     ->name('invitations.view');
+
+// Public Invitation Website Template Preview (Opens in New Tab / Window)
+// developed by dinesh tawade
+Route::get('mini-websites/template-preview/{id}', [\App\Http\Controllers\Customer\MiniWebsiteController::class, 'previewTemplate'])
+    ->name('mini-websites.template-preview');
 
 // Public Invitation Website Builder Routing (Guest + Authenticated)
 // developed by dinesh tawade
@@ -74,17 +99,34 @@ Route::post('business-cards/quick-login', [\App\Http\Controllers\Customer\Busine
 // Media Upload (Accessible publicly for card builder / guest designs)
 Route::post('/media/upload', [\App\Http\Controllers\MediaUploadController::class, 'upload'])->name('media.upload');
 
-// Serve storage files directly as a fallback for Windows/XAMPP symlink issues
-Route::get('/storage/media/{filename}', function ($filename) {
-    $path = storage_path('app/public/media/' . $filename);
-    if (!file_exists($path)) {
-        abort(404);
+// Serve storage files directly as a fallback for Windows/XAMPP symlink issues (handles settings, deposits, media, etc.)
+Route::get('/storage/{path}', function ($path) {
+    if (str_contains($path, '..')) {
+        abort(403);
     }
-    return response()->file($path, [
-        'Content-Type' => mime_content_type($path),
-        'Access-Control-Allow-Origin' => '*',
-    ]);
-});
+
+    // Check storage/app/public
+    $storagePath = storage_path('app/public/' . $path);
+    if (file_exists($storagePath) && !is_dir($storagePath)) {
+        return response()->file($storagePath, [
+            'Content-Type' => mime_content_type($storagePath),
+            'Access-Control-Allow-Origin' => '*',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
+
+    // Check public/storage
+    $publicPath = public_path('storage/' . $path);
+    if (file_exists($publicPath) && !is_dir($publicPath)) {
+        return response()->file($publicPath, [
+            'Content-Type' => mime_content_type($publicPath),
+            'Access-Control-Allow-Origin' => '*',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
+
+    abort(404);
+})->where('path', '.*');
 
 Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::class])->group(function () {
     // Media Library (Management)
@@ -252,6 +294,30 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
         Route::post('super-admin/resellers/update-online-bonus', [\App\Http\Controllers\SuperAdmin\ResellerDepositController::class, 'updateOnlineBonus'])
             ->name('super-admin.resellers.update-online-bonus');
 
+        // GST & Tax Management
+        // developed by dinesh tawade
+        Route::get('super-admin/taxes', [\App\Http\Controllers\SuperAdmin\TaxController::class, 'index'])
+            ->name('super-admin.taxes.index');
+        Route::post('super-admin/taxes/settings', [\App\Http\Controllers\SuperAdmin\TaxController::class, 'updateSettings'])
+            ->name('super-admin.taxes.update-settings');
+        Route::post('super-admin/taxes/templates/{id}', [\App\Http\Controllers\SuperAdmin\TaxController::class, 'updateTemplateTax'])
+            ->name('super-admin.taxes.update-template');
+        Route::post('super-admin/taxes/website-templates/{id}', [\App\Http\Controllers\SuperAdmin\TaxController::class, 'updateWebsiteTemplateTax'])
+            ->name('super-admin.taxes.update-website-template');
+
+        // Invoice Management
+        // developed by dinesh tawade
+        Route::get('super-admin/invoices', [\App\Http\Controllers\InvoiceController::class, 'index'])
+            ->name('super-admin.invoices.index');
+        Route::get('super-admin/invoices/download-all', [\App\Http\Controllers\InvoiceController::class, 'downloadAllPdf'])
+            ->name('super-admin.invoices.download-all');
+        Route::get('super-admin/invoices/{invoiceNumber}', [\App\Http\Controllers\InvoiceController::class, 'show'])
+            ->name('super-admin.invoices.show');
+        Route::get('super-admin/invoices/{invoiceNumber}/download', [\App\Http\Controllers\InvoiceController::class, 'downloadPdf'])
+            ->name('super-admin.invoices.download');
+        Route::get('super-admin/invoices/{invoiceNumber}/stream', [\App\Http\Controllers\InvoiceController::class, 'streamPdf'])
+            ->name('super-admin.invoices.stream');
+
     });
 
     // Reseller Routes
@@ -326,6 +392,18 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('reseller.business-cards.draft-create');
         Route::post('reseller/business-cards/{business_card}/purchase', [\App\Http\Controllers\Reseller\BusinessCardController::class, 'purchase'])
             ->name('reseller.business-cards.purchase');
+
+        // Reseller Invoice Management
+        Route::get('reseller/invoices', [\App\Http\Controllers\Reseller\InvoiceController::class, 'index'])
+            ->name('reseller.invoices.index');
+        Route::get('reseller/invoices/download-all', [\App\Http\Controllers\Reseller\InvoiceController::class, 'downloadAllPdf'])
+            ->name('reseller.invoices.download-all');
+        Route::get('reseller/invoices/{invoiceNumber}', [\App\Http\Controllers\Reseller\InvoiceController::class, 'show'])
+            ->name('reseller.invoices.show');
+        Route::get('reseller/invoices/{invoiceNumber}/download', [\App\Http\Controllers\Reseller\InvoiceController::class, 'downloadPdf'])
+            ->name('reseller.invoices.download');
+        Route::get('reseller/invoices/{invoiceNumber}/stream', [\App\Http\Controllers\Reseller\InvoiceController::class, 'streamPdf'])
+            ->name('reseller.invoices.stream');
     });
 
     // Referral Partner Routes
@@ -383,6 +461,12 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureApproved::clas
             ->name('customer.user-templates.claim');
         Route::get('customer/my-invitations', [\App\Http\Controllers\Customer\TemplateController::class, 'purchased'])
             ->name('customer.my-invitations');
+        Route::get('customer/invoices/{invoiceNumber}', [\App\Http\Controllers\InvoiceController::class, 'show'])
+            ->name('customer.invoices.show');
+        Route::get('customer/invoices/{invoiceNumber}/download', [\App\Http\Controllers\InvoiceController::class, 'downloadPdf'])
+            ->name('customer.invoices.download');
+        Route::get('customer/invoices/{invoiceNumber}/stream', [\App\Http\Controllers\InvoiceController::class, 'streamPdf'])
+            ->name('customer.invoices.stream');
 
         // Customer Subscriptions
         Route::get('customer/subscriptions', [\App\Http\Controllers\Customer\SubscriptionController::class, 'index'])

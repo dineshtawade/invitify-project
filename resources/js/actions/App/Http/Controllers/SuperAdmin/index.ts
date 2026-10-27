@@ -15,6 +15,7 @@ import BusinessCardPlanController from './BusinessCardPlanController'
 import ReferralController from './ReferralController'
 import WalletController from './WalletController'
 import ResellerDepositController from './ResellerDepositController'
+import TaxController from './TaxController'
 const SuperAdmin = {
     DashboardController: Object.assign(DashboardController, DashboardController),
 UserController: Object.assign(UserController, UserController),
@@ -33,6 +34,7 @@ BusinessCardPlanController: Object.assign(BusinessCardPlanController, BusinessCa
 ReferralController: Object.assign(ReferralController, ReferralController),
 WalletController: Object.assign(WalletController, WalletController),
 ResellerDepositController: Object.assign(ResellerDepositController, ResellerDepositController),
+TaxController: Object.assign(TaxController, TaxController),
 }
 
 export default SuperAdmin

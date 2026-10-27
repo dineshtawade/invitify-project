@@ -12,17 +12,26 @@ class MiniWebsiteTemplate extends Model
     protected $fillable = [
         'name',
         'status',
+        'has_gst',
         'type',
         'price',
-        'reseller_price',
         'preview_image',
         'config',
+        'gst_rate',
+        'platform_fee',
+        'platform_fee_type',
+        'hsn_sac_code',
+        'tax_inclusive',
     ];
 
     protected $casts = [
         'config' => 'array',
         'price' => 'decimal:2',
         'reseller_price' => 'decimal:2',
+        'has_gst' => 'boolean',
+        'gst_rate' => 'decimal:2',
+        'platform_fee' => 'decimal:2',
+        'tax_inclusive' => 'boolean',
     ];
 
     /**

@@ -72,11 +72,47 @@ class ResellerDepositController extends Controller
             'processed_at' => now(),
         ]);
 
+        $taxSettings = \App\Services\TaxService::getSettings();
+        $gstRate = floatval($taxSettings['default_gst_rate'] ?? 18.0);
+        $taxAmount = round($deposit->amount * ($gstRate / 100), 2);
+        $totalPayable = round($deposit->amount + $taxAmount, 2);
+
+        $resellerUser = $deposit->user;
+        $resellerDetails = is_array($resellerUser->reseller_details) 
+            ? $resellerUser->reseller_details 
+            : (json_decode($resellerUser->reseller_details ?? '', true) ?: []);
+        $resellerState = $resellerDetails['state'] ?? $resellerDetails['business_state'] ?? null;
+        $companyState = trim($taxSettings['company_state'] ?? 'Maharashtra');
+        $isInterState = !empty($resellerState) && (strcasecmp(trim($resellerState), $companyState) !== 0);
+
+        $transaction = \App\Models\Transaction::create([
+            'user_id' => $deposit->user_id,
+            'amount' => $totalPayable,
+            'base_amount' => $deposit->amount,
+            'tax_rate' => $gstRate,
+            'tax_amount' => $taxAmount,
+            'cgst_amount' => $isInterState ? 0.0 : round($taxAmount / 2, 2),
+            'sgst_amount' => $isInterState ? 0.0 : round($taxAmount - round($taxAmount / 2, 2), 2),
+            'igst_amount' => $isInterState ? $taxAmount : 0.0,
+            'is_inter_state' => $isInterState,
+            'customer_billing_name' => $resellerDetails['business_name'] ?? $resellerUser->name,
+            'customer_billing_email' => $resellerDetails['email'] ?? $resellerUser->email,
+            'customer_billing_phone' => $resellerDetails['mobile_number'] ?? $resellerUser->mobile,
+            'customer_billing_address' => $resellerDetails['business_address'] ?? null,
+            'customer_billing_state' => $resellerState ?: $companyState,
+            'customer_gstin' => $resellerDetails['gst_number'] ?? null,
+            'status' => 'completed',
+            'payment_method' => 'bank_transfer',
+            'payment_id' => $deposit->utr,
+            'order_id' => 'DEP-' . $deposit->id,
+        ]);
+        \App\Services\TaxService::ensureInvoice($transaction);
+
         // Credit the wallet
         $wallet = $deposit->user->getOrCreateWallet();
-        $wallet->credit($totalAmount, "Manual Wallet Deposit Approved - Principal: ₹{$deposit->amount}, Bonus: ₹{$bonusAmount} ({$bonusPercentage}%)");
+        $wallet->credit($totalAmount, "Manual Wallet Deposit Approved - Principal: ₹{$deposit->amount}, Bonus: ₹{$bonusAmount} ({$bonusPercentage}%)", $transaction);
 
-        return redirect()->back()->with('status', "Deposit request for ₹{$deposit->amount} approved! Wallet credited with ₹{$totalAmount}.");
+        return redirect()->back()->with('status', "Deposit request for ₹{$deposit->amount} (Total with GST: ₹{$totalPayable}) approved! Wallet credited with ₹{$totalAmount}.");
     }
 
     public function reject(Request $request, ManualDeposit $deposit)

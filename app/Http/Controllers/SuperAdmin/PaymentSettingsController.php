@@ -17,8 +17,8 @@ class PaymentSettingsController extends Controller
      */
     public function index()
     {
-        $keyId = SystemSetting::get('razorpay_key_id', '');
-        $hasSecret = !is_null(SystemSetting::get('razorpay_key_secret'));
+        $keyId = SystemSetting::get('razorpay_key_id', '') ?: env('RAZORPAY_KEY_ID', env('RAZORPAY_KEY', ''));
+        $hasSecret = !is_null(SystemSetting::get('razorpay_key_secret')) || !empty(env('RAZORPAY_KEY_SECRET', env('RAZORPAY_SECRET')));
 
         return Inertia::render('super-admin/payment-settings/index', [
             'settings' => [
@@ -53,17 +53,27 @@ class PaymentSettingsController extends Controller
         ]);
 
         if ($request->hasFile('reseller_qr_code_file')) {
-            $path = $request->file('reseller_qr_code_file')->store('settings', 'public');
+            $file = $request->file('reseller_qr_code_file');
+            $filename = $file->hashName();
+            $path = $file->storeAs('settings', $filename, 'public');
+
+            // Mirror to public/storage/settings if it exists as a separate directory
+            $publicDir = public_path('storage/settings');
+            if (!is_dir($publicDir)) {
+                @mkdir($publicDir, 0755, true);
+            }
+            @copy(storage_path('app/public/' . $path), $publicDir . DIRECTORY_SEPARATOR . $filename);
+
             SystemSetting::set('reseller_qr_code', '/storage/' . $path);
         }
 
         if (array_key_exists('razorpay_key_id', $validated)) {
-            SystemSetting::set('razorpay_key_id', $validated['razorpay_key_id']);
+            SystemSetting::set('razorpay_key_id', trim($validated['razorpay_key_id'] ?? ''));
         }
 
         // Only update secret if a new one is provided (non-empty)
         if (!empty($validated['razorpay_key_secret'])) {
-            SystemSetting::set('razorpay_key_secret', $validated['razorpay_key_secret'], true);
+            SystemSetting::set('razorpay_key_secret', trim($validated['razorpay_key_secret']), true);
         }
 
         // Reseller manual banking details

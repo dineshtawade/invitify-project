@@ -31,7 +31,20 @@ class MiniWebsiteController extends Controller
         $templateId = $request->query('template_id');
         $template = MiniWebsiteTemplate::find($templateId) ?? MiniWebsiteTemplate::where('status', 'published')->first();
         if (!$template) {
-            return redirect()->route('home');
+            $template = MiniWebsiteTemplate::first();
+        }
+        if (!$template) {
+            $template = MiniWebsiteTemplate::create([
+                'name' => 'Royal Celebration Mini Website',
+                'type' => 'invitation',
+                'price' => 199.00,
+                'status' => 'published',
+                'config' => [
+                    'theme' => 'cozy',
+                    'html' => '<div style="font-family:serif;text-align:center;padding:40px 20px;background:#fdfbf7;min-height:100vh;"><h1 style="font-size:36px;color:#3e3832;margin-bottom:12px;">Wedding Celebration</h1><p style="font-size:18px;color:#706557;">Join us for an unforgettable evening of love and joy</p></div>',
+                    'elements' => []
+                ],
+            ]);
         }
 
         if (auth()->check()) {
@@ -79,7 +92,31 @@ class MiniWebsiteController extends Controller
             'website' => $website,
             'customBlocks' => \App\Models\CustomBlock::orderBy('name')->get(),
             'coupons' => $coupons,
+            'taxSettings' => \App\Services\TaxService::getSettings(),
             'isGuest' => true,
+        ]);
+    }
+
+    /**
+     * Dedicated live preview for an Invitation Website template
+     * Opens in a new tab/window with device switcher (Desktop, Tablet, Mobile)
+     * and a direct "Customize & Buy" action.
+     * developed by dinesh tawade
+     */
+    public function previewTemplate($id)
+    {
+        $template = MiniWebsiteTemplate::findOrFail($id);
+
+        return Inertia::render('public/website-template-preview', [
+            'template' => [
+                'id' => $template->id,
+                'name' => $template->name,
+                'type' => $template->type,
+                'price' => floatval($template->price),
+                'preview_image' => $template->preview_image,
+                'config' => $template->config,
+            ],
+            'customizeUrl' => route('mini-websites.guest-builder', ['template_id' => $template->id]),
         ]);
     }
 
@@ -243,6 +280,7 @@ class MiniWebsiteController extends Controller
             'website' => $mini_website,
             'customBlocks' => \App\Models\CustomBlock::orderBy('name')->get(),
             'coupons' => $coupons,
+            'taxSettings' => \App\Services\TaxService::getSettings(),
         ]);
     }
 
@@ -387,7 +425,20 @@ class MiniWebsiteController extends Controller
         $request->validate([
             'days' => 'required|integer|min:1',
             'referral_code' => 'nullable|string',
+            'include_rsvp' => 'nullable|boolean',
         ]);
+
+        if ($request->has('include_rsvp')) {
+            $includeRsvp = $request->boolean('include_rsvp');
+            $cfg = $mini_website->config ?? [];
+            $cfg['include_rsvp'] = $includeRsvp;
+            if (!isset($cfg['rsvp']) || !is_array($cfg['rsvp'])) {
+                $cfg['rsvp'] = [];
+            }
+            $cfg['rsvp']['enabled'] = $includeRsvp;
+            $mini_website->config = $cfg;
+            $mini_website->save();
+        }
 
         $days = (int) $request->input('days');
         $mini_website->load('template');
@@ -451,13 +502,80 @@ class MiniWebsiteController extends Controller
             }
         }
 
-        $finalPrice = max(0.0, $originalPrice - $discountAmount);
+        // Customer billing & GST inputs
+        $billingState = $request->input('billing_state') ?: null;
+        $billingName = $request->input('billing_name') ?: auth()->user()->name;
+        $billingAddress = $request->input('billing_address') ?: null;
+        $customerGstin = $request->input('customer_gstin') ? strtoupper(trim($request->input('customer_gstin'))) : null;
+
+        // Determine GST on hosting subscription (user checked option OR template has GST forced):
+        $template = $mini_website->template;
+        $applyGst = $request->has('apply_gst')
+            ? $request->boolean('apply_gst')
+            : ($template ? (bool) ($template->has_gst ?? false) : false);
+
+        $taxCalc = null;
+        if ($applyGst) {
+            $request->validate([
+                'billing_name' => 'required|string|min:3|max:255',
+                'customer_gstin' => [
+                    'required',
+                    'string',
+                    'size:15',
+                    'regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/'
+                ],
+                'billing_address' => 'required|string|min:5|max:500',
+                'billing_state' => 'nullable|string|max:100',
+            ], [
+                'billing_name.required' => 'Company / Billing name is required.',
+                'billing_name.min' => 'Company / Billing name must be at least 3 characters.',
+                'customer_gstin.required' => 'GST number (GSTIN) is required.',
+                'customer_gstin.size' => 'GST number must be exactly 15 characters.',
+                'customer_gstin.regex' => 'Invalid GSTIN format. Must be 15-character valid Indian GSTIN (e.g. 27AAAAA0000A1Z5).',
+                'billing_address.required' => 'Billing address is required for GST invoice.',
+                'billing_address.min' => 'Billing address must be at least 5 characters.',
+            ]);
+
+            $billingName = trim($request->input('billing_name'));
+            $billingAddress = trim($request->input('billing_address'));
+            $customerGstin = strtoupper(trim($request->input('customer_gstin')));
+
+            $mockItem = (object) [
+                'price' => $hostingPrice,
+                'has_gst' => true,
+                'gst_rate' => $template?->gst_rate,
+                'platform_fee' => null,
+                'tax_inclusive' => $template?->tax_inclusive,
+                'hsn_sac_code' => $template?->hsn_sac_code ?: '998314',
+            ];
+            $taxCalc = \App\Services\TaxService::calculate($mockItem, $discountAmount, $billingState);
+            $finalPrice = $taxCalc['total_amount'];
+        } else {
+            $finalPrice = max(0.0, $hostingPrice - $discountAmount);
+            $taxCalc = [
+                'base_price' => (float) $hostingPrice,
+                'discount_amount' => $discountAmount,
+                'discounted_base' => $finalPrice,
+                'platform_fee' => 0.0,
+                'taxable_amount' => $finalPrice,
+                'tax_rate' => 0.0,
+                'tax_amount' => 0.0,
+                'cgst_amount' => 0.0,
+                'sgst_amount' => 0.0,
+                'igst_amount' => 0.0,
+                'is_inter_state' => false,
+                'total_amount' => $finalPrice,
+                'hsn_sac_code' => '998314',
+                'has_gst' => false,
+            ];
+        }
+
         $amount = (int) round($finalPrice * 100); // Amount in paise
 
-        $keyId = SystemSetting::get('razorpay_key_id');
-        $keySecret = SystemSetting::get('razorpay_key_secret');
+        $keyId = SystemSetting::get('razorpay_key_id') ?: env('RAZORPAY_KEY_ID', env('RAZORPAY_KEY'));
+        $keySecret = SystemSetting::get('razorpay_key_secret') ?: env('RAZORPAY_KEY_SECRET', env('RAZORPAY_SECRET'));
 
-        // Store referral/payment details in session for verification step
+        // Store referral/payment/GST details in session for verification step
         session(['mini_website_checkout_' . $mini_website->id => [
             'referral_code_id' => $referralCodeId,
             'discount_amount' => $discountAmount,
@@ -465,17 +583,18 @@ class MiniWebsiteController extends Controller
             'days' => $days,
             'amount' => $finalPrice,
             'global_coupon_code' => $globalCouponUsed,
+            'tax_calc' => $taxCalc,
+            'billing_name' => $billingName,
+            'billing_address' => $billingAddress,
+            'billing_state' => $billingState,
+            'customer_gstin' => $customerGstin,
         ]]);
 
-        // If credentials are not set, fallback to mock order
+        // If credentials are not configured, do not allow silent free purchase!
         if (empty($keyId) || empty($keySecret)) {
             return response()->json([
-                'order_id' => 'mock_order_' . uniqid(),
-                'key_id' => null,
-                'amount' => $amount,
-                'mock' => true,
-                'discount_amount' => $discountAmount,
-            ]);
+                'error' => 'Razorpay credentials (Key ID / Secret) are not configured. Please enter your Razorpay Key ID and Secret in Super Admin -> Payment Settings or in your .env file.',
+            ], 422);
         }
 
         // Create Razorpay Order using cURL
@@ -515,6 +634,7 @@ class MiniWebsiteController extends Controller
             'amount' => $amount,
             'mock' => false,
             'discount_amount' => $discountAmount,
+            'tax_calc' => $taxCalc,
         ]);
     }
 
@@ -536,6 +656,11 @@ class MiniWebsiteController extends Controller
             'days' => 1,
             'amount' => 0.0,
             'global_coupon_code' => null,
+            'tax_calc' => null,
+            'billing_name' => auth()->user()->name,
+            'billing_address' => null,
+            'billing_state' => null,
+            'customer_gstin' => null,
         ]);
         session()->forget($sessionKey);
 
@@ -544,6 +669,7 @@ class MiniWebsiteController extends Controller
         $globalCouponCode = $checkoutData['global_coupon_code'] ?? null;
         $days = $checkoutData['days'];
         $finalAmount = $checkoutData['amount'];
+        $taxCalc = $checkoutData['tax_calc'] ?? null;
 
         // Calculate commission
         $commissionAmount = 0.0;
@@ -555,49 +681,18 @@ class MiniWebsiteController extends Controller
             }
         }
 
+        $invoiceNumber = \App\Services\TaxService::generateInvoiceNumber();
         $mock = $request->input('mock', false);
 
         if ($mock) {
-            $keyId = SystemSetting::get('razorpay_key_id');
-            $keySecret = SystemSetting::get('razorpay_key_secret');
-
-            if (!empty($keyId) && !empty($keySecret)) {
-                abort(400, 'Mock payment is disabled when credentials are set.');
-            }
-
-            // Extend hosting expiration
-            $this->extendHostingExpiration($mini_website, $days);
-
-            $transaction = Transaction::create([
-                'user_id' => auth()->id(),
-                'mini_website_template_id' => $mini_website->template_id,
-                'mini_website_id' => $mini_website->id,
-                'amount' => $finalAmount,
-                'payment_id' => 'mock_pay_' . uniqid(),
-                'order_id' => 'mock_ord_' . uniqid(),
-                'status' => 'completed',
-                'payment_method' => 'mock',
-                'referral_code_id' => $referralCodeId,
-                'discount_amount' => $discountAmount,
-                'commission_amount' => $commissionAmount,
-                'global_coupon_code' => $globalCouponCode,
-            ]);
-
-            // Credit commission to referral partner's wallet
-            $this->creditReferralCommission($referralCodeId, $commissionAmount, $transaction);
-
-            // Send congratulatory purchase email with website URL
-            // developed by dinesh tawade
-            $this->sendPurchaseEmail($mini_website, $transaction->order_id, (float) $finalAmount, $days);
-
-            return Inertia::location('/mini-website/' . $mini_website->slug);
+            abort(400, 'Mock payment without gateway is disabled. Please complete payment through Razorpay.');
         }
 
         // Verify Razorpay Payment Signature
         $paymentId = $request->input('razorpay_payment_id');
         $orderId = $request->input('razorpay_order_id');
         $signature = $request->input('razorpay_signature');
-        $keySecret = SystemSetting::get('razorpay_key_secret');
+        $keySecret = SystemSetting::get('razorpay_key_secret') ?: env('RAZORPAY_KEY_SECRET', env('RAZORPAY_SECRET'));
 
         if (empty($paymentId) || empty($orderId) || empty($signature) || empty($keySecret)) {
             abort(400, 'Invalid payment details or secret not found.');
@@ -614,6 +709,21 @@ class MiniWebsiteController extends Controller
                 'mini_website_template_id' => $mini_website->template_id,
                 'mini_website_id' => $mini_website->id,
                 'amount' => $finalAmount,
+                'base_amount' => $taxCalc['taxable_amount'] ?? ($finalAmount - ($taxCalc['tax_amount'] ?? 0)),
+                'tax_amount' => $taxCalc['tax_amount'] ?? 0,
+                'cgst_amount' => $taxCalc['cgst_amount'] ?? 0,
+                'sgst_amount' => $taxCalc['sgst_amount'] ?? 0,
+                'igst_amount' => $taxCalc['igst_amount'] ?? 0,
+                'tax_rate' => $taxCalc['tax_rate'] ?? 0,
+                'is_inter_state' => $taxCalc['is_inter_state'] ?? false,
+                'platform_fee' => $taxCalc['platform_fee'] ?? 0,
+                'customer_billing_name' => $checkoutData['billing_name'] ?? auth()->user()->name,
+                'customer_billing_email' => auth()->user()->email,
+                'customer_billing_address' => $checkoutData['billing_address'] ?? null,
+                'customer_billing_state' => $checkoutData['billing_state'] ?? null,
+                'customer_gstin' => $checkoutData['customer_gstin'] ?? null,
+                'invoice_number' => $invoiceNumber,
+                'invoice_date' => now(),
                 'payment_id' => $paymentId,
                 'order_id' => $orderId,
                 'status' => 'completed',
@@ -628,7 +738,6 @@ class MiniWebsiteController extends Controller
             $this->creditReferralCommission($referralCodeId, $commissionAmount, $transaction);
 
             // Send congratulatory purchase email with website URL
-            // developed by dinesh tawade
             $this->sendPurchaseEmail($mini_website, $orderId, (float) $finalAmount, $days);
 
             return Inertia::location('/mini-website/' . $mini_website->slug);

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::purchaseTemplate
- * @see app/Http/Controllers/Reseller/PurchaseController.php:114
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:117
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
 export const purchaseTemplate = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ purchaseTemplate.definition = {
 
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::purchaseTemplate
- * @see app/Http/Controllers/Reseller/PurchaseController.php:114
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:117
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
 purchaseTemplate.url = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ purchaseTemplate.url = (args: { mini_website: string | { uuid: string } } | [min
 
 /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::purchaseTemplate
- * @see app/Http/Controllers/Reseller/PurchaseController.php:114
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:117
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
 purchaseTemplate.post = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -59,7 +59,7 @@ purchaseTemplate.post = (args: { mini_website: string | { uuid: string } } | [mi
 
     /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::purchaseTemplate
- * @see app/Http/Controllers/Reseller/PurchaseController.php:114
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:117
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
     const purchaseTemplateForm = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -69,7 +69,7 @@ purchaseTemplate.post = (args: { mini_website: string | { uuid: string } } | [mi
 
             /**
 * @see \App\Http\Controllers\Reseller\PurchaseController::purchaseTemplate
- * @see app/Http/Controllers/Reseller/PurchaseController.php:114
+ * @see app/Http/Controllers/Reseller/PurchaseController.php:117
  * @route '/reseller/mini-websites/{mini_website}/purchase-template'
  */
         purchaseTemplateForm.post = (args: { mini_website: string | { uuid: string } } | [mini_website: string | { uuid: string } ] | string | { uuid: string }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

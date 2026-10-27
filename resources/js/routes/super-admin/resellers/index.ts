@@ -2,7 +2,7 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFo
 import deposits from './deposits'
 /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::adjustBalance
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:101
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:137
  * @route '/super-admin/resellers/adjust-balance'
  */
 export const adjustBalance = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -17,7 +17,7 @@ adjustBalance.definition = {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::adjustBalance
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:101
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:137
  * @route '/super-admin/resellers/adjust-balance'
  */
 adjustBalance.url = (options?: RouteQueryOptions) => {
@@ -26,7 +26,7 @@ adjustBalance.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::adjustBalance
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:101
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:137
  * @route '/super-admin/resellers/adjust-balance'
  */
 adjustBalance.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -36,7 +36,7 @@ adjustBalance.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
 
     /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::adjustBalance
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:101
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:137
  * @route '/super-admin/resellers/adjust-balance'
  */
     const adjustBalanceForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -46,7 +46,7 @@ adjustBalance.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
 
             /**
 * @see \App\Http\Controllers\SuperAdmin\ResellerDepositController::adjustBalance
- * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:101
+ * @see app/Http/Controllers/SuperAdmin/ResellerDepositController.php:137
  * @route '/super-admin/resellers/adjust-balance'
  */
         adjustBalanceForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
