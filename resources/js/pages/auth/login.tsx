@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -62,14 +62,20 @@ export default function Login({
     const [otpSuccess, setOtpSuccess] = useState<string | null>(null);
     const [isOtpVerified, setIsOtpVerified] = useState(false);
 
+    const isVerifyingRef = useRef(false);
+
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-        const intended = params.get('intended');
+        const intended = params.get('intended') || params.get('redirect') || params.get('redirect_url');
         const notice = params.get('notice');
         const templateName = params.get('template_name');
 
+        const pendingRedirect = sessionStorage.getItem('pending_redirect_url') || localStorage.getItem('pending_redirect_url');
+
         if (intended) {
             setIntendedUrl(intended);
+        } else if (pendingRedirect) {
+            setIntendedUrl(pendingRedirect);
         }
 
         if (notice === 'auth_required_to_customize') {
@@ -198,17 +204,22 @@ export default function Login({
     };
 
     const handleVerifyOtp = async (codeToVerify?: string) => {
+        if (isVerifyingRef.current || isOtpVerified) return;
+
         const finalOtp = codeToVerify || otpCode;
         if (!finalOtp || finalOtp.length !== 6) {
             setOtpError('Please enter the complete 6-digit verification code.');
             return;
         }
 
+        isVerifyingRef.current = true;
         setIsOtpVerifying(true);
         setOtpError(null);
         setOtpSuccess(null);
 
         try {
+            const redirectTarget = intendedUrl || sessionStorage.getItem('pending_redirect_url') || undefined;
+
             const res = await fetch('/auth/otp/verify', {
                 method: 'POST',
                 headers: {
@@ -219,8 +230,9 @@ export default function Login({
                 body: JSON.stringify({
                     email: otpEmail.trim(),
                     otp: finalOtp,
+                    name: otpName.trim() || undefined,
                     password: otpPassword.trim() || undefined,
-                    redirect_url: intendedUrl || undefined,
+                    redirect_url: redirectTarget,
                 }),
             });
 
@@ -234,19 +246,28 @@ export default function Login({
                     'Invalid or expired code. Please try again.'
                 );
                 setIsOtpVerifying(false);
+                isVerifyingRef.current = false;
                 return;
             }
 
             setIsOtpVerified(true);
             setOtpSuccess('Verified successfully! Redirecting...');
 
+            if (sessionStorage.getItem('pending_redirect_url')) {
+                sessionStorage.removeItem('pending_redirect_url');
+            }
+            if (localStorage.getItem('pending_redirect_url')) {
+                localStorage.removeItem('pending_redirect_url');
+            }
+
             const target = data.redirect || intendedUrl || '/dashboard';
             setTimeout(() => {
                 window.location.href = target;
-            }, 600);
+            }, 500);
         } catch (err: any) {
             setOtpError('Network connection error. Please try again.');
             setIsOtpVerifying(false);
+            isVerifyingRef.current = false;
         }
     };
 

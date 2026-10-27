@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Auth\EmailOtpAuthController::login
- * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:288
+ * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:305
  * @route '/auth/password/login'
  */
 export const login = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ login.definition = {
 
 /**
 * @see \App\Http\Controllers\Auth\EmailOtpAuthController::login
- * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:288
+ * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:305
  * @route '/auth/password/login'
  */
 login.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ login.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Auth\EmailOtpAuthController::login
- * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:288
+ * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:305
  * @route '/auth/password/login'
  */
 login.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ login.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Auth\EmailOtpAuthController::login
- * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:288
+ * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:305
  * @route '/auth/password/login'
  */
     const loginForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ login.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Auth\EmailOtpAuthController::login
- * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:288
+ * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:305
  * @route '/auth/password/login'
  */
         loginForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

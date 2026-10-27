@@ -304,6 +304,7 @@ export default function EmailOtpAuthModal({
                 body: JSON.stringify({
                     email: email.trim(),
                     otp: finalOtp,
+                    name: name.trim() || undefined,
                     password: otpSetupPassword.trim() || undefined,
                     redirect_url: targetCustomizeUrl,
                 }),

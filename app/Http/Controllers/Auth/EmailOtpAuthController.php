@@ -222,13 +222,17 @@ class EmailOtpAuthController extends Controller
         $user = User::where('email', $email)->first();
 
         // Determine password to set if provided
-        $hashedPassword = !empty($validated['password'])
-            ? Hash::make($validated['password'])
+        $passwordInput = $request->input('password');
+        $hashedPassword = !empty($passwordInput)
+            ? Hash::make($passwordInput)
             : ($regData['password'] ?? null);
 
         if (!$user) {
             // Create verified customer user with chosen password
-            $name = $regData['name'] ?? explode('@', $email)[0];
+            $name = trim($request->input('name') ?? '')
+                ?: ($regData['name'] ?? null)
+                ?: explode('@', $email)[0];
+
             $user = User::create([
                 'name' => $name,
                 'email' => $email,
@@ -259,11 +263,24 @@ class EmailOtpAuthController extends Controller
             $request->session()->regenerate();
         }
 
-        // Determine target redirect URL
-        $redirectUrl = $validated['redirect_url']
+        // Determine default role dashboard redirect
+        if ($user->role === 'super_admin') {
+            $defaultRedirect = route('super-admin.dashboard');
+        } elseif ($user->role === 'editor') {
+            $defaultRedirect = route('super-admin.templates');
+        } elseif ($user->role === 'reseller') {
+            $defaultRedirect = route('reseller.dashboard');
+        } elseif ($user->role === 'referral_partner') {
+            $defaultRedirect = route('referral-partner.dashboard');
+        } else {
+            $defaultRedirect = route('customer.dashboard');
+        }
+
+        // Determine target redirect URL safely
+        $redirectUrl = $request->input('redirect_url')
             ?: ($regData['redirect_url'] ?? null)
             ?: session('url.intended')
-            ?: route('customer.dashboard');
+            ?: $defaultRedirect;
 
         // Clear stored intended URL
         session()->forget('url.intended');
@@ -313,9 +330,22 @@ class EmailOtpAuthController extends Controller
 
         $user = Auth::user();
 
-        $redirectUrl = $validated['redirect_url']
+        // Determine default role dashboard redirect
+        if ($user->role === 'super_admin') {
+            $defaultRedirect = route('super-admin.dashboard');
+        } elseif ($user->role === 'editor') {
+            $defaultRedirect = route('super-admin.templates');
+        } elseif ($user->role === 'reseller') {
+            $defaultRedirect = route('reseller.dashboard');
+        } elseif ($user->role === 'referral_partner') {
+            $defaultRedirect = route('referral-partner.dashboard');
+        } else {
+            $defaultRedirect = route('customer.dashboard');
+        }
+
+        $redirectUrl = $request->input('redirect_url')
             ?: session('url.intended')
-            ?: route('customer.dashboard');
+            ?: $defaultRedirect;
 
         session()->forget('url.intended');
 

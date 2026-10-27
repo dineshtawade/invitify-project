@@ -166,7 +166,7 @@ verifyOtp.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     verifyOtp.form = verifyOtpForm
 /**
 * @see \App\Http\Controllers\Auth\EmailOtpAuthController::loginWithPassword
- * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:288
+ * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:305
  * @route '/auth/password/login'
  */
 export const loginWithPassword = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -181,7 +181,7 @@ loginWithPassword.definition = {
 
 /**
 * @see \App\Http\Controllers\Auth\EmailOtpAuthController::loginWithPassword
- * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:288
+ * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:305
  * @route '/auth/password/login'
  */
 loginWithPassword.url = (options?: RouteQueryOptions) => {
@@ -190,7 +190,7 @@ loginWithPassword.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Auth\EmailOtpAuthController::loginWithPassword
- * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:288
+ * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:305
  * @route '/auth/password/login'
  */
 loginWithPassword.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -200,7 +200,7 @@ loginWithPassword.post = (options?: RouteQueryOptions): RouteDefinition<'post'> 
 
     /**
 * @see \App\Http\Controllers\Auth\EmailOtpAuthController::loginWithPassword
- * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:288
+ * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:305
  * @route '/auth/password/login'
  */
     const loginWithPasswordForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -210,7 +210,7 @@ loginWithPassword.post = (options?: RouteQueryOptions): RouteDefinition<'post'> 
 
             /**
 * @see \App\Http\Controllers\Auth\EmailOtpAuthController::loginWithPassword
- * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:288
+ * @see app/Http/Controllers/Auth/EmailOtpAuthController.php:305
  * @route '/auth/password/login'
  */
         loginWithPasswordForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
