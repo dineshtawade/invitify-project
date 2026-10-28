@@ -173,7 +173,7 @@ export default function ResellerWallet({ wallet, pendingDeposits = [], bankDetai
                         const err = await response.json();
                         msg = err.error || msg;
                     }
-                } catch (_) {}
+                } catch (_) { }
                 throw new Error(msg);
             }
             const orderData = await response.json();
@@ -293,7 +293,7 @@ export default function ResellerWallet({ wallet, pendingDeposits = [], bankDetai
                                 </button>
                             </div>
                             <div className="text-5xl font-black tracking-tight">
-                                ₹{wallet.balance.toFixed(2)}
+                                Credits{wallet.balance.toFixed(2)}
                             </div>
                             {bankDetails.default_bonus > 0 && (
                                 <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
@@ -398,7 +398,7 @@ export default function ResellerWallet({ wallet, pendingDeposits = [], bankDetai
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <span className="font-bold text-lg text-neutral-900 dark:text-neutral-100">
-                                                    ₹{parseFloat(req.amount).toFixed(2)}
+                                                    Credits{parseFloat(req.amount).toFixed(2)}
                                                 </span>
                                                 <span className="bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
                                                     {req.status}
@@ -448,8 +448,8 @@ export default function ResellerWallet({ wallet, pendingDeposits = [], bankDetai
                             {!rechargeMethod
                                 ? 'Choose a payment method to add funds to your wallet.'
                                 : rechargeMethod === 'online'
-                                ? 'Pay instantly via Razorpay — UPI, Card, or Net Banking.'
-                                : 'Make a bank transfer and submit the payment proof below.'}
+                                    ? 'Pay instantly via Razorpay — UPI, Card, or Net Banking.'
+                                    : 'Make a bank transfer and submit the payment proof below.'}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -526,7 +526,7 @@ export default function ResellerWallet({ wallet, pendingDeposits = [], bankDetai
 
                                         <div className="flex justify-between items-center text-neutral-700 dark:text-neutral-300 pt-1">
                                             <span>Wallet Recharge Credit:</span>
-                                            <span className="font-bold">₹{onlineGst.base.toFixed(2)}</span>
+                                            <span className="font-bold">Credits{onlineGst.base.toFixed(2)}</span>
                                         </div>
 
                                         {onlineGst.bonus > 0 && (
