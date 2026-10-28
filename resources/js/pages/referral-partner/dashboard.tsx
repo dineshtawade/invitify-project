@@ -169,7 +169,7 @@ export default function ReferralPartnerDashboard({
                         <div className="text-xs font-bold uppercase opacity-70 flex items-center gap-1">
                             <Wallet className="size-3" /> Available Balance
                         </div>
-                        <div className="text-4xl font-black mt-2">₹{Number(wallet.balance).toFixed(2)}</div>
+                        <div className="text-4xl font-black mt-2">Credits{Number(wallet.balance).toFixed(2)}</div>
                         <Button
                             onClick={() => setIsRedeemOpen(true)}
                             disabled={hasPending || Number(wallet.balance) < 100}
@@ -183,14 +183,14 @@ export default function ReferralPartnerDashboard({
                         <div className="text-xs font-bold text-neutral-500 uppercase flex items-center gap-1">
                             <TrendingUp className="size-3 text-green-500" /> Total Earnings
                         </div>
-                        <div className="text-3xl font-black text-green-600">₹{Number(wallet.total_earnings).toFixed(2)}</div>
+                        <div className="text-3xl font-black text-green-600">Credits{Number(wallet.total_earnings).toFixed(2)}</div>
                         <span className="text-[10px] text-neutral-400 mt-1">Total commission earned</span>
                     </div>
                     <div className="bg-white border rounded-2xl p-5 flex flex-col gap-1">
                         <div className="text-xs font-bold text-neutral-500 uppercase flex items-center gap-1">
                             <Clock className="size-3 text-amber-500" /> Pending Payouts
                         </div>
-                        <div className="text-3xl font-black text-amber-600">₹{Number(wallet.pending_withdrawals).toFixed(2)}</div>
+                        <div className="text-3xl font-black text-amber-600">Credits{Number(wallet.pending_withdrawals).toFixed(2)}</div>
                         <span className="text-[10px] text-neutral-400 mt-1">Awaiting admin manual transfer</span>
                     </div>
                     <div className="bg-white border rounded-2xl p-5 flex flex-col gap-1">
@@ -365,9 +365,9 @@ export default function ReferralPartnerDashboard({
                                                 <p className="text-xs text-neutral-400">{t.customer_email}</p>
                                             </td>
                                             <td className="px-4 py-3 text-center font-mono font-bold text-indigo-700">{t.code}</td>
-                                            <td className="px-4 py-3 text-center">₹{Number(t.amount).toFixed(2)}</td>
-                                            <td className="px-4 py-3 text-center text-amber-600">-₹{Number(t.discount_amount).toFixed(2)}</td>
-                                            <td className="px-4 py-3 text-center font-bold text-green-600">+₹{Number(t.commission_amount).toFixed(2)}</td>
+                                            <td className="px-4 py-3 text-center">Credits{Number(t.amount).toFixed(2)}</td>
+                                            <td className="px-4 py-3 text-center text-amber-600">-Credits{Number(t.discount_amount).toFixed(2)}</td>
+                                            <td className="px-4 py-3 text-center font-bold text-green-600">+Credits{Number(t.commission_amount).toFixed(2)}</td>
                                             <td className="px-4 py-3 text-right text-xs text-neutral-500">{new Date(t.created_at).toLocaleString()}</td>
                                         </tr>
                                     ))}
@@ -394,7 +394,7 @@ export default function ReferralPartnerDashboard({
                                         </div>
                                     </div>
                                     <span className={`font-bold text-lg ${item.type === 'credit' ? 'text-green-600' : 'text-red-600'}`}>
-                                        {item.type === 'credit' ? '+' : '-'}₹{parseFloat(item.amount).toFixed(2)}
+                                        {item.type === 'credit' ? '+' : '-'}Credits{parseFloat(item.amount).toFixed(2)}
                                     </span>
                                 </div>
                             ))}
@@ -415,7 +415,7 @@ export default function ReferralPartnerDashboard({
                                             {(r.status === 'approved' || r.status === 'paid') && <CheckCircle className="size-5 text-green-600" />}
                                             {r.status === 'rejected' && <XCircle className="size-5 text-red-500" />}
                                             <div>
-                                                <p className="font-bold text-lg">₹{parseFloat(r.amount).toFixed(2)} Withdrawal</p>
+                                                <p className="font-bold text-lg">Credits{parseFloat(r.amount).toFixed(2)} Withdrawal</p>
                                                 <p className="text-xs text-neutral-400">{new Date(r.created_at).toLocaleString()}</p>
                                             </div>
                                         </div>
@@ -488,11 +488,11 @@ export default function ReferralPartnerDashboard({
                         <form onSubmit={handleRedemption} className="flex flex-col gap-4 py-2">
                             <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-center">
                                 <p className="text-[10px] text-indigo-500 uppercase font-bold tracking-wider">Available Balance</p>
-                                <p className="text-3xl font-black text-indigo-700">₹{Number(wallet.balance).toFixed(2)}</p>
+                                <p className="text-3xl font-black text-indigo-700">Credits{Number(wallet.balance).toFixed(2)}</p>
                             </div>
 
                             <div className="grid gap-2">
-                                <Label>Withdrawal Amount (₹)</Label>
+                                <Label>Withdrawal Amount (Credits)</Label>
                                 <Input
                                     type="number"
                                     min={100}
